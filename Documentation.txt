@@ -1,6 +1,7 @@
 rails g model Site name:string:uniq url:string:uniq
 rails g migration AddFilterToSite filter:string
 rails g migration AddDateFilterToSite date_filter:string
+rails g migration AddStatsToSite reaction_count:integer comment_count:integer share_count:integer comment_plugin_count:integer total_count:integer
 
 
 rails generate active_admin:resource Site
@@ -15,3 +16,7 @@ rails g migration AddImageUrlToEntry image_url:text
 rails g migration AddStatsToEntry reaction_count:integer comment_count:integer share_count:integer comment_plugin_count:integer total_count:integer
 
 rails generate active_admin:resource Entry
+
+
+
+rails g migration AddAltsToTag variations:string
