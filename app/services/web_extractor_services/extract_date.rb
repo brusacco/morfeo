@@ -53,6 +53,9 @@ module WebExtractorServices
       elsif @doc.at('.post-date') && date.nil?
         date = @doc.at('.post-date').text
         @parsed = false
+      elsif @doc.at('.LeerNoticiasTopFecha') && date.nil?
+        date = @doc.at('.LeerNoticiasTopFecha').text
+        @parsed = false
       else
         date = nil
       end
@@ -102,6 +105,7 @@ module WebExtractorServices
     #------------------------------------------------------------------------------------
     def translate_crawled_date(date)
       date.strip!
+      date.gsub!('Fecha de publicacion:','')
       date.gsub!(/de enero|enero|ene/i, 'January')
       date.gsub!(/de febrero|febrero|feb/i, 'February')
       date.gsub!(/de marzo|marzo|mar/i, 'March')

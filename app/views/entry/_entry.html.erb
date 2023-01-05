@@ -10,6 +10,7 @@
         <small class="text-muted"><%= icon('fa-regular', 'calendar')%> <%=entry.published_at.strftime('%Y-%m-%d')%></small>
         <small class="text-muted"><i class="fa-brands fa-square-facebook"></i> <%=entry.total_count%></small>
       </p>
+      <%= render partial: "tag/tag_entry", collection: entry.tags, cache: true %>
     </div>
   </div>
 </div>
