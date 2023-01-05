@@ -1,3 +1,26 @@
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/">Home</a></li>
+    <li class="breadcrumb-item">Notas Populares 24Hrs.</li>
+  </ol>
+</nav>
+
+<h3>Análisis de notas populares 24Hrs..</h3>
+<div class="container py-4">
+  <div class="row">
+    <div class="col">
+    <h3>Notas por medio</h3>
+      <%= pie_chart @entries.group("sites.name").count, donut: true %>
+    </div>
+    <div class="col">
+      <h3>Interacciones por medio</h3>    
+      <%= pie_chart @entries.group("sites.name").sum(:total_count), donut: true %>
+    </div>
+  </div>
+</div>
+
+<hr>
+
 <div class="my-2">
   <h3>Etiquetas en notas populares</h3>
   <%= render partial: "tag/tag_pill", collection: @tags, cache: true %>
