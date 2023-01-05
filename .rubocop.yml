@@ -1,0 +1,38 @@
+require: rubocop-rails
+AllCops:
+  EnabledByDefault: true
+Style/Copyright:
+  Enabled: false
+  AutocorrectNotice: 'Copyright 2022 Mind'
+Lint/ConstantResolution:
+  Enabled: false
+Style/MissingElse:
+  Enabled: false
+Style/RedundantConstantBase:
+  Enabled: false
+Bundler/GemComment:
+  Enabled: false
+Bundler/GemVersion:
+  Enabled: false
+Style/InlineComment:
+  Enabled: false
+Style/RequireOrder:
+  Enabled: false
+Style/Documentation:
+  Enabled: false
+Style/DocumentationMethod:
+  Enabled: false
+Rails/SchemaComment:
+  Enabled: false
+Style/MethodCallWithArgsParentheses:
+  Enabled: false
+Rails/ReversibleMigrationMethodDefinition:
+ Enabled: false
+Style/OpenStructUse:
+  Enabled: false
+Lint/MissingSuper:
+  Enabled: false
+Style/ConditionalAssignment:
+  Enabled: false
+Metrics/MethodLength:
+  Enabled: false

@@ -1,0 +1,14 @@
+<div class="my-2">
+  <h2>Interacciones de la última semana</h2>
+  <%= render partial: "site/site_pill", collection: @sites, cache: true %>
+</div>
+<hr>
+<div class="my-2">
+  <h3>Etiquetas en notas recientes</h3>
+  <%= render partial: "tag/tag_pill", collection: @tags, cache: true %>
+</div>
+<hr>
+<h3>Notas recientes</h3>
+<div class="row" data-masonry='{"percentPosition": true }'>
+  <%= render partial: "entry/entry", collection: @entries, cache: true %>
+</div>

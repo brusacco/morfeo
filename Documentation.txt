@@ -1,0 +1,17 @@
+rails g model Site name:string:uniq url:string:uniq
+rails g migration AddFilterToSite filter:string
+rails g migration AddDateFilterToSite date_filter:string
+
+
+rails generate active_admin:resource Site
+
+
+rails g model Entry url:string:uniq title:string enabled:boolean
+rails f migration AddSiteToEntry site_id:integer:index
+rails g migration AddDescriptionToEntry description:text content:text
+rails g migration AddPublishedToEntry published_at:timestamp
+rails g migration AddImageUrlToEntry image_url:text
+
+rails g migration AddStatsToEntry reaction_count:integer comment_count:integer share_count:integer comment_plugin_count:integer total_count:integer
+
+rails generate active_admin:resource Entry

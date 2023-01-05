@@ -1,0 +1,15 @@
+<div class="col-sm-6 col-lg-4 mb-4">
+  <div class="card shadow-lg rounded">
+    <div class="px-3 py-2"><b><%=link_to entry.site.name, site_path(entry.site)%></b></div>
+    <%=image_tag entry.image_url, widt: '100%', height: 300, loading: 'lazy'%>
+
+    <div class="card-body">
+      <h5 class="card-title"><%=highlight(entry.title, entry.all_tags)%></h5>
+      <p class="card-text"><%=highlight(entry.description, entry.all_tags)%></p>
+      <p class="card-text">
+        <small class="text-muted"><%= icon('fa-regular', 'calendar')%> <%=entry.published_at.strftime('%Y-%m-%d')%></small>
+        <small class="text-muted"><i class="fa-brands fa-square-facebook"></i> <%=entry.total_count%></small>
+      </p>
+    </div>
+  </div>
+</div>

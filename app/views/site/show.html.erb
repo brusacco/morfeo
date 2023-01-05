@@ -1,0 +1,18 @@
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/">Home</a></li>
+    <li class="breadcrumb-item">Sitio</li>
+    <li class="breadcrumb-item active" aria-current="page"><%=@site.name%></li>
+  </ol>
+</nav>
+<h2>Análisis de los últimos 30 días</h2>
+<%= column_chart @entries_stats.count, xtitle: "Fecha", ytitle: "Cant. Notas", label: "Notas", colors: ['blue'] %>
+<%= column_chart @entries_stats.sum(:total_count), xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones", colors: ['green'] %>
+<hr>
+<div class="my-2">
+  <%= render partial: "tag/tag_pill", collection: @tags, cache: true %>
+</div>
+<hr>
+<div class="row py-2" data-masonry='{"percentPosition": true }'>
+<%= render partial: "entry/entry", collection: @entries, cache: true %>
+</div>
