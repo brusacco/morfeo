@@ -20,3 +20,11 @@ rails generate active_admin:resource Entry
 
 
 rails g migration AddAltsToTag variations:string
+
+IMPORTANTE HAY QUE PARCHAR EL ANEMONE O NO FUNCIONA
+Linea 165 de page.rb
+# remove anchor
+link = link.to_s.gsub(/#.*$/,'')
+if Gem::Requirement.new('< 2.5').satisfied_by?(Gem::Version.new(RUBY_VERSION))
+  link = URI.encode(URI.decode(link))
+end
