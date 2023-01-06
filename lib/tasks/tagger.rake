@@ -6,11 +6,12 @@ task tagger: :environment do
     result = WebExtractorServices::ExtractTags.call(entry.id)
     next unless result.success?
 
-    entry.tag_list.add(result.data)
+    entry.tag_list = result.data
     puts entry.url
     puts entry.tag_list
-    entry.save!
     puts '---------------------------------------------------'
+
+    entry.save!
   end
 end
 

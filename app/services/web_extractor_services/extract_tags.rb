@@ -12,10 +12,10 @@ module WebExtractorServices
       tags_found = []
 
       Tag.all.each do |tag|
-        tags_found << tag.name if content.include?(tag.name)
+        tags_found << tag.name if content.match(/\b#{tag.name}\b/)
         if tag.variations
           alts = tag.variations.split(',')
-          alts.each { |alt_tag| tags_found << tag.name if content.include?(alt_tag) }
+          alts.each { |alt_tag| tags_found << tag.name if content.match(/\b#{alt_tag}\b/) }
         end
       end
 

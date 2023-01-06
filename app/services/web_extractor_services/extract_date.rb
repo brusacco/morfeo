@@ -29,7 +29,7 @@ module WebExtractorServices
       elsif @doc.at_css('time.date') && date.nil?
         date = @doc.at_css('time.date').text
         @parsed = false
-      elsif @doc.at_css('.date') && date.nild
+      elsif @doc.at_css('.date') && date.nil?
         date = @doc.at_css('.date').text
         @parsed = false
       elsif @doc.at_css('time') && date.nil?
