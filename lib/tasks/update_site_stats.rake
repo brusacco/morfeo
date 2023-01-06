@@ -15,13 +15,14 @@ task update_site_stats: :environment do
       share_count += entry.share_count
       comment_plugin_count += entry.comment_plugin_count
       total_count += entry.total_count
-      site.update!(
-        reaction_count: reaction_count,
-        comment_count: comment_count,
-        share_count: share_count,
-        comment_plugin_count: comment_plugin_count,
-        total_count: total_count
-      )
     end
+    
+    site.update!(
+      reaction_count: reaction_count,
+      comment_count: comment_count,
+      share_count: share_count,
+      comment_plugin_count: comment_plugin_count,
+      total_count: total_count
+    )
   end
 end
