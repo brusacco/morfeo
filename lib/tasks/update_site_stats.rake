@@ -16,7 +16,7 @@ task update_site_stats: :environment do
       comment_plugin_count += entry.comment_plugin_count
       total_count += entry.total_count
     end
-    
+
     site.update!(
       reaction_count: reaction_count,
       comment_count: comment_count,
