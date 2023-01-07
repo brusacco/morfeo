@@ -10,15 +10,6 @@ class HomeController < ApplicationController
                     .order(published_at: :desc)
                     .limit(300)
     @tags = @entries.tag_counts_on(:tags).order('count desc')
-
-    @entries.each do |entry|
-      entry.tags.each do |tag|
-        @tags.each do |t|
-          t.interactions = 0 if t.interactions.nil?
-          t.interactions += entry.total_count if tag.id == t.id
-        end
-      end
-    end
   end
 
   def check
