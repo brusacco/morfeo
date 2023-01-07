@@ -2,7 +2,7 @@
 
 class HomeController < ApplicationController
   def index
-    @sites = Site.order(total_count: :desc)
+    @sites = Site.where(total_count: 1..).order(total_count: :desc)
     @entries = Entry.where(total_count: 10..)
                     .where.not(image_url: nil)
                     .includes(:site)
