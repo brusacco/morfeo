@@ -6,6 +6,7 @@ class Tag < ApplicationRecord
 
   after_create :tag_entries
   after_destroy :untag_entries
+  after_update :tag_entries
 
   private
 
