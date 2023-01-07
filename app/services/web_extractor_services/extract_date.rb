@@ -105,7 +105,7 @@ module WebExtractorServices
     #------------------------------------------------------------------------------------
     def translate_crawled_date(date)
       date.strip!
-      date.gsub!('Fecha de publicacion:','')
+      date.gsub!('Fecha de publicacion:', '')
       date.gsub!(/de enero|enero|ene/i, 'January')
       date.gsub!(/de febrero|febrero|feb/i, 'February')
       date.gsub!(/de marzo|marzo|mar/i, 'March')
