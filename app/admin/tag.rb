@@ -9,7 +9,9 @@ ActiveAdmin.register Tag do
   index do
     selectable_column
     id_column
-    column :name
+    column 'Name' do |tag|
+      link_to tag.name, tag_path(tag), target: :blank
+    end
     column :variations
     column :created_at
     column :taggings_count
