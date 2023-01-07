@@ -2,8 +2,9 @@
 
 module WebExtractorServices
   class ExtractTags < ApplicationService
-    def initialize(entry_id)
+    def initialize(entry_id, tag_id = nil)
       @entry_id = entry_id
+      @tag_id = tag_id
     end
 
     def call
@@ -11,7 +12,13 @@ module WebExtractorServices
       content = "#{entry.title} #{entry.description}"
       tags_found = []
 
-      Tag.all.each do |tag|
+      if @tag_id.nil?
+        tags = Tag.all
+      else
+        tags = Tag.where(id: @tag_id)
+      end
+
+      tags.each do |tag|
         tags_found << tag.name if content.match(/\b#{tag.name}\b/)
         if tag.variations
           alts = tag.variations.split(',')
