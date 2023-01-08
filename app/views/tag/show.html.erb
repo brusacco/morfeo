@@ -24,9 +24,8 @@
   </div>
 </div>
 
-<hr>
-
 <% if @tags.any? %>
+<hr>
 <div class="my-2">
   <h3>Etiquetas relacionadas</h2>
   <%= render partial: "tag/tag_pill", collection: @tags, cache: true %>
