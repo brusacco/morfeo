@@ -2,7 +2,7 @@
 
 module AppServices
   class TagEntries < ApplicationService
-    def initialize(tag_id, range)
+    def initialize(tag_id)
       @tag_id = tag_id
       @range = range
     end

@@ -3,6 +3,21 @@
 ActiveAdmin.register Tag do
   permit_params :name, :variations
 
+  #------------------------------------------------------------------
+  # UPDATE_ADJUSTED_PRICE
+  #------------------------------------------------------------------
+  action_item :retag_entries, only: [:edit, :show] do
+    link_to 'Retag entries',
+            retag_entries_admin_tag_path(tag.id),
+            method: :put,
+            data: { confirm: 'Are you sure?' }
+  end
+
+  member_action :retag_entries, method: :put do
+    Tags::UpdateTagEntriesJob.perform_later(params[:id])
+    redirect_to admin_tags_path, notice: 'Running tag updates'
+  end
+
   filter :name
   filter :variations
 
