@@ -11,7 +11,7 @@ class Tag < ApplicationRecord
   private
 
   def tag_entries
-    Tags::TagEntriesJob.perform_later(id, 1.month.ago..)
+    Tags::TagEntriesJob.perform_later(id, 1.month.ago..Time.current)
   end
 
   def untag_entries

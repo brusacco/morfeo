@@ -12,6 +12,10 @@ task tagger: :environment do
     puts '---------------------------------------------------'
 
     entry.save!
+  rescue StandardError => e
+    puts e.message
+    sleep 1
+    retry
   end
 end
 
