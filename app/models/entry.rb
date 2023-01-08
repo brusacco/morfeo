@@ -16,6 +16,6 @@ class Entry < ApplicationRecord
     tags.each do |tag|
       response << tag.variations.gsub(', ', ',').split(',') if tag.variations
     end
-    response.uniq.flatten
+    response.uniq.flatten 
   end
 end
