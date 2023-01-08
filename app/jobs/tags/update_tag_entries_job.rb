@@ -6,6 +6,7 @@ module Tags
 
     def perform(tag_id, range)
       AppServices::UpdateTagEntries.call(tag_id, range)
+      
     end
   end
 end
