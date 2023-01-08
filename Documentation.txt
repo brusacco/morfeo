@@ -29,3 +29,7 @@ link = link.to_s.gsub(/#.*$/,'')
 if Gem::Requirement.new('< 2.5').satisfied_by?(Gem::Version.new(RUBY_VERSION))
   link = URI.encode(URI.decode(link))
 end
+
+
+REGEX DE NOMBRES - alternativas
+\b[A-Z][a-zØ-öø-ÿ]*\s[A-Z][a-zØ-öø-ÿ]*\b
