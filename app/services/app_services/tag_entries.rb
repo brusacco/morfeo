@@ -13,7 +13,7 @@ module AppServices
         result = WebExtractorServices::ExtractTags.call(entry.id, @tag_id)
         next unless result.success?
 
-        entry.tag_list = result.data
+        entry.tag_list.add(result.data)
         entry.save!
       end
       handle_success("Finish tagging #{entries.size}")
