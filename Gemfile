@@ -108,3 +108,5 @@ gem 'groupdate', '~> 6.1'
 gem 'font-awesome-sass', '~> 6.2'
 
 gem 'httparty', '~> 0.21.0'
+
+gem "whenever", "~> 1.0"

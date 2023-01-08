@@ -250,8 +250,6 @@ GEM
       zeitwerk (~> 2.5)
     rainbow (3.1.1)
     rake (13.0.6)
-    rake-compiler (1.2.1)
-      rake
     ransack (3.2.1)
       activerecord (>= 6.1.5)
       activesupport (>= 6.1.5)
@@ -308,8 +306,6 @@ GEM
     stimulus-rails (1.2.1)
       railties (>= 6.0.0)
     stringio (3.0.4)
-    summarize (1.0.3)
-      rake-compiler
     thor (1.2.1)
     tilt (2.0.11)
     time (0.2.1)
@@ -339,6 +335,8 @@ GEM
     websocket-driver (0.7.5)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.5)
+    whenever (1.0.0)
+      chronic (>= 0.6.3)
     xdan-datetimepicker-rails (2.5.4)
       jquery-rails
       rails (>= 3.2.16)
@@ -379,12 +377,12 @@ DEPENDENCIES
   sprockets-rails
   sqlite3 (~> 1.4)
   stimulus-rails
-  summarize (~> 1.0)
   turbo-rails
   tzinfo-data
   web-console
   webdrivers
   webrick (~> 1.7)
+  whenever (~> 1.0)
 
 RUBY VERSION
    ruby 3.0.0p0
