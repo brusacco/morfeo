@@ -13,6 +13,9 @@ module Tags
 
         entry.tag_list.add(result.data)
         entry.save!
+      rescue StandardError
+        sleep 1
+        retry
       end
     end
   end

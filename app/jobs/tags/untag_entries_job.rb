@@ -10,6 +10,9 @@ module Tags
       entries.each do |entry|
         entry.tag_list.remove(@tag.name)
         entry.save!
+      rescue StandardError
+        sleep 1
+        retry
       end
     end
   end
