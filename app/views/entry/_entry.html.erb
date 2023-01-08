@@ -9,7 +9,7 @@
       <p class="card-text">
         <small class="text-muted px-1"><%= icon('fa-regular', 'calendar')%> <%=entry.published_at.strftime('%Y-%m-%d')%></small>
         <small class="text-muted px-1"><i class="fa-brands fa-square-facebook"></i> <%=entry.total_count%></small>
-        <small class="text-muted px-1"><i class="fa-brands fa-square-facebook"></i> <%=entry.id%></small>
+        <small class="text-muted px-1"><i class="fa-solid fa-link"></i> <%= link_to entry.id, entry.url, target: :blank %></small>
       </p>
       <%= render partial: "tag/tag_entry", collection: entry.tags, cache: true %>
     </div>
