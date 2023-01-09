@@ -8,7 +8,7 @@ class Entry < ApplicationRecord
   scope :a_day_ago, -> { where(published_at: 1.day.ago..) }
   scope :a_week_ago, -> { where(published_at: 1.week.ago..) }
   scope :a_month_ago, -> { where(published_at: 1.month.ago..) }
-
+  scope :has_image, -> { where.not(image_url: nil) }
   scope :has_interactions, -> { where(total_count: 10..) }
 
   def all_tags
