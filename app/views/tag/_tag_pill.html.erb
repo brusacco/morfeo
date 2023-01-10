@@ -1,4 +1,9 @@
-<%=link_to tag_path(tag_pill), class: 'btn btn-primary mx-1 my-1' do %>
-<%=tag_pill.name%> 
-<span class="badge bg-secondary"><i class="fa-solid fa-tag"></i> <%=tag_pill.count%></span>
+<div class="btn-group">
+<%=link_to tag_path(tag_pill), class: 'btn btn-primary mx-0 my-1' do %>
+  <%=tag_pill.name%> 
+  <span class="badge bg-secondary"><i class="fa-solid fa-tag"></i> <%=tag_pill.count%></span>
 <%end%>
+<%=link_to root_path, class: 'btn btn-primary mx-1 my-1', "data-tag" => tag_pill.name  do %>
+  <i class="fa-solid fa-filter"></i>
+<%end%>
+</div>
