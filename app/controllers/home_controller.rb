@@ -4,7 +4,7 @@ class HomeController < ApplicationController
   def index
     @tag_interacions = []
     @sites = Site.where(total_count: 1..).order(total_count: :desc)
-    @entries = Entry.where(total_count: 10..).has_image.includes(:site).order(published_at: :desc).limit(300)
+    @entries = Entry.has_interactions.has_image.includes(:site).order(published_at: :desc).limit(300)
     @tags = @entries.tag_counts_on(:tags).order('count desc')
   end
 
