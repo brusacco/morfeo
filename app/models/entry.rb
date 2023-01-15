@@ -18,4 +18,22 @@ class Entry < ApplicationRecord
     end
     response.uniq.flatten
   end
+
+  def generate_bigrams
+    regex = /([A-ZÀ-Ö][a-zø-ÿ]{3,})\s([A-ZÀ-Ö][a-zø-ÿ]{3,})/
+    bad_words = ['Noticias', 'Internacional', 'Radio']
+    bigrams = []
+    words = title.split(' ')
+    words.each_cons(2).each do |bigram|
+      tag = bigram.join(' ')
+      bigrams << tag if tag.match(regex) && !contains_substring?(title, bad_words)
+    end
+    bigrams
+  end
+
+  private
+
+  def contains_substring?(string, substrings)
+    substrings.any? { |substring| string.scan(substring).any? }
+  end
 end
