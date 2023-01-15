@@ -6,7 +6,6 @@
   </ol>
 </nav>
 
-<% cache @tag do %>
 <h3>Análisis de los últimos 30 días</h3>
 <%= column_chart @entries.where(published_at: 30.days.ago..Time.now).group_by_day(:published_at).count, xtitle: "Fecha", ytitle: "Cant. Notas", label: "Notas", colors: ['blue'] %>
 <%= column_chart @entries.where(published_at: 30.days.ago..Time.now).group_by_day(:published_at).sum(:total_count), xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones", colors: ['green']%>
@@ -39,4 +38,3 @@
 <div class="row py-2" data-masonry='{"percentPosition": true }' data-controller="cards">
 <%= render partial: "entry/entry", collection: @entries, cache: true %>
 </div>
-<% end %>
