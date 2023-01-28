@@ -22,6 +22,9 @@ rails generate active_admin:resource Entry
 rails g migration AddAltsToTag variations:string
 rails g migration AddInteractionsToTag fb_total_stats:string
 
+
+rails g model Topic name:string
+
 IMPORTANTE HAY QUE PARCHAR EL ANEMONE O NO FUNCIONA
 Linea 165 de page.rb
 # remove anchor
