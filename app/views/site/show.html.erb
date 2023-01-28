@@ -10,11 +10,35 @@
 <h2>Análisis de los últimos 30 días</h2>
 <%= column_chart @entries_stats.count, xtitle: "Fecha", ytitle: "Cant. Notas", label: "Notas", colors: ['blue'] %>
 <%= column_chart @entries_stats.sum(:total_count), xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones", colors: ['green'] %>
+
 <hr>
+
+<div class="container py-4">
+  <div class="row">
+    <div class="col">
+    <h3>Cantidad de Notas por Tag Relacionados</h3>
+      <%= pie_chart @tags_count, donut: true %>
+    </div>
+    <div class="col">
+      <h3>Cantidad de Interacciones por Tag Relacionados</h3>    
+      <%= pie_chart @tags_interactions, donut: true %>
+    </div>
+  </div>
+</div>
+
+<hr>
+
 <div class="my-2">
+  <h3>Apariciones Etiquetas relacionadas</h2>
   <%= render partial: "tag/tag_pill", collection: @tags, cache: true %>
 </div>
 <hr>
+<div class="my-2">
+  <h3>Interacciones Etiquetas relacionadas</h2>
+  <%= render partial: "tag/tag_pill_interactions", collection: @tags, cache: true %>
+</div>
+<hr>
+
 <div class="row py-2" data-masonry='{"percentPosition": true }'>
 <%= render partial: "entry/entry", collection: @entries, cache: true %>
 </div>

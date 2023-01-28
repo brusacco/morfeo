@@ -8,6 +8,12 @@ class Tag < ApplicationRecord
   after_update :tag_entries
   after_destroy :untag_entries
 
+  def after_initialize
+    self.interactions = 0
+  end
+
+  attr_accessor :interactions
+
   private
 
   def tag_entries
