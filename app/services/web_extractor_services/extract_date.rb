@@ -13,16 +13,12 @@ module WebExtractorServices
         @parsed = false
         date = date_from_ld(@doc.at('script[type="application/ld+json"]').text)
         @parsed = true
-        @parsed = true
       elsif @doc.at('meta[property="article:published_time"]')
         date = @doc.at('meta[property="article:published_time"]')[:content]
-        @parsed = false
         @parsed = true
       elsif @doc.at('meta[property="article:modified_time"]') && date.nil?
-        @parsed = false
         date = @doc.at('meta[property="article:modified_time"]')[:content]
         @parsed = true
-        @parsed = false
       elsif @doc.at_css('.entry-date') && date.nil?
         date = @doc.at_css('.entry-date')[:datetime]
         @parsed = false
