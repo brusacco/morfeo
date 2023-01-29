@@ -7,10 +7,8 @@ module WebExtractorServices
       @parsed = false
     end
 
-    @parsed = false
     def call
       if @doc.at('script[type="application/ld+json"]')
-        @parsed = false
         date = date_from_ld(@doc.at('script[type="application/ld+json"]').text)
         @parsed = true
       elsif @doc.at('meta[property="article:published_time"]')
