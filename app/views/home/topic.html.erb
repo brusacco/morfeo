@@ -1,0 +1,62 @@
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/">Home</a></li>
+    <li class="breadcrumb-item">Etiqueta</li>
+    <li class="breadcrumb-item active" aria-current="page"><%=@tag.name%></li>
+  </ol>
+</nav>
+
+<h3>Análisis de los últimos 30 días</h3>
+<%= column_chart @entries.a_month_ago.group_by_day(:published_at).count, xtitle: "Fecha", ytitle: "Cant. Notas", label: "Notas", colors: ['blue'] %>
+<%= column_chart @entries.a_month_ago.group_by_day(:published_at).sum(:total_count), xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones", colors: ['green']%>
+
+<hr>
+
+<div class="container py-4">
+  <div class="row">
+    <div class="col">
+    <h3>Cantidad de Notas por medio</h3>
+      <%= pie_chart @entries.group("sites.name").count, donut: true %>
+    </div>
+    <div class="col">
+      <h3>Cantidad de Interacciones por medio</h3>    
+      <%= pie_chart @entries.group("sites.name").sum(:total_count), donut: true %>
+    </div>
+  </div>
+</div>
+
+<hr>
+
+<div class="container py-4">
+  <div class="row">
+    <div class="col">
+    <h3>Cantidad de Notas por Tag Relacionados</h3>
+      <%= pie_chart @tags_count, donut: true %>
+    </div>
+    <div class="col">
+      <h3>Cantidad de Interacciones por Tag Relacionados</h3>    
+      <%= pie_chart @tags_interactions, donut: true %>
+    </div>
+  </div>
+</div>
+
+<% if @tags.any? %>
+<hr>
+<div class="my-2">
+  <h3>Apariciones Etiquetas relacionadas</h2>
+  <%= render partial: "tag/tag_pill", collection: @tags, cache: true %>
+  <p><small class="text-muted px-1">*Cantidad de veces que aparecen las etiquetas en las notas</small></p>
+</div>
+<hr>
+<div class="my-2">
+  <h3>Interacciones Etiquetas relacionadas</h2>
+  <%= render partial: "tag/tag_pill_interactions", collection: @tags.to_a.sort_by(&:interactions).reverse, cache: true %>
+  <p><small class="text-muted px-1">*Interacciones en las notas</small></p>
+</div>
+<%end%>
+<hr>
+
+<h3>Últimas Noticias sobre <%=@tag.name%></h3>
+<div class="row py-2" data-masonry='{"percentPosition": true }' data-controller="cards">
+<%= render partial: "entry/entry", collection: @entries, cache: true %>
+</div>

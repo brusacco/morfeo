@@ -4,5 +4,9 @@
 module ActsAsTaggableOn
   class Tag
     attr_accessor :interactions
+
+    def self.interactions(entries)
+      0
+    end
   end
 end
