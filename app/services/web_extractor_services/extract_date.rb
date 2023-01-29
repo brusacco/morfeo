@@ -5,66 +5,67 @@ module WebExtractorServices
     def initialize(doc)
       @doc = doc
       @parsed = false
+      @date = nil
     end
 
     def call
-      if @doc.at('script[type="application/ld+json"]')
-        date = date_from_ld(@doc.at('script[type="application/ld+json"]').text)
-        @parsed = true
-      elsif @doc.at('meta[property="article:published_time"]')
-        date = @doc.at('meta[property="article:published_time"]')[:content]
+      if @doc.at('meta[property="article:published_time"]')
+        @date = @doc.at('meta[property="article:published_time"]')[:content]
         @parsed = true
       elsif @doc.at('meta[property="article:modified_time"]') && date.nil?
-        date = @doc.at('meta[property="article:modified_time"]')[:content]
+        @date = @doc.at('meta[property="article:modified_time"]')[:content]
+        @parsed = true
+      elsif @doc.at('script[type="application/ld+json"]')
+        @date = date_from_ld(@doc.at('script[type="application/ld+json"]').text)
         @parsed = true
       elsif @doc.at_css('.entry-date') && date.nil?
-        date = @doc.at_css('.entry-date')[:datetime]
+        @date = @doc.at_css('.entry-date')[:datetime]
         @parsed = false
       elsif @doc.at_css('time.date') && date.nil?
-        date = @doc.at_css('time.date').text
+        @date = @doc.at_css('time.date').text
         @parsed = false
       elsif @doc.at_css('.date') && date.nil?
-        date = @doc.at_css('.date').text
+        @date = @doc.at_css('.date').text
         @parsed = false
       elsif @doc.at_css('time') && date.nil?
-        date = @doc.at_css('time')[:datetime]
+        @date = @doc.at_css('time')[:datetime]
         @parsed = true
       elsif @doc.at_css('#fusion-app > div > section.sec-m.container > div > article > header > div.bl > div.dt') && date.nil?
-        date = @doc.at_css('#fusion-app > div > section.sec-m.container > div > article > header > div.bl > div.dt').text
+        @date = @doc.at_css('#fusion-app > div > section.sec-m.container > div > article > header > div.bl > div.dt').text
         @parsed = false
       elsif @doc.at_css('#container > section > div > div > div.col-sm-8 > div > div > div.title-post > ul > li:nth-child(1)') && date.nil?
-        date = @doc.at_css('#container > section > div > div > div.col-sm-8 > div > div > div.title-post > ul > li:nth-child(1)').text
+        @date = @doc.at_css('#container > section > div > div > div.col-sm-8 > div > div > div.title-post > ul > li:nth-child(1)').text
         @parsed = false
       elsif @doc.at('.publish-date') && date.nil?
-        date = @doc.at('.publish-date').text
+        @date = @doc.at('.publish-date').text
         @parsed = false
       elsif @doc.at('.Leer_cat') && date.nil?
-        date = @doc.at('.Leer_cat').text
+        @date = @doc.at('.Leer_cat').text
         @parsed = false
       elsif @doc.at('.NotasFecha') && date.nil?
-        date = @doc.at('.NotasFecha').text
+        @date = @doc.at('.NotasFecha').text
         @parsed = false
       elsif @doc.at('.post-date') && date.nil?
-        date = @doc.at('.post-date').text
+        @date = @doc.at('.post-date').text
         @parsed = false
       elsif @doc.at('.LeerNoticiasTopFecha') && date.nil?
-        date = @doc.at('.LeerNoticiasTopFecha').text
+        @date = @doc.at('.LeerNoticiasTopFecha').text
         @parsed = false
       elsif @doc.at('.mono-caps-condensed--md') && date.nil?
-        date = @doc.at('.mono-caps-condensed--md').text
+        @date = @doc.at('.mono-caps-condensed--md').text
         @parsed = false
       else
-        date = nil
+        @date = nil
       end
 
-      if date.nil?
+      if @date.nil?
         handle_error('Fecha no encontrada')
       else
         unless @parsed
-          date = translate_crawled_date(date)
-          date = Chronic.parse(date, endian_precedence: :little)
+          @date = translate_crawled_date(@date)
+          @date = Chronic.parse(date, endian_precedence: :little)
         end
-        handle_success({ published_at: date })
+        handle_success({ published_at: @date })
       end
     end
 
