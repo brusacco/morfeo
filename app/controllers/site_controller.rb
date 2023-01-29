@@ -15,7 +15,7 @@ class SiteController < ApplicationController
         tag.interactions += entry.total_count if entry.tag_list.include?(tag.name)
 
         @tags_interactions[tag.name] ||= 0
-        @tags_interactions[tag.name] += entry.total_count  if entry.tag_list.include?(tag.name)
+        @tags_interactions[tag.name] += entry.total_count if entry.tag_list.include?(tag.name)
       end
     end
 

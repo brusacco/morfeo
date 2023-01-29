@@ -43,13 +43,13 @@
 <% if @tags.any? %>
 <hr>
 <div class="my-2">
-  <h3>Apariciones Etiquetas relacionadas</h2>
+  <h3>Apariciones Etiquetas</h2>
   <%= render partial: "tag/tag_pill", collection: @tags, cache: true %>
   <p><small class="text-muted px-1">*Cantidad de veces que aparecen las etiquetas en las notas</small></p>
 </div>
 <hr>
 <div class="my-2">
-  <h3>Interacciones Etiquetas relacionadas</h2>
+  <h3>Interacciones Etiquetas</h2>
   <%= render partial: "tag/tag_pill_interactions", collection: @tags.to_a.sort_by(&:interactions).reverse, cache: true %>
   <p><small class="text-muted px-1">*Interacciones en las notas</small></p>
 </div>
