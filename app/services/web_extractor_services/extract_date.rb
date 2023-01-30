@@ -12,46 +12,46 @@ module WebExtractorServices
       if @doc.at('meta[property="article:published_time"]')
         @date = @doc.at('meta[property="article:published_time"]')[:content]
         @parsed = true
-      elsif @doc.at('meta[property="article:modified_time"]') && date.nil?
+      elsif @doc.at('meta[property="article:modified_time"]') && @date.nil?
         @date = @doc.at('meta[property="article:modified_time"]')[:content]
         @parsed = true
-      elsif @doc.at('script[type="application/ld+json"]')
+      elsif @doc.at('script[type="application/ld+json"]') && @date.nil?
         @date = date_from_ld(@doc.at('script[type="application/ld+json"]').text)
         @parsed = true
-      elsif @doc.at_css('.entry-date') && date.nil?
+      elsif @doc.at_css('.entry-date') && @date.nil?
         @date = @doc.at_css('.entry-date')[:datetime]
         @parsed = false
-      elsif @doc.at_css('time.date') && date.nil?
+      elsif @doc.at_css('time.date') && @date.nil?
         @date = @doc.at_css('time.date').text
         @parsed = false
-      elsif @doc.at_css('.date') && date.nil?
+      elsif @doc.at_css('.date') && @date.nil?
         @date = @doc.at_css('.date').text
         @parsed = false
-      elsif @doc.at_css('time') && date.nil?
+      elsif @doc.at_css('time') && @date.nil?
         @date = @doc.at_css('time')[:datetime]
         @parsed = true
-      elsif @doc.at_css('#fusion-app > div > section.sec-m.container > div > article > header > div.bl > div.dt') && date.nil?
+      elsif @doc.at_css('#fusion-app > div > section.sec-m.container > div > article > header > div.bl > div.dt') && @date.nil?
         @date = @doc.at_css('#fusion-app > div > section.sec-m.container > div > article > header > div.bl > div.dt').text
         @parsed = false
-      elsif @doc.at_css('#container > section > div > div > div.col-sm-8 > div > div > div.title-post > ul > li:nth-child(1)') && date.nil?
+      elsif @doc.at_css('#container > section > div > div > div.col-sm-8 > div > div > div.title-post > ul > li:nth-child(1)') && @date.nil?
         @date = @doc.at_css('#container > section > div > div > div.col-sm-8 > div > div > div.title-post > ul > li:nth-child(1)').text
         @parsed = false
-      elsif @doc.at('.publish-date') && date.nil?
+      elsif @doc.at('.publish-date') && @date.nil?
         @date = @doc.at('.publish-date').text
         @parsed = false
-      elsif @doc.at('.Leer_cat') && date.nil?
+      elsif @doc.at('.Leer_cat') && @date.nil?
         @date = @doc.at('.Leer_cat').text
         @parsed = false
-      elsif @doc.at('.NotasFecha') && date.nil?
+      elsif @doc.at('.NotasFecha') && @date.nil?
         @date = @doc.at('.NotasFecha').text
         @parsed = false
-      elsif @doc.at('.post-date') && date.nil?
+      elsif @doc.at('.post-date') && @date.nil?
         @date = @doc.at('.post-date').text
         @parsed = false
-      elsif @doc.at('.LeerNoticiasTopFecha') && date.nil?
+      elsif @doc.at('.LeerNoticiasTopFecha') && @date.nil?
         @date = @doc.at('.LeerNoticiasTopFecha').text
         @parsed = false
-      elsif @doc.at('.mono-caps-condensed--md') && date.nil?
+      elsif @doc.at('.mono-caps-condensed--md') && @date.nil?
         @date = @doc.at('.mono-caps-condensed--md').text
         @parsed = false
       else
