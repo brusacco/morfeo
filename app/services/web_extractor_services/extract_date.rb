@@ -63,7 +63,7 @@ module WebExtractorServices
       else
         unless @parsed
           @date = translate_crawled_date(@date)
-          @date = Chronic.parse(date, endian_precedence: :little)
+          @date = Chronic.parse(@date, endian_precedence: :little)
         end
         handle_success({ published_at: @date })
       end
