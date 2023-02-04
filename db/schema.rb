@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_01_08_153723) do
+ActiveRecord::Schema[7.0].define(version: 2023_01_04_043807) do
   create_table "active_admin_comments", force: :cascade do |t|
     t.string "namespace"
     t.text "body"
@@ -101,7 +101,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_01_08_153723) do
     t.datetime "updated_at", null: false
     t.integer "taggings_count", default: 0
     t.string "variations"
-    t.index "\"published_at\"", name: "index_tags_on_published_at"
     t.index ["name"], name: "index_tags_on_name", unique: true
   end
 
