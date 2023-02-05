@@ -36,3 +36,20 @@ end
 
 REGEX DE NOMBRES - alternativas
 \b[A-Z][a-zØ-öø-ÿ]*\s[A-Z][a-zØ-öø-ÿ]*\b
+
+
+
+EXPORTAR SQLite
+
+sqlite> .headers on
+sqlite> .mode csv
+sqlite> .output selected_data.csv
+sqlite> SELECT book_id,
+ ...> title,
+ ...> authors,
+ ...> year
+ ...> FROM books;
+sqlite> .quit
+
+LOAD CONTENIDO MYSQL
+load data infile "/home/morfeo/db/sites.csv" into table sites fields terminated by "," enclosed by '"' lines terminated by "\n";

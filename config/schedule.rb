@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-set :environment, 'development'
+# set :environment, 'development'
 
 every :hour do
   rake 'crawler'
