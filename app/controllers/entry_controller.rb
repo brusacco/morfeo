@@ -35,10 +35,10 @@ class EntryController < ApplicationController
     @tags.each do |tag|
       @entries.each do |entry|
         tag.interactions ||= 0
-        tag.interactions += entry.total_count if entry.tag_list.include?(tag.name)
+        tag.interactions += entry.tw_total if entry.tag_list.include?(tag.name)
 
         @tags_interactions[tag.name] ||= 0
-        @tags_interactions[tag.name] += entry.total_count if entry.tag_list.include?(tag.name)
+        @tags_interactions[tag.name] += entry.tw_total if entry.tag_list.include?(tag.name)
       end
     end
 
