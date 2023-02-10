@@ -11,9 +11,6 @@ task update_tw_stats: :environment do
       sleep 15.minutes if result.error == 'Rate limit exceeded'
       next
     end
-    puts entry.url
-    puts result.data
-    puts '--------------------------------------------------------------------------'
     sleep 5
   end
 end
