@@ -12,6 +12,6 @@ task update_tw_stats: :environment do
       sleep 15.minutes if result.error == 'Rate limit exceeded'
       next
     end
-    sleep 5
+    sleep 3
   end
 end
