@@ -52,7 +52,7 @@ class HomeController < ApplicationController
 
   def deploy
     # Check out the latest code from the Git repository
-    system('git checkout -f master')
+    system('git checkout -f main')
     system('git pull')
 
     # Install dependencies
