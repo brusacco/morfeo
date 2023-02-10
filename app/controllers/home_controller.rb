@@ -61,7 +61,7 @@ class HomeController < ApplicationController
     system('bundle install')
 
     # Migrate the database
-    system('RAILS_ENV=production rake db:migrate')
+    system('RAILS_ENV=development rake db:migrate')
 
     # Restart the Puma server
     system('touch tmp/restart.txt')
