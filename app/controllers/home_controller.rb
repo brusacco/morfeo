@@ -50,6 +50,23 @@ class HomeController < ApplicationController
     @tags.each { |n| @tags_count[n.name] = n.count }
   end
 
+  def deploy
+    # Check out the latest code from the Git repository
+    system('git checkout -f master')
+    system('git pull')
+
+    # Install dependencies
+    system('bundle install')
+
+    # Migrate the database
+    system('RAILS_ENV=production rake db:migrate')
+
+    # Restart the Puma server
+    system('touch tmp/restart.txt')
+
+    render plain: 'Deployment complete!'
+  end
+
   def check
     @url = params[:url]
     @doc = Nokogiri::HTML(URI.parse(@url).open)
