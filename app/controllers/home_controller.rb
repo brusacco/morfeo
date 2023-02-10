@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class HomeController < ApplicationController
+  skip_before_action :verify_authenticity_token
+
   def index
     @tag_interacions = []
     @sites = Site.where(total_count: 1..).order(total_count: :desc)
