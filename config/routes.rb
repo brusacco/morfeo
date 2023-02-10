@@ -12,6 +12,6 @@ Rails.application.routes.draw do
   ActiveAdmin.routes(self)
   get 'home/index'
   get 'home/check'
-  post 'home/deploy'
-  root 'deploy', to: 'home#index'
+  post 'deploy', to: 'home/deploy' 
+  root 'home#index'
 end
