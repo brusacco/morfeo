@@ -4,7 +4,6 @@ desc 'Update stats'
 task update_stats: :environment do
   Entry.where(published_at: 1.week.ago..Time.current).each do |entry|
     result = FacebookServices::UpdateStats.call(entry.id)
-
     if result.success?
       entry.update!(result.data)
     else
