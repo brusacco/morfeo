@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_01_04_043807) do
+ActiveRecord::Schema[7.0].define(version: 2023_02_10_115654) do
   create_table "active_admin_comments", force: :cascade do |t|
     t.string "namespace"
     t.text "body"
@@ -53,6 +53,9 @@ ActiveRecord::Schema[7.0].define(version: 2023_01_04_043807) do
     t.integer "share_count", default: 0
     t.integer "comment_plugin_count", default: 0
     t.integer "total_count", default: 0
+    t.integer "tw_fav", default: 0
+    t.integer "tw_rt", default: 0
+    t.integer "tw_total", default: 0
     t.index ["site_id"], name: "index_entries_on_site_id"
     t.index ["url"], name: "index_entries_on_url", unique: true
   end
