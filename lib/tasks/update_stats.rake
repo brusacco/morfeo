@@ -10,5 +10,8 @@ task update_stats: :environment do
       Rails.logger.error "Failed to update Facebook stats for #{entry.id}: #{result.error}"
       next
     end
+  rescue StandardError => e
+    Rails.logger.error "Error on update Twitter stats #{e.message}"
+    retry
   end
 end

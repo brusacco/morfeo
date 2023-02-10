@@ -13,5 +13,8 @@ task update_tw_stats: :environment do
       next
     end
     sleep 3
+  rescue StandardError => e
+    Rails.logger.error "Error on update Twitter stats #{e.message}"
+    retry
   end
 end
