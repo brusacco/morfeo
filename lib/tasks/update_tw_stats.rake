@@ -6,7 +6,7 @@ task update_tw_stats: :environment do
     result = TwitterServices::GetUrlStats.call(entry.id)
     if result.success?
       entry.update!(result.data)
-      puts "Updated #{entry.url} - RT: #{result.data[:tw_rt]} - FAV: #{result.data[:tw_fav]}"
+      puts "Updated #{entry.url} - RT: #{result.data[:tw_rt]} - FAV: #{result.data[:tw_fav]} - TOTAL: #{result.data[:tw_total]}"
     else
       Rails.logger.error "Failed to update Twitter stats for #{entry.id}: #{result.error}"
       sleep 15.minutes if result.error == 'Rate limit exceeded'
