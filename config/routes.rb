@@ -13,5 +13,5 @@ Rails.application.routes.draw do
   get 'home/index'
   get 'home/check'
   post 'home/deploy'
-  root 'home#index'
+  root 'deploy', to 'home#index'
 end
