@@ -12,7 +12,7 @@ task update_tw_stats: :environment do
       sleep 15.minutes if result.error == 'Rate limit exceeded'
       next
     end
-    sleep 3
+    sleep 5
   rescue StandardError => e
     Rails.logger.error "Error on update Twitter stats #{e.message}"
     retry
