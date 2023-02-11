@@ -55,7 +55,7 @@ class HomeController < ApplicationController
   def deploy
     Dir.chdir('/home/morfeo') do
       # Check out the latest code from the Git repository
-      system('git checkout -f main')
+      # system('git checkout -f main')
       system('git pull')
 
       # Install dependencies
