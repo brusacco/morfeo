@@ -38,7 +38,7 @@ end
 REGEX DE NOMBRES - alternativas
 \b[A-Z][a-zØ-öø-ÿ]*\s[A-Z][a-zØ-öø-ÿ]*\b
 
-
+EDITOR="mc --wait" rails credentials:edit
 
 EXPORTAR SQLite
 
