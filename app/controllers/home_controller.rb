@@ -55,14 +55,13 @@ class HomeController < ApplicationController
   def deploy
     Dir.chdir('/home/morfeo') do
       # Check out the latest code from the Git repository
-      # system('git checkout -f main')
       system('git pull')
 
       # Install dependencies
       system('bundle install')
 
       # Migrate the database
-      system('RAILS_ENV=development rake db:migrate')
+      system('RAILS_ENV=development rails db:migrate')
 
       # Restart the Puma server
       system('touch tmp/restart.txt')

@@ -12,6 +12,8 @@ class Entry < ApplicationRecord
   scope :has_interactions, -> { where(total_count: 10..) }
   scope :has_any_interactions, -> { where(total_count: 1..) }
 
+  before_save :set_published_date
+
   def all_tags
     response = tags.map(&:name)
     tags.each do |tag|
@@ -33,6 +35,10 @@ class Entry < ApplicationRecord
   end
 
   private
+
+  def set_published_date
+    self.published_date = published_at.to_date if published_at.present?
+  end
 
   def contains_substring?(string, substrings)
     substrings.any? { |substring| string.scan(substring).any? }

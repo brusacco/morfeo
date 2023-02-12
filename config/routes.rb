@@ -6,6 +6,7 @@ Rails.application.routes.draw do
   get 'entry/popular', as: 'popular_entries'
   get 'entry/twitter', as: 'twitter_entries'
   get 'entry/commented', as: 'commented_entries'
+  get 'entry/week', as: 'week_entries'
   get '/site/:id', to: 'site#show', as: 'site'
   get '/tag/:id', to: 'tag#show', as: 'tag'
   devise_for :admin_users, ActiveAdmin::Devise.config
