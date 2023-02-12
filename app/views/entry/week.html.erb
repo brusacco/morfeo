@@ -1,4 +1,7 @@
 <% Date.today.to_date.downto(1.week.ago.to_date) do |date| %>
-  Noticias Populares del: <%= date %>
+  <h2>Noticias Populares del: <%= date %></h2>
   <hr>
+  <div class="row" data-masonry='{"percentPosition": true }'>
+  <%= render partial: "entry/entry", collection: Entry.where(published_date: date.to_date).order(total_count: :desc).limit(50), cache: true %>
+  </div>
 <% end %>
