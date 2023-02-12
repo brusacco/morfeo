@@ -14,7 +14,7 @@ task bigrams: :environment do
       freq[bigram] += 1
     end
   end
-  
+
   freq.each do |k, v|
     puts "#{k} #{v}" if v > 10
   end

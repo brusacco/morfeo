@@ -2,7 +2,7 @@
 
 desc 'Update Twitter stats'
 task update_tw_stats: :environment do
-  Entry.has_any_interactions.where(published_at: 1.day.ago..Time.current).order(total_count: :desc).each do |entry|
+  Entry.has_any_interactions.where(published_at: 2.day.ago..Time.current).order(total_count: :desc).each do |entry|
     result = TwitterServices::GetUrlStats.call(entry.id)
     if result.success?
       entry.update!(result.data)
