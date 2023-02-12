@@ -6,7 +6,7 @@ task crawler: :environment do
     puts "Start processing site #{site.name}..."
     Anemone.crawl(
       site.url,
-      depth_limit: 1,
+      depth_limit: 3,
       discard_page_bodies: true,
       accept_cookies: true,
       verbose: true
