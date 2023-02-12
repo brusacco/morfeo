@@ -9,7 +9,7 @@ task crawler: :environment do
       depth_limit: 3,
       discard_page_bodies: true,
       accept_cookies: true,
-      verbose: false
+      verbose: true
     ) do |anemone|
       anemone.skip_links_like(
         /.*(.jpeg|.jpg|.gif|.png|.pdf|.mp3|.mp4|.mpeg).*/,
