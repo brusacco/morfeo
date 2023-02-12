@@ -40,6 +40,8 @@ REGEX DE NOMBRES - alternativas
 
 EDITOR="mc --wait" rails credentials:edit
 
+rails console -- --noautocomplete
+
 EXPORTAR SQLite
 
 sqlite> .headers on
