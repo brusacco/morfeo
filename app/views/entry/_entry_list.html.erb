@@ -1,0 +1,20 @@
+<div class="card mb-3"  >
+  <div class="row g-0">
+    <div class="col-md-4">
+      <img src="<%=entry_list.image_url%>" class="img-fluid rounded-start">
+    </div>
+    <div class="col-md-8">
+      <div class="card-body">
+        <h5 class="card-title"><%=entry_list.title%></h5>
+        <p class="card-text"><%=entry_list.description%></p>
+        <p class="card-text">
+        <small class="text-muted px-1"><%= icon('fa-regular', 'calendar')%> <%=entry_list.published_at.strftime('%Y-%m-%d')%></small>
+        <small class="text-muted px-1"><i class="fa-brands fa-square-facebook"></i> <%=entry_list.total_count%></small>
+        <small class="text-muted px-1"><i class="fa-brands fa-square-twitter"></i> <%=entry_list.tw_total%></small>
+        <small class="text-muted px-1"><i class="fa-solid fa-link"></i> <%= link_to entry_list.id, entry_list.url, target: :blank %></small>
+      </p>
+       <%= render partial: "tag/tag_entry", collection: entry_list.tags, cache: true %>
+      </div>
+    </div>
+  </div>
+</div>
