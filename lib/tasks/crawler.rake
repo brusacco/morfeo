@@ -30,7 +30,6 @@ task crawler: :environment do
       #end
 
       anemone.on_pages_like(/#{site.filter}/) do |page|
-        puts "#{page.url} is a link} <<<<<<<<<"
         Entry.create_with(site: site).find_or_create_by!(url: page.url.to_s) do |entry|
           puts entry.url
 
