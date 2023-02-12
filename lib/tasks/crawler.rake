@@ -25,9 +25,9 @@ task crawler: :environment do
         %r{/tag/}
       )
 
-      anemone.focus_crawl do |page|
-        page.links.delete_if { |href| Entry.exists?(url: href.to_s) }
-      end
+      #anemone.focus_crawl do |page|
+        #page.links.delete_if { |href| Entry.exists?(url: href.to_s) }
+      #end
 
       anemone.on_pages_like(/#{site.filter}/) do |page|
         puts "#{page.url} is a link} <<<<<<<<<"
