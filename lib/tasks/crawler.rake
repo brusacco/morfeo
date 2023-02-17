@@ -4,9 +4,10 @@ desc 'Moopio Morfeo web crawler'
 task crawler: :environment do
   Site.all.each do |site|
     puts "Start processing site #{site.name}..."
+    puts '--------------------------------------------------------------------"'
     Anemone.crawl(
       site.url,
-      depth_limit: 3,
+      depth_limit: 2,
       discard_page_bodies: true,
       accept_cookies: true,
       verbose: true
