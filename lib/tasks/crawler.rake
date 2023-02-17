@@ -23,6 +23,8 @@ task crawler: :environment do
         %r{/page/},
         %r{/etiqueta/},
         %r{/categoria/},
+        %r{/category/},
+        %r{/wp-content/},
         %r{/tag/}
       )
 
