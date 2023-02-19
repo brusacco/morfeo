@@ -3,6 +3,8 @@
 ActiveAdmin.register Entry do
   permit_params :url, :title, :enabled
 
+  scoped_collection_action :scoped_collection_destroy
+
   filter :site, collection: proc { Site.order(:name) }
   filter :url
   filter :published_at
