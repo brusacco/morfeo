@@ -24,7 +24,7 @@ class Entry < ApplicationRecord
 
   def generate_bigrams
     regex = /([A-ZÀ-Ö][a-zø-ÿ]{3,})\s([A-ZÀ-Ö][a-zø-ÿ]{3,})/
-    bad_words = ['Noticias', 'Internacional', 'Radio', 'Noticiero', 'Desde']
+    bad_words = %w[Noticias Internacional Radio Noticiero Desde]
     bigrams = []
     words = title.split
     words.each_cons(2).each do |bigram|

@@ -7,12 +7,13 @@ module TwitterServices
     end
 
     def call
-      client = Twitter::REST::Client.new do |config|
-        config.consumer_key        = 'PhGZrGYL9VBxhMX3kD6WTQ'
-        config.consumer_secret     = 'u3ZZJtHYvtxUprX9FuKf7A02CGf2YBa8qKN3yUWaegY'
-        config.access_token        = '90261721-0dDKFNJzxuvuKGd7dDMonN5S2rHQJxs8HU2pedeQU'
-        config.access_token_secret = 'LvGiOfdRGTsRxC4QLPN8Jl5AOId2wML8OJCgNQ46jsSeV'
-      end
+      client =
+        Twitter::REST::Client.new do |config|
+          config.consumer_key = 'PhGZrGYL9VBxhMX3kD6WTQ'
+          config.consumer_secret     = 'u3ZZJtHYvtxUprX9FuKf7A02CGf2YBa8qKN3yUWaegY'
+          config.access_token        = '90261721-0dDKFNJzxuvuKGd7dDMonN5S2rHQJxs8HU2pedeQU'
+          config.access_token_secret = 'LvGiOfdRGTsRxC4QLPN8Jl5AOId2wML8OJCgNQ46jsSeV'
+        end
 
       entry = Entry.find(@entry_id)
 
@@ -23,7 +24,7 @@ module TwitterServices
       result = client.search("#{entry.url} -rt filter:links", result_type: 'recent', count: 100, tweet_mode: 'extended')
       result.attrs[:search_metadata][:next_results] = nil
 
-      result.take(100).collect do |tweet|
+      result.take(100).map do |tweet|
         rt += tweet.retweet_count
         fav += tweet.favorite_count
         total += rt + fav

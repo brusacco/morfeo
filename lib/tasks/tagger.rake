@@ -19,7 +19,6 @@ task tagger: :environment do
   end
 end
 
-
 task retagger: :environment do
   Entry.where(published_at: 3.months.ago..Time.current).each do |entry|
     next if entry.tags.any?
