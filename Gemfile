@@ -113,6 +113,8 @@ gem 'httparty', '~> 0.21.0'
 
 gem 'whenever', '~> 1.0'
 
-gem "twitter", "~> 7.0"
+gem 'twitter', '~> 7.0'
 
-gem "seed_dump", "~> 3.3"
+gem 'seed_dump', '~> 3.3'
+
+gem 'active_admin_scoped_collection_actions', '~> 0.4.1'
