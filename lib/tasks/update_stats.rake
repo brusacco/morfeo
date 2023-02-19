@@ -4,6 +4,7 @@ desc 'Update stats'
 task update_stats: :environment do
   Entry.where(published_at: 1.week.ago..Time.current).each do |entry|
     result = FacebookServices::UpdateStats.call(entry.id)
+    puts result
     if result.success?
       entry.update!(result.data)
     else
@@ -11,7 +12,7 @@ task update_stats: :environment do
       next
     end
   rescue StandardError => e
-    Rails.logger.error "Error on update Twitter stats #{e.message}"
+    Rails.logger.error "Critial Error on update Facebook stats #{e.message}"
     retry
   end
 end

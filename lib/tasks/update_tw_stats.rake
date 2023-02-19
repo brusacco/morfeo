@@ -14,7 +14,7 @@ task update_tw_stats: :environment do
     end
     sleep 5
   rescue StandardError => e
-    Rails.logger.error "Error on update Twitter stats #{e.message}"
+    Rails.logger.error "Critial Error on update Twitter stats #{e.message}"
     retry
   end
 end
