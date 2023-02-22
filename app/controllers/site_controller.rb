@@ -8,7 +8,7 @@ class SiteController < ApplicationController
     @tags = @entries.tag_counts_on(:tags).order('count desc').limit(20)
 
      # Sets counters and values
-     @tags_interactions = Rails.cache.read("tags_interactions_#{@site.id}")
+     @tags_interactions = Rails.cache.read("tags_interactions_sites_#{@site.id}")
 
      # Cache tags interactions
      if @tags_interactions.nil?
@@ -22,7 +22,7 @@ class SiteController < ApplicationController
            @tags_interactions[tag.name] += entry.total_count if entry.tag_list.include?(tag.name)
          end
        end
-       Rails.cache.write("tags_interactions_#{@site.id}", @tags_interactions, expires_in: 1.hour)
+       Rails.cache.write("tags_interactions_sites_#{@site.id}", @tags_interactions, expires_in: 1.hour)
      end
  
 
