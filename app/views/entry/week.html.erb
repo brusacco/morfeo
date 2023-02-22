@@ -9,6 +9,6 @@
   <h2>Noticias Populares del: <%= date %></h2>
   <hr>
   <div class="row" data-masonry='{"percentPosition": true }'>
-  <%= render partial: "entry/entry_list", collection: Entry.where(published_date: date.to_date).order(total_count: :desc).limit(10), cache: true %>
+  <%= render partial: "entry/entry_list", collection: Entry.where(published_date: date.to_date).order(total_count: :desc).limit(10), cached: true %>
   </div>
 <% end %>
