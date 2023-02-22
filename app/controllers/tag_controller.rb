@@ -4,15 +4,6 @@ class TagController < ApplicationController
   def show
     @tag = Tag.find(params[:id])
     @entries = Entry.a_month_ago.joins(:site).tagged_with(@tag.name).has_image.order(published_at: :desc)
-
-    @entries = Rails.cache.read("tags_interactions_tags_entries_#{@tag.id}")
-    if @entries.nil?
-      # Query the database and return the result
-      @entries = Entry.a_month_ago.joins(:site).tagged_with(@tag.name).has_image.order(published_at: :desc)
-      Rails.cache.write("tags_interactions_tags_entries_#{@tag.id}", @entries, expires_in: 1.hour)
-    end
-
-
     @tags = @entries.tag_counts_on(:tags).order('count desc').limit(20)
 
     # Sets counters and values
