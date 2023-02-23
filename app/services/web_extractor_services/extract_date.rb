@@ -54,6 +54,9 @@ module WebExtractorServices
       elsif @doc.at('.mono-caps-condensed--md') && @date.nil?
         @date = @doc.at('.mono-caps-condensed--md').text
         @parsed = false
+      elsif @doc.at('.fecha_detalle') && @date.nil?
+        @date = @doc.at('.fecha_detalle').text
+        @parsed = false
       else
         @date = nil
       end
