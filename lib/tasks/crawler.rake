@@ -59,6 +59,8 @@ task crawler: :environment do
             entry.tag_list.add(result.data)
             entry.save!
             puts result.data
+          else
+            puts "ERROR: #{result.data}"
           end
 
           # Stats extractor
