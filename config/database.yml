@@ -25,6 +25,7 @@ test:
 #  database: db/production.sqlite3
 
 production:
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   adapter: mysql2
   encoding: utf8
   database: morfeo
