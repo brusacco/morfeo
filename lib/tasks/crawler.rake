@@ -41,7 +41,7 @@ task crawler: :environment do
           if result.success?
             entry.update!(result.data)
           else
-            puts "ERROR: #{result.data}"
+            puts "ERROR BASIC: #{result.data}"
           end
 
           # Date extractor
@@ -50,7 +50,7 @@ task crawler: :environment do
             entry.update!(result.data)
             puts result.data
           else
-            puts "ERROR: #{result.data}"
+            puts "ERROR DATE: #{result.data}"
           end
 
           # Tagger
@@ -60,7 +60,7 @@ task crawler: :environment do
             entry.save!
             puts result.data
           else
-            puts "ERROR: #{result.data}"
+            puts "ERROR TAGGER: #{result.data}"
           end
 
           # Stats extractor
@@ -69,7 +69,7 @@ task crawler: :environment do
             entry.update!(result.data) if result.success?
             puts result.data
           else
-            puts "ERROR: #{result.data}"
+            puts "ERROR STATS: #{result.data}"
           end
           puts '-----------------------------------------'
         end
