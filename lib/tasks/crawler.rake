@@ -7,7 +7,7 @@ task crawler: :environment do
     puts '--------------------------------------------------------------------"'
     Anemone.crawl(
       site.url,
-      depth_limit: 2,
+      depth_limit: 3,
       discard_page_bodies: true,
       accept_cookies: true,
       verbose: true
@@ -28,15 +28,17 @@ task crawler: :environment do
         %r{/tag/}
       )
 
-      #anemone.focus_crawl do |page|
-        # page.links.delete_if { |href| Entry.exists?(url: href.to_s) }
-      #end
+      anemone.focus_crawl do |page|
+        page.links.delete_if { |href| Entry.exists?(url: href.to_s) }
+      end
 
       anemone.on_pages_like(/#{site.filter}/) do |page|
         Entry.create_with(site: site).find_or_create_by!(url: page.url.to_s) do |entry|
           puts entry.url
 
+          #---------------------------------------------------------------------------
           # Basic data extractor
+          #---------------------------------------------------------------------------
           result = WebExtractorServices::ExtractBasicInfo.call(page.doc)
           if result.success?
             entry.update!(result.data)
@@ -44,7 +46,9 @@ task crawler: :environment do
             puts "ERROR BASIC: #{result.error}"
           end
 
+          #---------------------------------------------------------------------------
           # Date extractor
+          #---------------------------------------------------------------------------
           result = WebExtractorServices::ExtractDate.call(page.doc)
           if result.success?
             entry.update!(result.data)
@@ -52,8 +56,10 @@ task crawler: :environment do
           else
             puts "ERROR DATE: #{result.error}"
           end
-
+          
+          #---------------------------------------------------------------------------
           # Tagger
+          #---------------------------------------------------------------------------
           result = WebExtractorServices::ExtractTags.call(entry.id)
           if result.success?
             entry.tag_list.add(result.data)
@@ -63,7 +69,9 @@ task crawler: :environment do
             puts "ERROR TAGGER: #{result.error}"
           end
 
+          #---------------------------------------------------------------------------
           # Stats extractor
+          #---------------------------------------------------------------------------
           result = FacebookServices::UpdateStats.call(entry.id)
           if result.success?
             entry.update!(result.data) if result.success?
@@ -71,7 +79,8 @@ task crawler: :environment do
           else
             puts "ERROR STATS: #{result.error}"
           end
-          puts '-----------------------------------------'
+
+          puts '----------------------------------------------------------------------'
         end
       end
     end
