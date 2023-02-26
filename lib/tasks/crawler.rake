@@ -28,9 +28,9 @@ task crawler: :environment do
         %r{/tag/}
       )
 
-      anemone.focus_crawl do |page|
-        page.links.delete_if { |href| Entry.exists?(url: href.to_s) }
-      end
+      #anemone.focus_crawl do |page|
+        # page.links.delete_if { |href| Entry.exists?(url: href.to_s) }
+      #end
 
       anemone.on_pages_like(/#{site.filter}/) do |page|
         Entry.create_with(site: site).find_or_create_by!(url: page.url.to_s) do |entry|
