@@ -38,12 +38,20 @@ task crawler: :environment do
 
           # Basic data extractor
           result = WebExtractorServices::ExtractBasicInfo.call(page.doc)
-          entry.update!(result.data) if result.success?
+          if result.success?
+            entry.update!(result.data)
+          else
+            puts "ERROR: #{result.data}"
+          end
 
           # Date extractor
           result = WebExtractorServices::ExtractDate.call(page.doc)
-          entry.update!(result.data) if result.success?
-          puts result.data
+          if result.success?
+            entry.update!(result.data)
+            puts result.data
+          else
+            puts "ERROR: #{result.data}"
+          end
 
           # Tagger
           result = WebExtractorServices::ExtractTags.call(entry.id)
@@ -55,9 +63,12 @@ task crawler: :environment do
 
           # Stats extractor
           result = FacebookServices::UpdateStats.call(entry.id)
-          entry.update!(result.data) if result.success?
-
-          puts result.data
+          if result.success?
+            entry.update!(result.data) if result.success?
+            puts result.data
+          else
+            puts "ERROR: #{result.data}"
+          end
           puts '-----------------------------------------'
         end
       end

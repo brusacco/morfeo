@@ -44,6 +44,8 @@ EDITOR="mc --wait" rails credentials:edit
 
 rails console -- --noautocomplete
 
+rake crawler RAILS_ENV=production
+
 EXPORTAR SQLite
 
 sqlite> .headers on
