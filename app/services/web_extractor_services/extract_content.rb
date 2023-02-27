@@ -10,7 +10,7 @@ module WebExtractorServices
     def call
       @doc.css('script').remove
       @doc.css('a').remove
-      result = { content: @doc.at(@content_filter).text }
+      result = { content: @doc.at(@content_filter).text.strip }
       handle_success(result)
     end
   end
