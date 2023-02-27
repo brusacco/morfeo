@@ -6,7 +6,7 @@
 #
 default: &default
   adapter: sqlite3
-  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 10 } %>
   timeout: 5000
 
 development:
@@ -37,7 +37,7 @@ production:
   adapter: mysql2
   encoding: utf8
   database: morfeo
-  pool: 5
+  pool: 10
   username: root
   password:
   host: localhost
