@@ -3,6 +3,8 @@ rails g migration AddFilterToSite filter:string
 rails g migration AddDateFilterToSite date_filter:string
 rails g migration AddStatsToSite reaction_count:integer comment_count:integer share_count:integer comment_plugin_count:integer total_count:integer
 
+rails g migration AddContentFilterToSite content_filter:string
+
 
 rails generate active_admin:resource Site
 
@@ -18,7 +20,8 @@ rails g migration AddTwToEntry tw_fav:integer tw_rt:integer tw_total:integer
 
 rails g migration AddPublishedDateToEntry published_date:date:index
 
-rails generate active_admin:resource Entry
+rails g migration AddContentToEntry content:text
+
 
 
 
