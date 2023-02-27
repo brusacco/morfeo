@@ -9,6 +9,9 @@ task update_content: :environment do
       doc = Nokogiri::HTML.parse(URI.parse(entry.url).open,nil, 'UTF-8')
       result = WebExtractorServices::ExtractContent.call(doc, site.content_filter)
       entry.update!(result.data)
+    rescue StandardError => e
+      puts "ERROR: #{e.message}"
+      next
     end
   end
 end
