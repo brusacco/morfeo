@@ -3,7 +3,7 @@
 desc 'Test de content crawler'
 task update_content: :environment do
   Site.where.not(content_filter: nil).each do |site|
-    Entry.where(site: site).where.not(content_filter: nil).order(created_at: :desc).limit(1000).each do |entry|
+    Entry.where(site: site).where.not(content: nil).order(created_at: :desc).limit(1000).each do |entry|
       puts entry.url
       next unless entry.content.nil?
       doc = Nokogiri::HTML.parse(URI.parse(entry.url).open,nil, 'UTF-8')
