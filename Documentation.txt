@@ -49,6 +49,8 @@ rails console -- --noautocomplete
 
 rake crawler RAILS_ENV=production
 
+git reset --hard origin/main
+
 EXPORTAR SQLite
 
 sqlite> .headers on
