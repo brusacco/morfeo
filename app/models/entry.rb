@@ -23,10 +23,14 @@ class Entry < ApplicationRecord
   end
 
   def generate_bigrams
-    regex = /([A-ZÀ-Ö][a-zø-ÿ]{3,})\s([A-ZÀ-Ö][a-zø-ÿ]{3,})/
+    # regex = /([A-ZÀ-Ö][a-zø-ÿ]{3,})\s([A-ZÀ-Ö][a-zø-ÿ]{3,})/
+    regex = /([a-zø-ÿ]{2,})\s([a-zø-ÿ]{2,})/
     bad_words = %w[Noticias Internacional Radio Noticiero Desde]
+    bad_words += %w[pero del de desde donde el los las la abc una un no mas por como que con para las fue más se su sus en al]
+    bad_words += File.readlines('stop-words.txt')
+
     bigrams = []
-    words = title.split
+    words = title.downcase.split + description.downcase.split
     words.each_cons(2).each do |bigram|
       tag = bigram.join(' ')
       bigrams << tag if tag.match(regex) && !contains_substring?(tag, bad_words)
