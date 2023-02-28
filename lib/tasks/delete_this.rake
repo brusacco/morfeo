@@ -2,9 +2,10 @@
 
 desc 'Test de content crawler'
 task update_content: :environment do
-  Site.where.not(content_filter: nil).each do |site|
+  #Site.where.not(content_filter: nil).each do |site|
+    ids = Site.where.not(content_filter: nil).pluck(:id))
     # Entry.where(site_id: site.id, content: nil).order(published_at: :desc).limit(1000).each do |entry|
-    Parallel.each(Entry.where(site_id: site.id, content: nil).order(published_at: :desc).limit(1000), in_threads: 5) do |entry|
+    Parallel.each(Entry.where(site_id: ids, content: nil).order(published_at: :desc).limit(1000), in_threads: 5) do |entry|
       puts entry.url
       next unless entry.content.nil?
       doc = Nokogiri::HTML.parse(URI.parse(entry.url).open,nil, 'UTF-8')
@@ -14,7 +15,7 @@ task update_content: :environment do
       puts "ERROR: #{e.message}"
       next
     end
-  end
+  #end
 end
 
 desc 'Moopio Morfeo web crawler'
