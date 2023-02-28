@@ -50,7 +50,7 @@ task crawler: :environment do
           # Content extractor
           #---------------------------------------------------------------------------
           if entry.site.content_filter
-            result = WebExtractorServices::ExtractContent.call(doc, entry.site.content_filter)
+            result = WebExtractorServices::ExtractContent.call(page.doc, entry.site.content_filter)
             entry.update!(result.data) if result.success?
           end
 
