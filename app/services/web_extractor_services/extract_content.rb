@@ -8,14 +8,15 @@ module WebExtractorServices
     end
 
     def call
-      @doc.css('script').remove
-      @doc.css('a').remove
-
-      return handle_error('Contenido no encontrado') if @doc.at(@content_filter).nil?
-
-      sanitized_string = @doc.at(@content_filter).text.strip.gsub(/[^\x00-\x7F]/, '')
-      result = { content: sanitized_string }
-      handle_success(result)
+      if @doc.at(@content_filter).nil?
+        handle_error('Contenido no encontrado')
+      else
+        @doc.css('script').remove
+        @doc.css('a').remove
+        sanitized_string = @doc.at(@content_filter).text.strip.gsub(/[^\x00-\x7F]/, '')
+        result = { content: sanitized_string }
+        handle_success(result)
+      end
     end
   end
 end
