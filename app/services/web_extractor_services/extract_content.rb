@@ -13,7 +13,7 @@ module WebExtractorServices
       else
         @doc.css('script').remove
         @doc.css('a').remove
-        sanitized_string = @doc.at(@content_filter).text.strip.gsub(/[^\x00-\x7F]/, '')
+        sanitized_string = @doc.at(@content_filter).text.strip
         result = { content: sanitized_string }
         handle_success(result)
       end
