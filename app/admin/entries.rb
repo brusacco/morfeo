@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 ActiveAdmin.register Entry do
+  config.sort_order = 'published_at_desc'
   permit_params :url, :title, :enabled
 
   scoped_collection_action :scoped_collection_destroy
