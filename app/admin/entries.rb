@@ -7,6 +7,7 @@ ActiveAdmin.register Entry do
 
   filter :site, collection: proc { Site.order(:name) }
   filter :url
+  filter :title
   filter :published_at
   filter :enabled
 

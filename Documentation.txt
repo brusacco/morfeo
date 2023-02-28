@@ -51,6 +51,16 @@ rake crawler RAILS_ENV=production
 
 git reset --hard origin/main
 
+
+------------------------------------------------------------------------------------------------
+resolver problema de encoding:
+https://sebhastian.com/mysql-incorrect-string-value/
+
+si ya esta creado hay que dropear el index que causa prolemas i crear uno de nuevo mas corto:
+CREATE INDEX prefix_index_on_url ON entries(url(191));
+------------------------------------------------------------------------------------------------
+
+
 EXPORTAR SQLite
 
 sqlite> .headers on
