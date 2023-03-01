@@ -56,6 +56,15 @@
 <%end%>
 <hr>
 
+<h3>Analisis de Bigramas</h3>
+<%@bigrams.each do |k, v|%>
+  <%=link_to '', class: 'btn btn-success mx-0 my-1' do %>
+    <%=k%> 
+    <span class="badge bg-secondary"><i class="fa-brands fa-square-facebook"></i> <%=v%></span>
+  <%end%>
+<%end%>
+<hr>
+
 <h3>Últimas Noticias sobre <%=@tag.name%></h3>
 <div class="row py-2" data-masonry='{"percentPosition": true }' data-controller="cards">
 <%= render partial: "entry/entry", collection: @entries, cached: true %>
