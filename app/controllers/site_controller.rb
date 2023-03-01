@@ -7,16 +7,19 @@ class SiteController < ApplicationController
     @entries = @site.entries.has_interactions.has_image.order(published_at: :desc).limit(250)
     @tags = @entries.tag_counts_on(:tags).order('count desc').limit(20)
 
-    @bigrams = {}
-    @site.entries.a_month_ago.each do |entry|
-      entry.generate_bigrams.each do |bigram|
-        @bigrams[bigram] ||= 0
-        @bigrams[bigram] += entry.total_count
+    @bigrams = Rails.cache.read("bigrams_interactions_sites_#{@site.id}")
+    if @bigrams.nil?
+      @bigrams = {}
+      @site.entries.a_month_ago.each do |entry|
+        entry.generate_bigrams.each do |bigram|
+          @bigrams[bigram] ||= 0
+          @bigrams[bigram] += entry.total_count
+        end
       end
+      @bigrams = @bigrams.sort_by { |_k, v| v }.reverse
+      @bigrams = @bigrams.select { |_k, v| v > 0 }
+      @bigrams = @bigrams.take(50)
     end
-    @bigrams = @bigrams.sort_by { |_k, v| v }.reverse
-    @bigrams = @bigrams.select { |_k, v| v > 0 }
-    @bigrams = @bigrams.take(50)
 
      # Sets counters and values
      @tags_interactions = Rails.cache.read("tags_interactions_sites_#{@site.id}")
