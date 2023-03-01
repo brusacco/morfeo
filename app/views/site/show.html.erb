@@ -6,7 +6,6 @@
   </ol>
 </nav>
 
-<% cache @site do %>
 <h2>Análisis de los últimos 30 días</h2>
 <%= column_chart @entries_stats.count, xtitle: "Fecha", ytitle: "Cant. Notas", label: "Notas", colors: ['blue'] %>
 <%= column_chart @entries_stats.sum(:total_count), xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones", colors: ['green'] %>
@@ -50,4 +49,4 @@
 <div class="row py-2" data-masonry='{"percentPosition": true }'>
 <%= render partial: "entry/entry", collection: @entries, cached: true %>
 </div>
-<% end %>
+

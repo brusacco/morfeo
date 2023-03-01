@@ -29,8 +29,6 @@ class Entry < ApplicationRecord
     bad_words += %w[es pero del de desde donde el los las la abc una un no mas por como que con para las fue más se su sus en al]
     bad_words += STOP_WORDS
 
-    
-
     bigrams = []
     words = clean_text(title).split + clean_text(description).split + clean_text(content).split
     words.each_cons(2).each do |bigram|
