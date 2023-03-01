@@ -13,7 +13,7 @@ class SiteController < ApplicationController
       @site.entries.a_month_ago.each do |entry|
         entry.generate_bigrams.each do |bigram|
           @bigrams[bigram] ||= 0
-          @bigrams[bigram] += entry.total_count
+          @bigrams[bigram] += 1
         end
       end
       @bigrams = @bigrams.sort_by { |_k, v| v }.reverse
