@@ -8,7 +8,7 @@ class SiteController < ApplicationController
     @tags = @entries.tag_counts_on(:tags).order('count desc').limit(20)
 
     @bigrams = {}
-    @entries.each do |entry|
+    @site.entries.a_month_ago do |entry|
       entry.generate_bigrams.each do |bigram|
         @bigrams[bigram] ||= 0
         @bigrams[bigram] += entry.total_count
