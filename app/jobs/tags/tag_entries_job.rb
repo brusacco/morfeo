@@ -12,6 +12,7 @@ module Tags
 
         entry.tag_list.add(result.data)
         entry.save!
+        entry.touch
       rescue StandardError
         sleep 1
         retry
