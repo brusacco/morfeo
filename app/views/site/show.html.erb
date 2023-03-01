@@ -39,6 +39,14 @@
 </div>
 <hr>
 
+<h3>Analisis de Bigramas</h3>
+<%@bigrams.each do |k, _v|%>
+  <%=link_to '', class: 'btn btn-success mx-0 my-1' do %>
+    <%=k%> 
+  <%end%>
+<%end%>
+<hr>
+
 <div class="row py-2" data-masonry='{"percentPosition": true }'>
 <%= render partial: "entry/entry", collection: @entries, cached: true %>
 </div>
