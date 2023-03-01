@@ -9,7 +9,7 @@ module WebExtractorServices
 
     def call
       entry = Entry.find(@entry_id)
-      content = "#{entry.title} #{entry.description}"
+      content = "#{entry.title} #{entry.description} #{entry.content}"
       tags_found = []
 
       if @tag_id.nil?
