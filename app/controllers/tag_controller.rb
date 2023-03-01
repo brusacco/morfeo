@@ -6,16 +6,16 @@ class TagController < ApplicationController
     @entries = Entry.a_month_ago.joins(:site).tagged_with(@tag.name).has_image.order(published_at: :desc)
     @tags = @entries.tag_counts_on(:tags).order('count desc').limit(20)
 
-    @bigrams = {}
-    @entries.each do |entry|
-      entry.generate_bigrams.each do |bigram|
-        @bigrams[bigram] ||= 0
-        @bigrams[bigram] += entry.total_count
-      end
-    end
-    @bigrams = @bigrams.sort_by { |_k, v| v }.reverse
-    @bigrams = @bigrams.select { |_k, v| v > 0 }
-    @bigrams = @bigrams.take(50)
+    # @bigrams = {}
+    # @entries.each do |entry|
+    #   entry.generate_bigrams.each do |bigram|
+    #     @bigrams[bigram] ||= 0
+    #     @bigrams[bigram] += entry.total_count
+    #   end
+    # end
+    # @bigrams = @bigrams.sort_by { |_k, v| v }.reverse
+    # @bigrams = @bigrams.select { |_k, v| v > 0 }
+    # @bigrams = @bigrams.take(50)
 
 
     # Sets counters and values
