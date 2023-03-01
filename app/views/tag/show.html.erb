@@ -57,10 +57,9 @@
 <hr>
 
 <h3>Analisis de Bigramas</h3>
-<%@bigrams.each do |k, v|%>
+<%@bigrams.each do |k, _v|%>
   <%=link_to '', class: 'btn btn-success mx-0 my-1' do %>
     <%=k%> 
-    <span class="badge bg-secondary"><i class="fa-brands fa-square-facebook"></i> <%=v%></span>
   <%end%>
 <%end%>
 <hr>
