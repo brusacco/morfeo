@@ -8,13 +8,11 @@ task update_stats: :environment do
     if result.success?
       entry.update!(result.data)
     else
-      # Rails.logger.error "Failed to update Facebook stats for #{entry.id}: #{result.error}"
-      puts "Failed to update Facebook stats for #{entry.id}: #{result.error}"
+      Rails.logger.error "Failed to update Facebook stats for #{entry.id}: #{result.error}"
       next
     end
   rescue StandardError => e
-    # Rails.logger.error "Critial Error on update Facebook stats #{e.message}"
-    puts "Critial Error on update Facebook stats #{e.message}"
+    Rails.logger.error "Critial Error on update Facebook stats #{e.message}"
     next
   end
 end
