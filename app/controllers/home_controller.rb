@@ -6,28 +6,20 @@ class HomeController < ApplicationController
   def index
     @tag_interacions = []
     @sites = Site.where(total_count: 1..).order(total_count: :desc)
-    # @entries = Entry.has_interactions.has_image.includes(:site).order(published_at: :desc).limit(300)
     @entries = Entry.has_image.includes(:site).order(published_at: :desc).limit(300)
     @tags = @entries.tag_counts_on(:tags).order('count desc')
 
-    # Sets counters and values
-    @tags_interactions = Rails.cache.read("tags_interactions")
+    @tags_interactions = {}
+    @tags.each do |tag|
+      @entries.each do |entry|
+        tag.interactions ||= 0
+        tag.interactions += entry.total_count if entry.tag_list.include?(tag.name)
 
-    # Cache tags interactions
-    if @tags_interactions.nil?
-      @tags_interactions = {}
-      @tags.each do |tag|
-        @entries.each do |entry|
-          tag.interactions ||= 0
-          tag.interactions += entry.total_count if entry.tag_list.include?(tag.name)
-
-          @tags_interactions[tag.name] ||= 0
-          @tags_interactions[tag.name] += entry.total_count if entry.tag_list.include?(tag.name)
-        end
+        @tags_interactions[tag.name] ||= 0
+        @tags_interactions[tag.name] += entry.total_count if entry.tag_list.include?(tag.name)
       end
-      Rails.cache.write("tags_interactions", @tags_interactions, expires_in: 1.hour)
     end
-
+     
     @tags_interactions = @tags_interactions.sort_by { |_k, v| v }
     @tags_interactions.reverse
 
