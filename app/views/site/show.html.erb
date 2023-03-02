@@ -7,8 +7,8 @@
 </nav>
 
 <h2>Análisis de los últimos 30 días</h2>
-<%= column_chart @entries.count, xtitle: "Fecha", ytitle: "Cant. Notas", label: "Notas", colors: ['blue'] %>
-<%= column_chart @entries.sum(:total_count), xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones", colors: ['green'] %>
+<%= column_chart @entries_stats.count, xtitle: "Fecha", ytitle: "Cant. Notas", label: "Notas", colors: ['blue'] %>
+<%= column_chart @entries_stats.sum(:total_count), xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones", colors: ['green'] %>
 
 <hr>
 
@@ -34,7 +34,7 @@
 <hr>
 <div class="my-2">
   <h3>Interacciones Etiquetas</h2>
-  <%= render partial: "tag/tag_pill_interactions", collection: @tags.to_a.sort_by(&:interactions).reverse %>
+  <%= render partial: "tag/tag_pill_interactions" %>
 </div>
 <hr>
 
