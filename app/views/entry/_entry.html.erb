@@ -8,8 +8,8 @@
     <%end%>
 
     <div class="card-body">
-      <h5 class="card-title"><%=highlight(entry.title, entry.all_tags)%></h5>
-      <p class="card-text"><%=highlight(entry.description, entry.all_tags)%></p>
+      <h5 class="card-title"><%=entry.title%></h5>
+      <p class="card-text"><%=entry.description%></p>
       <p class="card-text">
         <small class="text-muted px-1"><%= icon('fa-regular', 'calendar')%> <%=entry.published_at.strftime('%Y-%m-%d')%></small>
         <small class="text-muted px-1"><i class="fa-brands fa-square-facebook"></i> <%=entry.total_count%></small>
