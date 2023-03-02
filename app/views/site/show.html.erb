@@ -34,7 +34,7 @@
 <hr>
 <div class="my-2">
   <h3>Interacciones Etiquetas</h2>
-  <%= render partial: "tag/tag_pill_interactions" %>
+  <%= render partial: "tag/tag_pill_interactions", collection: @tags.to_a.sort_by(&:interactions).reverse %>
 </div>
 <hr>
 
