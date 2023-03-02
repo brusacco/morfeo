@@ -12,7 +12,8 @@ task update_stats: :environment do
       next
     end
   rescue StandardError => e
-    Rails.logger.error "Critial Error on update Facebook stats #{e.message}"
+    # Rails.logger.error "Critial Error on update Facebook stats #{e.message}"
+    puts "Critial Error on update Facebook stats #{e.message}"
     retry
   end
 end
