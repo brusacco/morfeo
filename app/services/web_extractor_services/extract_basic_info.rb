@@ -8,7 +8,7 @@ module WebExtractorServices
 
     #-------------------------------------------------------------
     def call
-      title = extract_title
+      title = extract_title.truncate(250)
       description = extract_description
       image_url = extract_image_url
 
