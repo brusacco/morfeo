@@ -60,6 +60,9 @@ module WebExtractorServices
       elsif @doc.at('.title-post li:nth-child(1)') && @date.nil?
         @date = @doc.at('.title-post li:nth-child(1)').text
         @parsed = false
+      elsif @doc.at('.Leer_img+ .Leer_redes') && @date.nil?
+        @date = @doc.at('.Leer_img+ .Leer_redes').text
+        @parsed = false
       else
         @date = nil
       end
