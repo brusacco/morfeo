@@ -57,8 +57,8 @@ module WebExtractorServices
       elsif @doc.at('.fecha_detalle') && @date.nil?
         @date = @doc.at('.fecha_detalle').text
         @parsed = false
-      elsif @doc.at_css('.title-post li:nth-child(1)') & @date.nil?
-        @date = @doc.at_css('.title-post li:nth-child(1)').text
+      elsif @doc.at('.title-post li:nth-child(1)') & @date.nil?
+        @date = @doc.at('.title-post li:nth-child(1)').text
         @parsed = false
       else
         @date = nil
