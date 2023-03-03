@@ -63,6 +63,9 @@ module WebExtractorServices
       elsif @doc.at('.Leer_img+ .Leer_redes') && @date.nil?
         @date = @doc.at('.Leer_img+ .Leer_redes').text
         @parsed = false
+      elsif @doc.at('.news_category_and_date') && @date.nil?
+        @date = @doc.at('.news_category_and_date').text
+        @parsed = false
       else
         @date = nil
       end
