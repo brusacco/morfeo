@@ -2,7 +2,7 @@
 
 desc 'Moopio Morfeo web crawler'
 task crawler: :environment do
-  Site.all.each do |site|
+  Site.all.order(total_count: :desc).each do |site|
     puts "Start processing site #{site.name}..."
     puts '--------------------------------------------------------------------"'
     Anemone.crawl(
