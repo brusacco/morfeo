@@ -17,6 +17,7 @@
         <small class="text-muted px-1"><i class="fa-solid fa-link"></i> <%= link_to entry.id, entry.url, target: :blank %></small>
       </p>
       <%= render partial: "tag/tag_entry", collection: entry.tags, cache: true %>
+      <%= render partial: "tag/tag_bigram", collection: entry.bigrams, cache: true %>
     </div>
   </div>
 </div>

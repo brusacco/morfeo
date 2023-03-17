@@ -22,7 +22,7 @@ class Entry < ApplicationRecord
     response.uniq.flatten
   end
 
-  def generate_bigrams
+  def bigrams
     # regex = /([A-ZÀ-Ö][a-zø-ÿ]{3,})\s([A-ZÀ-Ö][a-zø-ÿ]{3,})/
     regex = /([a-zø-ÿ]{3,})\s([a-zø-ÿ]{3,})/
     bad_words = %w[Noticias Internacional Radio Noticiero Desde]
