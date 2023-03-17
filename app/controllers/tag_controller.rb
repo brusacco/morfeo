@@ -42,9 +42,9 @@ class TagController < ApplicationController
         @bigrams[bigram] += 1
       end
     end
-    
+
     @bigrams.delete_if { |_k, v| v < 2 }
-    @bigrams = @bigrams.sort_by { |_k, v| v }.reverse
+    @bigrams = @bigrams.sort_by { |_k, v| v }.reverse.take(50)
 
   end
 end
