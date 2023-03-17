@@ -37,7 +37,7 @@ class TagController < ApplicationController
 
     @bigrams = {}
     @entries.each do |entry|
-      entry.bigrams.each do |bigram|
+      entry.ngrams.each do |bigram|
         @bigrams[bigram] ||= 0
         @bigrams[bigram] += 1
       end
@@ -45,6 +45,17 @@ class TagController < ApplicationController
 
     @bigrams.delete_if { |_k, v| v < 2 }
     @bigrams = @bigrams.sort_by { |_k, v| v }.reverse.take(50)
+
+    @trigrams = {}
+    @entries.each do |entry|
+      entry.ngrams(3).each do |bigram|
+        @trigrams[bigram] ||= 0
+        @trigrams[bigram] += 1
+      end
+    end
+
+    @trigrams.delete_if { |_k, v| v < 2 }
+    @trigrams = @trigrams.sort_by { |_k, v| v }.reverse.take(50)
 
   end
 end

@@ -22,7 +22,7 @@ class Entry < ApplicationRecord
     response.uniq.flatten
   end
 
-  def bigrams
+  def ngrams(n = 2)
     # regex = /([A-ZÀ-Ö][a-zø-ÿ]{3,})\s([A-ZÀ-Ö][a-zø-ÿ]{3,})/
     regex = /([a-zø-ÿ]{3,})\s([a-zø-ÿ]{3,})/
     bad_words = %w[Noticias Internacional Radio Noticiero Desde]
@@ -31,7 +31,7 @@ class Entry < ApplicationRecord
 
     bigrams = []
     words = clean_text(title).split + clean_text(description).split + clean_text(content).split
-    words.each_cons(2).each do |bigram|
+    words.each_cons(n).each do |bigram|
       tag = bigram.join(' ')
       bigrams << tag if tag.match(regex) && !contains_substring?(tag, bad_words)
     end

@@ -26,7 +26,7 @@ class SiteController < ApplicationController
 
     @bigrams = {}
     @entries.each do |entry|
-      entry.bigrams.each do |bigram|
+      entry.ngrams.each do |bigram|
         @bigrams[bigram] ||= 0
         @bigrams[bigram] += 1
       end
