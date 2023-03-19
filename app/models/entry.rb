@@ -8,6 +8,7 @@ class Entry < ApplicationRecord
   scope :a_day_ago, -> { where(published_at: 1.day.ago..) }
   scope :a_week_ago, -> { where(published_at: 1.week.ago..) }
   scope :a_month_ago, -> { where(published_at: 1.month.ago..) }
+  scope :normal_range, -> { where(published_at: DAYS_RANGE.days.ago..) }
   scope :has_image, -> { where.not(image_url: nil) }
   scope :has_interactions, -> { where(total_count: 10..) }
   scope :has_any_interactions, -> { where(total_count: 1..) }
@@ -31,10 +32,12 @@ class Entry < ApplicationRecord
 
     bigrams = []
     words = clean_text(title).split + clean_text(description).split + clean_text(content).split
+
     words.each_cons(n).each do |bigram|
       tag = bigram.join(' ')
       bigrams << tag if tag.match(regex) && !contains_substring?(tag, bad_words)
     end
+    
     bigrams.uniq
   end
 
