@@ -5,7 +5,7 @@ class SiteController < ApplicationController
     @site = Site.find(params[:id])
     @entries_stats = @site.entries.normal_range.group_by_day(:published_at)
     @entries = @site.entries.has_image.order(published_at: :desc).limit(250)
-    @tags = @entries.tag_counts_on(:tags).order('count desc')
+    @tags = @entries.tag_counts_on(:tags).where('count > 0').order('count desc')
 
     @tags_interactions = {}
     @tags.each do |tag|

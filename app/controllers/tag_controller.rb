@@ -4,18 +4,8 @@ class TagController < ApplicationController
   def show
     @tag = Tag.find(params[:id])
     @entries = Entry.normal_range.joins(:site).tagged_with(@tag.name).has_image.order(published_at: :desc)
-    @tags = @entries.tag_counts_on(:tags).order('count desc').limit(20)
-
-    # @bigrams = {}
-    # @entries.each do |entry|
-    #   entry.generate_bigrams.each do |bigram|
-    #     @bigrams[bigram] ||= 0
-    #     @bigrams[bigram] += entry.total_count
-    #   end
-    # end
-    # @bigrams = @bigrams.sort_by { |_k, v| v }.reverse
-    # @bigrams = @bigrams.select { |_k, v| v > 0 }
-    # @bigrams = @bigrams.take(50)
+    # @tags = @entries.tag_counts_on(:tags).where('count > 0').order('count desc').limit(20)
+    @tags = @entries.all_tag_counts(on: :tags, start_at: DAYS_RANGE.days.ago, limit: 20, order: 'count desc', at_least: 1)
 
     @tags_interactions = {}
     @tags.each do |tag|
