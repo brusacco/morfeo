@@ -3,7 +3,7 @@
 class TagController < ApplicationController
   def show
     @tag = Tag.find(params[:id])
-    @entries = Entry.a_week_ago.joins(:site).tagged_with(@tag.name).has_image.order(published_at: :desc)
+    @entries = Entry.normal_range.joins(:site).tagged_with(@tag.name).has_image.order(published_at: :desc)
     @tags = @entries.tag_counts_on(:tags).order('count desc').limit(20)
 
     # @bigrams = {}

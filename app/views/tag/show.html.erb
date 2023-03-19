@@ -6,7 +6,7 @@
   </ol>
 </nav>
 
-<h3>Análisis de los últimos 30 días</h3>
+<h3>Análisis de los últimos <%=DAYS_RANGE%> días</h3>
 <%= column_chart @entries.a_month_ago.group_by_day(:published_at).count, xtitle: "Fecha", ytitle: "Cant. Notas", label: "Notas", colors: ['blue'] %>
 <%= column_chart @entries.a_month_ago.group_by_day(:published_at).sum(:total_count), xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones", colors: ['green']%>
 
