@@ -28,11 +28,11 @@ class TagController < ApplicationController
     @trigrams = {}
 
     @entries.each do |entry|
-      entry.ngrams.each do |bigram|
+      entry.bigrams.each do |bigram|
         @bigrams[bigram] ||= 0
         @bigrams[bigram] += 1
       end
-      entry.ngrams(3).each do |bigram|
+      entry.trigrams.each do |bigram|
         @trigrams[bigram] ||= 0
         @trigrams[bigram] += 1
       end
