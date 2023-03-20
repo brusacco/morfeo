@@ -2,7 +2,7 @@
 
 desc 'Update NGRAMS'
 task update_ngrams: :environment do
-  Entry.order(published_at: :desc).limit(1000).each do |entry|
+  Entry.a_month_ago.each do |entry|
     next if entry.bigram_list.blank?
 
     puts "Updating NGrams for #{entry.title} - #{entry.published_at}"
