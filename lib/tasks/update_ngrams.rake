@@ -19,8 +19,8 @@ task update_ngrams_tags: :environment do
     puts "Updating NGrams for #{tag.name} - #{tag.id}"
     Parallel.each(Entry.tagged_with(tag.name), in_threads: 5) do |entry|
       puts "Updating NGrams for #{entry.id} - #{entry.published_at}"
-      entry.bigrams if entry.bigram_list.blank?
-      entry.trigrams if entry.trigram_list.blank?
+      entry.bigrams
+      entry.trigrams
     end
   rescue 
     next
