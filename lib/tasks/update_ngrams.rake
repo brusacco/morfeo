@@ -21,6 +21,8 @@ task update_ngrams_tags: :environment do
       puts "Updating NGrams for #{entry.id} - #{entry.published_at}"
       entry.bigrams
       entry.trigrams
+    rescue
+      next
     end
   rescue 
     next
