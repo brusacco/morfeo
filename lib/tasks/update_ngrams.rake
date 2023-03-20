@@ -16,7 +16,7 @@ end
 
 task update_ngrams_tags: :environment do
   Tag.all.each do |tag|
-    Entry.tagged_with(tag.name).each do |entry|
+    Parallel.each(Entry.tagged_with(tag.name)), in_threads: 5) do |entry|
       next unless entry.bigram_list.blank?
 
       puts "Updating NGrams for #{entry.id} - #{entry.published_at}"
