@@ -4,8 +4,7 @@ class TagController < ApplicationController
   def show
     @tag = Tag.find(params[:id])
     @entries = Entry.normal_range.joins(:site).tagged_with(@tag.name).has_image.order(published_at: :desc)
-    # @tags = @entries.tag_counts_on(:tags).where('count > 0').order('count desc').limit(20)
-    @tags = @entries.all_tag_counts(on: :tags, start_at: DAYS_RANGE.days.ago, limit: 20, order: 'count desc', at_least: 1)
+    @tags = @entries.tag_counts_on(:tags).where('count > 0').order('count desc').limit(20)
 
     @tags_interactions = {}
     @tags.each do |tag|
