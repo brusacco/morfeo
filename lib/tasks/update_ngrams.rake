@@ -12,3 +12,18 @@ task update_ngrams: :environment do
     next
   end
 end
+
+
+task update_ngrams_tags: :environment do
+  Tag.all.each do |tag|
+    Entry.tagged_with(tag.name).each do |entry|
+      next unless entry.bigram_list.blank?
+
+      puts "Updating NGrams for #{entry.id} - #{entry.published_at}"
+      entry.bigrams if entry.bigram_list.blank?
+      entry.trigrams if entry.trigram_list.blank?
+    end
+  rescue 
+    next
+  end
+end
