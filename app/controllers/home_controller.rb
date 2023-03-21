@@ -21,7 +21,8 @@ class HomeController < ApplicationController
         @tags_interactions[tag.name] += entry.total_count if entry.tag_list.include?(tag.name)
       end
     end
-     
+    
+    @tags_interactions = @tags_interactions.select { |_k, v| v > 1 }
     @tags_interactions = @tags_interactions.sort_by { |_k, v| v }
     @tags_interactions.reverse
 
