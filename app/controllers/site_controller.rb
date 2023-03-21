@@ -23,16 +23,5 @@ class SiteController < ApplicationController
 
     @tags_count = {}
     @tags.each { |n| @tags_count[n.name] = n.count }
-
-    @bigrams = {}
-    @entries.each do |entry|
-      entry.ngrams.each do |bigram|
-        @bigrams[bigram] ||= 0
-        @bigrams[bigram] += 1
-      end
-    end
-
-    @bigrams.delete_if { |_k, v| v < 2 }
-    @bigrams = @bigrams.sort_by { |_k, v| v }.reverse.take(50)
   end
 end

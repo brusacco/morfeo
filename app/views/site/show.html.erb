@@ -41,14 +41,6 @@
 
 <hr>
 
-<div class="my-2">
-  <h3>Bigramas</h2>
-  <%= render partial: "tag/tag_pill_array", collection: @bigrams %>
-  <p><small class="text-muted px-1">*Cantidad de veces que aparecen los bigramas en las notas</small></p>
-</div>
-
-<hr>
-
 <div class="row py-2" data-masonry='{"percentPosition": true }'>
 <%= render partial: "entry/entry", collection: @entries, cached: true %>
 </div>
