@@ -4,7 +4,6 @@ class HomeController < ApplicationController
   skip_before_action :verify_authenticity_token
 
   def index
-    @tag_interacions = []
     @sites = Site.where(total_count: 1..).order(total_count: :desc)
     @entries = Entry.has_image.includes(:site).order(published_at: :desc).limit(100)
     @tags = @entries.tag_counts_on(:tags).order('count desc')
