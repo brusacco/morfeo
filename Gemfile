@@ -119,5 +119,4 @@ gem 'seed_dump', '~> 3.3'
 
 gem 'active_admin_scoped_collection_actions', '~> 0.4.1'
 
-
 gem "puma-daemon", "~> 0.1.2"
