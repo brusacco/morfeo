@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Entry < ApplicationRecord
-  acts_as_taggable_on :tags, :bigrams, :trigrams
+  acts_as_taggable_on :tags
   validates :url, uniqueness: true
   belongs_to :site, touch: true
 
@@ -27,16 +27,16 @@ class Entry < ApplicationRecord
     return bigram_list if bigram_list.present?
 
     bigram_list.add(ngrams(2))
-    save
-    bigram_list
+    # save
+    # bigram_list
   end
 
   def trigrams
     return trigram_list if trigram_list.present?
 
     trigram_list.add(ngrams(3))
-    save
-    trigram_list
+    # save
+    # trigram_list
   end
 
   private

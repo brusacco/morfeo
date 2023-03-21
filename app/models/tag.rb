@@ -6,7 +6,6 @@ class Tag < ApplicationRecord
 
   after_create :tag_entries
   after_update :tag_entries
-  # after_destroy :untag_entries
 
   attr_accessor :interactions
 
@@ -14,9 +13,5 @@ class Tag < ApplicationRecord
 
   def tag_entries
     Tags::TagEntriesJob.perform_later(id, 1.month.ago..Time.current)
-  end
-
-  def untag_entries
-    Tags::UntagEntriesJob.perform_later(id)
   end
 end
