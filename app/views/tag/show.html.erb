@@ -55,17 +55,7 @@
 </div>
 <%end%>
 <hr>
-<div class="my-2">
-  <h3>Bigramas</h2>
-  <%= render partial: "tag/tag_pill_array", collection: @bigrams %>
-  <p><small class="text-muted px-1">*Cantidad de veces que aparecen los bigramas en las notas</small></p>
-</div>
-<hr>
-<div class="my-2">
-  <h3>Trigramas</h2>
-  <%= render partial: "tag/tag_pill_array", collection: @trigrams %>
-  <p><small class="text-muted px-1">*Cantidad de veces que aparecen los trigramas en las notas</small></p>
-</div>
+
 
 <h3>Últimas Noticias sobre <%=@tag.name%></h3>
 <div class="row py-2" data-masonry='{"percentPosition": true }' data-controller="cards">
