@@ -1,12 +1,7 @@
 <div class="col-sm-6 col-lg-4 mb-4" data-tags="<%=entry.tag_list%>">
   <div class="card shadow-lg rounded">
     <div class="px-3 py-2"><b><%=link_to entry.site.name, site_path(entry.site)%></b></div>
-    <%if entry.image_url.nil?%>
-    <%=image_tag "https://via.placeholder.com/300x250", width: '100%', height: 300, loading: 'lazy'%>
-    <%else%>
-    <%=image_tag entry.image_url, width: '100%', height: 300, loading: 'lazy', onerror: 'this.onerror=null;this.src="https://via.placeholder.com/300x250";'%>
-    <%end%>
-
+    <%=image_tag entry.clean_image, width: '100%', height: 300, loading: 'lazy', onerror: 'this.onerror=null;this.src="https://via.placeholder.com/300x250";'%>
     <div class="card-body">
       <h5 class="card-title"><%=entry.title%></h5>
       <p class="card-text"><%=entry.description%></p>
