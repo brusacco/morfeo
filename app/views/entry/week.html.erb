@@ -18,6 +18,7 @@
     <p><small class="text-muted px-1">*Cantidad de veces que aparecen las etiquetas en las notas</small></p>
   </div>
   <div class="row" data-masonry='{"percentPosition": true }'>
-  <%= render partial: "entry/entry_list", collection: entries, cached: true %>
+    <%= render partial: "entry/entry", collection: entries, cached: true %>
   </div>
+  <hr>
 <% end %>
