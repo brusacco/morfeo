@@ -5,10 +5,18 @@
   </ol>
 </nav>
 
-<% Date.today.to_date.downto(1.week.ago.to_date) do |date| %>
+<% 
+  Date.today.to_date.downto(1.week.ago.to_date) do |date| 
+  entries = Entry.where(published_date: date.to_date).order(total_count: :desc).limit(10)
+%>
   <h2>Noticias Populares del: <%= date %></h2>
   <hr>
+  <div class="my-2">
+    <h3>Apariciones Etiquetas</h2>
+    <%= render partial: "tag/tag_pill", collection: @tags %>
+    <p><small class="text-muted px-1">*Cantidad de veces que aparecen las etiquetas en las notas</small></p>
+  </div>
   <div class="row" data-masonry='{"percentPosition": true }'>
-  <%= render partial: "entry/entry_list", collection: Entry.where(published_date: date.to_date).order(total_count: :desc).limit(10), cached: true %>
+  <%= render partial: "entry/entry_list", collection: entries, cached: true %>
   </div>
 <% end %>
