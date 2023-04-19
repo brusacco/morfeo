@@ -16,7 +16,7 @@ class Entry < ApplicationRecord
   before_save :set_published_date
 
   def clean_image
-    if image_url.nil?
+    if image_url.nil? || image_url.empty?
       'https://via.placeholder.com/300x250'
     else
       image_url
