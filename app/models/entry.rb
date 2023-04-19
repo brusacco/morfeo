@@ -16,7 +16,11 @@ class Entry < ApplicationRecord
   before_save :set_published_date
 
   def clean_image
-    image_url || 'https://via.placeholder.com/300x250'
+    if image_url.nil?
+      'https://via.placeholder.com/300x250'
+    else
+      image_url
+    end
   end
 
   def all_tags
