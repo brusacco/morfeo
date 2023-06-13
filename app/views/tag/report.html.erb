@@ -1,0 +1,14 @@
+Analiza las siguientes noticias en el rol de un analista de PR con respecto a <%=@tag.name%>. Las mismas estan separadas por "---".
+Toma en cuenta los siguientes tags para el analisis: 
+<%@tags.each do |tag|%>
+<%=tag.name%>,
+<%end%>
+<br>
+---
+<br>
+<%@entries.each do |entry|%>
+<%=entry.title%> <%=entry.description%> <%=entry.content%>
+<br>
+---
+<br>
+<%end%>

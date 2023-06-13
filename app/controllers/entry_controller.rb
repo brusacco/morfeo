@@ -83,4 +83,10 @@ class EntryController < ApplicationController
     @today = Date.today
     @a_week_ago = @today - 7
   end
+
+  def similar
+    @entry = Entry.find_by(url: params[:url])
+    @entries = Entry.tagged_with(@entry.tags, any: true).order(published_at: :desc).limit(10)
+    render json: @entries
+  end
 end
