@@ -1,5 +1,6 @@
 rails g model Site name:string:uniq url:string:uniq
 rails g migration AddFilterToSite filter:string
+rails g migration AddNegativeFilterToSite filter:string
 rails g migration AddDateFilterToSite date_filter:string
 rails g migration AddStatsToSite reaction_count:integer comment_count:integer share_count:integer comment_plugin_count:integer total_count:integer
 
@@ -30,6 +31,7 @@ rails g migration AddInteractionsToTag fb_total_stats:string
 
 
 rails g model Topic name:string
+
 
 IMPORTANTE HAY QUE PARCHAR EL ANEMONE O NO FUNCIONA
 Linea 165 de page.rb

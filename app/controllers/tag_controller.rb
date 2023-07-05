@@ -50,4 +50,9 @@ class TagController < ApplicationController
 
     render layout: false
   end
+
+  def search
+    query = params[:query].strip
+    @tags = Tag.where('name LIKE?', "%#{query}%")
+  end
 end

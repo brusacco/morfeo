@@ -1,0 +1,17 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "Moopio Noticias Paraguay",
+  "name_for_model": "moopio",
+  "description_for_human": "Get the latest news from Paraguay",
+  "description_for_model": "All news from Paraguay, up to date and organized by popularity",
+  "auth": {
+      "type": "none"
+  },
+  "api": {
+      "type": "openapi",
+      "url": "http://localhost:6500/openapi.yaml"
+  },
+  "logo_url": "http://localhost:6500/logo.png",
+  "contact_email": "brusacco@gmail.com",
+  "legal_info_url": "https://www.moopio.com/privacidad"
+}

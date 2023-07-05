@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_02_27_125620) do
+ActiveRecord::Schema[7.0].define(version: 2023_07_05_133307) do
   create_table "active_admin_comments", force: :cascade do |t|
     t.string "namespace"
     t.text "body"
@@ -74,6 +74,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_27_125620) do
     t.integer "comment_plugin_count", default: 0
     t.integer "total_count", default: 0
     t.string "content_filter"
+    t.string "negative_filter"
     t.index ["name"], name: "index_sites_on_name", unique: true
     t.index ["url"], name: "index_sites_on_url", unique: true
   end
@@ -108,6 +109,19 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_27_125620) do
     t.integer "taggings_count", default: 0
     t.string "variations"
     t.index ["name"], name: "index_tags_on_name", unique: true
+  end
+
+  create_table "tags_topics", id: false, force: :cascade do |t|
+    t.integer "tag_id"
+    t.integer "topic_id"
+    t.index ["tag_id"], name: "index_tags_topics_on_tag_id"
+    t.index ["topic_id"], name: "index_tags_topics_on_topic_id"
+  end
+
+  create_table "topics", force: :cascade do |t|
+    t.string "name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   add_foreign_key "taggings", "tags"

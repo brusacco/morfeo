@@ -15,6 +15,12 @@ class Entry < ApplicationRecord
 
   before_save :set_published_date
 
+  # def self.tagged_with(tags = [], context = nil)
+  #   tags_ids = ActsAsTaggableOn::Tag.where(name: tags).pluck(:id)
+  #   joins(:taggings).where(taggings: { tag_id: tags_ids })
+  # end
+
+
   def clean_image
     if image_url.nil? || image_url.empty? || image_url == 'null'
       'https://via.placeholder.com/300x250'

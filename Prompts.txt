@@ -1,0 +1,43 @@
+
+
+Escribe un breve resumen sobre las noticias de Santiago Peña, citando la fuente y mostrando la url de la noticia como un texto(no pongas links href). No generes miniaturas de las noticias, y agrega tambien el total de interacciones y los tags presentes en la noticia.
+Toma en cuenta que la importancia de la noticia se da pro el campo fb_total_count.
+Analiza y redacta un analisis de cobertura de medios usando las noticias anteriores.
+Analiza y redacta un analisis de crisis de medios usando las noticias anteriores.
+Analiza y redacta un informe sobre la polaridad de las noticias, si son positivas, negativas o neutras.
+Analiza y lista cuales fueron las noticias mas comentadas, compartidas, y cuales tienen mayor interaccion total.
+Redacta un detallado informe en el rol de un analista de PR sobre las noticias anteriores
+Redata una lista de los topicos presentes en las noticias anteriores
+
+
+
+TOPICO 
+
+Escribe un breve resumen sobre las noticias del topico IPS, citando la fuente y mostrando la url de la noticia como un texto(no pongas links href). No generes miniaturas de las noticias, y agrega tambien el total de interacciones y los tags presentes en la noticia.
+Analiza y redacta un analisis de cobertura de medios usando las noticias anteriores.
+Analiza y redacta un analisis de crisis de medios usando las noticias anteriores.
+Analiza y redacta un informe sobre la polaridad de las noticias, si son positivas, negativas o neutras.
+Analiza y lista cuales fueron las noticias mas comentadas, compartidas, y cuales tienen mayor interaccion total.
+Redacta un detallado informe en el rol de un analista de PR sobre las noticias anteriores
+Redata una lista de los topicos presentes en las noticias anteriores
+
+
+
+SELECT * FROM taggings WHERE taggable_type = 'Entry' AND created_at < DATE_SUB(NOW(), INTERVAL 3 YEAR) limit 1000;
+delete FROM taggings WHERE taggable_type = 'Entry' AND created_at < DATE_SUB(NOW(), INTERVAL 3 YEAR) limit 1000;
+
+
+SET autocommit = 0; -- Disable autocommit to improve performance
+
+SET @batchSize = 1000; -- Number of rows to delete in each batch
+SET @rowCount = @batchSize;
+
+WHILE @rowCount >= 1000 DO
+    DELETE FROM taggings WHERE taggable_type = 'Entry' AND created_at < DATE_SUB(NOW(), INTERVAL 3 YEAR) LIMIT 1000;
+    SET @rowCount = ROW_COUNT(); DO SLEEP(0.1);
+END WHILE;
+
+
+WHILE 1 >= 1000 DO 
+  DO SLEEP(0.1); END WHILE;
+

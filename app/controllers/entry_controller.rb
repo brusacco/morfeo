@@ -4,7 +4,7 @@ class EntryController < ApplicationController
   def show; end
 
   def popular
-    @entries = Entry.joins(:site).where(total_count: 1..).a_day_ago.where.not(image_url: nil).order(total_count: :desc).limit(100)
+    @entries = Entry.joins(:site).where(total_count: 1..).a_day_ago.where.not(image_url: nil).order(total_count: :desc).limit(50)
     @tags = @entries.tag_counts_on(:tags).order('count desc')
 
     @tags_interactions = {}
@@ -88,5 +88,10 @@ class EntryController < ApplicationController
     @entry = Entry.find_by(url: params[:url])
     @entries = Entry.tagged_with(@entry.tags, any: true).order(published_at: :desc).limit(10)
     render json: @entries
+  end
+
+  def search
+    tag = params[:query]
+    @entries = Entry.includes(:site).tagged_with(tag).order(published_at: :desc).limit(50)
   end
 end

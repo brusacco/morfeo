@@ -1,0 +1,107 @@
+openapi: 3.0.1
+info:
+    title: Moopio News
+    description: Get current and historical News from Paraguay.
+    version: "v1"
+servers:
+    - url: http://localhost:6500
+paths:
+    /api/v1/entries/search:
+        get:
+            operationId: searchNews
+            summary: Search news from Paraguay and return them in a JSON format.
+            parameters:
+                - in: query
+                  name: query
+                  schema:
+                      type: string
+                  description: Query string for the search of the news
+            responses:
+                "200":
+                    description: OK
+    /api/v1/entries/similar:
+        get:
+            operationId: similarNews
+            summary: Search for similar news from Paraguay and return them in a JSON format, using the json url field of the news entry.
+            parameters:
+                - in: query
+                  name: url
+                  schema:
+                      type: string
+                  description: Use the URL field of a news to search for similar news.
+            responses:
+                "200":
+                    description: OK      
+    /api/v1/entries/show:
+        get:
+            operationId: showNews
+            summary: Show a specific news, need to provided the id of the news, can be taken form the json id field.
+            parameters:
+                - in: query
+                  name: id
+                  schema:
+                      type: integer
+                  description: This is the id of the news to be shown.
+            responses:
+                "200":
+                    description: OK                                           
+    /api/v1/entries/popular:
+        get:
+            operationId: popularNews
+            summary: Get popular news from Paraguay and return them in a JSON format.
+            responses:
+                "200":
+                    description: OK
+    /api/v1/entries/latest:
+            get:
+                operationId: latestNews
+                summary: Get the latest news from Paraguay and return them in a JSON format.
+                responses:
+                    "200":
+                        description: OK
+    /api/v1/tags/latest:
+            get:
+                operationId: popularTags
+                summary: Get popular tags from Paraguay news and return them in a JSON format.
+                responses:
+                    "200":
+                        description: OK                        
+    /api/v1/topics/popular:
+        get:
+            operationId: popularTopicNews
+            summary: Get popular news from a specific Topic from Paraguayan news and return them in a JSON format.
+            parameters:
+                - in: query
+                  name: query
+                  schema:
+                      type: string
+                  description: Query string for the search of a topic to get popular news form it.
+            responses:
+                "200":
+                    description: OK
+    /api/v1/sites/popular:
+        get:
+            operationId: popularSiteNews
+            summary: Get popular news from a specific Site from Paraguayan news and return them in a JSON format.
+            parameters:
+                - in: query
+                  name: query
+                  schema:
+                      type: string
+                  description: Query string for the search of a Site to get popular news form it.
+            responses:
+                "200":
+                    description: OK
+    /api/v1/sites/latest:
+        get:
+            operationId: latestSiteNews
+            summary: Get popular news from a specific Site from Paraguayan news and return them in a JSON format.
+            parameters:
+                - in: query
+                  name: query
+                  schema:
+                      type: string
+                  description: Query string for the search of a Site to get latest news form it.
+            responses:
+                "200":
+                    description: OK

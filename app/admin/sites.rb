@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 ActiveAdmin.register Site do
-  permit_params :name, :url, :filter, :content_filter
+  permit_params :name, :url, :filter, :content_filter, :negative_filter
 
   filter :name
   filter :url
@@ -14,6 +14,7 @@ ActiveAdmin.register Site do
       link_to site.url, site.url, target: '_blank'
     end
     column :filter
+    column :negative_filter
     column 'Content Filter' do |site|
       !site.content_filter.nil?
     end
