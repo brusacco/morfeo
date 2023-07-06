@@ -41,4 +41,6 @@ production:
   username: root
   password:
   host: localhost
+  encoding: utf8mb4
+  collation: utf8mb4_unicode_ci
   socket: /home/mysql/mysql.sock
