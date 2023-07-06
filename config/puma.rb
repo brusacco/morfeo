@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-# require 'puma/daemon'
+require 'puma/daemon'
 
 # Puma can serve each request in a thread from an internal thread pool.
 # The `threads` method setting takes two numbers: a minimum and maximum.
@@ -45,4 +45,4 @@ workers ENV.fetch("WEB_CONCURRENCY") { 2 }
 # Allow puma to be restarted by `bin/rails restart` command.
 plugin :tmp_restart
 
-# daemonize true
+daemonize true
