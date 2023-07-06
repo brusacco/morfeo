@@ -7,6 +7,8 @@ class TagController < ApplicationController
     @total_entries = @entries.size
     @total_interactions = @entries.sum(:total_count)
 
+    @most_interactions = @entries.sort_by { |e| e.total_count }.reverse.take(10)
+
     if @total_entries.zero?
       @promedio = 0
     else
