@@ -20,7 +20,7 @@ module WebExtractorServices
     # Extract title from pages
     #-------------------------------------------------------------
     def extract_title
-      @doc&.title
+      @doc&.title || ''
     end
 
     #-------------------------------------------------------------

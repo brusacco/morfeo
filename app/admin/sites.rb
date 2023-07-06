@@ -14,6 +14,7 @@ ActiveAdmin.register Site do
       link_to site.url, site.url, target: '_blank'
     end
     column :filter
+    column :content_filter
     column :negative_filter
     column 'Content Filter' do |site|
       !site.content_filter.nil?

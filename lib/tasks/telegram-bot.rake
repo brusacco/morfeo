@@ -149,12 +149,12 @@ task telegram_bot: :environment do
               bot.api.send_message(chat_id: message.from.id, text: "#{entry.title} - Interacciones: #{entry.total_count} #{entry.url}")
             end
 
-            content = generate_topic_report(topic.name, entries)
-            text1, text2 = split_text(content)
-            bot.api.send_chat_action(chat_id: message.from.id, action: 'typing')
-            bot.api.send_message(chat_id: message.from.id, text: text1)
-            bot.api.send_chat_action(chat_id: message.from.id, action: 'typing')
-            bot.api.send_message(chat_id: message.from.id, text: text2) if text2
+            # content = generate_topic_report(topic.name, entries)
+            # text1, text2 = split_text(content)
+            # bot.api.send_chat_action(chat_id: message.from.id, action: 'typing')
+            # bot.api.send_message(chat_id: message.from.id, text: text1)
+            # bot.api.send_chat_action(chat_id: message.from.id, action: 'typing')
+            # bot.api.send_message(chat_id: message.from.id, text: text2) if text2
 
             button_options = tags.map { |tag| { text: tag, callback_data: "/etiqueta #{tag}" } }
             bot.api.send_message(
