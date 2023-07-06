@@ -36,7 +36,7 @@ task crawler: :environment do
       )
 
       anemone.focus_crawl do |page|
-        # page.links.delete_if { |href| Entry.exists?(url: href.to_s) }
+        page.links.delete_if { |href| Entry.exists?(url: href.to_s) }
         page.links.delete_if { |href| href.to_s.match(/#{site.negative_filter.present? ? site.negative_filter : 'NUNCA'}/).present? }
       end
 
