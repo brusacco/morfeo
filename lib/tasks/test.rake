@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 desc 'Moopio Morfeo web crawler'
-task test: :environment do
+task prueba: :environment do
   Site.where(id: 81).order(total_count: :desc).each do |site|
   # Site.all.order(total_count: :desc).each do |site|
     puts "Start test processing site #{site.name}..."
