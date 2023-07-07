@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 desc 'Moopio Morfeo web crawler'
-task prueba: :environment do
-  # Site.where(id: 47..).order(total_count: :desc).each do |site|
-  Site.all.order(total_count: :desc).each do |site|
+task test: :environment do
+  Site.where(id: 81).order(total_count: :desc).each do |site|
+  # Site.all.order(total_count: :desc).each do |site|
     puts "Start test processing site #{site.name}..."
     puts '--------------------------------------------------------------------"'
     Anemone.crawl(
@@ -36,7 +36,7 @@ task prueba: :environment do
       )
 
       anemone.focus_crawl do |page|
-        # page.links.delete_if { |href| Entry.exists?(url: href.to_s) }
+        page.links.delete_if { |href| Entry.exists?(url: href.to_s) }
         page.links.delete_if { |href| href.to_s.match(/#{site.negative_filter.present? ? site.negative_filter : 'NUNCA'}/).present? }
       end
 
