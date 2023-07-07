@@ -9,7 +9,8 @@ task update_site_stats: :environment do
     share_count = 0
     comment_plugin_count = 0
     total_count = 0
-    site.entries.where(published_at: 1.day.ago..Time.current).each do |entry|
+    entries = site.entries.where(published_at: 7.day.ago..Time.current)
+    entries.each do |entry|
       reaction_count += entry.reaction_count
       comment_count += entry.comment_count
       share_count += entry.share_count
@@ -22,7 +23,8 @@ task update_site_stats: :environment do
       comment_count: comment_count,
       share_count: share_count,
       comment_plugin_count: comment_plugin_count,
-      total_count: total_count
+      total_count: total_count,
+      entries_count: entries.count
     )
   end
 end

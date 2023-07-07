@@ -11,3 +11,22 @@ task update_published_dates: :environment do
     retry
   end
 end
+
+task update_basic_content: :environment do
+  Parallel.each(Entry.where(published_at: 1.week.ago..Time.current), in_threads: 2) do |entry|
+    puts entry.url
+    doc = Nokogiri::HTML(URI.parse(entry.url).open)
+    #---------------------------------------------------------------------------
+    # Basic data extractor
+    #---------------------------------------------------------------------------
+    result = WebExtractorServices::ExtractBasicInfo.call(doc)
+    if result.success?
+      entry.update!(result.data)
+    else
+      puts "ERROR BASIC: #{result.error}"
+    end
+  rescue StandardError => e
+    puts e.message
+    next
+  end
+end

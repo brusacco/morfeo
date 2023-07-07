@@ -7,4 +7,8 @@ module ApplicationHelper
     html_options[:class] = "#{html_options[:class]} #{active_class}" if current_page?(options)
     link_to(name, options, html_options, &block)
   end
+
+  def clean_title(title)
+    title.split(' | ').first
+  end
 end

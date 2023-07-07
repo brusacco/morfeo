@@ -10,17 +10,17 @@ default: &default
   timeout: 5000
 
 development:
-  # <<: *default
-  #database: db/development.sqlite3
-  adapter: mysql2
-  encoding: utf8
-  database: morfeo
-  username: root
-  password:
-  host: localhost
-  encoding: utf8mb4
-  collation: utf8mb4_unicode_ci
-  socket: /home/mysql/mysql.sock
+  <<: *default
+  database: db/development.sqlite3
+  # adapter: mysql2
+  # encoding: utf8
+  # database: morfeo
+  # username: root
+  # password:
+  # host: localhost
+  # encoding: utf8mb4
+  # collation: utf8mb4_unicode_ci
+  # socket: /home/mysql/mysql.sock
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".

@@ -13,6 +13,7 @@ ActiveAdmin.register Site do
     column 'URL' do |site|
       link_to site.url, site.url, target: '_blank'
     end
+    column :entries_count
     column :filter
     column :content_filter
     column :negative_filter
