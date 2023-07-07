@@ -55,6 +55,8 @@ class HomeController < ApplicationController
 
   def deploy
     Dir.chdir('/home/morfeo') do
+      system('export RAILS_ENV=production')
+
       # Check out the latest code from the Git repository
       system('git pull')
 
