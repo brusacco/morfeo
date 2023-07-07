@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 Rails.application.routes.draw do
+  get 'topic/show'
   get 'tag/show'
   get 'entry/show'
   get 'entry/search', as: 'entry_search'
@@ -14,6 +15,8 @@ Rails.application.routes.draw do
   get '/tag/search', to: 'tag#search', as: 'search_tag'
   get '/tag/:id', to: 'tag#show', as: 'tag'
   get '/tag/:id/report', to: 'tag#report', as: 'report'
+
+  get '/topic/:id', to: 'topic#show', as: 'topic'
 
   devise_for :admin_users, ActiveAdmin::Devise.config
   ActiveAdmin.routes(self)
