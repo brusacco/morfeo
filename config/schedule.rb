@@ -8,7 +8,8 @@ every :hour do
   rake 'update_site_stats'
 end
 
-every 2.hours do
+every 3.hours do
   # rake 'tagger'
   rake 'update_tw_stats'
+  rake 'crawler_deep'
 end
