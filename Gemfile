@@ -121,12 +121,12 @@ gem 'active_admin_scoped_collection_actions', '~> 0.4.1'
 
 gem 'puma-daemon', '~> 0.1.2'
 
-gem "rabl", "~> 0.16.1"
+gem 'rabl', '~> 0.16.1'
 
-gem "oj", "~> 3.15"
+gem 'oj', '~> 3.15'
 
-gem "rack-cors", "~> 2.0"
+gem 'rack-cors', '~> 2.0'
 
 gem 'telegram-bot-ruby', '~> 1.0'
 
-gem "ruby-openai", "~> 4.2"
+gem 'ruby-openai', '~> 4.2'

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module WebExtractorServices
   class ExtractBigrams < ApplicationService
     def initialize(text)

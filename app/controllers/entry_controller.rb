@@ -54,7 +54,7 @@ class EntryController < ApplicationController
     @tags = @entries.tag_counts_on(:tags).order('count desc')
 
     # Sets counters and values
-    @tags_interactions = Rails.cache.read("tags_interactions_commented")
+    @tags_interactions = Rails.cache.read('tags_interactions_commented')
 
     # Cache tags interactions
     if @tags_interactions.nil?
@@ -68,7 +68,7 @@ class EntryController < ApplicationController
           @tags_interactions[tag.name] += entry.total_count if entry.tag_list.include?(tag.name)
         end
       end
-      Rails.cache.write("tags_interactions_commented", @tags_interactions, expires_in: 1.hour)
+      Rails.cache.write('tags_interactions_commented', @tags_interactions, expires_in: 1.hour)
     end
 
     @tags_interactions = @tags_interactions.sort_by { |_k, v| v }

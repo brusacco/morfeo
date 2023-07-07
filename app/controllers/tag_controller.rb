@@ -7,32 +7,31 @@ class TagController < ApplicationController
     @total_entries = @entries.size
     @total_interactions = @entries.sum(:total_count)
 
-    @most_interactions = @entries.sort_by { |e| e.total_count }.reverse.take(10)
+    @most_interactions = @entries.sort_by(&:total_count).reverse.take(10)
 
     if @total_entries.zero?
       @promedio = 0
     else
       @promedio = @total_interactions / @total_entries
     end
-  
-
 
     @tags = @entries.tag_counts_on(:tags).order('count desc').limit(20)
 
     @tags_interactions = {}
     @tags.each do |tag|
       @entries.each do |entry|
-        if entry.tag_list.include?(tag.name)
-          tag.interactions ||= 0
-          tag.interactions += entry.total_count
+        next unless entry.tag_list.include?(tag.name)
 
-          @tags_interactions[tag.name] ||= 0
-          @tags_interactions[tag.name] += entry.total_count
-        end
+        tag.interactions ||= 0
+        tag.interactions += entry.total_count
+
+        @tags_interactions[tag.name] ||= 0
+        @tags_interactions[tag.name] += entry.total_count
       end
     end
-    
-    @tags_interactions = @tags_interactions.sort_by { |_k, v| v }.reverse
+
+    @tags_interactions = @tags_interactions.sort_by { |_k, v| v }
+                                           .reverse
 
     @tags_count = {}
     @tags.each { |n| @tags_count[n.name] = n.count }
@@ -46,17 +45,18 @@ class TagController < ApplicationController
     @tags_interactions = {}
     @tags.each do |tag|
       @entries.each do |entry|
-        if entry.tag_list.include?(tag.name)
-          tag.interactions ||= 0
-          tag.interactions += entry.total_count
+        next unless entry.tag_list.include?(tag.name)
 
-          @tags_interactions[tag.name] ||= 0
-          @tags_interactions[tag.name] += entry.total_count
-        end
+        tag.interactions ||= 0
+        tag.interactions += entry.total_count
+
+        @tags_interactions[tag.name] ||= 0
+        @tags_interactions[tag.name] += entry.total_count
       end
     end
-    
-    @tags_interactions = @tags_interactions.sort_by { |_k, v| v }.reverse
+
+    @tags_interactions = @tags_interactions.sort_by { |_k, v| v }
+                                           .reverse
 
     @tags_count = {}
     @tags.each { |n| @tags_count[n.name] = n.count }

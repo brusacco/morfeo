@@ -30,14 +30,16 @@ task crawler: :environment do
         /auth/,
         /wp-content/,
         /tag/,
-        /\/contacto\//,
+        %r{/contacto/},
         /wp-admin/,
-        /wp-content/,
+        /wp-content/
       )
 
       anemone.focus_crawl do |page|
         page.links.delete_if { |href| Entry.exists?(url: href.to_s) }
-        page.links.delete_if { |href| href.to_s.match(/#{site.negative_filter.present? ? site.negative_filter : 'NUNCA'}/).present? }
+        page.links.delete_if do |href|
+          href.to_s.match(/#{site.negative_filter.presence || 'NUNCA'}/).present?
+        end
       end
 
       anemone.on_pages_like(/#{site.filter}/) do |page|
@@ -77,7 +79,7 @@ task crawler: :environment do
             puts "ERROR DATE: #{result&.error}"
             next
           end
-          
+
           #---------------------------------------------------------------------------
           # Tagger
           #---------------------------------------------------------------------------
@@ -108,9 +110,9 @@ task crawler: :environment do
           # entry.trigrams
           puts '----------------------------------------------------------------------'
         end
-        rescue StandardError => e
-          puts e.message
-          next
+      rescue StandardError => e
+        puts e.message
+        next
       end
     end
   end

@@ -10,11 +10,11 @@ Rails.application.routes.draw do
   get 'entry/week', as: 'week_entries'
   get 'entry/similar', to: 'entry#similar', as: 'similar_entries'
   get '/site/:id', to: 'site#show', as: 'site'
-  
+
   get '/tag/search', to: 'tag#search', as: 'search_tag'
   get '/tag/:id', to: 'tag#show', as: 'tag'
   get '/tag/:id/report', to: 'tag#report', as: 'report'
-  
+
   devise_for :admin_users, ActiveAdmin::Devise.config
   ActiveAdmin.routes(self)
   get 'home/index'

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class AddRelationsToTopics < ActiveRecord::Migration[7.0]
   def change
     create_table :tags_topics, id: false do |t|

@@ -2,7 +2,7 @@
 
 desc 'Update Null content Entries'
 task update_null_content: :environment do
-  Entry.where(content: nil, site_id: [6,8]).order(published_at: :desc).each do |entry|
+  Entry.where(content: nil, site_id: [6, 8]).order(published_at: :desc).each do |entry|
     if entry.site.content_filter
       doc = Nokogiri::HTML(URI.parse(entry.url).open)
       result = WebExtractorServices::ExtractContent.call(doc, entry.site.content_filter)

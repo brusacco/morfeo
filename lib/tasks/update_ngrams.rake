@@ -3,16 +3,15 @@
 desc 'Update NGRAMS'
 task update_ngrams: :environment do
   Entry.a_month_ago.each do |entry|
-    next unless entry.bigram_list.blank?
+    next if entry.bigram_list.present?
 
     puts "Updating NGrams for #{entry.id} - #{entry.published_at}"
     entry.bigrams if entry.bigram_list.blank?
     entry.trigrams if entry.trigram_list.blank?
-  rescue 
+  rescue StandardError
     next
   end
 end
-
 
 task update_ngrams_tags: :environment do
   Tag.all.each do |tag|
@@ -21,10 +20,10 @@ task update_ngrams_tags: :environment do
       puts "Updating NGrams for #{entry.id} - #{entry.published_at}"
       entry.bigrams
       entry.trigrams
-    rescue
+    rescue StandardError
       next
     end
-  rescue 
+  rescue StandardError
     next
   end
 end

@@ -20,9 +20,8 @@ class Entry < ApplicationRecord
   #   joins(:taggings).where(taggings: { tag_id: tags_ids })
   # end
 
-
   def clean_image
-    if image_url.nil? || image_url.empty? || image_url == 'null'
+    if image_url.blank? || image_url == 'null'
       'https://via.placeholder.com/300x250'
     else
       image_url
@@ -59,7 +58,37 @@ class Entry < ApplicationRecord
     # regex = /([A-ZÀ-Ö][a-zø-ÿ]{3,})\s([A-ZÀ-Ö][a-zø-ÿ]{3,})/
     regex = /([a-zø-ÿ]{3,})\s([a-zø-ÿ]{3,})/
     bad_words = %w[Noticias Internacional Radio Noticiero Desde]
-    bad_words += %w[sos es pero del de desde donde el los las la abc una un no mas por como que con para las fue más se su sus en al]
+    bad_words += %w[
+      sos
+      es
+      pero
+      del
+      de
+      desde
+      donde
+      el
+      los
+      las
+      la
+      abc
+      una
+      un
+      no
+      mas
+      por
+      como
+      que
+      con
+      para
+      las
+      fue
+      más
+      se
+      su
+      sus
+      en
+      al
+    ]
     bad_words += STOP_WORDS
 
     ngrams = []
@@ -73,11 +102,9 @@ class Entry < ApplicationRecord
     ngrams.uniq
   end
 
-  private
-
   def clean_text(text)
     return '' if text.nil?
-    
+
     text = text.gsub(/\d/, '')
     text = text.gsub(/[[:punct:]]/, ' ')
     text.downcase!
@@ -95,6 +122,6 @@ class Entry < ApplicationRecord
     substrings.each do |substring|
       return true if string.match(/\b#{substring}\b/)
     end
-    return false
+    false
   end
 end

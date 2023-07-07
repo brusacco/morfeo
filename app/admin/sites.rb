@@ -11,7 +11,7 @@ ActiveAdmin.register Site do
     id_column
     column :name
     column 'URL' do |site|
-      link_to site.url, site.url, target: '_blank'
+      link_to site.url, site.url, target: '_blank', rel: 'noopener'
     end
     column :entries_count
     column :filter

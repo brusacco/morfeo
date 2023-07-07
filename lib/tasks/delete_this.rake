@@ -2,20 +2,24 @@
 
 desc 'Test de content crawler'
 task update_content: :environment do
-  #Site.where.not(content_filter: nil).each do |site|
-    ids = Site.where.not(content_filter: nil).pluck(:id)
-    # Entry.where(site_id: site.id, content: nil).order(published_at: :desc).limit(1000).each do |entry|
-    Parallel.each(Entry.where(site_id: ids, content: nil).order(published_at: :desc).limit(1000), in_threads: 5) do |entry|
-      puts entry.url
-      next unless entry.content.nil?
-      doc = Nokogiri::HTML.parse(URI.parse(entry.url).open,nil, 'UTF-8')
-      result = WebExtractorServices::ExtractContent.call(doc, entry.site.content_filter)
-      entry.update!(result.data) if result.success?
-    rescue StandardError => e
-      puts "ERROR: #{e.message}"
-      next
-    end
-  #end
+  # Site.where.not(content_filter: nil).each do |site|
+  ids = Site.where.not(content_filter: nil).ids
+  # Entry.where(site_id: site.id, content: nil).order(published_at: :desc).limit(1000).each do |entry|
+  Parallel.each(
+    Entry.where(site_id: ids, content: nil).order(published_at: :desc).limit(1000),
+    in_threads: 5
+  ) do |entry|
+    puts entry.url
+    next unless entry.content.nil?
+
+    doc = Nokogiri::HTML.parse(URI.parse(entry.url).open, nil, 'UTF-8')
+    result = WebExtractorServices::ExtractContent.call(doc, entry.site.content_filter)
+    entry.update!(result.data) if result.success?
+  rescue StandardError => e
+    puts "ERROR: #{e.message}"
+    next
+  end
+  # end
 end
 
 desc 'Moopio Morfeo web crawler'
@@ -64,7 +68,6 @@ task test_crawler: :environment do
             puts "ERROR BASIC: #{result.error}"
           end
 
-
           #---------------------------------------------------------------------------
           # Content data extractor
           #---------------------------------------------------------------------------
@@ -85,7 +88,7 @@ task test_crawler: :environment do
           else
             puts "ERROR DATE: #{result.error}"
           end
-          
+
           #---------------------------------------------------------------------------
           # Tagger
           #---------------------------------------------------------------------------

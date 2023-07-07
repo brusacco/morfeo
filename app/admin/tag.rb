@@ -4,14 +4,14 @@ ActiveAdmin.register Tag do
   permit_params :name, :variations
 
   #------------------------------------------------------------------
-  # 
+  #
   #------------------------------------------------------------------
   action_item :retag_entries, only: %i[edit show] do
     link_to 'Retag entries', retag_entries_admin_tag_path(tag.id), method: :put, data: { confirm: 'Are you sure?' }
   end
 
   #------------------------------------------------------------------
-  # 
+  #
   #------------------------------------------------------------------
   member_action :retag_entries, method: :put do
     Tags::UpdateTagEntriesJob.perform_later(params[:id])
@@ -22,7 +22,7 @@ ActiveAdmin.register Tag do
   filter :variations
 
   #------------------------------------------------------------------
-  # 
+  #
   #------------------------------------------------------------------
   index do
     selectable_column
