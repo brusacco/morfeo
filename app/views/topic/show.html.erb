@@ -16,7 +16,7 @@
   <% end %>
 </ul>
 
-Los medios que mas han mencionado esta etiqueta fueron:
+Los medios que mas han mencionado este tópico fueron:
 <ul>
   <% @entries.group("sites.name").count('*').sort_by { |site, count| -count }.take(5).each do |site, count| %>
     <li><%= site %> (<%= count %> notas)</li>
