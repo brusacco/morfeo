@@ -15,6 +15,13 @@
     <li><a href="<%=entry.url%>"><%=entry.title%></a> con <b><%=number_with_delimiter(entry.total_count, delimiter: ".")%></b> interacciones.</li>
   <% end %>
 </ul>
+
+Los medios que mas han mencionado esta etiqueta fueron:
+<ul>
+  <% @entries.group("sites.name").count.sort_by { |site, count| -count }.take(5).each do |site, count| %>
+    <li><%= site %> (Cantidad: <%= count %>)</li>
+  <% end %>
+</ul>
 <hr>
 
 <h3>Análisis de los últimos <%=DAYS_RANGE%> días</h3>
