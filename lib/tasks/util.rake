@@ -15,7 +15,8 @@ end
 task update_basic_content: :environment do
   Parallel.each(Entry.where(published_at: 1.week.ago..Time.current), in_threads: 4) do |entry|
     puts entry.url
-    doc = Nokogiri::HTML(URI.parse(entry.url).open)
+    content = URI.open(entry.url).read
+    doc = Nokogiri::HTML(content)
     #---------------------------------------------------------------------------
     # Basic data extractor
     #---------------------------------------------------------------------------
