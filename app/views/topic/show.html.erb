@@ -13,7 +13,7 @@
 <p>Las noticias con mas interacciones fueron:</p>
 <ul>
   <% @most_interactions.each do |entry| %>
-    <li><a href="<%=entry.url%>" target="_blank"><%=entry.title%></a> - <b><%=number_with_delimiter(entry.total_count, delimiter: ".")%></b> interacciones. Publicado: <b><%=entry.published_at.strftime("%d/%m/%Y")%></b>-<%=entry.id%></li>
+    <li><a href="<%=entry.url%>" target="_blank"><%=entry.title%></a> - <b><%=number_with_delimiter(entry.total_count, delimiter: ".")%></b> interacciones. Publicado: <b><%=entry.published_at.strftime("%d/%m/%Y")%></b></li>
   <% end %>
 </ul>
 
