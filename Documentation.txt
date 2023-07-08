@@ -54,6 +54,8 @@ rake crawler RAILS_ENV=production
 git reset --hard origin/main
 
 
+ALTER TABLE entries CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
 ------------------------------------------------------------------------------------------------
 resolver problema de encoding:
 https://sebhastian.com/mysql-incorrect-string-value/

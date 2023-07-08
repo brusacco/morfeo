@@ -13,7 +13,7 @@ task update_published_dates: :environment do
 end
 
 task update_basic_content: :environment do
-  Parallel.each(Entry.where(published_at: 4.week.ago..Time.current), in_threads: 2) do |entry|
+  Parallel.each(Entry.where(published_at: 4.week.ago..Time.current), in_threads: 4) do |entry|
     puts entry.url
     doc = Nokogiri::HTML(URI.parse(entry.url).open)
     #---------------------------------------------------------------------------
