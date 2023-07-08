@@ -11,7 +11,9 @@ ActiveAdmin.register Topic do
   index do
     selectable_column
     id_column
-    column :name
+    column 'Name' do |topic|
+      link_to topic.name, topic_path(topic), target: :blank
+    end
     column :tags
     column :created_at
     actions
