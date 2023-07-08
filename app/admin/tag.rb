@@ -33,6 +33,7 @@ ActiveAdmin.register Tag do
     column :variations
     column :created_at
     column :taggings_count
+    column :topics
     actions
   end
 end
