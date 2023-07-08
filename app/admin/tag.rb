@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 ActiveAdmin.register Tag do
-  permit_params :name, :variations
+  permit_params :name, :variations, topic_ids: []
+
 
   #------------------------------------------------------------------
   #
@@ -35,5 +36,13 @@ ActiveAdmin.register Tag do
     column :taggings_count
     column :topics
     actions
+  end
+
+  form do |f|
+    f.inputs do
+      f.input :name
+      f.input :topics
+    end
+    f.actions
   end
 end
