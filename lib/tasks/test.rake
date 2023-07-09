@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
 desc 'Moopio Morfeo web crawler'
-task prueba: :environment do
-  Site.where(id: 81).order(total_count: :desc).each do |site|
-    # Site.all.order(total_count: :desc).each do |site|
+task test: :environment do
+  Site.where(id: 110).order(total_count: :desc).each do |site|
+  # Site.all.order(total_count: :desc).each do |site|
     puts "Start test processing site #{site.name}..."
     puts '--------------------------------------------------------------------"'
     Anemone.crawl(
       site.url,
-      depth_limit: 3,
+      depth_limit: 2,
       discard_page_bodies: true,
       accept_cookies: true,
       verbose: true
