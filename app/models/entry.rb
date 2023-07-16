@@ -15,10 +15,20 @@ class Entry < ApplicationRecord
 
   before_save :set_published_date
 
-  # def self.tagged_with(tags = [], context = nil)
-  #   tags_ids = ActsAsTaggableOn::Tag.where(name: tags).pluck(:id)
-  #   joins(:taggings).where(taggings: { tag_id: tags_ids })
-  # end
+  def self.prompt(topic)
+    text = ''
+    separator = '####'
+    all.find_each do |entry|
+      text += "Titulo: #{entry.title}\n"
+      text += "Description: #{entry.description}\n"
+      text += "#{separator}\n"
+    end
+
+    "En el rol de un analista de comunicaciones por favor, resume brevemente las siguientes noticias relacionadas con #{topic} separadas por #{separator}\n#{text}
+    \nnecesito que el resumen sea general en un parrafo y no una lista. Identifica las categorías o áreas temáticas más relevantes presentes en las noticias.
+    Identifica las historias que están recibiendo más atención y considera cómo se relacionan entre sí.
+    Analiza el tono y las opiniones expresadas en las noticias utilizando técnicas de análisis de sentimientos."
+  end
 
   def clean_image
     if image_url.blank? || image_url == 'null'

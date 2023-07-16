@@ -309,6 +309,8 @@ GEM
       zeitwerk (~> 2.5)
     rainbow (3.1.1)
     rake (13.0.6)
+    rake-compiler (1.2.3)
+      rake
     ransack (3.2.1)
       activerecord (>= 6.1.5)
       activesupport (>= 6.1.5)
@@ -372,6 +374,8 @@ GEM
     stimulus-rails (1.2.1)
       railties (>= 6.0.0)
     stringio (3.0.4)
+    summarize (1.0.3)
+      rake-compiler
     telegram-bot-ruby (1.0.0)
       dry-struct (~> 1.6)
       faraday (~> 2.0)
@@ -471,6 +475,7 @@ DEPENDENCIES
   sprockets-rails
   sqlite3 (~> 1.4)
   stimulus-rails
+  summarize (~> 1.0)
   telegram-bot-ruby (~> 1.0)
   turbo-rails
   twitter (~> 7.0)

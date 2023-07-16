@@ -4,8 +4,8 @@ require 'telegram/bot'
 
 desc 'Telegram Bot'
 task telegram_bot: :environment do
-  TELEGRAM_TOKEN = '5891043165:AAFAp5WMLHeGXmpUhTUfQbea3PJ3RKEMqck'
-  OPENAI_TOKEN = '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'
+  TELEGRAM_TOKEN = Rails.application.credentials[:TELEGRAM_TOKEN]
+  OPENAI_TOKEN = Rails.application.credentials[:OPENAI_TOKEN]
 
   chats = []
 
@@ -28,23 +28,13 @@ task telegram_bot: :environment do
   #--------------------------------------------------------------------
   def generate_topic_report(topico, entries)
     client = OpenAI::Client.new(access_token: OPENAI_TOKEN)
-    client = OpenAI::Client.new
 
-    text = ''
-    entries.each do |entry|
-      text += "Titulo: #{entry.title}\n"
-      text += "Description: #{entry.description}\n"
-      text += "\n###"
-    end
-
-    promt = "Noticias sobre #{topico} separadas por ###: \n#{text}\n
-    Analiza y redacta un informe sobre la polaridad de las noticias, si son positivas, negativas o neutras para #{topico}.'
-    Redacta un breve resumen sobre la situacion de #{topico} en las noticias anteriores"
+    prompt = entries.prompt(topico)
 
     response = client.chat(
       parameters: {
         model: 'gpt-3.5-turbo', # Required.
-        messages: [{ role: 'user', content: promt }], # Required.
+        messages: [{ role: 'user', content: prompt }], # Required.
         temperature: 0.7
       }
     )
@@ -68,7 +58,7 @@ task telegram_bot: :environment do
         when '/stop'
           bot.api.send_message(chat_id: message.chat.id, text: "Adios, #{message.from.first_name}")
         when '/populares'
-          entries = Entry.includes(:site, :tags).where(total_count: 1..).a_day_ago.order(total_count: :desc).limit(10)
+          entries = Entry.includes(:site).where(total_count: 1..).a_day_ago.order(total_count: :desc).limit(10)
           bot.api.send_message(
             chat_id: message.chat.id,
             text: 'A continuacion, mostramos las 10 noticias mas importantes'
@@ -77,7 +67,7 @@ task telegram_bot: :environment do
             bot.api.send_message(chat_id: message.chat.id, text: "#{entry.title} #{entry.url}")
           end
         when '/recientes'
-          entries = @entries = Entry.includes(:site, :tags).order(published_at: :desc).limit(10)
+          entries = @entries = Entry.includes(:site).order(published_at: :desc).limit(10)
           bot.api.send_message(
             chat_id: message.chat.id,
             text: 'A continuacion, mostramos las 10 noticias mas recientes'
@@ -188,12 +178,8 @@ task telegram_bot: :environment do
               )
             end
 
-            # content = generate_topic_report(topic.name, entries)
-            # text1, text2 = split_text(content)
-            # bot.api.send_chat_action(chat_id: message.from.id, action: 'typing')
-            # bot.api.send_message(chat_id: message.from.id, text: text1)
-            # bot.api.send_chat_action(chat_id: message.from.id, action: 'typing')
-            # bot.api.send_message(chat_id: message.from.id, text: text2) if text2
+            content = generate_topic_report(topic.name, entries)
+            bot.api.send_message(chat_id: message.from.id, text: content)
 
             button_options = tags.map { |tag| { text: tag, callback_data: "/etiqueta #{tag}" } }
             bot.api.send_message(

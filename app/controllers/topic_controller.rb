@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 class TopicController < ApplicationController
   def show
     @topic = Topic.find(params[:id])
     @tag_list = @topic.tags.map(&:name)
-    @entries = Entry.normal_range.joins(:site).tagged_with(@tag_list, :any => true).has_image.order(published_at: :desc)
+    @entries = Entry.normal_range.joins(:site).tagged_with(@tag_list, any: true).has_image.order(published_at: :desc)
     @total_entries = @entries.size
     @total_interactions = @entries.sum(:total_count)
 
