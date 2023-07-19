@@ -130,3 +130,5 @@ gem 'rack-cors', '~> 2.0'
 gem 'telegram-bot-ruby', '~> 1.0'
 
 gem 'ruby-openai', '~> 4.2'
+
+gem "anomaly_detection", "~> 0.2.2"

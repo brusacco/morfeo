@@ -45,6 +45,7 @@ end
 REGEX DE NOMBRES - alternativas
 \b[A-Z][a-zØ-öø-ÿ]*\s[A-Z][a-zØ-öø-ÿ]*\b
 
+EDITOR="code --wait" rails credentials:edit
 EDITOR="mc --wait" rails credentials:edit
 
 rails console -- --noautocomplete
