@@ -51,7 +51,7 @@ EDITOR="mcedit --wait" rails credentials:edit
 
 rails console -- --noautocomplete
 
-rake crawler RAILS_ENV=production
+RAILS_ENV=production rake crawler
 
 nohup rake telegram_bot RAILS_ENV=production &
 
