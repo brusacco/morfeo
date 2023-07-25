@@ -41,12 +41,13 @@ if Gem::Requirement.new('< 2.5').satisfied_by?(Gem::Version.new(RUBY_VERSION))
   link = URI.encode(URI.decode(link))
 end
 
-
 REGEX DE NOMBRES - alternativas
 \b[A-Z][a-zØ-öø-ÿ]*\s[A-Z][a-zØ-öø-ÿ]*\b
 
 EDITOR="code --wait" rails credentials:edit
-EDITOR="mc --wait" rails credentials:edit
+EDITOR="mcedit --wait" rails credentials:edit
+
+
 
 rails console -- --noautocomplete
 
