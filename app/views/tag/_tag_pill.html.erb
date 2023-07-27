@@ -1,6 +1,8 @@
-<div class="btn-group">
-<%=link_to tag_path(tag_pill), class: 'btn btn-primary mx-0 my-1' do %>
+<span class='inline-flex items-center rounded-md bg-blue-100 px-2 py-2 text-s font-medium text-blue-700'>
+<%=link_to tag_path(tag_pill) do %>
   <%=tag_pill.name%> 
-  <span class="badge bg-secondary"><i class="fa-solid fa-tag"></i> <%=tag_pill.count%></span>
+  <span class='items-center rounded-md bg-blue-100 px-2 py-2 text-xs font-medium text-black'>
+    <i class="fa-solid fa-tag"></i> <%=tag_pill.count%>
+  </span>
 <%end%>
-</div>
+</span>

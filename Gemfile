@@ -97,7 +97,6 @@ gem 'chronic', '~> 0.10.2'
 
 gem 'parallel', '~> 1.22'
 
-gem 'bootstrap', '~> 5.2'
 
 gem 'jquery-rails', '~> 4.5'
 
@@ -130,3 +129,5 @@ gem 'rack-cors', '~> 2.0'
 gem 'telegram-bot-ruby', '~> 1.0'
 
 gem 'ruby-openai', '~> 4.2'
+
+gem "tailwindcss-rails", "~> 2.0"
