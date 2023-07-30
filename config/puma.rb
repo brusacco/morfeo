@@ -2,6 +2,14 @@
 
 require 'puma/daemon'
 
+# Assuming your application's root directory is Rails.root
+root_dir = Rails.root
+
+# Serve assets from the "public" directory
+use Rack::Static,
+  :urls => ["/assets", "/packs", "/images", "/stylesheets", "/javascripts", "/fonts"],
+  :root => File.join(root_dir, 'public')
+
 # Puma can serve each request in a thread from an internal thread pool.
 # The `threads` method setting takes two numbers: a minimum and maximum.
 # Any libraries that use thread pools should be configured to match
