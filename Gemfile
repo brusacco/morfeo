@@ -132,4 +132,3 @@ gem 'ruby-openai', '~> 4.2'
 
 gem "tailwindcss-rails", "~> 2.0"
 
-gem 'rack-static'
