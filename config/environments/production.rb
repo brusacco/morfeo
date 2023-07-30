@@ -4,7 +4,6 @@ require 'active_support/core_ext/integer/time'
 
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
-  config.public_file_server.enabled = true
 
   # Code is not reloaded between requests.
   config.cache_classes = true
@@ -29,7 +28,6 @@ Rails.application.configure do
 
   # Compress CSS using a preprocessor.
   # config.assets.css_compressor = :sass
-  config.assets.compress = false
 
   # Do not fallback to assets pipeline if a precompiled asset is missed.
   config.assets.compile = false
