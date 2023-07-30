@@ -46,8 +46,10 @@ REGEX DE NOMBRES - alternativas
 
 EDITOR="code --wait" rails credentials:edit
 EDITOR="mcedit" rails credentials:edit
+EDITOR="less" rails credentials:edit
 
-
+TELEGRAM_TOKEN: '5891043165:AAFAp5WMLHeGXmpUhTUfQbea3PJ3RKEMqck'
+OPENAI_TOKEN: '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'
 
 rails console -- --noautocomplete
 
