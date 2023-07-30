@@ -1,180 +1,131 @@
 <header class="bg-white shadow-sm">
-  <div class="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+  <div class="mx-auto px-4 py-4 sm:px-6 lg:px-8">
     <h1 class="text-lg font-semibold leading-6 text-gray-900">Etiqueta: <%=@tag.name%></h1>
   </div>
 </header>
 <main>
   <div class="mx-auto py-8 sm:px-6 lg:px-8">
-
-
-    <nav class="flex border-b border-gray-200 bg-white" aria-label="Breadcrumb">
-      <ol role="list" class="mx-auto flex w-full  space-x-4 px-4 sm:px-6 lg:px-6">
-        <li class="flex">
-          <div class="flex items-center">
-            <a href="/" class="text-gray-400 hover:text-gray-500">
-              <svg class="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fill-rule="evenodd" d="M9.293 2.293a1 1 0 011.414 0l7 7A1 1 0 0117 11h-1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-3a1 1 0 00-1-1H9a1 1 0 00-1 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-6H3a1 1 0 01-.707-1.707l7-7z" clip-rule="evenodd" />
-              </svg>
-              <span class="sr-only">Inicio</span>
-            </a>
-          </div>
-        </li>
-        <li class="flex">
-          <div class="flex items-center">
-            <svg class="h-full w-6 flex-shrink-0 text-gray-200" viewBox="0 0 24 44" preserveAspectRatio="none" fill="currentColor" aria-hidden="true">
-              <path d="M.293 0l22 22-22 22h1.414l22-22-22-22H.293z" />
-            </svg>
-            <a href="/" class="ml-4 text-sm font-medium text-gray-500 hover:text-gray-700">Etiquetas</a>
-          </div>
-        </li>
-        <li class="flex">
-          <div class="flex items-center">
-            <svg class="h-full w-6 flex-shrink-0 text-gray-200" viewBox="0 0 24 44" preserveAspectRatio="none" fill="currentColor" aria-hidden="true">
-              <path d="M.293 0l22 22-22 22h1.414l22-22-22-22H.293z" />
-            </svg>
-            <a href="#" class="ml-4 text-sm font-medium text-gray-500 hover:text-gray-700" aria-current="page"><%=@tag.name%></a>
-          </div>
-        </li>
-      </ol>
-    </nav>
-
-    <hr>
     <h5>La etiqueta <b><%=@tag.name%></b> en los ultimos <b><%=DAYS_RANGE%> días</b> cuenta con un total de <b><%=number_with_delimiter(@total_entries, delimiter: ".")%></b> notas y genero un total de <b><%=number_with_delimiter(@total_interactions, delimiter: '.')%></b> interacciones, lo que nos da un promedio de <b><%=number_with_delimiter(@promedio, delimiter: '.')%></b> interacciones por nota.</h5>
-
-    <span>Las noticias con mas interacciones fueron:</span>
-    <div class="px-4 sm:px-4 lg:px-4">
-      <div class="mt-8 flow-root">
-        <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-          <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-            <table class="min-w-full divide-y divide-gray-300">
-              <thead>
-                <tr>
-                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"></th>
-                  <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">Titulo</th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Medio</th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Fecha</th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Interacciones</th>
-                </tr>
-              </thead>
-              <tbody class="bg-white">
-                <%@most_interactions.each do |entry|%>
-                <tr class="even:bg-gray-50">
-                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    <%=image_tag entry.clean_image, size: 150, loading: 'lazy', onerror: 'this.onerror=null;this.src="https://via.placeholder.com/300x250";'%>
-                  </td>
-                  <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-3">
-                    <%=entry.title%>
-                  </td>
-                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500"><%=entry.site.name%></td>
-                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500"><%=entry.published_at%></td>
-                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500"><%=entry.total_count%></td>
-                </tr>
-                <%end%>
-              </tbody>
-            </table>
-          </div>
+    <div class="bg-white">
+      <div class="mx-auto px-4 py-16 sm:px-6 sm:py-24  lg:px-8">
+        <h2 class="text-2xl font-bold tracking-tight text-gray-900">Las noticias con mas interacciones fueron:</h2>
+        <div class="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
+          <%@most_interactions.each do |entry|%>
+            <div class="group relative">
+              <div class="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-md bg-gray-200 lg:aspect-none group-hover:opacity-75 lg:h-80">
+                <%=image_tag entry.clean_image, size: 150, loading: 'lazy', onerror: 'this.onerror=null;this.src="https://via.placeholder.com/300x250";', class: 'h-full w-full object-cover object-center lg:h-full lg:w-full'%>
+              </div>
+              <div class="mt-4 flex justify-between">
+                <div>
+                  <h3 class="text-sm text-gray-700">
+                    <a href="#">
+                      <span aria-hidden="true" class="absolute inset-0"></span>
+                      <%=entry.title%>
+                    </a>
+                  </h3>
+                  <hr>
+                  <p class="mt-1 text-sm text-gray-500"><%=entry.site.name%></p>
+                  <small class="text-muted px-1"><%= icon('fa-regular', 'calendar')%> <%=entry.published_at.strftime('%Y-%m-%d')%></small>
+                  <small class="text-muted px-1"><i class="fa-brands fa-square-facebook"></i> <%=entry.total_count%></small>
+                  <small class="text-muted px-1"><i class="fa-solid fa-link"></i> <%= link_to entry.id, entry.url, target: :blank %></small>
+                </div>
+              </div>
+            </div>
+          <%end%>
         </div>
       </div>
     </div>
-
-    Los medios que mas han mencionado esta etiqueta fueron:
-    <ul>
-      <% @entries.group("sites.name").count('*').sort_by { |site, count| -count }.take(5).each do |site, count| %>
-        <li><%= site %> (<%= count %> notas)</li>
-      <% end %>
-    </ul>
+    <div class="py-6">
+      <h2 class="text-2xl font-bold tracking-tight text-gray-900">Los medios que mas han mencionado esta etiqueta fueron:</h2>
+      <ul role="list" class="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <% @entries.group("sites.name").count('*').sort_by { |site, count| -count }.take(5).each do |site, count| %>
+          <li class="col-span-1 divide-y divide-gray-200 rounded-lg bg-white shadow">
+            <div class="flex w-full items-center justify-between space-x-6 p-6">
+              <div class="flex-1 truncate">
+                <div class="flex items-center space-x-3">
+                  <h3 class="truncate text-sm font-medium text-gray-900"><%= site %></h3>
+                </div>
+                <p class="mt-1 truncate text-sm text-gray-500"><%= count %> publicaciones</p>
+              </div>
+              <img class="h-10 w-10 flex-shrink-0 rounded-full bg-gray-300" src="https://via.placeholder.com/300x300" alt="">
+            </div>
+          </li>
+        <% end %>
+        <!-- More people... -->
+      </ul>
+    </div>
+    <div class="px-2">
+      <h2 class="text-2xl font-bold tracking-tight text-gray-900">Análisis de los últimos <%=DAYS_RANGE%> días</h2>
+      <%= column_chart @entries.group_by_day(:published_at).count, xtitle: "Fecha", ytitle: "Cant. Notas", label: "Notas", colors: ['blue'] %>
+      <%= column_chart @entries.group_by_day(:published_at).sum(:total_count), xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones", colors: ['green']%>
+    </div>
     <hr>
-
-    <h3>Análisis de los últimos <%=DAYS_RANGE%> días</h3>
-    <%= column_chart @entries.group_by_day(:published_at).count, xtitle: "Fecha", ytitle: "Cant. Notas", label: "Notas", colors: ['blue'] %>
-    <%= column_chart @entries.group_by_day(:published_at).sum(:total_count), xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones", colors: ['green']%>
-
-    <hr>
-
-    <div class="container py-4">
-      <div class="row">
-        <div class="col">
-        <h3>Cantidad de Notas por medio</h3>
+    <div class="container py-4 px-2">
+      <div class="flex">
+        <div class="w-1/2">
+          <h3>Cantidad de Notas por medio</h3>
           <%= pie_chart @entries.group("sites.name").count, donut: true %>
         </div>
-        <div class="col">
-          <h3>Cantidad de Interacciones por medio</h3>    
+        <div class="w-1/2">
+          <h3>Cantidad de Interacciones por medio</h3>
           <%= pie_chart @entries.group("sites.name").sum(:total_count), donut: true %>
         </div>
       </div>
     </div>
-
     <hr>
-
     <div class="container py-4">
-      <div class="row">
-        <div class="col">
-        <h3>Cantidad de Notas por Tag Relacionados</h3>
+      <div class="flex">
+        <div class="w-1/2">
+          <h3>Cantidad de Notas por Tag Relacionados</h3>
           <%= pie_chart @tags_count, donut: true %>
         </div>
-        <div class="col">
-          <h3>Cantidad de Interacciones por Tag Relacionados</h3>    
+        <div class="w-1/2">
+          <h3>Cantidad de Interacciones por Tag Relacionados</h3>
           <%= pie_chart @tags_interactions, donut: true %>
         </div>
       </div>
     </div>
-
     <% if @tags.any? %>
-    <hr>
-    <div class="my-2">
-      <h3>Apariciones Etiquetas</h2>
-      <%= render partial: "tag/tag_pill", collection: @tags %>
-      <p><small class="text-muted px-1">*Cantidad de veces que aparecen las etiquetas en las notas</small></p>
-    </div>
-    <hr>
-    <div class="my-2">
-      <h3>Interacciones Etiquetas</h2>
-      <%= render partial: "tag/tag_pill_interactions", collection: @tags.to_a.sort_by(&:interactions).reverse %>
-      <p><small class="text-muted px-1">*Interacciones en las notas</small></p>
-    </div>
+      <hr>
+      <div class="my-2">
+        <h2 class="text-2xl font-bold tracking-tight text-gray-900">Aparicion de Etiquetas:</h2>
+        <%= render partial: "tag/tag_pill", collection: @tags %>
+        <p><small class="text-muted px-1">*Cantidad de veces que aparecen las etiquetas en las notas</small></p>
+      </div>
+      <hr>
+      <div class="my-2">
+        <h2 class="text-2xl font-bold tracking-tight text-gray-900">Interacciones de Etiquetas:</h2>
+        <%= render partial: "tag/tag_pill_interactions", collection: @tags.to_a.sort_by(&:interactions).reverse %>
+        <p><small class="text-muted px-1">*Interacciones en las notas</small></p>
+      </div>
     <%end%>
     <hr>
-
-
-    <div class="px-4 sm:px-4 lg:px-4">
-      <div class="sm:flex sm:items-center">
-        <div class="sm:flex-auto">
-          <h1 class="text-base font-semibold leading-6 text-gray-900">Últimas Noticias</h1>
-        </div>
-      </div>
-      <div class="mt-8 flow-root">
-        <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-          <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-            <table class="min-w-full divide-y divide-gray-300">
-              <thead>
-                <tr>
-                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"></th>
-                  <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3">Titulo</th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Medio</th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Fecha</th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Interacciones</th>
-                </tr>
-              </thead>
-              <tbody class="bg-white">
-                <%@entries.each do |entry|%>
-                <tr class="even:bg-gray-50">
-                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    <%=image_tag entry.clean_image, size: 150, loading: 'lazy', onerror: 'this.onerror=null;this.src="https://via.placeholder.com/300x250";'%>
-                  </td>
-                  <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-3">
-                    <%=entry.title%>
-                  </td>
-                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500"><%=entry.site.name%></td>
-                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500"><%=entry.published_at%></td>
-                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500"><%=entry.total_count%></td>
-                </tr>
-                <%end%>
-              </tbody>
-            </table>
-          </div>
+    <div class="bg-white">
+      <div class="mx-auto px-4 py-16 sm:px-6 sm:py-24  lg:px-8">
+        <h2 class="text-2xl font-bold tracking-tight text-gray-900">Últimas Noticias</h2>
+        <div class="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
+          <%@entries.each do |entry|%>
+            <div class="group relative rounded-md">
+              <div class="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-md bg-gray-200 lg:aspect-none group-hover:opacity-75 lg:h-80">
+                <%=image_tag entry.clean_image, size: 150, loading: 'lazy', onerror: 'this.onerror=null;this.src="https://via.placeholder.com/300x250";', class: 'h-full w-full object-cover object-center lg:h-full lg:w-full'%>
+              </div>
+              <div class="mt-4 flex justify-between">
+                <div>
+                  <h3 class="text-sm text-gray-700">
+                    <a href="#">
+                      <span aria-hidden="true" class="absolute inset-0"></span>
+                      <%=entry.title%>
+                    </a>
+                  </h3>
+                  <hr>
+                  <p class="mt-1 text-sm text-gray-500"><%=entry.site.name%> -  <%=entry.total_count%> interacciones</p>
+                </div>
+              </div>
+            </div>
+          <%end%>
         </div>
       </div>
     </div>
-
   </div>
 </main>
+
