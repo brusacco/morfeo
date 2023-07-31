@@ -1,78 +1,66 @@
-<nav aria-label="breadcrumb">
-  <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="/">Home</a></li>
-    <li class="breadcrumb-item">Tópico</li>
-    <li class="breadcrumb-item active" aria-current="page"><%=@topic.name%></li>
-  </ol>
-</nav>
-
-<h1><%=@topic.name%></h1>
-<%= render partial: "tag/tag_entry", collection: @topic.tags %>
-<hr>
-<h5>El tópico <b><%=@topic.name%></b> en los ultimos <b><%=DAYS_RANGE%> días</b> cuenta con un total de <b><%=number_with_delimiter(@total_entries, delimiter: ".")%></b> notas y genero un total de <b><%=number_with_delimiter(@total_interactions, delimiter: '.')%></b> interacciones, lo que nos da un promedio de <b><%=number_with_delimiter(@promedio, delimiter: '.')%></b> interacciones por nota.</h5>
-<p>Las noticias con mas interacciones fueron:</p>
-<ul>
-  <% @most_interactions.each do |entry| %>
-    <li><a href="<%=entry.url%>" target="_blank"><%=entry.title%></a> - <b><%=number_with_delimiter(entry.total_count, delimiter: ".")%></b> interacciones. Publicado: <b><%=entry.published_at.strftime("%d/%m/%Y")%></b></li>
-  <% end %>
-</ul>
-
-Los medios que mas han mencionado este tópico fueron:
-<ul>
-  <% @entries.group("sites.name").count('*').sort_by { |site, count| -count }.take(5).each do |site, count| %>
-    <li><%= site %> (<%= count %> notas)</li>
-  <% end %>
-</ul>
-<hr>
-
-<h3>Análisis de los últimos <%=DAYS_RANGE%> días</h3>
-<%= column_chart @entries.group_by_day(:published_at).count('*'), xtitle: "Fecha", ytitle: "Cant. Notas", label: "Notas", colors: ['blue'] %>
-<%= column_chart @entries.group_by_day(:published_at).sum(:total_count), xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones", colors: ['green']%>
-
-<hr>
-
-<div class="container py-4">
-  <div class="row">
-    <div class="col">
-    <h3>Cantidad de Notas por medio</h3>
-      <%= pie_chart @entries.group("sites.name").count('*'), donut: true %>
-    </div>
-    <div class="col">
-      <h3>Cantidad de Interacciones por medio</h3>    
-      <%= pie_chart @entries.group("sites.name").sum(:total_count), donut: true %>
-    </div>
+<header class="bg-white shadow-sm">
+  <div class="mx-auto px-4 py-4 sm:px-6 lg:px-8">
+    <h1 class="text-lg font-semibold leading-6 text-gray-900">Tópico: <%=@topic.name%></h1>
   </div>
-</div>
+</header>
+<main>
+  <div class="mx-auto py-8 sm:px-6 lg:px-8">
+    <%= render partial: "tag/tag_entry", collection: @topic.tags %>
+    <hr>
+    <h5>El tópico <b><%=@topic.name%></b> en los ultimos <b><%=DAYS_RANGE%> días</b> cuenta con un total de <b><%=number_with_delimiter(@total_entries, delimiter: ".")%></b> notas y genero un total de <b><%=number_with_delimiter(@total_interactions, delimiter: '.')%></b> interacciones, lo que nos da un promedio de <b><%=number_with_delimiter(@promedio, delimiter: '.')%></b> interacciones por nota.</h5>
+    <%= render partial: 'entry/entries', locals: { last_entries: @most_interactions, title: 'Más Interacciones' } %>
+    <%= render partial: 'site/sites', locals: { sites: @entries.group("sites.name").count('*').sort_by { |site, count| -count }.take(5), title: 'Los medios que mas han mencionado' } %>
 
-<hr>
+    <h3>Análisis de los últimos <%=DAYS_RANGE%> días</h3>
+    <%= column_chart @entries.group_by_day(:published_at).count('*'), xtitle: "Fecha", ytitle: "Cant. Notas", label: "Notas", colors: ['blue'] %>
+    <%= column_chart @entries.group_by_day(:published_at).sum(:total_count), xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones", colors: ['green']%>
 
-<div class="container py-4">
-  <div class="row">
-    <div class="col">
-    <h3>Cantidad de Notas por Tag Relacionados</h3>
-      <%= pie_chart @tags_count, donut: true %>
+    <hr>
+
+    <div class="container py-4">
+      <div class="row">
+        <div class="col">
+        <h3>Cantidad de Notas por medio</h3>
+          <%= pie_chart @entries.group("sites.name").count('*'), donut: true %>
+        </div>
+        <div class="col">
+          <h3>Cantidad de Interacciones por medio</h3>    
+          <%= pie_chart @entries.group("sites.name").sum(:total_count), donut: true %>
+        </div>
+      </div>
     </div>
-    <div class="col">
-      <h3>Cantidad de Interacciones por Tag Relacionados</h3>    
-      <%= pie_chart @tags_interactions, donut: true %>
+
+    <hr>
+
+    <div class="container py-4">
+      <div class="row">
+        <div class="col">
+        <h3>Cantidad de Notas por Tag Relacionados</h3>
+          <%= pie_chart @tags_count, donut: true %>
+        </div>
+        <div class="col">
+          <h3>Cantidad de Interacciones por Tag Relacionados</h3>    
+          <%= pie_chart @tags_interactions, donut: true %>
+        </div>
+      </div>
     </div>
+
+    <% if @tags.any? %>
+    <hr>
+    <div class="my-2">
+      <h3>Apariciones Etiquetas</h2>
+      <%= render partial: "tag/tag_pill", collection: @tags %>
+      <p><small class="text-muted px-1">*Cantidad de veces que aparecen las etiquetas en las notas</small></p>
+    </div>
+    <hr>
+    <div class="my-2">
+      <h3>Interacciones Etiquetas</h2>
+      <%= render partial: "tag/tag_pill_interactions", collection: @tags.to_a.sort_by(&:interactions).reverse %>
+      <p><small class="text-muted px-1">*Interacciones en las notas</small></p>
+    </div>
+    <%end%>
+    <hr>
+
+    <%= render partial: 'entry/entries', locals: { last_entries: @entries, title: 'Últimas Noticias' } %>
   </div>
-</div>
-
-<% if @tags.any? %>
-<hr>
-<div class="my-2">
-  <h3>Apariciones Etiquetas</h2>
-  <%= render partial: "tag/tag_pill", collection: @tags %>
-  <p><small class="text-muted px-1">*Cantidad de veces que aparecen las etiquetas en las notas</small></p>
-</div>
-<hr>
-<div class="my-2">
-  <h3>Interacciones Etiquetas</h2>
-  <%= render partial: "tag/tag_pill_interactions", collection: @tags.to_a.sort_by(&:interactions).reverse %>
-  <p><small class="text-muted px-1">*Interacciones en las notas</small></p>
-</div>
-<%end%>
-<hr>
-
-<%= render partial: 'entry/entries', locals: { last_entries: @entries, title: 'Últimas Noticias' } %>
+</main>
