@@ -75,8 +75,4 @@ Los medios que mas han mencionado este tópico fueron:
 <%end%>
 <hr>
 
-
-<h3>Últimas Noticias sobre <%=@topic.name%></h3>
-<div class="row py-2" data-masonry='{"percentPosition": true }' data-controller="cards">
-<%= render partial: "entry/entry", collection: @entries, cached: true %>
-</div>
+<%= render partial: 'entry/entries', locals: { last_entries: @entries, title: 'Últimas Noticias' } %>

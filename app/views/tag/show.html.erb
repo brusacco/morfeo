@@ -6,54 +6,8 @@
 <main>
   <div class="mx-auto py-8 sm:px-6 lg:px-8">
     <h5>La etiqueta <b><%=@tag.name%></b> en los ultimos <b><%=DAYS_RANGE%> días</b> cuenta con un total de <b><%=number_with_delimiter(@total_entries, delimiter: ".")%></b> notas y genero un total de <b><%=number_with_delimiter(@total_interactions, delimiter: '.')%></b> interacciones, lo que nos da un promedio de <b><%=number_with_delimiter(@promedio, delimiter: '.')%></b> interacciones por nota.</h5>
-    <div class="bg-white">
-      <div class="mx-auto px-4 py-16 sm:px-6 sm:py-24  lg:px-8">
-        <h2 class="text-2xl font-bold tracking-tight text-gray-900">Las noticias con mas interacciones fueron:</h2>
-        <div class="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
-          <%@most_interactions.each do |entry|%>
-            <div class="group relative">
-              <div class="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-md bg-gray-200 lg:aspect-none group-hover:opacity-75 lg:h-80">
-                <%=image_tag entry.clean_image, size: 150, loading: 'lazy', onerror: 'this.onerror=null;this.src="https://via.placeholder.com/300x250";', class: 'h-full w-full object-cover object-center lg:h-full lg:w-full'%>
-              </div>
-              <div class="mt-4 flex justify-between">
-                <div>
-                  <h3 class="text-sm text-gray-700">
-                    <a href="#">
-                      <span aria-hidden="true" class="absolute inset-0"></span>
-                      <%=entry.title%>
-                    </a>
-                  </h3>
-                  <hr>
-                  <p class="mt-1 text-sm text-gray-500"><%=entry.site.name%></p>
-                  <small class="text-muted px-1"><%= icon('fa-regular', 'calendar')%> <%=entry.published_at.strftime('%Y-%m-%d')%></small>
-                  <small class="text-muted px-1"><i class="fa-brands fa-square-facebook"></i> <%=entry.total_count%></small>
-                  <small class="text-muted px-1"><i class="fa-solid fa-link"></i> <%= link_to entry.id, entry.url, target: :blank %></small>
-                </div>
-              </div>
-            </div>
-          <%end%>
-        </div>
-      </div>
-    </div>
-    <div class="py-6">
-      <h2 class="text-2xl font-bold tracking-tight text-gray-900">Los medios que mas han mencionado esta etiqueta fueron:</h2>
-      <ul role="list" class="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        <% @entries.group("sites.name").count('*').sort_by { |site, count| -count }.take(5).each do |site, count| %>
-          <li class="col-span-1 divide-y divide-gray-200 rounded-lg bg-white shadow">
-            <div class="flex w-full items-center justify-between space-x-6 p-6">
-              <div class="flex-1 truncate">
-                <div class="flex items-center space-x-3">
-                  <h3 class="truncate text-sm font-medium text-gray-900"><%= site %></h3>
-                </div>
-                <p class="mt-1 truncate text-sm text-gray-500"><%= count %> publicaciones</p>
-              </div>
-              <img class="h-10 w-10 flex-shrink-0 rounded-full bg-gray-300" src="https://via.placeholder.com/300x300" alt="">
-            </div>
-          </li>
-        <% end %>
-        <!-- More people... -->
-      </ul>
-    </div>
+    <%= render partial: 'entry/entries', locals: { last_entries: @most_interactions, title: 'Más Interacciones' } %>
+    <%= render partial: 'site/sites', locals: { sites: @entries.group("sites.name").count('*').sort_by { |site, count| -count }.take(5), title: 'Los medios que mas han mencionado' } %>
     <div class="px-2">
       <h2 class="text-2xl font-bold tracking-tight text-gray-900">Análisis de los últimos <%=DAYS_RANGE%> días</h2>
       <%= column_chart @entries.group_by_day(:published_at).count, xtitle: "Fecha", ytitle: "Cant. Notas", label: "Notas", colors: ['blue'] %>
@@ -100,32 +54,6 @@
       </div>
     <%end%>
     <hr>
-    <div class="bg-white">
-      <div class="mx-auto px-4 py-16 sm:px-6 sm:py-24  lg:px-8">
-        <h2 class="text-2xl font-bold tracking-tight text-gray-900">Últimas Noticias</h2>
-        <div class="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
-          <%@entries.each do |entry|%>
-            <div class="group relative rounded-md">
-              <div class="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-md bg-gray-200 lg:aspect-none group-hover:opacity-75 lg:h-80">
-                <%=image_tag entry.clean_image, size: 150, loading: 'lazy', onerror: 'this.onerror=null;this.src="https://via.placeholder.com/300x250";', class: 'h-full w-full object-cover object-center lg:h-full lg:w-full'%>
-              </div>
-              <div class="mt-4 flex justify-between">
-                <div>
-                  <h3 class="text-sm text-gray-700">
-                    <a href="#">
-                      <span aria-hidden="true" class="absolute inset-0"></span>
-                      <%=entry.title%>
-                    </a>
-                  </h3>
-                  <hr>
-                  <p class="mt-1 text-sm text-gray-500"><%=entry.site.name%> -  <%=entry.total_count%> interacciones</p>
-                </div>
-              </div>
-            </div>
-          <%end%>
-        </div>
-      </div>
-    </div>
-  </div>
+    <%= render partial: 'entry/entries', locals: { last_entries: @entries, title: 'Últimas Noticias' } %>
 </main>
 
