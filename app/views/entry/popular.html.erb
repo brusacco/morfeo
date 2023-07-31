@@ -1,23 +1,24 @@
 <header class="bg-white shadow-sm">
   <div class="mx-auto px-4 py-4 sm:px-6 lg:px-8">
-    <h1 class="text-lg font-semibold leading-6 text-gray-900">Últimas Noticias</h1>
+    <h1 class="text-lg font-semibold leading-6 text-gray-900">Noticias Populares</h1>
   </div>
 </header>
 <main>
   <div class="mx-auto py-6 sm:px-6 lg:px-8">
 
     <h3>Análisis de notas populares 24Hrs..</h3>
-    <div class="container py-4">
-      <div class="row">
-        <div class="col">
-        <h3>Notas por medio</h3>
+    <div class="container py-4 px-2">
+      <div class="flex">
+        <div class="w-1/2">
+          <h3>Cantidad de Notas por medio</h3>
           <%= pie_chart @entries.group("sites.name").count, donut: true %>
         </div>
-        <div class="col">
-          <h3>Interacciones por medio</h3>    
+        <div class="w-1/2">
+          <h3>Cantidad de Interacciones por medio</h3>
           <%= pie_chart @entries.group("sites.name").sum(:total_count), donut: true %>
         </div>
       </div>
+    </div>
     </div>
 
     <hr>
