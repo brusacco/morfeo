@@ -7,6 +7,8 @@ class TagController < ApplicationController
     @total_entries = @entries.size
     @total_interactions = @entries.sum(:total_count)
 
+    @top_entries = Entry.normal_range.joins(:site).order(total_count: :desc).limit(5)
+
     @most_interactions = @entries.sort_by(&:total_count).reverse.take(10)
 
     if @total_entries.zero?
