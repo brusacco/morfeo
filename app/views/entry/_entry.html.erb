@@ -1,16 +1,21 @@
-<div class="col-sm-6 col-lg-4 mb-4" data-tags="<%=entry.tag_list%>">
-  <div class="card shadow-lg rounded">
-    <div class="px-3 py-2"><b><%=link_to entry.site.name, site_path(entry.site)%></b></div>
-    <%=image_tag entry.clean_image, width: '100%', height: 300, loading: 'lazy', onerror: 'this.onerror=null;this.src="https://via.placeholder.com/300x250";'%>
-    <div class="card-body">
-      <h5 class="card-title"><%=entry.title%></h5>
-      <p class="card-text"><%=entry.description%></p>
+<div class="group relative rounded-md">
+  <div class="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-md bg-gray-200 lg:aspect-none group-hover:opacity-75 lg:h-80">
+    <%=image_tag entry.clean_image, size: 150, loading: 'lazy', onerror: 'this.onerror=null;this.src="https://via.placeholder.com/300x250";', class: 'h-full w-full object-cover object-center lg:h-full lg:w-full'%>
+  </div>
+  <div class="mt-4 flex justify-between">
+    <div>
+      <h3 class="text-sm text-gray-700">
+        <a href="#">
+          <span aria-hidden="true" class="absolute inset-0"></span>
+          <%=entry.title%>
+        </a>
+      </h3>
+      <hr>
       <p class="card-text">
         <small class="text-muted px-1"><%= icon('fa-regular', 'calendar')%> <%=entry.published_at.strftime('%Y-%m-%d')%></small>
         <small class="text-muted px-1"><i class="fa-brands fa-square-facebook"></i> <%=entry.total_count%></small>
         <small class="text-muted px-1"><i class="fa-solid fa-link"></i> <%= link_to entry.id, entry.url, target: :blank %></small>
       </p>
-      <%= render partial: "tag/tag_entry", collection: entry.tags, cache: true %>
     </div>
   </div>
 </div>
