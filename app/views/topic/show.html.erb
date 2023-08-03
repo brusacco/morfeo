@@ -9,9 +9,9 @@
     <hr>
     <div class="m-2">
       <p>El tópico <b><%=@topic.name%></b> en los ultimos <b><%=DAYS_RANGE%> días</b> cuenta con un total de <b><%=number_with_delimiter(@total_entries, delimiter: ".")%></b> notas y genero un total de <b><%=number_with_delimiter(@total_interactions, delimiter: '.')%></b> interacciones, lo que nos da un promedio de <b><%=number_with_delimiter(@promedio, delimiter: '.')%></b> interacciones por nota.</p>
-      <p>En contexto las <%=@top_entries.count%> notas mas populares en el mismo periodo tuvieron <b><%=@top_entries.pluck(:total_count).join(', ')%></b> interacciones.</p>
+      <p>En contexto las <%=@top_entries.count%> notas mas populares en general en el mismo periodo tuvieron <b><%=@top_entries.pluck(:total_count).join(', ')%></b> interacciones.</p>
     </div>
-    <%= render partial: 'entry/entries', locals: { last_entries: @most_interactions, title: 'Más Interacciones' } %>
+    <%= render partial: 'entry/entries', locals: { last_entries: @most_interactions, title: 'Top 10 Interacciones del Tópico' } %>
     <%= render partial: 'site/sites', locals: { sites: @entries.group("sites.name").count('*').sort_by { |site, count| -count }.take(5), title: 'Los medios que mas han mencionado' } %>
     <h3>Análisis de los últimos <%=DAYS_RANGE%> días</h3>
     <%= column_chart @entries.group_by_day(:published_at).count('*'), xtitle: "Fecha", ytitle: "Cant. Notas", label: "Notas", colors: ['blue'] %>
@@ -57,6 +57,6 @@
       </div>
     <%end%>
     <hr>
-    <%= render partial: 'entry/entries', locals: { last_entries: @entries, title: 'Últimas Noticias' } %>
+    <%= render partial: 'entry/entries', locals: { last_entries: @entries, title: 'Últimas Noticias del Tópico' } %>
   </div>
 </main>
