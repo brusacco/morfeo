@@ -9,7 +9,7 @@ class TagController < ApplicationController
 
     @top_entries = Entry.normal_range.joins(:site).order(total_count: :desc).limit(5)
 
-    @most_interactions = @entries.sort_by(&:total_count).reverse.take(10)
+    @most_interactions = @entries.sort_by(&:total_count).reverse.take(8)
 
     if @total_entries.zero?
       @promedio = 0

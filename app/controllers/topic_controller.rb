@@ -10,7 +10,7 @@ class TopicController < ApplicationController
     @total_entries = @entries.size
     @total_interactions = @entries.sum(&:total_count)
 
-    @most_interactions = @entries.sort_by(&:total_count).reverse.take(10)
+    @most_interactions = @entries.sort_by(&:total_count).reverse.take(8)
 
     if @total_entries.zero?
       @promedio = 0
