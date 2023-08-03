@@ -7,7 +7,6 @@ class TopicController < ApplicationController
     @entries = Entry.normal_range.joins(:site).tagged_with(@tag_list, any: true).has_image.order(published_at: :desc)
 
     @top_entries = Entry.normal_range.joins(:site).order(total_count: :desc).limit(5)
-
     @total_entries = @entries.size
     @total_interactions = @entries.sum(&:total_count)
 
