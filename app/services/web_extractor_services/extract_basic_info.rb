@@ -22,6 +22,7 @@ module WebExtractorServices
     def extract_title
       @doc&.title
       @doc.at('meta[property="og:title"]')[:content] if @doc.at('meta[property="og:title"]')
+      @doc.at('meta[property="twitter:title"]')[:content] if @doc.at('meta[twitter="og:title"]')
     end
 
     #-------------------------------------------------------------
@@ -30,6 +31,10 @@ module WebExtractorServices
     def extract_description
       if @doc.at('meta[property="og:description"]')
         description = @doc.at('meta[property="og:description"]')[:content]&.strip
+      elsif @doc.at('meta[name="description"]')
+        description = @doc.at('meta[name="description"]')[:content]&.strip
+      elsif @doc.at('meta[property="twitter:description"]')
+        description = @doc.at('meta[property="twitter:description"]')[:content]&.strip
       else
         description = ''
       end
