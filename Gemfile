@@ -47,7 +47,7 @@ gem 'tzinfo-data', platforms: %i[mingw mswin x64_mingw jruby]
 gem 'bootsnap', require: false
 
 # Use Sass to process CSS
-gem "sassc-rails"
+gem 'sassc-rails'
 
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 # gem "image_processing", "~> 1.2"
@@ -97,7 +97,6 @@ gem 'chronic', '~> 0.10.2'
 
 gem 'parallel', '~> 1.22'
 
-
 gem 'jquery-rails', '~> 4.5'
 
 gem 'open-uri', '~> 0.3.0'
@@ -130,5 +129,4 @@ gem 'telegram-bot-ruby', '~> 1.0'
 
 gem 'ruby-openai', '~> 4.2'
 
-gem "tailwindcss-rails", "~> 2.0"
-
+gem 'tailwindcss-rails', '~> 2.0'

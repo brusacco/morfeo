@@ -4,14 +4,17 @@ class TagController < ApplicationController
   def show
     @tag = Tag.find(params[:id])
     @entries = Entry.normal_range.joins(:site).tagged_with(@tag.name).has_image.order(published_at: :desc)
+    @analytics = Entry.normal_range.joins(:site).tagged_with(@tag.name).order(total_count: :desc).limit(20)
+
     @total_entries = @entries.size
     @total_interactions = @entries.sum(:total_count)
 
-    @word_occurrences = word_occurrences_from_entries(@entries)
-    @bigram_occurrences = bigram_occurrences_from_entries(@entries)
+    # Cosas nuevas
+    @word_occurrences = @entries.word_occurrences
+    @bigram_occurrences = @entries.bigram_occurrences
+    # @report = @analytics.generate_report(@tag.name) # Use top 20 entries openAPI API limitations
 
     @top_entries = Entry.normal_range.joins(:site).order(total_count: :desc).limit(5)
-
     @most_interactions = @entries.sort_by(&:total_count).reverse.take(8)
 
     if @total_entries.zero?
@@ -37,7 +40,6 @@ class TagController < ApplicationController
 
     @tags_interactions = @tags_interactions.sort_by { |_k, v| v }
                                            .reverse
-
     @tags_count = {}
     @tags.each { |n| @tags_count[n.name] = n.count }
   end
@@ -72,39 +74,5 @@ class TagController < ApplicationController
   def search
     query = params[:query].strip
     @tags = Tag.where('name LIKE?', "%#{query}%")
-  end
-
-  private
-
-  def bigram_occurrences_from_entries(entries)
-    word_occurrences = Hash.new(0)
-
-    entries.each do |entry|
-      words = (entry.title.to_s + ' ' + entry.content.to_s).gsub(/[[:punct:]]/, '').split
-      bigrams = words.each_cons(2).map { |word1, word2| "#{word1.downcase} #{word2.downcase}" }
-      bigrams.each do |bigram|
-        next if STOP_WORDS.include?(bigram.split.first) || STOP_WORDS.include?(bigram.split.last)
-
-        word_occurrences[bigram] += 1
-      end
-    end
-
-    word_occurrences.select { |_bigram, count| count > 10 }.sort_by { |_k, v| v }.reverse
-  end
-
-  def word_occurrences_from_entries(entries)
-    word_occurrences = Hash.new(0)
-
-    entries.each do |entry|
-      words = (entry.title.to_s + ' ' + entry.content.to_s).gsub(/[[:punct:]]/, '').split
-      words.each do |word|
-        cleaned_word = word.downcase
-        next if STOP_WORDS.include?(cleaned_word) || cleaned_word.length <= 1
-
-        word_occurrences[cleaned_word] += 1
-      end
-    end
-
-    word_occurrences.select { |_word, count| count > 10 }.sort_by { |_k, v| v }.reverse
   end
 end

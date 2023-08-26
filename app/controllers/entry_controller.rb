@@ -7,6 +7,10 @@ class EntryController < ApplicationController
     @entries = Entry.joins(:site).where(total_count: 1..).a_day_ago.where.not(image_url: nil).order(total_count: :desc).limit(50)
     @tags = @entries.tag_counts_on(:tags).order('count desc')
 
+    # Cosas nuevas
+    @word_occurrences = @entries.word_occurrences
+    @bigram_occurrences = @entries.bigram_occurrences
+
     @tags_interactions = {}
     @tags.each do |tag|
       @entries.each do |entry|
@@ -80,7 +84,7 @@ class EntryController < ApplicationController
 
   def week
     @entries = Entry.joins(:site).a_week_ago.where.not(image_url: nil).order(published_at: :desc)
-    @today = Date.today
+    @today = Time.zone.today
     @a_week_ago = @today - 7
   end
 

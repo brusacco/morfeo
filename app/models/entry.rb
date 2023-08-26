@@ -30,6 +30,59 @@ class Entry < ApplicationRecord
     Analiza el tono y las opiniones expresadas en las noticias utilizando técnicas de análisis de sentimientos."
   end
 
+  def self.generate_report(topic)
+    client = OpenAI::Client.new(access_token: '')
+
+    prompt = all.prompt(topic)
+
+    response = client.chat(
+      parameters: {
+        model: 'gpt-3.5-turbo', # Required.
+        messages: [{ role: 'user', content: prompt }], # Required.
+        temperature: 0.7
+      }
+    )
+    response.dig('choices', 0, 'message', 'content')
+  end
+
+  def self.bigram_occurrences(limit = 20)
+    word_occurrences = Hash.new(0)
+
+    all.find_each do |entry|
+      words = "#{entry.title} #{entry.content}".gsub(/[[:punct:]]/, '').split
+      bigrams = words.each_cons(2).map { |word1, word2| "#{word1.downcase} #{word2.downcase}" }
+      bigrams.each do |bigram|
+        next if STOP_WORDS.include?(bigram.split.first) || STOP_WORDS.include?(bigram.split.last)
+
+        word_occurrences[bigram] += 1
+      end
+    end
+
+    word_occurrences.select { |_bigram, count| count > 20 }
+                    .sort_by { |_k, v| v }
+                    .reverse
+                    .take(limit)
+  end
+
+  def self.word_occurrences(limit = 20)
+    word_occurrences = Hash.new(0)
+
+    all.find_each do |entry|
+      words = "#{entry.title} #{entry.content}".gsub(/[[:punct:]]/, '').split
+      words.each do |word|
+        cleaned_word = word.downcase
+        next if STOP_WORDS.include?(cleaned_word) || cleaned_word.length <= 1
+
+        word_occurrences[cleaned_word] += 1
+      end
+    end
+
+    word_occurrences.select { |_word, count| count > 20 }
+                    .sort_by { |_k, v| v }
+                    .reverse
+                    .take(limit)
+  end
+
   def clean_image
     if image_url.blank? || image_url == 'null'
       'https://via.placeholder.com/300x250'
