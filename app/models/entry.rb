@@ -45,7 +45,7 @@ class Entry < ApplicationRecord
     response.dig('choices', 0, 'message', 'content')
   end
 
-  def self.bigram_occurrences(limit = 20)
+  def self.bigram_occurrences(limit = 50)
     word_occurrences = Hash.new(0)
 
     all.find_each do |entry|
@@ -64,7 +64,7 @@ class Entry < ApplicationRecord
                     .take(limit)
   end
 
-  def self.word_occurrences(limit = 20)
+  def self.word_occurrences(limit = 50)
     word_occurrences = Hash.new(0)
 
     all.find_each do |entry|
