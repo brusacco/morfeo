@@ -130,3 +130,7 @@ gem 'telegram-bot-ruby', '~> 1.0'
 gem 'ruby-openai', '~> 4.2'
 
 gem 'tailwindcss-rails', '~> 2.0'
+
+gem "searchkick", "~> 5.3"
+
+gem "elasticsearch", "~> 8.9"
