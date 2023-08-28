@@ -133,4 +133,4 @@ gem 'tailwindcss-rails', '~> 2.0'
 
 gem "searchkick", "~> 5.3"
 
-gem "elasticsearch", "~> 7.14"
+gem "elasticsearch", "~> 8.9"
