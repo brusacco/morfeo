@@ -2,10 +2,12 @@
 
 require 'active_support/core_ext/integer/time'
 
-ENV["ELASTICSEARCH_URL"] = "http://localhost:9200"
-
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
+
+  config.elasticsearch = {
+    url: "http://localhost:9200"
+  }
 
   # In the development environment your application's code is reloaded any time
   # it changes. This slows down response time but is perfect for development
