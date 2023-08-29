@@ -10,6 +10,10 @@ class TopicController < ApplicationController
     @total_entries = @entries.size
     @total_interactions = @entries.sum(&:total_count)
 
+    # Cosas nuevas
+    @word_occurrences = word_occurrences(@entries)
+    @bigram_occurrences = bigram_occurrences(@entries)
+
     @most_interactions = @entries.sort_by(&:total_count).reverse.take(8)
 
     if @total_entries.zero?
