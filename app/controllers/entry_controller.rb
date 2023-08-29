@@ -8,8 +8,8 @@ class EntryController < ApplicationController
     @tags = @entries.tag_counts_on(:tags).order('count desc')
 
     # Cosas nuevas
-    @word_occurrences = @entries.word_occurrences
-    @bigram_occurrences = @entries.bigram_occurrences
+    @word_occurrences = word_occurrences(@entries)
+    @bigram_occurrences = bigram_occurrences(@entries)
 
     @tags_interactions = {}
     @tags.each do |tag|
