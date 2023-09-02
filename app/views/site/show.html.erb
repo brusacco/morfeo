@@ -1,47 +1,49 @@
-<nav aria-label="breadcrumb">
-  <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="/">Home</a></li>
-    <li class="breadcrumb-item">Sitio</li>
-    <li class="breadcrumb-item active" aria-current="page"><%=@site.name%></li>
-  </ol>
-</nav>
-
-<h2>Análisis de los últimos <%=DAYS_RANGE%> días</h2>
-<%= column_chart @entries_stats.count, xtitle: "Fecha", ytitle: "Cant. Notas", label: "Notas", colors: ['blue'] %>
-<%= column_chart @entries_stats.sum(:total_count), xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones", colors: ['green'] %>
-
-<hr>
-
-<div class="container py-4">
-  <div class="row">
-    <div class="col">
-    <h3>Cantidad de Notas por Tag Relacionados</h3>
-      <%= pie_chart @tags_count, donut: true %>
-    </div>
-    <div class="col">
-      <h3>Cantidad de Interacciones por Tag Relacionados</h3>    
-      <%= pie_chart @tags_interactions, donut: true %>
-    </div>
+<header class="bg-white shadow-sm">
+  <div class="mx-auto px-4 py-4 sm:px-6 lg:px-8">
+    <h1 class="text-lg font-semibold leading-6 text-gray-900">Sitio: <%=@site.name%></h1>
   </div>
-</div>
-
-<hr>
-
-<div class="my-2">
-  <h3>Apariciones Etiquetas</h2>
-  <%= render partial: "tag/tag_pill", collection: @tags %>
-</div>
-
-<hr>
-
-<div class="my-2">
-  <h3>Interacciones Etiquetas</h2>
-  <%= render partial: "tag/tag_pill_interactions", collection: @tags.to_a.sort_by(&:interactions).reverse %>
-</div>
-
-<hr>
-
-<div class="row py-2" data-masonry='{"percentPosition": true }'>
-<%= render partial: "entry/entry", collection: @entries, cached: true %>
-</div>
-
+</header>
+<main>
+  <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8  lg:px-8">
+    <h2  class="text-2xl font-bold tracking-tight text-gray-900">Análisis de Palabras:</h2>
+    <%= render partial: "tag/tag_pill_array", collection: @word_occurrences %>
+    <p><small class="text-muted px-1">*Cantidad de veces que aparecen las palabras en las notas</small></p>
+  </div>
+  <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8  lg:px-8">
+    <h2  class="text-2xl font-bold tracking-tight text-gray-900">Análisis de Bigramas:</h2>
+    <%= render partial: "tag/tag_pill_array", collection: @bigram_occurrences %>
+    <p><small class="text-muted px-1">*Cantidad de veces que aparecen bigramas en las notas</small></p>
+  </div>
+  <div class="mx-auto py-6 sm:px-6 lg:px-8">
+    <h2>Análisis de los últimos <%=DAYS_RANGE%> días</h2>
+    <%= column_chart @entries_stats.count, xtitle: "Fecha", ytitle: "Cant. Notas", label: "Notas", colors: ['blue'] %>
+    <%= column_chart @entries_stats.sum(:total_count), xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones", colors: ['green'] %>
+    <hr>
+    <div class="container py-4">
+      <div class="row">
+        <div class="col">
+          <h3>Cantidad de Notas por Tag Relacionados</h3>
+          <%= pie_chart @tags_count, donut: true %>
+        </div>
+        <div class="col">
+          <h3>Cantidad de Interacciones por Tag Relacionados</h3>
+          <%= pie_chart @tags_interactions, donut: true %>
+        </div>
+      </div>
+    </div>
+    <hr>
+    <div class="my-2">
+      <h3>Apariciones Etiquetas</h2>
+      <%= render partial: "tag/tag_pill", collection: @tags %>
+      <p><small class="text-muted px-1">*Cantidad de veces que aparecen las etiquetas en las notas</small></p>
+    </div>
+    <hr>
+    <div class="my-2">
+      <h3>Interacciones Etiquetas</h2>
+      <%= render partial: "tag/tag_pill_interactions", collection: @tags.to_a.sort_by(&:interactions).reverse %>
+      <p><small class="text-muted px-1">*Interacciones en las notas</small></p>
+    </div>
+    <hr>
+    <%= render partial: 'entry/entries', locals: { last_entries: @entries, title: 'Últimas Noticias Populares' } %>
+  </div>
+</main>

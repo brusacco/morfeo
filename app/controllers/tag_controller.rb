@@ -5,7 +5,7 @@ class TagController < ApplicationController
     @tag = Tag.find(params[:id])
 
     @entries = Entry.normal_range.joins(:site).tagged_with(@tag.name).has_image.order(published_at: :desc)
-    # @analytics = Entry.normal_range.joins(:site).tagged_with(@tag.name).order(total_count: :desc).limit(20)
+    @analytics = Entry.normal_range.joins(:site).tagged_with(@tag.name).order(total_count: :desc).limit(20)
 
     @total_entries = @entries.size
     @total_interactions = @entries.sum(:total_count)
@@ -14,6 +14,7 @@ class TagController < ApplicationController
     @word_occurrences = word_occurrences(@entries)
     @bigram_occurrences = bigram_occurrences(@entries)
     # @report = @analytics.generate_report(@tag.name) # Use top 20 entries openAPI API limitations
+    @report = 'HOLA'
 
     @top_entries = Entry.normal_range.joins(:site).order(total_count: :desc).limit(5)
     @most_interactions = @entries.sort_by(&:total_count).reverse.take(8)
@@ -24,7 +25,7 @@ class TagController < ApplicationController
       @promedio = @total_interactions / @total_entries
     end
 
-    @tags = @entries.tag_counts_on(:tags).order('count desc').limit(20)
+    @tags = @entries.tag_counts_on(:tags).order('count desc').limit(50)
 
     @tags_interactions = {}
     @tags.each do |tag|

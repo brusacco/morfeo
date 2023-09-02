@@ -24,14 +24,15 @@ class Entry < ApplicationRecord
       text += "#{separator}\n"
     end
 
-    "En el rol de un analista de comunicaciones por favor, resume brevemente las siguientes noticias relacionadas con #{topic} separadas por #{separator}\n#{text}
-    \nnecesito que el resumen sea general en un parrafo y no una lista. Identifica las categorías o áreas temáticas más relevantes presentes en las noticias.
+    "En el rol de un analista de PR por favor, resume brevemente las siguientes noticias relacionadas con #{topic} separadas por #{separator}\n#{text}
+    \nnecesito que el resumen sea general en un parrafo y no una lista.
+    Identifica las categorías o áreas temáticas más relevantes presentes en las noticias.
     Identifica las historias que están recibiendo más atención y considera cómo se relacionan entre sí.
     Analiza el tono y las opiniones expresadas en las noticias utilizando técnicas de análisis de sentimientos."
   end
 
   def self.generate_report(topic)
-    client = OpenAI::Client.new(access_token: '')
+    client = OpenAI::Client.new(access_token: Rails.application.credentials.openai_access_token)
 
     prompt = all.prompt(topic)
 

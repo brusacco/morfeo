@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_07_07_120701) do
+ActiveRecord::Schema[7.0].define(version: 2023_09_01_003821) do
   create_table "active_admin_comments", force: :cascade do |t|
     t.string "namespace"
     t.text "body"
@@ -60,6 +60,14 @@ ActiveRecord::Schema[7.0].define(version: 2023_07_07_120701) do
     t.index ["published_date"], name: "index_entries_on_published_date"
     t.index ["site_id"], name: "index_entries_on_site_id"
     t.index ["url"], name: "index_entries_on_url", unique: true
+  end
+
+  create_table "reports", force: :cascade do |t|
+    t.integer "topic_id", null: false
+    t.text "report_text"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["topic_id"], name: "index_reports_on_topic_id"
   end
 
   create_table "sites", force: :cascade do |t|
@@ -125,5 +133,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_07_07_120701) do
     t.datetime "updated_at", null: false
   end
 
+  add_foreign_key "reports", "topics"
   add_foreign_key "taggings", "tags"
 end

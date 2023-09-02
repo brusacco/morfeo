@@ -14,7 +14,7 @@ class ApplicationController < ActionController::Base
       end
     end
 
-    word_occurrences.select { |_word, count| count > 20 }
+    word_occurrences.select { |_word, count| count > 10 }
                     .sort_by { |_k, v| v }
                     .reverse
                     .take(limit)
@@ -33,7 +33,7 @@ class ApplicationController < ActionController::Base
       end
     end
 
-    word_occurrences.select { |_bigram, count| count > 20 }
+    word_occurrences.select { |_bigram, count| count > 10 }
                     .sort_by { |_k, v| v }
                     .reverse
                     .take(limit)

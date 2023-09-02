@@ -7,6 +7,10 @@ class SiteController < ApplicationController
     @entries = @site.entries.has_image.order(published_at: :desc).limit(250)
     @tags = @entries.tag_counts_on(:tags).order('count desc')
 
+    # Cosas nuevas
+    @word_occurrences = word_occurrences(@entries)
+    @bigram_occurrences = bigram_occurrences(@entries)
+
     @tags_interactions = {}
     @tags.each do |tag|
       @entries.each do |entry|

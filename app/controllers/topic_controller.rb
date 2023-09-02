@@ -5,6 +5,7 @@ class TopicController < ApplicationController
     @topic = Topic.find(params[:id])
     @tag_list = @topic.tags.map(&:name)
     @entries = Entry.normal_range.joins(:site).tagged_with(@tag_list, any: true).has_image.order(published_at: :desc)
+    @analytics = Entry.normal_range.tagged_with(@tag_list, any: true).order(total_count: :desc).limit(20)
 
     @top_entries = Entry.normal_range.joins(:site).order(total_count: :desc).limit(5)
     @total_entries = @entries.size
@@ -13,6 +14,7 @@ class TopicController < ApplicationController
     # Cosas nuevas
     @word_occurrences = word_occurrences(@entries)
     @bigram_occurrences = bigram_occurrences(@entries)
+    @report = @topic.reports.last
 
     @most_interactions = @entries.sort_by(&:total_count).reverse.take(8)
 

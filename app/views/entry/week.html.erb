@@ -4,21 +4,11 @@
     <li class="breadcrumb-item">Resumen Semanal</li>
   </ol>
 </nav>
-
 <% 
   Date.today.to_date.downto(1.week.ago.to_date) do |date| 
-  entries = Entry.where(published_date: date.to_date).order(total_count: :desc).limit(10)
+  entries = Entry.where(published_date: date.to_date).order(total_count: :desc).limit(12)
   tags = entries.tag_counts_on(:tags).order('count desc')
 %>
-  <h2>Noticias Populares del: <%= date %></h2>
-  <hr>
-  <div class="my-2">
-    <h3>Apariciones Etiquetas</h2>
-    <%= render partial: "tag/tag_pill", collection: tags %>
-    <p><small class="text-muted px-1">*Cantidad de veces que aparecen las etiquetas en las notas</small></p>
-  </div>
-  <div class="row" data-masonry='{"percentPosition": true }'>
-    <%= render partial: "entry/entry", collection: entries, cached: true %>
-  </div>
-  <hr>
+<%= render partial: 'entry/entries', locals: { last_entries: entries, title: "Noticias Populares del: #{date}" } %>
+<hr>
 <% end %>

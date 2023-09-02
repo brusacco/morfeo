@@ -10,6 +10,11 @@
     <div class="m-2">
       <p class="mt-6 text-xl leading-8">El tópico <b><%=@topic.name%></b> en los ultimos <b><%=DAYS_RANGE%> días</b> cuenta con un total de <b><%=number_with_delimiter(@total_entries, delimiter: ".")%></b> notas y genero un total de <b><%=number_with_delimiter(@total_interactions, delimiter: '.')%></b> interacciones, lo que nos da un promedio de <b><%=number_with_delimiter(@promedio, delimiter: '.')%></b> interacciones por nota.</p>
       <p>En contexto las <%=@top_entries.count%> notas con más interacciones en general, en el mismo periodo tuvieron <b><%=@top_entries.pluck(:total_count).join(', ')%></b> interacciones y las notas del topico <b><%=@most_interactions.take(5).pluck(:total_count).join(', ')%></b> interaciones </p>
+      <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8  lg:px-8">
+        <p><%=@report.report_text%></p>
+        <hr>
+        <p>Generado: <b><%=@report.created_at%></b></p>
+      </div>
     </div>
     <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8  lg:px-8">
       <h2  class="text-2xl font-bold tracking-tight text-gray-900">Análisis de Palabras:</h2>
