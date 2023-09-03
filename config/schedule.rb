@@ -10,4 +10,5 @@ end
 
 every 6.hours do
   rake 'crawler_deep'
+  rake 'generate_ai_reports'
 end
