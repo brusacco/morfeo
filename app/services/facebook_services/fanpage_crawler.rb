@@ -5,7 +5,7 @@ require 'open-uri'
 require 'uri'
 
 module FacebookServices
-  class UpdateFanpage < ApplicationService
+  class FanpageCrawler < ApplicationService
     def initialize(page_uid)
       @page_uid = page_uid
     end
@@ -22,7 +22,7 @@ module FacebookServices
       request = "#{api_url}#{url}#{shares}#{comments}#{reactions}#{limit}#{token}"
 
       response = HTTParty.get(request)
-      data = JSON.parse(response.body)
+      JSON.parse(response.body)
     end
   end
 end

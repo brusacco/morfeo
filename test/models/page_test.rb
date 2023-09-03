@@ -2,7 +2,7 @@
 
 require 'test_helper'
 
-class ReportTest < ActiveSupport::TestCase
+class PageTest < ActiveSupport::TestCase
   # test "the truth" do
   #   assert true
   # end

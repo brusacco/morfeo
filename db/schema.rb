@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_09_01_003821) do
+ActiveRecord::Schema[7.0].define(version: 2023_09_02_205249) do
   create_table "active_admin_comments", force: :cascade do |t|
     t.string "namespace"
     t.text "body"
@@ -60,6 +60,21 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_01_003821) do
     t.index ["published_date"], name: "index_entries_on_published_date"
     t.index ["site_id"], name: "index_entries_on_site_id"
     t.index ["url"], name: "index_entries_on_url", unique: true
+  end
+
+  create_table "pages", force: :cascade do |t|
+    t.string "uid"
+    t.string "name"
+    t.string "username"
+    t.text "picture"
+    t.integer "followers", default: 0
+    t.string "category"
+    t.text "description"
+    t.string "website"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "site_id"
+    t.index ["site_id"], name: "index_pages_on_site_id"
   end
 
   create_table "reports", force: :cascade do |t|

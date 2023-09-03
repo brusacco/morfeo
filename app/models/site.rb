@@ -5,4 +5,5 @@ class Site < ApplicationRecord
   validates :url, uniqueness: true
 
   has_many :entries, dependent: :destroy
+  has_one :page, dependent: :destroy
 end
