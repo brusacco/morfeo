@@ -178,7 +178,8 @@ task telegram_bot: :environment do
               )
             end
 
-            content = generate_topic_report(topic.name, entries)
+            # content = generate_topic_report(topic.name, entries)
+            content = topic.reports.last.report_text
             bot.api.send_message(chat_id: message.from.id, text: content)
 
             button_options = tags.map { |tag| { text: tag, callback_data: "/etiqueta #{tag}" } }
