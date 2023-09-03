@@ -33,6 +33,11 @@ rails g migration AddInteractionsToTag fb_total_stats:string
 rails g model Topic name:string
 
 
+rails g model Page uid:string name:string username:string picture:text followers:integer category:string description:text website:string website:string
+
+rails g model Post uid:string:index posted_at:timestamp picture:text shares:integer comments:integer message:text title:text page:references reactions_like:integer reactions_love:integer reactions_wow:integer reactions_haha:integer reactions_sad:integer reactions_angry:integer reactions_thankful:integer total_count:integer post_type:string description:text url:text clean_url:text
+
+
 IMPORTANTE HAY QUE PARCHAR EL ANEMONE O NO FUNCIONA
 Linea 165 de page.rb
 # remove anchor
