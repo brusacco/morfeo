@@ -1,4 +1,8 @@
-<%=link_to site_path(site_pill), class: 'btn btn-primary mx-1 my-1' do %>
-<%=site_pill.name%>
-<span class="badge bg-secondary"><i class="fa-brands fa-square-facebook"></i> <%=site_pill.total_count%></span>
-<%end%>
+<span class='inline-flex items-center mb-2 rounded-md bg-blue-100 px-2 py-2 text-s font-medium text-blue-700'>
+  <%=link_to site_path(site_pill) do %>
+    <%=site_pill.name%>
+    <span class='items-center m-1 rounded-md bg-white px-1 py-1 text-xs font-medium text-black'>
+      <i class="fa-brands fa-square-facebook"></i> <%=site_pill.total_count%>
+    </span>
+  <%end%>
+</span>

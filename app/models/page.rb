@@ -6,6 +6,7 @@ class Page < ApplicationRecord
   validates :uid, uniqueness: true
 
   after_create :update_attributes
+  after_update :update_site_image
 
   private
 
@@ -13,5 +14,11 @@ class Page < ApplicationRecord
   def update_attributes
     response = FacebookServices::UpdatePage.call(uid)
     update!(response.data) if response.success?
+    update_site_image
+  end
+
+  # Updates the site's image based on the Facebook data.
+  def update_site_image
+    site.save_image(picture) if picture.present?
   end
 end
