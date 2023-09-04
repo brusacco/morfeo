@@ -54,12 +54,13 @@ class Entry < ApplicationRecord
       bigrams = words.each_cons(2).map { |word1, word2| "#{word1.downcase} #{word2.downcase}" }
       bigrams.each do |bigram|
         next if STOP_WORDS.include?(bigram.split.first) || STOP_WORDS.include?(bigram.split.last)
+        next if ['artículos relacionados', 'adn digital', 'share tweet', 'tweet share'].include?(bigram)
 
         word_occurrences[bigram] += 1
       end
     end
 
-    word_occurrences.select { |_bigram, count| count > 20 }
+    word_occurrences.select { |_bigram, count| count > 10 }
                     .sort_by { |_k, v| v }
                     .reverse
                     .take(limit)
@@ -78,7 +79,7 @@ class Entry < ApplicationRecord
       end
     end
 
-    word_occurrences.select { |_word, count| count > 20 }
+    word_occurrences.select { |_word, count| count > 10 }
                     .sort_by { |_k, v| v }
                     .reverse
                     .take(limit)

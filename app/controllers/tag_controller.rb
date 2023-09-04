@@ -11,10 +11,8 @@ class TagController < ApplicationController
     @total_interactions = @entries.sum(:total_count)
 
     # Cosas nuevas
-    @word_occurrences = word_occurrences(@entries)
-    @bigram_occurrences = bigram_occurrences(@entries)
-    # @report = @analytics.generate_report(@tag.name) # Use top 20 entries openAPI API limitations
-    @report = 'HOLA'
+    @word_occurrences = @entries.word_occurrences
+    @bigram_occurrences = @entries.bigram_occurrences
 
     @top_entries = Entry.normal_range.joins(:site).order(total_count: :desc).limit(5)
     @most_interactions = @entries.sort_by(&:total_count).reverse.take(8)

@@ -62,13 +62,13 @@
     <% if @tags.any? %>
       <hr>
       <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
-        <h3>Apariciones Etiquetas</h2>
+        <h2 class="text-2xl font-bold tracking-tight text-gray-900">Aparicion de Etiquetas:</h2>
         <%= render partial: "tag/tag_pill", collection: @tags %>
         <p><small class="text-muted px-1">*Cantidad de veces que aparecen las etiquetas en las notas</small></p>
       </div>
       <hr>
       <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
-        <h3>Interacciones Etiquetas</h2>
+        <h2 class="text-2xl font-bold tracking-tight text-gray-900">Interacciones de Etiquetas:</h2>
         <%= render partial: "tag/tag_pill_interactions", collection: @tags.to_a.sort_by(&:interactions).reverse %>
         <p><small class="text-muted px-1">*Interacciones en las notas</small></p>
       </div>

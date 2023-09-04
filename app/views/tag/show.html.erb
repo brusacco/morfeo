@@ -67,3 +67,28 @@
     <hr>
     <%= render partial: 'entry/entries', locals: { last_entries: @entries, title: 'Últimas Noticias de la Etiqueta' } %>
   </main>
+  <script>
+    function click_manager(object, event){
+      console.log(event);
+      if (event.point) {
+        // You can access the clicked point's information here
+        var seriesName = event.point.series.name;
+        var category = event.point.category;
+        var value = event.point.y;
+
+        // Perform actions based on the clicked point's information
+        console.log("Clicked on:", seriesName, "Category:", category, "Value:", value);
+      }
+    };
+
+    function set_click_manager(){
+      console.log('manager loaded...--');
+      var chart = Chartkick.charts['chart-1'].getChartObject(); // Replace 'bar-chart-id' with the actual ID of your chart element
+      chart.series[0].update({events:{click: function(event) { click_manager(this, event) } }});
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('loaded...--');
+      setTimeout(set_click_manager, 2000); // 5000 milliseconds = 5 seconds
+    });
+  </script>
