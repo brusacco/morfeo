@@ -45,4 +45,9 @@ class TopicController < ApplicationController
     @tags_count = {}
     @tags.each { |n| @tags_count[n.name] = n.count }
   end
+
+  def history
+    @topic = Topic.find(params[:id])
+    @reports = @topic.reports.order(created_at: :desc).limit(20)
+  end
 end

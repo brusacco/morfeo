@@ -17,6 +17,7 @@ Rails.application.routes.draw do
   get '/tag/:id/report', to: 'tag#report', as: 'report'
 
   get '/topic/:id', to: 'topic#show', as: 'topic'
+  get '/topic/:id/history', to: 'topic#history', as: 'history'
 
   devise_for :admin_users, ActiveAdmin::Devise.config
   ActiveAdmin.routes(self)
