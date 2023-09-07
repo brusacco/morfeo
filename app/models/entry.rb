@@ -46,7 +46,7 @@ class Entry < ApplicationRecord
     response.dig('choices', 0, 'message', 'content')
   end
 
-  def self.bigram_occurrences(limit = 50)
+  def self.bigram_occurrences(limit = 100)
     word_occurrences = Hash.new(0)
 
     all.find_each do |entry|
@@ -60,17 +60,17 @@ class Entry < ApplicationRecord
       end
     end
 
-    word_occurrences.select { |_bigram, count| count > 10 }
+    word_occurrences.select { |_bigram, count| count > 1 }
                     .sort_by { |_k, v| v }
                     .reverse
                     .take(limit)
   end
 
-  def self.word_occurrences(limit = 50)
+  def self.word_occurrences(limit = 100)
     word_occurrences = Hash.new(0)
 
     all.find_each do |entry|
-      words = "#{entry.title} #{entry.content}".gsub(/[[:punct:]]/, '').split
+      words = "#{entry.title} #{entry.content}".gsub(/[[:punct:]]/, ' ').split
       words.each do |word|
         cleaned_word = word.downcase
         next if STOP_WORDS.include?(cleaned_word) || cleaned_word.length <= 1
@@ -79,7 +79,7 @@ class Entry < ApplicationRecord
       end
     end
 
-    word_occurrences.select { |_word, count| count > 10 }
+    word_occurrences.select { |_word, count| count > 1 }
                     .sort_by { |_k, v| v }
                     .reverse
                     .take(limit)
