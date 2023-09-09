@@ -37,3 +37,20 @@ task clean_content: :environment do
     end
   end
 end
+
+task clean_site_content: :environment do
+  site = Site.find(58)
+  entries = site.entries.order(published_at: :desc).limit(100)
+  Parallel.each(entries, in_threads: 4) do |entry|
+    next unless entry.site.content_filter
+
+    doc = Nokogiri::HTML(URI.parse(entry.url).open)
+    result = WebExtractorServices::ExtractContent.call(doc, entry.site.content_filter)
+    entry.update!(result.data) if result.success?
+    puts "Updated #{entry.id} with #{entry.title} #{entry.site.name}"
+  rescue StandardError => e
+    puts "#{entry.id} had an error: #{entry.title}"
+    puts e.message
+    next
+  end
+end
