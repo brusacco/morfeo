@@ -2,7 +2,7 @@
 
 desc 'Clean content'
 task clean_content: :environment do
-  words = %w[content aling important right left margin bottom inline center copy article family]
+  words = %w[content aling important right left margin bottom inline center copy article family padding float]
   words.each do |word|
     entries = Entry.find_by_sql("select * from entries where content like \"%#{word}%\"")
     Parallel.each(entries, in_threads: 4) do |entry|
