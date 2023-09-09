@@ -22,7 +22,7 @@ task clean_content: :environment do
     single
   ]
   words.each do |word|
-    entries = Entry.find_by_sql("select * from entries where content like \"%#{word}%\"").order(published_at: :desc)
+    entries = Entry.find_by_sql("select * from entries where content like \"%#{word}%\" order by published_at DESC")
     Parallel.each(entries, in_threads: 4) do |entry|
       next unless entry.site.content_filter
 
