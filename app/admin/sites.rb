@@ -8,13 +8,6 @@ ActiveAdmin.register Site do
 
   index do
     id_column
-    column 'Image' do |site|
-      if site.image64
-        image_tag("data:image/jpeg;base64,#{site.image64}", size: 50)
-      else
-        image_tag('https://via.placeholder.com/300x300', size: 50)
-      end
-    end
     column :name
     column 'URL' do |site|
       link_to site.url, site.url, target: '_blank', rel: 'noopener'
