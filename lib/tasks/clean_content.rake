@@ -44,7 +44,7 @@ task clean_site_content: :environment do
   Parallel.each(entries, in_threads: 4) do |entry|
     next unless entry.site.content_filter
 
-    doc = Nokogiri::HTML(URI.parse(entry.url).open)
+    doc = Nokogiri::HTML(URI.parse(entry.url).open.force_encoding('UTF-8'))
 
     #---------------------------------------------------------------------------
     # Basic data extractor
