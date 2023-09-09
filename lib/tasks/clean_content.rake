@@ -40,7 +40,7 @@ end
 
 task clean_site_content: :environment do
   site = Site.find(58)
-  entries = site.entries.order(published_at: :desc).limit(100)
+  entries = site.entries.order(published_at: :desc).limit(1000)
   Parallel.each(entries, in_threads: 4) do |entry|
     next unless entry.site.content_filter
 
