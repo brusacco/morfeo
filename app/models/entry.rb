@@ -53,6 +53,7 @@ class Entry < ApplicationRecord
       words = "#{entry.title} #{entry.content}".gsub(/[[:punct:]]/, '').split
       bigrams = words.each_cons(2).map { |word1, word2| "#{word1.downcase} #{word2.downcase}" }
       bigrams.each do |bigram|
+        next if bigram.split.first.lenght <=2 || bigram.split.last.lenght <=2
         next if STOP_WORDS.include?(bigram.split.first) || STOP_WORDS.include?(bigram.split.last)
         next if ['artículos relacionados', 'adn digital', 'share tweet', 'tweet share'].include?(bigram)
 
