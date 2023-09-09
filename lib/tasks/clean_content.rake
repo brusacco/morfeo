@@ -10,5 +10,9 @@ task clean_content: :environment do
     result = WebExtractorServices::ExtractContent.call(doc, entry.site.content_filter)
     entry.update!(result.data) if result.success?
     puts "Updated #{entry.id} with #{entry.title} #{entry.site.name}"
+  rescue StandardError => e
+    puts "#{entry.id} had an error: #{entry.title}"
+    puts e.message
+    next
   end
 end
