@@ -44,9 +44,28 @@ task clean_site_content: :environment do
   Parallel.each(entries, in_threads: 4) do |entry|
     next unless entry.site.content_filter
 
-    doc = Nokogiri::HTML(URI.parse(entry.url).open)
+    puts "Updated #{entry.id} with #{entry.title} #{entry.site.name}"
+
+    #---------------------------------------------------------------------------
+    # Basic data extractor
+    #---------------------------------------------------------------------------
+    result = WebExtractorServices::ExtractBasicInfo.call(doc)
+    if result.success?
+      entry.update!(result.data)
+    else
+      puts "ERROR BASIC: #{result.error}"
+    end
+
+    #---------------------------------------------------------------------------
+    # Content extractor
+    #---------------------------------------------------------------------------
     result = WebExtractorServices::ExtractContent.call(doc, entry.site.content_filter)
-    entry.update!(result.data) if result.success?
+    if result.success?
+      entry.update!(result.data)
+    else
+      puts "ERROR CONTENT: #{result&.error}"
+    end
+
     puts "Updated #{entry.id} with #{entry.title} #{entry.site.name}"
   rescue StandardError => e
     puts "#{entry.id} had an error: #{entry.title}"
