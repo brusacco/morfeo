@@ -44,7 +44,7 @@ task clean_site_content: :environment do
   Parallel.each(entries, in_threads: 4) do |entry|
     next unless entry.site.content_filter
 
-    puts "Updated #{entry.id} with #{entry.title} #{entry.site.name}"
+    doc = Nokogiri::HTML(URI.parse(entry.url).open)
 
     #---------------------------------------------------------------------------
     # Basic data extractor
