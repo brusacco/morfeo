@@ -12,6 +12,7 @@ module WebExtractorServices
         handle_error('Contenido no encontrado')
       else
         @doc.css('script').remove
+        @doc.css('style').remove
         @doc.css('a').remove
         sanitized_string = @doc.at(@content_filter).text.strip
         result = { content: sanitized_string }
