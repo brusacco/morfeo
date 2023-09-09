@@ -63,7 +63,7 @@ git reset --hard origin/main
 
 
 ALTER TABLE entries CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-ALTER TABLE entries CHANGE title column_name VARCHAR(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+ALTER TABLE entries CHANGE title VARCHAR(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 ------------------------------------------------------------------------------------------------
 resolver problema de encoding:
