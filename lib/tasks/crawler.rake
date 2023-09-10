@@ -11,6 +11,7 @@ task crawler: :environment do
       depth_limit: 2,
       discard_page_bodies: true,
       accept_cookies: true,
+      threads: 5,
       verbose: true
     ) do |anemone|
       anemone.skip_links_like(
