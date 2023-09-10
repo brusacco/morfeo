@@ -8,7 +8,7 @@ task crawler_test: :environment do
     puts '--------------------------------------------------------------------"'
     Anemone.crawl(
       site.url,
-      depth_limit: 2,
+      depth_limit: 3,
       discard_page_bodies: true,
       accept_cookies: true,
       threads: 5,
