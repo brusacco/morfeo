@@ -3,6 +3,7 @@
 desc 'Clean content'
 task clean_content: :environment do
   words = %w[
+    copied
     content
     aling
     important
