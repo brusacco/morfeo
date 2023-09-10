@@ -30,6 +30,7 @@ task crawler_test: :environment do
         /pagina/,
         /auth/,
         /wp-content/,
+        /img/,
         /tag/,
         %r{/contacto/},
         /wp-admin/,
