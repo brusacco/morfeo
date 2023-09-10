@@ -19,6 +19,7 @@ task crawler: :environment do
     img
     tag
     contacto
+    programa
   ]
   directory_pattern = /#{directories.join('|')}/
   Site.all.order(total_count: :desc).each do |site|
