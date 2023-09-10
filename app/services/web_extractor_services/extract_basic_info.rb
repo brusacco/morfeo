@@ -21,9 +21,7 @@ module WebExtractorServices
     #-------------------------------------------------------------
     def extract_title
       title = @doc.title if @doc.title
-      if title.nil? || title.empty?
-        title = @doc.at('meta[property="og:title"]')[:content] if @doc.at('meta[property="og:title"]')
-      end
+      title = @doc.at('meta[property="og:title"]')[:content] if title.blank? && @doc.at('meta[property="og:title"]')
       title
     end
 
