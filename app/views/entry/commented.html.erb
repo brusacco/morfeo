@@ -1,54 +1,58 @@
-<nav aria-label="breadcrumb">
-  <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="/">Home</a></li>
-    <li class="breadcrumb-item">Notas más comentadas 24Hrs.</li>
-  </ol>
-</nav>
-
-<h3>Análisis de notas más comentadas 24Hrs..</h3>
-<div class="container py-4">
-  <div class="row">
-    <div class="col">
-    <h3>Notas por medio</h3>
-      <%= pie_chart @entries.group("sites.name").count, donut: true %>
-    </div>
-    <div class="col">
-      <h3>Interacciones por medio</h3>    
-      <%= pie_chart @entries.group("sites.name").sum(:total_count), donut: true %>
-    </div>
+<header class="bg-white shadow-sm">
+  <div class="mx-auto px-4 py-4 sm:px-6 lg:px-8">
+    <h1 class="text-lg font-semibold leading-6 text-gray-900">Noticias Más Comentadas</h1>
   </div>
-</div>
-
-<hr>
-
-<div class="container py-4">
-  <div class="row">
-    <div class="col">
-    <h3>Apariciones Etiquetas</h3>
-      <%= pie_chart @tags_count, donut: true %>
+</header>
+<main>
+  <div class="mx-auto py-8 sm:px-6 lg:px-8">
+    <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8  lg:px-8">
+      <h2  class="text-2xl font-bold tracking-tight text-gray-900">Análisis de Palabras:</h2>
+      <%= render partial: "tag/tag_pill_array", collection: @word_occurrences %>
+      <p><small class="text-muted px-1">*Cantidad de veces que aparecen las palabras en las notas</small></p>
     </div>
-    <div class="col">
-      <h3>Interacciones Etiquetas</h3>    
-      <%= pie_chart @tags_interactions, donut: true %>
+    <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8  lg:px-8">
+      <h2 class="text-2xl font-bold tracking-tight text-gray-900">Análisis de Bigramas:</h2>
+      <%= render partial: "tag/tag_pill_array", collection: @bigram_occurrences %>
+      <p><small class="text-muted px-1">*Cantidad de veces que aparecen bigramas en las notas</small></p>
     </div>
+    <h2 class="text-2xl font-bold tracking-tight text-gray-900">Análisis de notas populares 24Hrs..</h2>
+    <div class="container py-4 px-2">
+      <div class="flex">
+        <div class="w-1/2">
+          <h3>Cantidad de Notas por medio</h3>
+          <%= pie_chart @entries.group("sites.name").count, donut: true %>
+        </div>
+        <div class="w-1/2">
+          <h3>Cantidad de Interacciones por medio</h3>
+          <%= pie_chart @entries.group("sites.name").sum(:total_count), donut: true %>
+        </div>
+      </div>
+    </div>
+    <hr>
+    <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
+      <div class="flex">
+        <div class="w-1/2">
+          <h3>Apariciones Etiquetas</h3>
+          <%= pie_chart @tags_count, donut: true %>
+        </div>
+        <div class="w-1/2">
+          <h3>Interacciones Etiquetas</h3>
+          <%= pie_chart @tags_interactions, donut: true %>
+        </div>
+      </div>
+    </div>
+    <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8  lg:px-8">
+      <h2 class="text-2xl font-bold tracking-tight text-gray-900">Apariciones Etiquetas</h2>
+      <%= render partial: "tag/tag_pill", collection: @tags %>
+      <p><small class="text-muted px-1">*Cantidad de veces que aparecen las etiquetas en las notas</small></p>
+    </div>
+    <hr>
+    <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8  lg:px-8">
+      <h2 class="text-2xl font-bold tracking-tight text-gray-900">Interacciones Etiquetas</h2>
+      <%= render partial: "tag/tag_pill_interactions", collection: @tags.to_a.sort_by(&:interactions).reverse %>
+      <p><small class="text-muted px-1">*Interacciones en las notas</small></p>
+    </div>
+    <hr>
+    <%= render partial: 'entry/entries', locals: { last_entries: @entries, title: 'Últimas Noticias Populares' } %>
   </div>
-</div>
-
-<div class="my-2">
-  <h3>Apariciones Etiquetas</h2>
-  <%= render partial: "tag/tag_pill", collection: @tags, cached: true %>
-  <p><small class="text-muted px-1">*Cantidad de veces que aparecen las etiquetas en las notas</small></p>
-</div>
-<hr>
-<div class="my-2">
-  <h3>Interacciones Etiquetas</h2>
-  <%= render partial: "tag/tag_pill_interactions", collection: @tags.to_a.sort_by(&:interactions).reverse, cached: true %>
-  <p><small class="text-muted px-1">*Interacciones en las notas</small></p>
-</div>
-
-<hr>
-
-<h3>Notas populares 24hrs</h3>
-<div class="row" data-masonry='{"percentPosition": true }'>
-  <%= render partial: "entry/entry", collection: @entries, cached: true %>
-</div>
+</main>
