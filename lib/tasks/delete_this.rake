@@ -1,57 +1,46 @@
 # frozen_string_literal: true
 
-desc 'Test de content crawler'
-task update_content: :environment do
-  # Site.where.not(content_filter: nil).each do |site|
-  ids = Site.where.not(content_filter: nil).ids
-  # Entry.where(site_id: site.id, content: nil).order(published_at: :desc).limit(1000).each do |entry|
-  Parallel.each(
-    Entry.where(site_id: ids, content: nil).order(published_at: :desc).limit(1000),
-    in_threads: 5
-  ) do |entry|
-    puts entry.url
-    next unless entry.content.nil?
-
-    doc = Nokogiri::HTML.parse(URI.parse(entry.url).open, nil, 'UTF-8')
-    result = WebExtractorServices::ExtractContent.call(doc, entry.site.content_filter)
-    entry.update!(result.data) if result.success?
-  rescue StandardError => e
-    puts "ERROR: #{e.message}"
-    next
-  end
-  # end
-end
-
 desc 'Moopio Morfeo web crawler'
-task test_crawler: :environment do
-  Site.where.not(content_filter: nil).each do |site|
-    puts "Start processing site #{site.name}..."
+task crawler_test: :environment do
+  # Site.where(id: 47..).order(total_count: :desc).each do |site|
+  Site.where(id: 81).order(total_count: :desc).each do |site|
+    puts "Start test processing site #{site.name}..."
     puts '--------------------------------------------------------------------"'
     Anemone.crawl(
       site.url,
-      depth_limit: 3,
+      depth_limit: 2,
       discard_page_bodies: true,
       accept_cookies: true,
+      threads: 5,
       verbose: true
     ) do |anemone|
       anemone.skip_links_like(
         /.*(.jpeg|.jpg|.gif|.png|.pdf|.mp3|.mp4|.mpeg).*/,
-        %r{/blackhole/},
-        %r{/wp-login/},
-        %r{/wp-admin/},
-        %r{/galerias/},
-        %r{/fotoblog/},
-        %r{/radios/},
-        %r{/page/},
-        %r{/etiqueta/},
-        %r{/categoria/},
-        %r{/category/},
-        %r{/wp-content/},
-        %r{/tag/}
+        /.*(.jpeg|.jpg|.gif|.png|.pdf|.mp3|.mp4|.mpeg)/,
+        /blackhole/,
+        /wp-login/,
+        /wp-admin/,
+        /galerias/,
+        /fotoblog/,
+        /radios/,
+        /page/,
+        /etiqueta/,
+        /categoria/,
+        /category/,
+        /pagina/,
+        /auth/,
+        /wp-content/,
+        /tag/,
+        %r{/contacto/},
+        /wp-admin/,
+        /wp-content/
       )
 
       anemone.focus_crawl do |page|
         page.links.delete_if { |href| Entry.exists?(url: href.to_s) }
+        page.links.delete_if do |href|
+          href.to_s.match(/#{site.negative_filter.presence || 'NUNCA'}/).present?
+        end
       end
 
       anemone.on_pages_like(/#{site.filter}/) do |page|
@@ -69,13 +58,15 @@ task test_crawler: :environment do
           end
 
           #---------------------------------------------------------------------------
-          # Content data extractor
+          # Content extractor
           #---------------------------------------------------------------------------
-          result = WebExtractorServices::ExtractContent.call(page.doc, site.content_filter)
-          if result.success?
-            entry.update!(result.data)
-          else
-            puts "ERROR CONTENT: #{result.error}"
+          if entry.site.content_filter.present?
+            result = WebExtractorServices::ExtractContent.call(page.doc, entry.site.content_filter)
+            if result.success?
+              entry.update!(result.data)
+            else
+              puts "ERROR CONTENT: #{result&.error}"
+            end
           end
 
           #---------------------------------------------------------------------------
@@ -86,7 +77,8 @@ task test_crawler: :environment do
             entry.update!(result.data)
             puts result.data
           else
-            puts "ERROR DATE: #{result.error}"
+            puts "ERROR DATE: #{result&.error}"
+            next
           end
 
           #---------------------------------------------------------------------------
@@ -98,7 +90,7 @@ task test_crawler: :environment do
             entry.save!
             puts result.data
           else
-            puts "ERROR TAGGER: #{result.error}"
+            puts "ERROR TAGGER: #{result&.error}"
           end
 
           #---------------------------------------------------------------------------
@@ -109,15 +101,20 @@ task test_crawler: :environment do
             entry.update!(result.data) if result.success?
             puts result.data
           else
-            puts "ERROR STATS: #{result.error}"
+            puts "ERROR STATS: #{result&.error}"
           end
 
+          #---------------------------------------------------------------------------
+          # Extract and save ngrams
+          #---------------------------------------------------------------------------
+          # entry.bigrams
+          # entry.trigrams
           puts '----------------------------------------------------------------------'
         end
+      rescue StandardError => e
+        puts e.message
+        next
       end
     end
-  rescue StandardError => e
-    puts e.message
-    next
   end
 end
