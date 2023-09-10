@@ -2,7 +2,25 @@
 
 desc 'Moopio Morfeo web crawler'
 task crawler: :environment do
-  # Site.where(id: 47..).order(total_count: :desc).each do |site|
+  directories = %w[
+    blackhole
+    wp-login
+    wp-admin
+    galerias
+    fotoblog
+    radios
+    page
+    etiqueta
+    categoria
+    category
+    pagina
+    auth
+    wp-content
+    img
+    tag
+    contacto
+  ]
+  directory_pattern = /#{directories.join('|')}/
   Site.all.order(total_count: :desc).each do |site|
     puts "Start test processing site #{site.name}..."
     puts '--------------------------------------------------------------------"'
@@ -14,27 +32,7 @@ task crawler: :environment do
       threads: 5,
       verbose: true
     ) do |anemone|
-      anemone.skip_links_like(
-        /.*(.jpeg|.jpg|.gif|.png|.pdf|.mp3|.mp4|.mpeg).*/,
-        /.*(.jpeg|.jpg|.gif|.png|.pdf|.mp3|.mp4|.mpeg)/,
-        /blackhole/,
-        /wp-login/,
-        /wp-admin/,
-        /galerias/,
-        /fotoblog/,
-        /radios/,
-        /page/,
-        /etiqueta/,
-        /categoria/,
-        /category/,
-        /pagina/,
-        /auth/,
-        /wp-content/,
-        /tag/,
-        %r{/contacto/},
-        /wp-admin/,
-        /wp-content/
-      )
+      anemone.skip_links_like(/.*\.(jpeg|jpg|gif|png|pdf|mp3|mp4|mpeg)/, directory_pattern)
 
       anemone.focus_crawl do |page|
         page.links.delete_if { |href| Entry.exists?(url: href.to_s) }
