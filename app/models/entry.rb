@@ -74,7 +74,7 @@ class Entry < ApplicationRecord
       words = "#{entry.title} #{entry.content}".gsub(/[[:punct:]]/, ' ').split
       words.each do |word|
         cleaned_word = word.downcase
-        #next if STOP_WORDS.include?(cleaned_word)
+        next if STOP_WORDS.include?(cleaned_word)
         next if cleaned_word.length <= 2
 
         word_occurrences[cleaned_word] += 1
