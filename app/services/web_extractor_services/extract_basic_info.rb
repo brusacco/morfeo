@@ -20,8 +20,8 @@ module WebExtractorServices
     # Extract title from pages
     #-------------------------------------------------------------
     def extract_title
-      title = @doc.title if @doc.title
-      title = @doc.at('meta[property="og:title"]')[:content] if title.blank? && @doc.at('meta[property="og:title"]')
+      title = @doc.at('meta[property="og:title"]')[:content] if @doc.at('meta[property="og:title"]')
+      title = @doc.title if @doc.title && title.blank?
       title
     end
 

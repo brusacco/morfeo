@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Anemone
   class Page
     def doc
