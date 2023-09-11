@@ -46,13 +46,10 @@ task crawler: :environment do
         Entry.create_with(site: site).find_or_create_by!(url: page.url.to_s) do |entry|
           puts entry.url
 
-          utf8_content = page.body.force_encoding('UTF-8')
-          doc = Nokogiri::HTML(utf8_content)
-
           #---------------------------------------------------------------------------
           # Basic data extractor
           #---------------------------------------------------------------------------
-          result = WebExtractorServices::ExtractBasicInfo.call(doc)
+          result = WebExtractorServices::ExtractBasicInfo.call(page.doc)
           if result.success?
             entry.update!(result.data)
           else
@@ -63,7 +60,7 @@ task crawler: :environment do
           # Content extractor
           #---------------------------------------------------------------------------
           if entry.site.content_filter.present?
-            result = WebExtractorServices::ExtractContent.call(doc, entry.site.content_filter)
+            result = WebExtractorServices::ExtractContent.call(page.doc, entry.site.content_filter)
             if result.success?
               entry.update!(result.data)
             else
@@ -74,7 +71,7 @@ task crawler: :environment do
           #---------------------------------------------------------------------------
           # Date extractor
           #---------------------------------------------------------------------------
-          result = WebExtractorServices::ExtractDate.call(doc)
+          result = WebExtractorServices::ExtractDate.call(page.doc)
           if result.success?
             entry.update!(result.data)
             puts result.data
