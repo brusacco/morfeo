@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 ActiveAdmin.register Topic do
-  permit_params :name, tag_ids: []
+  permit_params :name, :positive_words, :negative_words, tag_ids: []
 
   filter :name
 
@@ -30,6 +30,8 @@ ActiveAdmin.register Topic do
     f.inputs do
       f.input :name
       f.input :tags
+      f.input :positive_words
+      f.input :negative_words
     end
     f.actions
   end
