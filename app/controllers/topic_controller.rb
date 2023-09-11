@@ -16,8 +16,8 @@ class TopicController < ApplicationController
     @bigram_occurrences = @entries.bigram_occurrences
     @report = @topic.reports.last
 
-    @positive_words = @topic.positive_words.split(',')
-    @negative_words = @topic.negative_words.split(',')
+    @positive_words = @topic.positive_words.split(',') if @topic.positive_words
+    @negative_words = @topic.negative_words.split(',') if @topic.negative_words
 
     @most_interactions = @entries.sort_by(&:total_count).reverse.take(8)
 
