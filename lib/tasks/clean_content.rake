@@ -67,6 +67,18 @@ task clean_site_content: :environment do
       puts "ERROR CONTENT: #{result&.error}"
     end
 
+    #---------------------------------------------------------------------------
+    # Tagger
+    #---------------------------------------------------------------------------
+    result = WebExtractorServices::ExtractTags.call(entry.id)
+    if result.success?
+      entry.tag_list.add(result.data)
+      entry.save!
+      puts result.data
+    else
+      puts "ERROR TAGGER: #{result&.error}"
+    end
+
     puts "Updated #{entry.id} with #{entry.title} #{entry.site.name}"
   rescue StandardError => e
     puts "#{entry.id} had an error: #{entry.title}"
