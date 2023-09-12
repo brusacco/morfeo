@@ -55,7 +55,14 @@ class Entry < ApplicationRecord
       bigrams.each do |bigram|
         next if bigram.split.first.length <= 2 || bigram.split.last.length <= 2
         next if STOP_WORDS.include?(bigram.split.first) || STOP_WORDS.include?(bigram.split.last)
-        next if ['artículos relacionados', 'adn digital', 'share tweet', 'tweet share'].include?(bigram)
+        next if [
+          'artículos relacionados',
+          'adn digital',
+          'share tweet',
+          'tweet share',
+          'copy link',
+          'link copied'
+        ].include?(bigram)
 
         word_occurrences[bigram] += 1
       end
