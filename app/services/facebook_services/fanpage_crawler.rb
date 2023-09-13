@@ -3,6 +3,7 @@
 require 'json'
 require 'open-uri'
 require 'uri'
+require 'cgi'
 
 module FacebookServices
   class FanpageCrawler < ApplicationService
@@ -22,7 +23,18 @@ module FacebookServices
       request = "#{api_url}#{url}#{shares}#{comments}#{reactions}#{limit}#{token}"
 
       response = HTTParty.get(request)
-      JSON.parse(response.body)
+      data = JSON.parse(response.body)
+      data['data'].each do |post|
+        next unless post['attachments'] && post['attachments']['data'][0]['type'] == 'share'
+
+        puts post['id']
+        facebook_url = post['attachments']['data'][0]['target']['url']
+        target_url = facebook_url.match(/u=([^&]+)/)
+        target_url = CGI.unescape(target_url[1]) # Decode URL encoding
+        puts target_url
+        puts '--------------------------------'
+      end
+      data['data'].size
     end
   end
 end
