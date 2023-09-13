@@ -12,7 +12,7 @@
       <p>En contexto las <%=@top_entries.count%> notas con más interacciones en general, en el mismo periodo tuvieron <b><%=@top_entries.pluck(:total_count).join(', ')%></b> interacciones y las notas del topico <b><%=@most_interactions.take(5).pluck(:total_count).join(', ')%></b> interaciones </p>
       <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8  lg:px-8">
         <h2 class="text-2xl font-bold tracking-tight text-gray-900">Análisis del Tópico</h2>
-        <p><%=@report.report_text.gsub("\n", "<br>").html_safe if @report.report_text%></p>
+        <p><%=@report.report_text.gsub("\n", "<br>").html_safe if @report%></p>
         <br>
         <p>Generado: <b><%=@report.created_at%></b></p>
         <%=link_to "Ver más", topic_history_path(@topic), class: 'rounded bg-white px-2 py-1 text-xs font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50'%>
