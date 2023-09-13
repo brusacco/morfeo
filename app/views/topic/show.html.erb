@@ -19,8 +19,22 @@
       </div>
     </div>
     <hr>
+    <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
+      <h2 class="text-2xl font-bold tracking-tight text-gray-900">Impacto del Tópico</h2>
+      <div class="flex">
+        <div class="w-1/2">
+          <h3>Cantidad de Notas</h3>
+          <%= pie_chart({"Topico" => @entries.size, "Otras" => @all_entries.size}, donut: true) %>
+        </div>
+        <div class="w-1/2">
+          <h3>Cantidad de Interacciones</h3>
+          <%= pie_chart({"Topico" => @entries.sum(:total_count), "Otras" => @all_entries.sum(:total_count)}, donut: true) %>
+        </div>
+      </div>
+    </div>
+    <hr>
     <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8  lg:px-8">
-      <h2  class="text-2xl font-bold tracking-tight text-gray-900">Análisis de Palabras:</h2>
+      <h2 class="text-2xl font-bold tracking-tight text-gray-900">Análisis de Palabras:</h2>
       <%= render partial: "tag/tag_pill_array", collection: @word_occurrences %>
       <p><small class="text-muted px-1">*Cantidad de veces que aparecen las palabras en las notas</small></p>
     </div>

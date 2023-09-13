@@ -8,6 +8,16 @@ class Topic < ApplicationRecord
 
   before_update :remove_words_spaces
 
+  def topic_entries
+    tag_list = tags.map(&:name)
+    Entry.normal_range.joins(:site).tagged_with(tag_list, any: true).order(published_at: :desc)
+  end
+
+  def analytics_topic_entries
+    tag_list = tags.map(&:name)
+    Entry.normal_range.tagged_with(tag_list, any: true).order(total_count: :desc).limit(20)
+  end
+
   private
 
   def remove_words_spaces

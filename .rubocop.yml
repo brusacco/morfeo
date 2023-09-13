@@ -27,7 +27,7 @@ Rails/SchemaComment:
 Style/MethodCallWithArgsParentheses:
   Enabled: false
 Rails/ReversibleMigrationMethodDefinition:
- Enabled: false
+  Enabled: false
 Style/OpenStructUse:
   Enabled: false
 Lint/MissingSuper:
@@ -39,4 +39,10 @@ Metrics/MethodLength:
 Metrics/CyclomaticComplexity:
   Enabled: false
 Metrics/PerceivedComplexity:
+  Enabled: false
+Metrics/BlockLength:
+  Enabled: false
+Metrics/ClassLength:
+  Enabled: false
+Metrics/AbcSize:
   Enabled: false

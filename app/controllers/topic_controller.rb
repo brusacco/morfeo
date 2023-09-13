@@ -4,12 +4,15 @@ class TopicController < ApplicationController
   def show
     @topic = Topic.find(params[:id])
     @tag_list = @topic.tags.map(&:name)
-    @entries = Entry.normal_range.joins(:site).tagged_with(@tag_list, any: true).has_image.order(published_at: :desc)
-    @analytics = Entry.normal_range.tagged_with(@tag_list, any: true).order(total_count: :desc).limit(20)
+    @entries = @topic.topic_entries
+    @analytics = @topic.analytics_topic_entries
 
     @top_entries = Entry.normal_range.joins(:site).order(total_count: :desc).limit(5)
     @total_entries = @entries.size
     @total_interactions = @entries.sum(&:total_count)
+
+    # Calcular numeros de totales de la semana
+    @all_entries = Entry.normal_range.joins(:site).order(published_at: :desc).where.not(id: @entries.pluck(:id))
 
     # Cosas nuevas
     @word_occurrences = @entries.word_occurrences
