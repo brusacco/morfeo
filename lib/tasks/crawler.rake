@@ -20,6 +20,7 @@ task crawler: :environment do
     tag
     contacto
     programa
+    date
   ]
   directory_pattern = /#{directories.join('|')}/
   Site.all.order(total_count: :desc).each do |site|
