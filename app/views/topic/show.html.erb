@@ -109,6 +109,7 @@
             <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Fecha</th>
             <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Imagen</th>
             <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Nota</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Etiquetas</th>
             <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Medio</th>
             <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Interacciones</th>
             <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Comentarios</th>
@@ -119,12 +120,13 @@
           <% @entries.each do |entry| %>
             <tr class="even:bg-gray-50">
               <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500"><%=entry.published_at.strftime("%d/%m/%Y")%></td>
-              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500"><%=image_tag entry.clean_image, size: 100, loading: 'lazy', onerror: 'this.onerror=null;this.src="https://via.placeholder.com/300x250";'%></td>
-              <td class="px-3 py-4 text-sm text-gray-500"><%=link_to entry.title, entry.url, target: '_blank'%></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500"><%=image_tag entry.clean_image, size: 200, loading: 'lazy', onerror: 'this.onerror=null;this.src="https://via.placeholder.com/300x250";'%></td>
+              <td class="px-3 py-4 text-gray-500"><%=link_to entry.title, entry.url, target: '_blank'%></td>
+              <td class="px-3 py-4 text-xs text-gray-500"><%=entry.tag_list%></td>
               <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500"><%=link_to entry.site.name, site_path(entry.site)%></td>
-              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500"><%=entry.total_count%></td>
-              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500"><%=entry.comment_count%></td>
-              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500"><%=entry.share_count%></td>
+              <td class="whitespace-nowrap px-3 py-4 text-xl text-gray-500"><%=entry.total_count%></td>
+              <td class="whitespace-nowrap px-3 py-4 text-xl text-gray-500"><%=entry.comment_count%></td>
+              <td class="whitespace-nowrap px-3 py-4 text-xl text-gray-500"><%=entry.share_count%></td>
             </tr>
           <% end %>
         </tbody>
