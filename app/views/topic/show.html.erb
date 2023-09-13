@@ -1,3 +1,7 @@
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="//cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" crossorigin="anonymous">
+<script src="//cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="//cdn.datatables.net/plug-ins/1.13.6/filtering/row-based/range_dates.js"></script>
 <header class="bg-white shadow-sm">
   <div class="mx-auto px-4 py-4 sm:px-6 lg:px-8">
     <h1 class="text-lg font-semibold leading-6 text-gray-900">Tópico: <%=@topic.name%></h1>
@@ -97,6 +101,41 @@
       </div>
     <%end%>
     <hr>
-    <%= render partial: 'entry/entries', locals: { last_entries: @entries, title: 'Últimas Noticias del Tópico' } %>
+    <%render partial: 'entry/entries', locals: { last_entries: @entries, title: 'Últimas Noticias del Tópico' } %>
+    <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
+      <h2 class="text-2xl font-bold tracking-tight text-gray-900">Últimas Noticias del Tópico</h2>
+      <table id="entradas" class="min-w-full divide-y divide-gray-300">
+        <thead>
+          <tr>
+            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Fecha</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Imagen</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Nota</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Interacciones</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Comentarios</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Compartidos</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white">
+          <% @entries.each do |entry| %>
+            <tr class="even:bg-gray-50">
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500"><%=entry.published_at.strftime("%d/%m/%Y")%></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500"><%=image_tag entry.clean_image, size: 100, loading: 'lazy', onerror: 'this.onerror=null;this.src="https://via.placeholder.com/300x250";'%></td>
+              <td class="px-3 py-4 text-sm text-gray-500"><%=entry.title%></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500"><%=entry.total_count%></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500"><%=entry.comment_count%></td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500"><%=entry.share_count%></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
   </div>
+</div>
 </main>
+<script>
+  $(document).ready( function () {
+    new DataTable('#entradas', {
+      paging: false
+    });
+  });
+</script>
