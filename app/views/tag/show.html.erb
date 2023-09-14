@@ -102,6 +102,13 @@
     </div>
   </main>
   <script>
+    $(document).ready( function () {
+      new DataTable('#entradas', {
+        paging: false
+      });
+    });
+  </script>
+  <script>
     function click_manager(object, event){
       console.log(event);
       if (event.point) {
