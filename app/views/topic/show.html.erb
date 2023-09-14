@@ -101,44 +101,7 @@
     <%end%>
     <hr>
     <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
-      <h2 class="text-2xl font-bold tracking-tight text-gray-900">Últimas Noticias sobre <%=@topic.name%></h2>
-      <table id="entradas" class="min-w-full divide-y divide-gray-300">
-        <thead>
-          <tr>
-            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Fecha</th>
-            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Imagen</th>
-            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Nota</th>
-            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Etiquetas</th>
-            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Medio</th>
-            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Reactions</th>
-            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Comments</th>
-            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Shares</th>
-            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Total</th>
-          </tr>
-        </thead>
-        <tbody class="bg-white">
-          <% @entries.each do |entry| %>
-            <tr class="even:bg-gray-50">
-              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500"><%=entry.published_at.strftime("%d/%m/%Y")%></td>
-              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500"><%=image_tag entry.clean_image, size: 200, loading: 'lazy', onerror: 'this.onerror=null;this.src="https://via.placeholder.com/300x250";'%></td>
-              <td class="px-3 py-4 text-gray-500"><%=link_to entry.title, entry.url, target: '_blank'%> <i class="fa-solid fa-link"></i></td>
-              <td class="px-3 py-4 text-xs text-gray-500"><%=entry.tag_list%></td>
-              <td class="whitespace-nowrap px-3 py-4 text-xs text-gray-500"><%=link_to entry.site.name, site_path(entry.site)%></td>
-              <td class="whitespace-nowrap px-3 py-4 text-lg text-gray-500"><%=entry.reaction_count%></td>
-              <td class="whitespace-nowrap px-3 py-4 text-lg text-gray-500"><%=entry.comment_count%></td>
-              <td class="whitespace-nowrap px-3 py-4 text-lg text-gray-500"><%=entry.share_count%></td>
-              <td class="whitespace-nowrap px-3 py-4 text-lg text-gray-500"><%=entry.total_count%></td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
+      <%= render partial: 'entry/entries_table', locals: { entries: @entries, title: "Últimas Noticias sobre #{@topic.name}" } %>
     </div>
   </div>
 </main>
-<script>
-  $(document).ready( function () {
-    new DataTable('#entradas', {
-      paging: false
-    });
-  });
-</script>
