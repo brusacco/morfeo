@@ -12,8 +12,10 @@ namespace :facebook do
       posts = response.data[:posts]
       posts.each do |k, v|
         entry = Entry.find_by(url: v)
-        entry&.update!(uid: k)
-        puts "Entry: #{entry.url}" if entry
+        if entry
+          entry&.update!(uid: k)
+          puts "Entry: #{entry.url}" if entry
+        end
       end
 
       next if response.data[:next].nil?
@@ -25,8 +27,10 @@ namespace :facebook do
       posts = response.data[:posts]
       posts.each do |k, v|
         entry = Entry.find_by(url: v)
-        entry&.update!(uid: k)
-        puts "Entry: #{entry.url}" if entry
+        if entry
+          entry.update!(uid: k)
+          puts "Entry: #{entry.url}" if entry
+        end
       end
     end
   end
