@@ -19,9 +19,12 @@ task crawler_test: :environment do
     img
     tag
     contacto
+    programa
+    date
+    feed
   ]
   directory_pattern = /#{directories.join('|')}/
-  Site.where(id: 81).order(total_count: :desc).each do |site|
+  Site.where(id: 8).order(total_count: :desc).each do |site|
     puts "Start test processing site #{site.name}..."
     puts '--------------------------------------------------------------------"'
     Anemone.crawl(
@@ -35,7 +38,7 @@ task crawler_test: :environment do
       anemone.skip_links_like(/.*\.(jpeg|jpg|gif|png|pdf|mp3|mp4|mpeg)/, directory_pattern)
 
       anemone.focus_crawl do |page|
-        page.links.delete_if { |href| Entry.exists?(url: href.to_s) }
+        # page.links.delete_if { |href| Entry.exists?(url: href.to_s) }
         page.links.delete_if do |href|
           href.to_s.match(/#{site.negative_filter.presence || 'NUNCA'}/).present?
         end
