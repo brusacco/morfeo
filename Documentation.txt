@@ -37,6 +37,7 @@ rails g model Page uid:string name:string username:string picture:text followers
 
 rails g model Post uid:string:index posted_at:timestamp picture:text shares:integer comments:integer message:text title:text page:references reactions_like:integer reactions_love:integer reactions_wow:integer reactions_haha:integer reactions_sad:integer reactions_angry:integer reactions_thankful:integer total_count:integer post_type:string description:text url:text clean_url:text
 
+rails g model Comment uid:string created_time:datetime message:text entry_id:integer:index
 
 IMPORTANTE HAY QUE PARCHAR EL ANEMONE O NO FUNCIONA
 Linea 165 de page.rb
