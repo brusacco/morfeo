@@ -1,3 +1,10 @@
+################################################################
+IMPORTANTE!!!! LIBRERIA DE ANUNCIOS DE FACEBOOK!!!!
+INVESTIGAR ESTO!
+https://www.facebook.com/ads/library/?active_status=all&ad_type=all&country=ALL&view_all_page_id=100288322951708&sort_data[direction]=desc&sort_data[mode]=relevancy_monthly_grouped&search_type=page&media_type=all
+################################################################
+
+
 rails g model Site name:string:uniq url:string:uniq
 rails g migration AddFilterToSite filter:string
 rails g migration AddNegativeFilterToSite filter:string
@@ -73,7 +80,6 @@ https://sebhastian.com/mysql-incorrect-string-value/
 si ya esta creado hay que dropear el index que causa prolemas i crear uno de nuevo mas corto:
 CREATE INDEX prefix_index_on_url ON entries(url(191));
 ------------------------------------------------------------------------------------------------
-
 
 EXPORTAR SQLite
 
