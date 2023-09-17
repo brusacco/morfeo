@@ -13,8 +13,10 @@ namespace :facebook do
       posts.each do |k, v|
         entry = Entry.find_by(url: v)
         if entry
-          entry&.update!(uid: k)
-          puts "Entry: #{entry.url}" if entry
+          entry.update!(uid: k)
+          puts "Found: #{v}"
+        else
+          puts "Not found: #{v}"
         end
       end
 
@@ -29,7 +31,9 @@ namespace :facebook do
         entry = Entry.find_by(url: v)
         if entry
           entry.update!(uid: k)
-          puts "Entry: #{entry.url}" if entry
+          puts "Found: #{v}"
+        else
+          puts "Not found: #{v}"
         end
       end
     end
