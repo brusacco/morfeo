@@ -20,6 +20,8 @@ module FacebookServices
 
         facebook_url = post['attachments']['data'][0]['target']['url']
         target_url = facebook_url.match(/u=([^&]+)/)
+        next if target_url.nil?
+
         target_url = CGI.unescape(target_url[1]) # Decode URL encoding
         posts[post['id']] = target_url
       end
