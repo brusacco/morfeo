@@ -49,7 +49,7 @@ module WebExtractorServices
         result = FacebookServices::UpdateStats.call(entry.id)
         entry.update!(result.data) if result.success?
       end
-      handle_success(entry.id)
+      handle_success(@url)
     rescue StandardError => e
       handle_error(e.message)
     end
