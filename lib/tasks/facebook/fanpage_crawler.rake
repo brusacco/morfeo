@@ -3,7 +3,7 @@
 namespace :facebook do
   desc 'Facebook crawler'
   task fanpage_crawler: :environment do
-    pages = Page.where.not(uid: nil)
+    pages = Page.all
     # pages = Page.where(id: 8)
     pages.each do |page|
       puts "Process Fanpage: #{page.name}, page: 1"
