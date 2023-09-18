@@ -65,7 +65,7 @@ class TopicController < ApplicationController
     @comments_word_occurrences = @comments.word_occurrences
     @comments_bigram_occurrences = @comments.bigram_occurrences
 
-    @tm = TextMood.new(language: "es")
+    @tm = TextMood.new(language: 'es', normalize_score: true)
   end
 
   def history
