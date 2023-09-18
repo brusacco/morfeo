@@ -8,6 +8,7 @@ namespace :facebook do
     pages.each do |page|
       puts "Process Fanpage: #{page.name}, page: 1"
       response = FacebookServices::FanpageCrawler.call(page.uid)
+      break if !response.success? && response.data[:next].nil?
 
       posts = response.data[:posts]
       posts.each do |k, v|
