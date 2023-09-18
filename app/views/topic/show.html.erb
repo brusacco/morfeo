@@ -50,13 +50,13 @@
       <h2  class="text-2xl font-bold tracking-tight text-gray-900">Análisis de Palabras en Commentarios:</h2>
       <%= render partial: "tag/tag_pill_array", collection: @comments_word_occurrences %>
       <p><small class="text-muted px-1">*Cantidad de veces que aparecen las palabras en los comentarios</small></p>
-      <p><small class="text-muted px-1"><%=link_to 'Ver comentarios', topic_comments_path(@topic) %></small></p>
+      <%=link_to 'Ver comentarios', topic_comments_path(@topic), class: 'rounded bg-white px-2 py-1 text-xs font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50' %>
     </div>
     <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8  lg:px-8">
       <h2  class="text-2xl font-bold tracking-tight text-gray-900">Análisis de Bigramas en Comentarios:</h2>
       <%= render partial: "tag/tag_pill_array", collection: @comments_bigram_occurrences %>
       <p><small class="text-muted px-1">*Cantidad de veces que aparecen bigramas en los comentarios</small></p>
-      <p><small class="text-muted px-1"><%=link_to 'Ver comentarios', topic_comments_path(@topic) %></small></p>
+      <%=link_to 'Ver comentarios', topic_comments_path(@topic), class: 'rounded bg-white px-2 py-1 text-xs font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50' %>
     </div>
     <hr>
     <%= render partial: 'entry/entries', locals: { last_entries: @most_interactions, title: 'Top Notas Interacciones del Tópico' } %>
