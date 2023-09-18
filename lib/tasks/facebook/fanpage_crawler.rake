@@ -17,8 +17,8 @@ namespace :facebook do
           puts "Found: #{v}"
         else
           puts "Not found: #{v}"
-          response = WebExtractorServices::UrlCrawler.call(v, page.site, k)
-          puts response
+          res = WebExtractorServices::UrlCrawler.call(v, page.site, k)
+          puts res
         end
       end
 
@@ -36,8 +36,8 @@ namespace :facebook do
           puts "Found: #{v}"
         else
           puts "Not found: #{v}"
-          response = WebExtractorServices::UrlCrawler.call(v, page.site, k)
-          puts response
+          res = WebExtractorServices::UrlCrawler.call(v, page.site, k)
+          puts res
         end
       end
     end
