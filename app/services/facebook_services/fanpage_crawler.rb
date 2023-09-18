@@ -16,7 +16,10 @@ module FacebookServices
       posts = {}
       data = call_api(@page_uid, @cursor)
       data['data'].each do |post|
-        next unless post['attachments'] && post['attachments']['data'] && post['attachments']['data'][0]['type'] == 'share'
+        next unless post['attachments'] &&
+                    post['attachments']['data'] &&
+                    post['attachments']['data'][0] &&
+                    post['attachments']['data'][0]['type'] == 'share'
 
         facebook_url = post['attachments']['data'][0]['target']['url']
         target_url = facebook_url.match(/u=([^&]+)/)
