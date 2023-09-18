@@ -56,6 +56,16 @@ class TopicController < ApplicationController
     @tags.each { |n| @tags_count[n.name] = n.count }
   end
 
+  def comments
+    @topic = Topic.find(params[:id])
+    @tag_list = @topic.tags.map(&:name)
+    @entries = @topic.topic_entries
+
+    @comments = Comment.where(entry_id: @entries.pluck(:id))
+    @comments_word_occurrences = @comments.word_occurrences
+    @comments_bigram_occurrences = @comments.bigram_occurrences
+  end
+
   def history
     @topic = Topic.find(params[:id])
     @reports = @topic.reports.order(created_at: :desc).limit(20)

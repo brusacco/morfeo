@@ -18,6 +18,7 @@ Rails.application.routes.draw do
 
   get '/topic/:id', to: 'topic#show', as: 'topic'
   get '/topic/:id/history', to: 'topic#history', as: 'topic_history'
+  get '/topic/:id/comments', to: 'topic#comments', as: 'topic_comments'
 
   devise_for :admin_users, ActiveAdmin::Devise.config
   ActiveAdmin.routes(self)
