@@ -37,6 +37,8 @@ module FacebookServices
 
       result = { posts: posts, next: cursor }
       handle_success(result)
+    rescue StandardError => e
+      handle_error(e)
     end
 
     def call_api(page_uid, cursor = nil)
