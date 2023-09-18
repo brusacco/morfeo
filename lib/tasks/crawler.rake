@@ -99,7 +99,7 @@ task crawler: :environment do
           #---------------------------------------------------------------------------
           result = FacebookServices::UpdateStats.call(entry.id)
           if result.success?
-            entry.update!(result.data) if result.success?
+            entry.update!(result.data)
             puts result.data
           else
             puts "ERROR STATS: #{result&.error}"
