@@ -10,6 +10,7 @@
       <br>
       <p class="text-sm">Fecha: <b><%=comment.created_time%></b></p>
       <p class="text-sm">Nota: <b><%=comment.entry.title%></b></p>
+      <p class="text-sm">Polaridad: <b><%=@tm.analyze(comment.message)%></b></p>
     </div>
     <hr>
   <%end%>
