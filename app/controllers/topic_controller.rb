@@ -19,6 +19,10 @@ class TopicController < ApplicationController
     @bigram_occurrences = @entries.bigram_occurrences
     @report = @topic.reports.last
 
+    @comments = Comment.where(entry_id: @entries.pluck(:id))
+    @comments_word_occurrences = @comments.word_occurrences
+    @comments_bigram_occurrences = @comments.bigram_occurrences
+
     @positive_words = @topic.positive_words.split(',') if @topic.positive_words.present?
     @negative_words = @topic.negative_words.split(',') if @topic.negative_words.present?
 

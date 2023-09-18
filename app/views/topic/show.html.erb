@@ -37,14 +37,24 @@
     </div>
     <hr>
     <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8  lg:px-8">
-      <h2 class="text-2xl font-bold tracking-tight text-gray-900">Análisis de Palabras:</h2>
+      <h2  class="text-2xl font-bold tracking-tight text-gray-900">Análisis de Palabras en Notas:</h2>
       <%= render partial: "tag/tag_pill_array", collection: @word_occurrences %>
       <p><small class="text-muted px-1">*Cantidad de veces que aparecen las palabras en las notas</small></p>
     </div>
     <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8  lg:px-8">
-      <h2  class="text-2xl font-bold tracking-tight text-gray-900">Análisis de Bigramas:</h2>
+      <h2  class="text-2xl font-bold tracking-tight text-gray-900">Análisis de Bigramas en Notas:</h2>
       <%= render partial: "tag/tag_pill_array", collection: @bigram_occurrences %>
       <p><small class="text-muted px-1">*Cantidad de veces que aparecen bigramas en las notas</small></p>
+    </div>
+    <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8  lg:px-8">
+      <h2  class="text-2xl font-bold tracking-tight text-gray-900">Análisis de Palabras en Commentarios:</h2>
+      <%= render partial: "tag/tag_pill_array", collection: @comments_word_occurrences %>
+      <p><small class="text-muted px-1">*Cantidad de veces que aparecen las palabras en los comentarios</small></p>
+    </div>
+    <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8  lg:px-8">
+      <h2  class="text-2xl font-bold tracking-tight text-gray-900">Análisis de Bigramas en Comentarios:</h2>
+      <%= render partial: "tag/tag_pill_array", collection: @comments_bigram_occurrences %>
+      <p><small class="text-muted px-1">*Cantidad de veces que aparecen bigramas en los comentarios</small></p>
     </div>
     <hr>
     <%= render partial: 'entry/entries', locals: { last_entries: @most_interactions, title: 'Top Notas Interacciones del Tópico' } %>
