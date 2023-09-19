@@ -19,7 +19,7 @@
       <%min_max = find_max_and_min_occurrences(@comments_word_occurrences)%>
       <ul class="cloud">
         <%@comments_word_occurrences.shuffle { |a, b| a[1] <=> b[1] }.each do |word, value|%>
-          <li data-weight="<%=normalize_to_scale(value, min_max[:max], min_max[:min])%>"><%=word%></li>
+          <li style='color: <%=word_color(@positive_words, @negative_words, word)%>' data-weight="<%=normalize_to_scale(value, min_max[:max], min_max[:min])%>"><%=word%></li>
         <%end%>
       </ul>
     </div>

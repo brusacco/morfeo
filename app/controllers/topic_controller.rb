@@ -61,6 +61,9 @@ class TopicController < ApplicationController
     @tag_list = @topic.tags.map(&:name)
     @entries = @topic.topic_entries
 
+    @positive_words = @topic.positive_words.split(',') if @topic.positive_words.present?
+    @negative_words = @topic.negative_words.split(',') if @topic.negative_words.present?
+
     @comments = Comment.where(entry_id: @entries.pluck(:id)).order(created_time: :desc)
     @comments_word_occurrences = @comments.word_occurrences
     @comments_bigram_occurrences = @comments.bigram_occurrences

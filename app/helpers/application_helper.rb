@@ -46,4 +46,14 @@ module ApplicationHelper
     # Ensure the result is within the range [1, 10]
     normalized.clamp(1, 10)
   end
+
+  def word_color(good, bad, word)
+    if good.include?(word)
+      'green'
+    elsif bad.include?(word)
+      'red'
+    else
+      'grey'
+    end
+  end
 end
