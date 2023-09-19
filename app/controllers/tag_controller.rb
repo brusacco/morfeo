@@ -48,6 +48,17 @@ class TagController < ApplicationController
     @tags.each { |n| @tags_count[n.name] = n.count }
   end
 
+  def comments
+    @tag = Tag.find(params[:id])
+    @entries = Entry.normal_range.joins(:site).tagged_with(@tag.name).has_image.order(published_at: :desc)
+
+    @comments = Comment.where(entry_id: @entries.pluck(:id)).order(created_time: :desc)
+    @comments_word_occurrences = @comments.word_occurrences
+    @comments_bigram_occurrences = @comments.bigram_occurrences
+
+    @tm = TextMood.new(language: 'es', normalize_score: true)
+  end
+
   def report
     @tag = Tag.find(params[:id])
     @entries = Entry.normal_range.joins(:site).tagged_with(@tag.name).has_image.order(published_at: :desc)
