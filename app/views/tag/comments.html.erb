@@ -15,6 +15,14 @@
       <%= render partial: "tag/tag_pill_array", collection: @comments_bigram_occurrences %>
       <p><small class="text-muted px-1">*Cantidad de veces que aparecen bigramas en los comentarios</small></p>
     </div>
+    <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8  lg:px-8">
+      <%min_max = find_max_and_min_occurrences(@comments_word_occurrences)%>
+      <ul class="cloud">
+        <%@comments_word_occurrences.each do |word, value|%>
+          <li data-weight="<%=normalize_to_scale(value, min_max[:max], min_max[:min])%>"><%=word%></li>
+        <%end%>
+      </ul>
+    </div>
     <hr>
     <%@comments.each do |comment|%>
       <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8  lg:px-8">
@@ -28,3 +36,32 @@
     <%end%>
   </div>
 </main>
+<style>
+  ul.cloud {
+    list-style: none;
+    padding-left: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    line-height: 2.5rem;
+  }
+  ul.cloud li {
+    color: #a33;
+    display: block;
+    font-size: 1.5rem;
+    padding: 0.125rem 0.25rem;
+    text-decoration: none;
+    position: relative;
+  }
+  ul.cloud li[data-weight="1"] { font-size: calc(1 * 0.25rem + 0.5rem); }
+  ul.cloud li[data-weight="2"] { font-size: calc(2 * 0.25rem + 0.5rem); }
+  ul.cloud li[data-weight="3"] { font-size: calc(3 * 0.25rem + 0.5rem); }
+  ul.cloud li[data-weight="4"] { font-size: calc(4 * 0.25rem + 0.5rem); }
+  ul.cloud li[data-weight="5"] { font-size: calc(5 * 0.25rem + 0.5rem); }
+  ul.cloud li[data-weight="6"] { font-size: calc(6 * 0.25rem + 0.5rem); }
+  ul.cloud li[data-weight="7"] { font-size: calc(7 * 0.25rem + 0.5rem); }
+  ul.cloud li[data-weight="8"] { font-size: calc(8 * 0.25rem + 0.5rem); }
+  ul.cloud li[data-weight="9"] { font-size: calc(9 * 0.25rem + 0.5rem); }
+  ul.cloud li[data-weight="10"] { font-size: calc(10 * 0.25rem + 0.5rem); }
+</style>
