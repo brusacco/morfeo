@@ -24,16 +24,9 @@
       </ul>
     </div>
     <hr>
+    <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8  lg:px-8">
+      <%= render partial: 'comment/comments_table', locals: { comments: @comments, title: "Comentarios sobre #{@topic.name}" } %>
+    </div>
     <hr>
-    <%@comments.each do |comment|%>
-      <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8  lg:px-8">
-        <p><%=comment.message%></p>
-        <br>
-        <p class="text-sm">Fecha: <b><%=comment.created_time%></b></p>
-        <p class="text-sm">Nota: <b><%=comment.entry.title%></b></p>
-        <p class="text-sm">Polaridad: <b><%=@tm.analyze(comment.message)%></b></p>
-      </div>
-      <hr>
-    <%end%>
   </div>
 </main>
