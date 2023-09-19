@@ -10,4 +10,32 @@ a:active { text-decoration: none; }
 .css3 { font-size: 1.4em; color: lightcoral}
 .css4 { font-size: 1.6em; color: red}
 
+ul.cloud {
+  list-style: none;
+  padding-left: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  line-height: 2.5rem;
+}
+ul.cloud li {
+  color: #a33;
+  display: block;
+  font-size: 1.5rem;
+  padding: 0.125rem 0.25rem;
+  text-decoration: none;
+  position: relative;
+}
+ul.cloud li[data-weight="1"] { font-size: calc(1 * 0.25rem + 0.5rem); }
+ul.cloud li[data-weight="2"] { font-size: calc(2 * 0.25rem + 0.5rem); }
+ul.cloud li[data-weight="3"] { font-size: calc(3 * 0.25rem + 0.5rem); }
+ul.cloud li[data-weight="4"] { font-size: calc(4 * 0.25rem + 0.5rem); }
+ul.cloud li[data-weight="5"] { font-size: calc(5 * 0.25rem + 0.5rem); }
+ul.cloud li[data-weight="6"] { font-size: calc(6 * 0.25rem + 0.5rem); }
+ul.cloud li[data-weight="7"] { font-size: calc(7 * 0.25rem + 0.5rem); }
+ul.cloud li[data-weight="8"] { font-size: calc(8 * 0.25rem + 0.5rem); }
+ul.cloud li[data-weight="9"] { font-size: calc(9 * 0.25rem + 0.5rem); }
+ul.cloud li[data-weight="10"] { font-size: calc(10 * 0.25rem + 0.5rem); }
+
 
