@@ -12,7 +12,7 @@ class Comment < ApplicationRecord
         cleaned_word = word.downcase
         next if STOP_WORDS.include?(cleaned_word)
         next if cleaned_word.length <= 2
-        next if ['https'].include?(cleaned_word)
+        next if %w[https www com].include?(cleaned_word)
 
         word_occurrences[cleaned_word] += 1
       end
