@@ -11,6 +11,10 @@ class EntryController < ApplicationController
     @word_occurrences = word_occurrences(@entries)
     @bigram_occurrences = bigram_occurrences(@entries)
 
+    @comments = Comment.where(entry_id: @entries.pluck(:id)).order(created_time: :desc)
+    @comments_word_occurrences = @comments.word_occurrences
+    @comments_bigram_occurrences = @comments.bigram_occurrences
+
     @tags_interactions = {}
     @tags.each do |tag|
       @entries.each do |entry|
