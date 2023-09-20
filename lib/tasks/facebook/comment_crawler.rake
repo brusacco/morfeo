@@ -5,7 +5,8 @@ require 'digest'
 namespace :facebook do
   desc 'Facebook comments crawler'
   task comment_crawler: :environment do
-    entries = Entry.normal_range.where.not(uid: nil).where.not(comment_count: 0).order(published_at: :desc)
+    # entries = Entry.normal_range.where.not(uid: nil).where.not(comment_count: 0).order(published_at: :desc)
+    entries = Entry.find(632_942)
     entries.find_each do |entry|
       puts entry.id
       puts entry.url
@@ -14,8 +15,6 @@ namespace :facebook do
       puts '--------------------------------'
       response = FacebookServices::CommentCrawler.call(entry.uid)
       data = response[:data]
-
-      next if data[:comments].nil?
 
       data[:comments].each do |comment|
         comment_uid = generate_hash(comment['created_time'], comment['message'])
