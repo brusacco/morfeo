@@ -15,6 +15,8 @@ namespace :facebook do
       response = FacebookServices::CommentCrawler.call(entry.uid)
       data = response[:data]
 
+      next if data[:comments].nil?
+
       data[:comments].each do |comment|
         comment_uid = generate_hash(comment['created_time'], comment['message'])
         puts comment_uid
