@@ -16,7 +16,7 @@
       <p><small class="text-muted px-1">*Cantidad de veces que aparecen bigramas en los comentarios</small></p>
     </div>
     <div class="overflow-hidden bg-white shadow sm:rounded-lg">
-      <div class="px-4 py-5 sm:p-6">
+      <div class="px-10 py-10 sm:p-6">
         <%min_max = find_max_and_min_occurrences(@comments_word_occurrences)%>
         <ul class="cloud">
           <%@comments_word_occurrences.shuffle { |a, b| a[1] <=> b[1] }.each do |word, value|%>
