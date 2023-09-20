@@ -8,8 +8,12 @@ module FacebookServices
 
     def call
       response = api_call(@post_uid)
-      result = { comments: response['data'] }
-      handle_success(result)
+      if response['error']
+        handle_error(response['error']['message'])
+      else
+        result = { comments: response['data'] }
+        handle_success(result)
+      end
     end
 
     def api_call(post_uid)
