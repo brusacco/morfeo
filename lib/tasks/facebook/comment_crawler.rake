@@ -5,7 +5,7 @@ require 'digest'
 namespace :facebook do
   desc 'Facebook comments crawler'
   task comment_crawler: :environment do
-    entries = Entry.where.not(uid: nil).where.not(comment_count: 0)
+    entries = Entry.normal_range.where.not(uid: nil).where.not(comment_count: 0)
     # entries = Entry.where(id: 207_794)
     entries.find_each do |entry|
       puts entry.id
