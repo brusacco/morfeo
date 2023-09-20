@@ -15,7 +15,7 @@
       <%= render partial: "tag/tag_pill_array", collection: @comments_bigram_occurrences %>
       <p><small class="text-muted px-1">*Cantidad de veces que aparecen bigramas en los comentarios</small></p>
     </div>
-    <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8  lg:px-8">
+    <div class="mx-auto px-20 py-8 sm:px-6 sm:py-8  lg:px-8">
       <%min_max = find_max_and_min_occurrences(@comments_word_occurrences)%>
       <ul class="cloud">
         <%@comments_word_occurrences.shuffle { |a, b| a[1] <=> b[1] }.each do |word, value|%>
