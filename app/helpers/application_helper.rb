@@ -48,9 +48,9 @@ module ApplicationHelper
   end
 
   def word_color(good, bad, word)
-    if good.include?(word)
+    if good&.include?(word)
       'green'
-    elsif bad.include?(word)
+    elsif bad&.include?(word)
       'red'
     else
       'grey'
