@@ -4,7 +4,7 @@ class TagController < ApplicationController
   def show
     @tag = Tag.find(params[:id])
 
-    @entries = Entry.normal_range.joins(:site).tagged_with(@tag.name).has_image.order(published_at: :desc)
+    @entries = Entry.normal_range.joins(:site).tagged_with(@tag.name).order(published_at: :desc)
     @analytics = Entry.normal_range.joins(:site).tagged_with(@tag.name).order(total_count: :desc).limit(20)
 
     @total_entries = @entries.size
