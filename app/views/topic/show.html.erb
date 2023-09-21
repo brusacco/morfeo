@@ -20,6 +20,9 @@
     </div>
     <hr>
     <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
+      <%= render partial: 'entry/entries_table', locals: { entries: @entries, title: "Últimas Noticias sobre #{@topic.name}" } %>
+    </div>
+    <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
       <h2 class="text-2xl font-bold tracking-tight text-gray-900">Impacto del Tópico</h2>
       <h3>Cantidad de Notas del Topico: <%=number_with_delimiter(@entries.size, delimiter: ".")%>, demás notas: <%=number_with_delimiter(@all_entries.size, delimiter: ".")%>, total de notas: <%=number_with_delimiter(@all_entries.size + @entries.size, delimiter: ".")%></h3>
       <h3>Cantidad de Interacciones del Topico: <%=number_with_delimiter(@entries.sum(:total_count), delimiter: ".")%>, demás notas: <%=number_with_delimiter(@all_entries.sum(:total_count), delimiter: ".")%>, total de interacciones: <%=number_with_delimiter(@all_entries.sum(:total_count) + @entries.sum(:total_count), delimiter: ".")%></h3>
@@ -109,8 +112,5 @@
       </div>
     <%end%>
     <hr>
-    <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
-      <%= render partial: 'entry/entries_table', locals: { entries: @entries, title: "Últimas Noticias sobre #{@topic.name}" } %>
-    </div>
   </div>
 </main>
