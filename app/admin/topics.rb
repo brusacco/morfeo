@@ -23,6 +23,8 @@ ActiveAdmin.register Topic do
     attributes_table do
       row :name
       row :tags
+      row :positive_words
+      row :negative_words
     end
   end
 
