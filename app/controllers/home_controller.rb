@@ -66,6 +66,9 @@ class HomeController < ApplicationController
       # Migrate the database
       system('RAILS_ENV=production rails db:migrate')
 
+      # Precompile assets
+      system('RAILS_ENV=production rails assets:precompile')
+
       # Restart the Puma server
       system('touch tmp/restart.txt')
     end
