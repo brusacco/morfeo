@@ -22,6 +22,18 @@
     <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
       <%= render partial: 'entry/entries_table', locals: { entries: @entries, title: "Últimas Noticias sobre #{@topic.name}" } %>
     </div>
+    <hr>
+    <div class="overflow-hidden bg-white shadow sm:rounded-lg">
+      <div class="mt-20 mb-20 px-30 py-10 sm:p-6">
+        <%min_max = find_max_and_min_occurrences(@word_occurrences)%>
+        <ul class="cloud">
+          <%@word_occurrences.shuffle { |a, b| a[1] <=> b[1] }.each do |word, value|%>
+            <li style='color: <%=word_color(@positive_words, @negative_words, word)%>' data-weight="<%=normalize_to_scale(value, min_max[:max], min_max[:min])%>"><%=word%></li>
+          <%end%>
+        </ul>
+      </div>
+    </div>
+    <hr>
     <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
       <h2 class="text-2xl font-bold tracking-tight text-gray-900">Impacto del Tópico</h2>
       <h3>Cantidad de Notas del Topico: <%=number_with_delimiter(@entries.size, delimiter: ".")%>, demás notas: <%=number_with_delimiter(@all_entries.size, delimiter: ".")%>, total de notas: <%=number_with_delimiter(@all_entries.size + @entries.size, delimiter: ".")%></h3>
