@@ -30,6 +30,8 @@ rails g migration AddPublishedDateToEntry published_date:date:index
 
 rails g migration AddContentToEntry content:text
 
+rails generate migration AddPolarityToEntries polarity:integer delta:integer
+
 
 
 

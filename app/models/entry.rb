@@ -13,6 +13,8 @@ class Entry < ApplicationRecord
   scope :has_interactions, -> { where(total_count: 10..) }
   scope :has_any_interactions, -> { where(total_count: 1..) }
 
+  enum polarity: { neutral: 0, positive: 1, negative: 2 }
+
   before_save :set_published_date
 
   def self.prompt(topic)
@@ -32,18 +34,8 @@ class Entry < ApplicationRecord
   end
 
   def self.generate_report(topic)
-    client = OpenAI::Client.new(access_token: Rails.application.credentials.openai_access_token)
-
     prompt = all.prompt(topic)
-
-    response = client.chat(
-      parameters: {
-        model: 'gpt-3.5-turbo', # Required.
-        messages: [{ role: 'user', content: prompt }], # Required.
-        temperature: 0.7
-      }
-    )
-    response.dig('choices', 0, 'message', 'content')
+    call_ai(prompt)
   end
 
   def self.bigram_occurrences(limit = 100)
@@ -95,6 +87,26 @@ class Entry < ApplicationRecord
                     .take(limit)
   end
 
+  def set_polarity
+    return polarity unless polarity.nil?
+
+    text = "Analizar el sentimiento de la siguente noticia:
+    #{title} #{description}
+    sentiment = Sentiment.new(text)
+    Responder solo con las palabras negativa, positiva o neutra.
+    En caso de no poder analizar responder neutra."
+
+    ai_polarity = call_ai(text)
+    if ai_polarity == 'negativa'
+      update!(polarity: :negative)
+    elsif ai_polarity == 'positiva'
+      update!(polarity: :positive)
+    else
+      update!(polarity: :neutral)
+    end
+    polarity
+  end
+
   def clean_image
     if image_url.blank? || image_url == 'null'
       'https://via.placeholder.com/300x250'
@@ -128,6 +140,18 @@ class Entry < ApplicationRecord
   end
 
   private
+
+  def call_ai(text)
+    client = OpenAI::Client.new(access_token: Rails.application.credentials.openai_access_token)
+    response = client.chat(
+      parameters: {
+        model: 'gpt-3.5-turbo', # Required.
+        messages: [{ role: 'user', content: text }], # Required.
+        temperature: 0.7
+      }
+    )
+    response.dig('choices', 0, 'message', 'content')
+  end
 
   def ngrams(n = 2)
     # regex = /([A-ZÀ-Ö][a-zø-ÿ]{3,})\s([A-ZÀ-Ö][a-zø-ÿ]{3,})/

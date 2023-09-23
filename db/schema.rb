@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_09_16_012633) do
+ActiveRecord::Schema[7.0].define(version: 2023_09_23_021851) do
   create_table "active_admin_comments", force: :cascade do |t|
     t.string "namespace"
     t.text "body"
@@ -69,6 +69,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_16_012633) do
     t.integer "tw_total", default: 0
     t.date "published_date"
     t.string "uid"
+    t.integer "polarity"
+    t.integer "delta", default: 0
     t.index ["published_date"], name: "index_entries_on_published_date"
     t.index ["site_id"], name: "index_entries_on_site_id"
     t.index ["url"], name: "index_entries_on_url", unique: true
