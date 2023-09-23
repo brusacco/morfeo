@@ -3,7 +3,7 @@
 namespace :ai do
   desc 'Update polarities'
   task set_polarity: :environment do
-    entries = Entry.order(published_at: :desc).limit(100)
+    entries = Entry.where.not(polarity: nil).order(published_at: :desc).limit(200)
     entries.each do |entry|
       entry.set_polarity
       puts entry.title

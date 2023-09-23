@@ -87,8 +87,8 @@ class Entry < ApplicationRecord
                     .take(limit)
   end
 
-  def set_polarity
-    return polarity unless polarity.nil?
+  def set_polarity(force: false)
+    return polarity unless !force && polarity.nil?
 
     text = "Analizar el sentimiento de la siguente noticia:
     #{title} #{description}
