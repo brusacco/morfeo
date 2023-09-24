@@ -40,7 +40,7 @@ task clean_content: :environment do
 end
 
 task clean_spaces: :environment do
-  entries = Entry.last(1000)
+  entries = Entry.last(10000)
   entries.each do |entry|
     next if entry.content.nil?
 
