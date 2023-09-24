@@ -30,9 +30,9 @@ class TopicController < ApplicationController
     @negatives = @entries.where(polarity: 2).count('*')
     @neutrals = @entries.where(polarity: 0).count('*')
 
-    @percentage_positives = (@positives.to_f / @entries.size * 100).round(1)
-    @percentage_negatives = (@negatives.to_f / @entries.size * 100).round(1)
-    @percentage_neutrals = (@neutrals.to_f / @entries.size * 100).round(1)
+    @percentage_positives = (@positives.to_f / @entries.size * 100).round(0)
+    @percentage_negatives = (@negatives.to_f / @entries.size * 100).round(0)
+    @percentage_neutrals = (@neutrals.to_f / @entries.size * 100).round(0)
 
     @most_interactions = @entries.sort_by(&:total_count).reverse.take(8)
 
