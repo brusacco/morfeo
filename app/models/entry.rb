@@ -17,6 +17,14 @@ class Entry < ApplicationRecord
 
   before_save :set_published_date
 
+  def self.positives
+    positives = []
+    all.find_each do |entry|
+      positives << entry.id if entry.positive?
+    end
+    positives
+  end
+
   def self.prompt(topic)
     text = ''
     separator = '####'
