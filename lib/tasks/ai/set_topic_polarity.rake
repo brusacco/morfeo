@@ -12,6 +12,10 @@ namespace :ai do
         puts entry.polarity
         puts '--------------------------------'
       end
+    rescue Exception => e
+      puts e.message
+      wait 5
+      retry
     end
   end
 end
