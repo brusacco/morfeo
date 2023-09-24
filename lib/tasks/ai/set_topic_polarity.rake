@@ -11,7 +11,6 @@ namespace :ai do
       puts entry.title
       puts entry.polarity
       puts '--------------------------------'
-      sleep 5
     end
   end
 end

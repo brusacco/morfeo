@@ -98,6 +98,8 @@ class Entry < ApplicationRecord
   def set_polarity(force: false)
     return polarity unless polarity.nil?
 
+    sleep 5
+
     text = "Analizar el sentimiento de la siguente noticia:
     #{title} #{description}
     sentiment = Sentiment.new(text)
