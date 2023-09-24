@@ -101,8 +101,7 @@ class Entry < ApplicationRecord
     sleep 5
 
     text = "Analizar el sentimiento de la siguente noticia:
-    #{title} #{description}
-    sentiment = Sentiment.new(text)
+    #{title} #{description} #{content}
     Responder solo con las palabras negativa, positiva o neutra.
     En caso de no poder analizar responder neutra."
 
