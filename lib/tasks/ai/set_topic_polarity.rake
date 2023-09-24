@@ -14,7 +14,7 @@ namespace :ai do
       end
     rescue Exception => e
       puts e.message
-      wait 5
+      wait 10
       retry
     end
   end
