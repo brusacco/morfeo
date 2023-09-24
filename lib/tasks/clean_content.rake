@@ -39,6 +39,15 @@ task clean_content: :environment do
   end
 end
 
+task clean_spaces: :environment do
+  entries = Entry.last(1000)
+  entries.each do |entry|
+    next if entry.content.nil?
+
+    entry.update!(content: entry.content.gsub(/[\n\r\t]/, '').squish)
+  end
+end
+
 task clean_site_content: :environment do
   site = Site.find(58)
   entries = site.entries.order(published_at: :desc).limit(1000)
