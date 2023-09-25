@@ -12,6 +12,10 @@ class Tag < ApplicationRecord
 
   attr_accessor :interactions
 
+  def belongs_to_any_topic?
+    Topic.all.any? { |topic| topic.tag_ids.include?(id) }
+  end
+
   private
 
   def tag_entries
