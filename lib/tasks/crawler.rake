@@ -95,11 +95,6 @@ task crawler: :environment do
           end
 
           #---------------------------------------------------------------------------
-          # Set entry polarity
-          #---------------------------------------------------------------------------
-          entry.set_polarity if entry.belongs_to_any_topic?
-
-          #---------------------------------------------------------------------------
           # Stats extractor
           #---------------------------------------------------------------------------
           result = FacebookServices::UpdateStats.call(entry.id)
@@ -109,6 +104,11 @@ task crawler: :environment do
           else
             puts "ERROR STATS: #{result&.error}"
           end
+
+          #---------------------------------------------------------------------------
+          # Set entry polarity
+          #---------------------------------------------------------------------------
+          entry.set_polarity if entry.belongs_to_any_topic?
 
           #---------------------------------------------------------------------------
           # Extract and save ngrams
