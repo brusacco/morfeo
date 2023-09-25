@@ -29,8 +29,38 @@
       </div>
     </div>
     <%= column_chart @entries.where.not(polarity: nil).group(:polarity).group_by_day(:published_at).count('*'), xtitle: "Fecha", ytitle: "Cant. Notas", label: "Notas", stacked: true %>
-    <p>La etiqueta <b><%=@tag.name%></b> en los ultimos <b><%=DAYS_RANGE%> días</b> cuenta con un total de <b><%=number_with_delimiter(@total_entries, delimiter: ".")%></b> notas y genero un total de <b><%=number_with_delimiter(@total_interactions, delimiter: '.')%></b> interacciones, lo que nos da un promedio de <b><%=number_with_delimiter(@promedio, delimiter: '.')%></b> interacciones por nota.</p>
-    <p>En contexto las <%=@top_entries.count%> notas con más interacciones en general, en el mismo periodo tuvieron <b><%=@top_entries.pluck(:total_count).join(', ')%></b> interacciones y las notas de la etiqueta <b><%=@most_interactions.take(5).pluck(:total_count).join(', ')%></b> interaciones </p>
+    <div class="m-2">
+      <p>La etiqueta <b><%=@tag.name%></b> en los ultimos <b><%=DAYS_RANGE%> días</b> cuenta con un total de <b><%=number_with_delimiter(@total_entries, delimiter: ".")%></b> notas y genero un total de <b><%=number_with_delimiter(@total_interactions, delimiter: '.')%></b> interacciones, lo que nos da un promedio de <b><%=number_with_delimiter(@promedio, delimiter: '.')%></b> interacciones por nota.</p>
+      <p>En contexto las <%=@top_entries.count%> notas con más interacciones en general, en el mismo periodo tuvieron <b><%=@top_entries.pluck(:total_count).join(', ')%></b> interacciones y las notas de la etiqueta <b><%=@most_interactions.take(5).pluck(:total_count).join(', ')%></b> interaciones </p>
+    </div>
+    <hr>
+    <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
+      <%= render partial: 'entry/entries_table', locals: { entries: @entries, title: "Últimas Noticias sobre #{@tag.name}" } %>
+    </div>
+    <div class="overflow-hidden bg-white shadow sm:rounded-lg">
+      <h2 class="text-2xl mx-5 my-5 font-bold tracking-tight text-gray-900">Nube de palabras de notas</h2>
+      <div class="mt-20 mb-20 px-30 py-10 sm:p-6">
+        <%min_max = find_max_and_min_occurrences(@word_occurrences)%>
+        <ul class="cloud">
+          <%@word_occurrences.shuffle { |a, b| a[1] <=> b[1] }.each do |word, value|%>
+            <li style='color: <%=word_color(@positive_words, @negative_words, word)%>' data-weight="<%=normalize_to_scale(value, min_max[:max], min_max[:min])%>"><%=word%></li>
+          <%end%>
+        </ul>
+      </div>
+    </div>
+    <br>
+    <div class="overflow-hidden bg-white shadow sm:rounded-lg">
+      <h2 class="text-2xl mx-5 my-5 font-bold tracking-tight text-gray-900">Nube de palabras de comentarios</h2>
+      <div class="mt-20 mb-20 px-30 py-10 sm:p-6">
+        <%min_max = find_max_and_min_occurrences(@comments_word_occurrences)%>
+        <ul class="cloud">
+          <%@comments_word_occurrences.shuffle { |a, b| a[1] <=> b[1] }.each do |word, value|%>
+            <li style='color: <%=word_color(@positive_words, @negative_words, word)%>' data-weight="<%=normalize_to_scale(value, min_max[:max], min_max[:min])%>"><%=word%></li>
+          <%end%>
+        </ul>
+      </div>
+    </div>
+    <hr>
     <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8  lg:px-8">
       <h2  class="text-2xl font-bold tracking-tight text-gray-900">Análisis de Palabras en Notas:</h2>
       <%= render partial: "tag/tag_pill_array", collection: @word_occurrences %>
@@ -102,10 +132,6 @@
         <p><small class="text-muted px-1">*Interacciones en las notas</small></p>
       </div>
     <%end%>
-    <hr>
-    <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
-      <%= render partial: 'entry/entries_table', locals: { entries: @entries, title: "Últimas Noticias sobre #{@tag.name}" } %>
-    </div>
   </main>
   <script>
     function click_manager(object, event){

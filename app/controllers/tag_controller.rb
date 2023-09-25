@@ -10,6 +10,10 @@ class TagController < ApplicationController
     @total_entries = @entries.size
     @total_interactions = @entries.sum(:total_count)
 
+    @comments = Comment.where(entry_id: @entries.pluck(:id))
+    @comments_word_occurrences = @comments.word_occurrences
+    @comments_bigram_occurrences = @comments.bigram_occurrences
+
     # Cosas nuevas
     @word_occurrences = @entries.word_occurrences
     @bigram_occurrences = @entries.bigram_occurrences
