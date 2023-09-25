@@ -116,6 +116,10 @@ class Entry < ApplicationRecord
     polarity
   end
 
+  def belongs_to_any_topic?
+    Topic.all.any? { |topic| (topic.tag_ids & tag_ids).any? }
+  end
+
   def clean_image
     if image_url.blank? || image_url == 'null'
       'https://via.placeholder.com/300x250'
