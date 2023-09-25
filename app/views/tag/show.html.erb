@@ -5,6 +5,30 @@
 </header>
 <main>
   <div class="mx-auto py-8 sm:px-6 lg:px-8">
+    <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
+      <div>
+        <h2 class="text-2xl mx-5 my-5 font-bold tracking-tight text-gray-900">Análisis de sentimiento</h2>
+        <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-4">
+          <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+            <dt class="truncate text-sm font-medium text-gray-500">Total Noticias</dt>
+            <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900"><%=@entries.size%></dd>
+          </div>
+          <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+            <dt class="truncate text-sm font-medium text-gray-500">Total Positivas</dt>
+            <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900"><%=@percentage_positives%>%</dd>
+          </div>
+          <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+            <dt class="truncate text-sm font-medium text-gray-500">Total Negativas</dt>
+            <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900"><%=@percentage_negatives%>%</dd>
+          </div>
+          <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+            <dt class="truncate text-sm font-medium text-gray-500">Total Neutras</dt>
+            <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900"><%=@percentage_neutrals%>%</dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+    <%= column_chart @entries.where.not(polarity: nil).group(:polarity).group_by_day(:published_at).count('*'), xtitle: "Fecha", ytitle: "Cant. Notas", label: "Notas", stacked: true %>
     <p>La etiqueta <b><%=@tag.name%></b> en los ultimos <b><%=DAYS_RANGE%> días</b> cuenta con un total de <b><%=number_with_delimiter(@total_entries, delimiter: ".")%></b> notas y genero un total de <b><%=number_with_delimiter(@total_interactions, delimiter: '.')%></b> interacciones, lo que nos da un promedio de <b><%=number_with_delimiter(@promedio, delimiter: '.')%></b> interacciones por nota.</p>
     <p>En contexto las <%=@top_entries.count%> notas con más interacciones en general, en el mismo periodo tuvieron <b><%=@top_entries.pluck(:total_count).join(', ')%></b> interacciones y las notas de la etiqueta <b><%=@most_interactions.take(5).pluck(:total_count).join(', ')%></b> interaciones </p>
     <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8  lg:px-8">
