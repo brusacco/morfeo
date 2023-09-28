@@ -154,7 +154,7 @@ class Entry < ApplicationRecord
 
   private
 
-  def call_ai(text)
+  def self.call_ai(text)
     client = OpenAI::Client.new(access_token: Rails.application.credentials.openai_access_token)
     response = client.chat(
       parameters: {
