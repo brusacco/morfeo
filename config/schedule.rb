@@ -9,13 +9,13 @@ every :hour do
   rake 'clean_site_content'
 end
 
-every 2.hours do
+every 3.hours do
+  rake 'crawler_deep'
   rake 'facebook:fanpage_crawler'
   rake 'facebook:comment_crawler'
 end
 
 every 6.hours do
-  rake 'crawler_deep'
   rake 'ai:generate_ai_reports'
   rake 'ai:set_topic_polarity'
   rake 'facebook:update_fanpages'
