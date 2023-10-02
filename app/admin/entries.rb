@@ -22,6 +22,7 @@ ActiveAdmin.register Entry do
     column :title
     column :total_count
     column :site
+    column :tag_list
     column 'Url' do |entry|
       link_to entry.url, entry.url, target: :blank
     end
