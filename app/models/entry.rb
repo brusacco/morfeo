@@ -154,6 +154,18 @@ class Entry < ApplicationRecord
 
   private
 
+  def call_ai(text)
+    client = OpenAI::Client.new(access_token: Rails.application.credentials.openai_access_token)
+    response = client.chat(
+      parameters: {
+        model: 'gpt-3.5-turbo', # Required.
+        messages: [{ role: 'user', content: text }], # Required.
+        temperature: 0.7
+      }
+    )
+    response.dig('choices', 0, 'message', 'content')
+  end
+
   def self.call_ai(text)
     client = OpenAI::Client.new(access_token: Rails.application.credentials.openai_access_token)
     response = client.chat(
