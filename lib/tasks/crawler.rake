@@ -29,6 +29,7 @@ task crawler: :environment do
     puts '--------------------------------------------------------------------"'
     Anemone.crawl(
       site.url,
+      read_timeout: 10,
       depth_limit: 2,
       discard_page_bodies: true,
       accept_cookies: true,
