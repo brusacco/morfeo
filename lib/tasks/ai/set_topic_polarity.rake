@@ -14,7 +14,7 @@ namespace :ai do
       end
     rescue StandardError => e
       puts e.message
-      wait 10
+      sleep 10
       retry
     end
   end
