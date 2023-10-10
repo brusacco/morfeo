@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Comment < ApplicationRecord
-  belongs_to :entry
+  belongs_to :entry, touch: true
 
   def self.word_occurrences(limit = 100)
     word_occurrences = Hash.new(0)
