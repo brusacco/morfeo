@@ -38,4 +38,10 @@ ul.cloud li[data-weight="8"] { font-size: calc(8 * 0.25rem + 0.5rem); }
 ul.cloud li[data-weight="9"] { font-size: calc(9 * 0.25rem + 0.5rem); }
 ul.cloud li[data-weight="10"] { font-size: calc(10 * 0.25rem + 0.5rem); }
 
+@media print {
+  .no-print {
+    display: none;
+  }
+}
+
 
