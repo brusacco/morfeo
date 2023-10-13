@@ -105,3 +105,8 @@ sqlite> .quit
 
 LOAD CONTENIDO MYSQL
 load data infile "/home/morfeo/db/sites.csv" into table sites fields terminated by "," enclosed by '"' lines terminated by "\n";
+
+#  Login / Users / Topics
+rails generate devise User
+rails generate devise:views users
+rails generate model UserTopic user:references topic:references
