@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class TopicController < ApplicationController
-  before_action :authenticate_user!, except: :deploy
+  before_action :authenticate_user!
   
   def show
     @topic = Topic.find(params[:id])
