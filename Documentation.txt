@@ -110,3 +110,4 @@ load data infile "/home/morfeo/db/sites.csv" into table sites fields terminated 
 rails generate devise User
 rails generate devise:views users
 rails generate model UserTopic user:references topic:references
+rails generate devise:controllers users

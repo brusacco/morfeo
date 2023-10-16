@@ -1,8 +1,13 @@
 # frozen_string_literal: true
 
 class TopicController < ApplicationController
+  before_action :authenticate_user!, except: :deploy
+  
   def show
     @topic = Topic.find(params[:id])
+
+    return redirect_to root_path, alert: 'El Tópico al que intentaste acceder no está asignado a tu usuario' unless @topic.users.exists?(current_user.id)
+    
     @tag_list = @topic.tags.map(&:name)
     @entries = @topic.topic_entries
     @analytics = @topic.analytics_topic_entries
@@ -66,6 +71,9 @@ class TopicController < ApplicationController
 
   def comments
     @topic = Topic.find(params[:id])
+
+    return redirect_to root_path, alert: 'El Tópico al que intentaste acceder no está asignado a tu usuario' unless @topic.users.exists?(current_user.id)
+
     @tag_list = @topic.tags.map(&:name)
     @entries = @topic.topic_entries
 

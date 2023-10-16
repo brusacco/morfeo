@@ -1,20 +1,19 @@
 <!DOCTYPE html>
-<html class="h-full ">
+<html class="h-full bg-white">
   <head>
     <title>Morfeo</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highcharts/10.3.2/highcharts.js" crossorigin="anonymous"></script>
+
     <%= stylesheet_link_tag "tailwind", "inter-font", "data-turbo-track": "reload" %>
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
-    <%= javascript_importmap_tags %>
-    <script src="https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js" integrity="sha384-GNFwBvfVxBkLMJpYMOABq3c+d3KnQxudP/mGPkzpZSTYykLBNsZEnG2D9G/X/+7D" crossorigin="anonymous" async></script>
+    <%= javascript_importmap_tags %> 
   </head>
-  <body class="h-full">
-    <%=render "layouts/nav"%>
 
+  <body class="h-full">
+    
     <% if notice %>
       <div class="rounded-md bg-green-50 p-4">
         <div class="flex">
@@ -43,7 +42,8 @@
         </div>
       </div>
     <% end %>
-
+    
     <%= yield %>
+
   </body>
 </html>

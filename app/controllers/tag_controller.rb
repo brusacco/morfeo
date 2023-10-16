@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class TagController < ApplicationController
+  before_action :authenticate_user!, except: :deploy
+  
   def show
     @tag = Tag.find(params[:id])
 
