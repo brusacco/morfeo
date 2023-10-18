@@ -2,8 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-border-color: rgb(243, 244, 246 / var(--tw-divide-opacity));
-
 /*
 
 @layer components {
