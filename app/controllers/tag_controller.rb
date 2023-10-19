@@ -23,11 +23,10 @@ class TagController < ApplicationController
     @positives = @entries.where(polarity: 1).count('*')
     @negatives = @entries.where(polarity: 2).count('*')
     @neutrals = @entries.where(polarity: 0).count('*')
-
-    # Comentado de momento para evitar errores
-    # @percentage_positives = (@positives.to_f / @entries.size * 100).round(0)
-    # @percentage_negatives = (@negatives.to_f / @entries.size * 100).round(0)
-    # @percentage_neutrals = (@neutrals.to_f / @entries.size * 100).round(0)
+    
+    @percentage_positives = (@positives.to_f / @entries.size * 100).round(0) if @positives > 0
+    @percentage_negatives = (@negatives.to_f / @entries.size * 100).round(0) if @negatives > 0
+    @percentage_neutrals = (@neutrals.to_f / @entries.size * 100).round(0) if @neutrals > 0
 
     @top_entries = Entry.normal_range.joins(:site).order(total_count: :desc).limit(5)
     @most_interactions = @entries.sort_by(&:total_count).reverse.take(8)
