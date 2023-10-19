@@ -2,7 +2,7 @@
 import "@hotwired/turbo-rails"
 import "controllers"
 import "chartkick"
-import 'flowbite';
+// import 'flowbite';
 
 // document.addEventListener('turbo:load', function () {
 //   console.log("hola");
