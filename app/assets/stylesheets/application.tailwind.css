@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Regla global para border-color */
+* {
+  border-color: rgba(243, 244, 246, var(--tw-divide-opacity)) !important;
+}
 /*
 
 @layer components {
