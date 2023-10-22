@@ -8,24 +8,30 @@
         <div class="hidden md:block">
           <div class="ml-10 flex items-baseline space-x-4">
             <!-- Current: "bg-indigo-700 text-white", Default: "text-white hover:bg-indigo-500 hover:bg-opacity-75" -->
-            <%=active_link_to 'Home', root_path, class: "bg-indigo-700 text-white rounded-md px-3 py-2 text-sm font-medium"%>
+            <%= link_to 'Home', root_path, class: class_names('text-white hover:bg-indigo-500 hover:bg-opacity-75 rounded-md px-3 py-2 text-sm font-medium', { current: current_page?(root_path) })%>
+            <%#= link_to "Home", root_path, class: ["text-white rounded-md px-3 py-2 text-sm font-medium", ("bg-indigo-700" if request.path == root_path)] %>
 
             <!-- Topics Dropdown -->
-            <button id="dropdownNavbarLink" data-dropdown-toggle="dropdownNavbar" class="text-white hover:bg-indigo-500 hover:bg-opacity-75 rounded-md px-3 py-2 text-sm font-medium flex items-center justify-between w-full md:w-auto">Tópicos
-            <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg></button>
+            <% incluye_topico = current_user.topics.any? { |topic| request.path == topic_path(topic) } %>
+            <%= link_to "#", id: "dropdownNavbarLink", class: ["text-white hover:bg-indigo-500 hover:bg-opacity-75 rounded-md px-3 py-2 text-sm font-medium flex items-center justify-between w-full md:w-auto", (incluye_topico ? "bg-indigo-700" : "")], data: { dropdown_toggle: "dropdownNavbar" } do %>
+              Tópicos
+              <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+            <% end %>
+
             <div id="dropdownNavbar" class="hidden bg-white text-base z-10 list-none divide-y divide-gray-100 rounded shadow my-4 w-44">
               <ul class="py-1" aria-labelledby="dropdownLargeButton">
                 <% current_user.topics.each do |topic| %>
                   <li>
-                    <%= link_to topic.name, topic_path(topic), class: 'text-sm hover:bg-gray-100 text-gray-700 block px-4 py-2' %>
+                    <%= link_to topic.name, topic_path(topic), class: class_names('text-sm font-medium rounded-md hover:bg-gray-100 block px-4 py-2', { current: current_page?(topic_path(topic)) })%>                  
+                    <%#= link_to topic.name, topic_path(topic), class: 'text-sm hover:bg-gray-100 text-gray-700 block px-4 py-2' %>
                   </li>
                 <% end %>
               </ul>
             </div>
 
-            <%=active_link_to 'Populares', popular_entries_path, class: "text-white hover:bg-indigo-500 hover:bg-opacity-75 rounded-md px-3 py-2 text-sm font-medium"%>
-            <%=active_link_to 'Comentadas', commented_entries_path, class: "text-white hover:bg-indigo-500 hover:bg-opacity-75 rounded-md px-3 py-2 text-sm font-medium"%>
-            <%=active_link_to 'Semanal', week_entries_path, class: "text-white hover:bg-indigo-500 hover:bg-opacity-75 rounded-md px-3 py-2 text-sm font-medium"%>
+            <%= link_to 'Populares', popular_entries_path, class: class_names('text-white hover:bg-indigo-500 hover:bg-opacity-75 rounded-md px-3 py-2 text-sm font-medium', { current: current_page?(popular_entries_path) })%>
+            <%= link_to 'Comentadas', commented_entries_path, class: class_names('text-white hover:bg-indigo-500 hover:bg-opacity-75 rounded-md px-3 py-2 text-sm font-medium', { current: current_page?(commented_entries_path) })%>
+            <%= link_to 'Semanal', week_entries_path, class: class_names('text-white hover:bg-indigo-500 hover:bg-opacity-75 rounded-md px-3 py-2 text-sm font-medium', { current: current_page?(week_entries_path) })%>
             <a href="#" class="nav-link">Quienes somos</a>
           </div>
         </div>

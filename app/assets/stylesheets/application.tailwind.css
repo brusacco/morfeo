@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* active menu */
+@layer components {
+  a.current { @apply bg-indigo-700; }
+}
+
 /*
 
 @layer components {
