@@ -22,7 +22,7 @@
               <ul class="py-1" aria-labelledby="dropdownLargeButton">
                 <% current_user.topics.each do |topic| %>
                   <li>
-                    <%= link_to topic.name, topic_path(topic), class: class_names('text-sm font-medium rounded-md hover:bg-gray-100 block px-4 py-2', { current: current_page?(topic_path(topic)) })%>                  
+                    <%= link_to topic.name, topic_path(topic), class: class_names('text-sm font-medium rounded-md hover:bg-gray-100 block px-4 py-2', { current: current_page?(topic_path(topic)) }), data: { turbo: false }%>                  
                     <%#= link_to topic.name, topic_path(topic), class: 'text-sm hover:bg-gray-100 text-gray-700 block px-4 py-2' %>
                   </li>
                 <% end %>
