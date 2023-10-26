@@ -31,7 +31,7 @@ Rails.application.configure do
     #  url: 'redis://localhost:6379/0',
     #  namespace: Rails.root.to_s
     # }
-    config.public_file_server.headers = { 'Cache-Control': "public, max-age=#{2.days.to_i}" }
+    # config.public_file_server.headers = { 'Cache-Control': "public, max-age=#{2.days.to_i}" }
   else
     config.action_controller.perform_caching = false
 
