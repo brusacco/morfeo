@@ -34,11 +34,11 @@
       <div class="flex">
         <div class="w-1/2 overflow-hidden bg-white shadow sm:rounded-lg">
           <h2 class="text-2xl mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Notas por Sentimiento</h2>
-          <%= column_chart @entries.where.not(polarity: nil).group(:polarity).group_by_day(:published_at).count('*'), xtitle: "Fecha", ytitle: "Cant. Notas", label: "Notas", stacked: true %>
+          <%= line_chart @entries.where.not(polarity: nil).group(:polarity).group_by_day(:published_at).count('*'), xtitle: "Fecha", ytitle: "Cant. Notas", label: "Notas", stacked: true, curve: false %>
         </div>
         <div class="w-1/2 overflow-hidden bg-white shadow sm:rounded-lg">
           <h2 class="text-2xl mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Interacciones por Sentimiento</h2>
-          <%= column_chart @entries.where.not(polarity: nil).group(:polarity).group_by_day(:published_at).sum('total_count'), xtitle: "Fecha", ytitle: "Cant. Interacciones", label: "Interacciones", stacked: true %>
+          <%= line_chart @entries.where.not(polarity: nil).group(:polarity).group_by_day(:published_at).sum('total_count'), xtitle: "Fecha", ytitle: "Cant. Interacciones", label: "Interacciones", stacked: true, curve: false %>
         </div>
       </div>
     </div>
