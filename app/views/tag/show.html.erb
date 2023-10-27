@@ -29,23 +29,28 @@
           </dl>
         </div>
       </div>
-      <div class="overflow-hidden bg-white shadow sm:rounded-lg mb-5">
-        <h2 class="text-2xl mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Notas por Sentimiento</h2>
-        <%= column_chart @entries.where.not(polarity: nil).group(:polarity).group_by_day(:published_at).count('*'), xtitle: "Fecha", ytitle: "Cant. Notas", label: "Notas", stacked: true %>
+       <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
+        <div class="flex">
+          <div class="w-1/2 overflow-hidden bg-white shadow sm:rounded-lg">
+            <h2 class="text-2xl mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Notas por Sentimiento</h2>
+            <%= line_chart @entries.where.not(polarity: nil).group(:polarity).group_by_day(:published_at).count('*').sort_by { |key, _value| key }.to_h, xtitle: "Fecha", ytitle: "Cant. Notas", label: "Notas", stacked: false, curve: false, colors: ["red", "lightgrey", 'green'] %>
+          </div>
+          <div class="w-1/2 overflow-hidden bg-white shadow sm:rounded-lg">
+            <h2 class="text-2xl mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Interacciones por Sentimiento</h2>
+            <%= line_chart @entries.where.not(polarity: nil).group(:polarity).group_by_day(:published_at).sum('total_count').sort_by { |key, _value| key }.to_h, xtitle: "Fecha", ytitle: "Cant. Interacciones", label: "Interacciones", stacked: false, curve: false, colors: ["red", "lightgrey", 'green'] %>
+          </div>
+        </div>
       </div>
-      <div class="overflow-hidden bg-white shadow sm:rounded-lg">
-        <h2 class="text-2xl mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Interacciones por Sentimiento</h2>
-        <%= column_chart @entries.where.not(polarity: nil).group(:polarity).group_by_day(:published_at).sum('total_count'), xtitle: "Fecha", ytitle: "Cant. Interacciones", label: "Interacciones", stacked: true %>
-      </div>
+
       <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
         <div class="flex">
           <div class="w-1/2">
             <h3>Cantidad de Notas por Sentimiento</h3>
-            <%= pie_chart @entries.where.not(polarity: nil).group(:polarity).count('*') %>
+            <%= pie_chart @entries.where.not(polarity: nil).group(:polarity).count('*').sort_by { |key, _value| key }.to_h, colors: ["red", "lightgrey", 'green'] %>
           </div>
           <div class="w-1/2">
             <h3>Cantidad de Interacciones por Sentimiento</h3>
-            <%= pie_chart @entries.where.not(polarity: nil).group(:polarity).sum('total_count') %>
+            <%= pie_chart @entries.where.not(polarity: nil).group(:polarity).sum('total_count').sort_by { |key, _value| key }.to_h, colors: ["red", "lightgrey", 'green'] %>
           </div>
         </div>
       </div>
