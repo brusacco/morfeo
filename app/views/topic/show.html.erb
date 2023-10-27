@@ -47,11 +47,17 @@
       <div class="flex">
         <div class="w-1/2">
           <h3>Cantidad de Notas por Sentimiento</h3>
-          <%= pie_chart @entries.where.not(polarity: nil).group(:polarity).count('*').sort_by { |key, _value| key }.to_h, colors: ["red", "lightgrey", 'green'], donut: true %>
+          <% polarities_counts = @entries.where.not(polarity: nil).group(:polarity).count('*').sort_by { |key, _value| key }.to_h %>
+          <% total_count = polarities_counts.values.sum.to_f %>
+          <% polarities_percentages = polarities_counts.transform_values { |count| (count / total_count * 100).round(2) } %>
+          <%= pie_chart polarities_percentages, colors: ["red", "lightgrey", 'green'], donut: true, suffix: "%" %>
         </div>
         <div class="w-1/2">
           <h3>Cantidad de Interacciones por Sentimiento</h3>
-          <%= pie_chart @entries.where.not(polarity: nil).group(:polarity).sum('total_count').sort_by { |key, _value| key }.to_h, colors: ["red", "lightgrey", 'green'], donut: true %>
+          <% polarities_counts = @entries.where.not(polarity: nil).group(:polarity).sum('total_count').sort_by { |key, _value| key }.to_h %>
+          <% total_count = polarities_counts.values.sum.to_f %>
+          <% polarities_percentages = polarities_counts.transform_values { |count| (count / total_count * 100).round(2) } %>
+          <%= pie_chart polarities_percentages, colors: ["red", "lightgrey", 'green'], donut: true, suffix: "%" %>
         </div>
       </div>
     </div>
