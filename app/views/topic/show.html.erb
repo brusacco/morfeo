@@ -47,11 +47,11 @@
       <div class="flex">
         <div class="w-1/2">
           <h3>Cantidad de Notas por Sentimiento</h3>
-          <%= pie_chart @entries.where.not(polarity: nil).group(:polarity).count('*').sort_by { |key, _value| key }.to_h, colors: ["red", "lightgrey", 'green'] %>
+          <%= pie_chart @entries.where.not(polarity: nil).group(:polarity).count('*').sort_by { |key, _value| key }.to_h, colors: ["red", "lightgrey", 'green'], donut: true %>
         </div>
         <div class="w-1/2">
           <h3>Cantidad de Interacciones por Sentimiento</h3>
-          <%= pie_chart @entries.where.not(polarity: nil).group(:polarity).sum('total_count').sort_by { |key, _value| key }.to_h, colors: ["red", "lightgrey", 'green'] %>
+          <%= pie_chart @entries.where.not(polarity: nil).group(:polarity).sum('total_count').sort_by { |key, _value| key }.to_h, colors: ["red", "lightgrey", 'green'], donut: true %>
         </div>
       </div>
     </div>
