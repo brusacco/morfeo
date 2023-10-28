@@ -2,12 +2,12 @@
 
 class TopicController < ApplicationController
   before_action :authenticate_user!
-  
+
   def show
     @topic = Topic.find(params[:id])
 
     return redirect_to root_path, alert: 'El Tópico al que intentaste acceder no está asignado a tu usuario' unless @topic.users.exists?(current_user.id)
-    
+
     @tag_list = @topic.tags.map(&:name)
     @entries = @topic.topic_entries
     @analytics = @topic.analytics_topic_entries
@@ -36,9 +36,9 @@ class TopicController < ApplicationController
     @neutrals = @entries.where(polarity: 0).count('*')
 
     if @entries.any?
-      @percentage_positives = (@positives.to_f / @entries.size * 100).round(0)
-      @percentage_negatives = (@negatives.to_f / @entries.size * 100).round(0)
-      @percentage_neutrals = (@neutrals.to_f / @entries.size * 100).round(0)
+      @percentage_positives = (Float(@positives) / @entries.size * 100).round(0)
+      @percentage_negatives = (Float(@negatives) / @entries.size * 100).round(0)
+      @percentage_neutrals = (Float(@neutrals) / @entries.size * 100).round(0)
     end
 
     @most_interactions = @entries.sort_by(&:total_count).reverse.take(8)
