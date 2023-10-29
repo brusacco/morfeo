@@ -109,11 +109,11 @@
       <div class="flex">
         <div class="w-1/2">
           <h3>Cantidad de Notas</h3>
-          <%= pie_chart({"Topico" => @entries.size, "Otras" => @all_entries.size}, donut: true, label: "Notas", colors: ["green", "grey"]) %>
+          <%= pie_chart({"Topico" => @topic_percentage, "Otras" => @all_percentage}, donut: true, label: "Notas", colors: ["green", "grey"], suffix: "%") %>
         </div>
         <div class="w-1/2">
           <h3>Cantidad de Interacciones</h3>
-          <%= pie_chart({"Topico" => @entries.sum(:total_count), "Otras" => @all_entries.sum(:total_count)}, donut: true, label: "Interacciones", colors: ["yellow", "grey"]) %>
+          <%= pie_chart({"Topico" => @topic_interactions_percentage, "Otras" => @all_intereactions_percentage}, donut: true, label: "Interacciones", colors: ["yellow", "grey"], suffix: "%") %>
         </div>
       </div>
     </div>
