@@ -43,7 +43,10 @@ class Entry < ApplicationRecord
 
   def self.generate_report(topic)
     prompt = all.prompt(topic)
-    call_ai(prompt)
+    response = AiServices::OpenAiQuery.call(prompt)
+    return unless response.success?
+
+    response.data
   end
 
   def self.bigram_occurrences(limit = 100)
@@ -101,8 +104,9 @@ class Entry < ApplicationRecord
     sleep 5
 
     text = "Analizar el sentimiento de la siguente noticia:
-    #{title} #{description} #{content}
+    #{title} #{description} #{content} #{all_tags.join(', ')}
     Responder solo con las palabras negativa, positiva o neutra.
+    Considere elementos como tono, contexto y palabras clave para realizar el análisis de sentimientos de manera más precisa.
     En caso de no poder analizar responder neutra."
 
     ai_polarity = call_ai(text)
@@ -129,7 +133,8 @@ class Entry < ApplicationRecord
   end
 
   def all_tags
-    response = tags.map(&:name)
+    response = []
+    response << tags.map(&:name)
     tags.each do |tag|
       response << tag.variations.gsub(', ', ',').split(',') if tag.variations
     end
@@ -155,18 +160,6 @@ class Entry < ApplicationRecord
   private
 
   def call_ai(text)
-    client = OpenAI::Client.new(access_token: Rails.application.credentials.openai_access_token)
-    response = client.chat(
-      parameters: {
-        model: 'gpt-3.5-turbo', # Required.
-        messages: [{ role: 'user', content: text }], # Required.
-        temperature: 0.7
-      }
-    )
-    response.dig('choices', 0, 'message', 'content')
-  end
-
-  def self.call_ai(text)
     client = OpenAI::Client.new(access_token: Rails.application.credentials.openai_access_token)
     response = client.chat(
       parameters: {
