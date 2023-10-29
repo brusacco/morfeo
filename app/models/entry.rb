@@ -104,7 +104,7 @@ class Entry < ApplicationRecord
     sleep 5
 
     text = "Analizar el sentimiento de la siguente noticia:
-    #{title} #{description} #{content} #{all_tags.join(', ')}
+    #{title} #{description} #{content} #{tag_list}
     Responder solo con las palabras negativa, positiva o neutra.
     Considere elementos como tono, contexto y palabras clave para realizar el análisis de sentimientos de manera más precisa.
     En caso de no poder analizar responder neutra."
