@@ -7,6 +7,23 @@
   a.current { @apply bg-indigo-700; }
 }
 
+/* topics charts */
+@media (min-width: 1024px) {
+  .chart-container {
+    display: flex;
+  }
+
+  .chart-container > div {
+    flex: 1;
+    margin-right: 20px; /* O ajusta según sea necesario */
+  }
+
+  .chart-container > div:last-child {
+    margin-right: 0;
+  }
+}
+
+
 /*
 
 @layer components {

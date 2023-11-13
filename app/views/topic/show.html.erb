@@ -31,29 +31,29 @@
     </div>
     
     <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
-      <div class="flex">
-        <div class="w-1/2 overflow-hidden bg-white shadow sm:rounded-lg">
-          <h2 class="text-2xl mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Notas por Sentimiento</h2>
+      <div class="chart-container">
+        <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
+          <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Notas por Sentimiento</h2>
           <%= line_chart @entries.where.not(polarity: nil).group(:polarity).group_by_day(:published_at).count('*').sort_by { |key, _value| key }.to_h, xtitle: "Fecha", ytitle: "Cant. Notas", label: "Notas", stacked: false, curve: false, colors: ["red", "lightgrey", 'lightgreen'] %>
         </div>
-        <div class="w-1/2 overflow-hidden bg-white shadow sm:rounded-lg">
-          <h2 class="text-2xl mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Interacciones por Sentimiento</h2>
+        <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg">
+          <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Interacciones por Sentimiento</h2>
           <%= line_chart @entries.where.not(polarity: nil).group(:polarity).group_by_day(:published_at).sum('total_count').sort_by { |key, _value| key }.to_h, xtitle: "Fecha", ytitle: "Cant. Interacciones", label: "Interacciones", stacked: false, curve: false, colors: ["red", "lightgrey", 'lightgreen'] %>
         </div>
       </div>
     </div>
 
     <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
-      <div class="flex">
-        <div class="w-1/2">
-          <h3>Cantidad de Notas por Sentimiento</h3>
+      <div class="chart-container">
+        <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
+          <h3 class="mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Notas por Sentimiento</h3>
           <% polarities_counts = @entries.where.not(polarity: nil).group(:polarity).count('*').sort_by { |key, _value| key }.to_h %>
           <% total_count = polarities_counts.values.sum.to_f %>
           <% polarities_percentages = polarities_counts.transform_values { |count| (count / total_count * 100).round(0) } %>
           <%= pie_chart polarities_percentages, colors: ["red", "lightgrey", 'lightgreen'], donut: true, suffix: "%" %>
         </div>
-        <div class="w-1/2">
-          <h3>Cantidad de Interacciones por Sentimiento</h3>
+        <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
+          <h3 class="mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Interacciones por Sentimiento</h3>
           <% polarities_counts = @entries.where.not(polarity: nil).group(:polarity).sum('total_count').sort_by { |key, _value| key }.to_h %>
           <% total_count = polarities_counts.values.sum.to_f %>
           <% polarities_percentages = polarities_counts.transform_values { |count| (count / total_count * 100).round(0) } %>
@@ -101,23 +101,24 @@
       </div>
     </div>
     <hr>
-    <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
+    <div class="mx-auto py-8">
       <h2 class="text-2xl font-bold tracking-tight text-gray-900">Impacto del Tópico</h2>
       <h3>Cantidad de Notas del Topico: <%=number_with_delimiter(@entries.size, delimiter: ".")%>, demás notas: <%=number_with_delimiter(@all_entries.size, delimiter: ".")%>, total de notas: <%=number_with_delimiter(@all_entries.size + @entries.size, delimiter: ".")%></h3>
       <h3>Cantidad de Interacciones del Topico: <%=number_with_delimiter(@entries.sum(:total_count), delimiter: ".")%>, demás notas: <%=number_with_delimiter(@all_entries.sum(:total_count), delimiter: ".")%>, total de interacciones: <%=number_with_delimiter(@all_entries.sum(:total_count) + @entries.sum(:total_count), delimiter: ".")%></h3>
-      <br>
-      <div class="flex">
-        <div class="w-1/2">
-          <h3>Cantidad de Notas</h3>
-          <%= pie_chart({"Topico" => @topic_percentage, "Otras" => @all_percentage}, donut: true, label: "Notas", colors: ["green", "grey"], suffix: "%") %>
-        </div>
-        <div class="w-1/2">
-          <h3>Cantidad de Interacciones</h3>
-          <%= pie_chart({"Topico" => @topic_interactions_percentage, "Otras" => @all_intereactions_percentage}, donut: true, label: "Interacciones", colors: ["yellow", "grey"], suffix: "%") %>
+
+      <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
+        <div class="chart-container">
+          <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
+            <h3 class="mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Notas</h2>
+            <%= pie_chart({"Topico" => @topic_percentage, "Otras" => @all_percentage}, donut: true, label: "Notas", colors: ["green", "grey"], suffix: "%") %>
+          </div>
+          <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
+            <h3 class="mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Interacciones</h2>
+            <%= pie_chart({"Topico" => @topic_interactions_percentage, "Otras" => @all_intereactions_percentage}, donut: true, label: "Interacciones", colors: ["yellow", "grey"], suffix: "%") %>
+          </div>
         </div>
       </div>
     </div>
-    <hr>
     <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8  lg:px-8">
       <h2  class="text-2xl font-bold tracking-tight text-gray-900">Análisis de Palabras en Notas:</h2>
       <%= render partial: "tag/tag_pill_array", collection: @word_occurrences, cached: true %>
@@ -151,27 +152,27 @@
       <%= column_chart @entries.group_by_day(:published_at).sum(:total_count), xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones", colors: ['green']%>
     </div>
     <hr>
+
     <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
-      <div class="flex">
-        <div class="w-1/2">
-          <h3>Cantidad de Notas por medio</h3>
+      <div class="chart-container">
+        <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
+          <h3 class="mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Notas por medio</h3>
           <%= pie_chart @entries.group("sites.name").count('*'), donut: true %>
         </div>
-        <div class="w-1/2">
-          <h3>Cantidad de Interacciones por medio</h3>
+        <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
+          <h3 class="mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Interacciones por medio</h3>
           <%= pie_chart @entries.group("sites.name").sum(:total_count), donut: true %>
         </div>
       </div>
     </div>
-    <hr>
     <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
-      <div class="flex">
-        <div class="w-1/2">
-          <h3>Cantidad de Notas por Tag Relacionados</h3>
+      <div class="chart-container">
+        <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
+          <h3 class="mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Notas por Tag Relacionados</h3>
           <%= pie_chart @tags_count, donut: true %>
         </div>
-        <div class="w-1/2">
-          <h3>Cantidad de Interacciones por Tag Relacionados</h3>
+        <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
+          <h3 class="mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Interacciones por Tag Relacionados</h3>
           <%= pie_chart @tags_interactions, donut: true %>
         </div>
       </div>
