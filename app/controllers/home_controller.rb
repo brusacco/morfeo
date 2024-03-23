@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class HomeController < ApplicationController
+  caches_action :index, expires_in: 1.hour
   before_action :authenticate_user!, except: :deploy
   skip_before_action :verify_authenticity_token
 
