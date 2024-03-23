@@ -136,3 +136,5 @@ gem 'searchkick', '~> 5.3'
 gem 'elasticsearch', '~> 8.9'
 
 gem 'textmood', '~> 0.1.3'
+
+gem "actionpack-action_caching", "~> 1.2"
