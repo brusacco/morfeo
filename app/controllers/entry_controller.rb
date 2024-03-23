@@ -2,6 +2,8 @@
 
 class EntryController < ApplicationController
   caches_action :popular, expires_in: 1.hour
+  caches_action :commented, expires_in: 1.hour
+  caches_action :week, expires_in: 1.hour
   def show; end
 
   def popular
