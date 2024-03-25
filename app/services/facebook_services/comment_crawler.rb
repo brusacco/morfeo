@@ -19,7 +19,7 @@ module FacebookServices
     def api_call(post_uid)
       api_url = 'https://graph.facebook.com/v8.0/'
       token = '&access_token=1442100149368278|KS0hVFPE6HgqQ2eMYG_kBpfwjyo'
-      request = "#{api_url}#{post_uid}/comments?limit=500#{token}"
+      request = "#{api_url}#{post_uid}/comments?limit=100#{token}"
       response = HTTParty.get(request)
       JSON.parse(response.body)
     end
