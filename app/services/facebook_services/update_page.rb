@@ -20,7 +20,7 @@ module FacebookServices
         category: parsed['category'],
         description: parsed['description'],
         website: parsed&.dig('website') || nil,
-        picture: parsed['picture']['data']['url']
+        picture: parsed&.dig('picture', 'data', 'url') || nil
       }
       handle_success(result)
     end
