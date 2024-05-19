@@ -10,10 +10,6 @@ namespace :ai do
         puts entry.polarity
         puts '--------------------------------'
       end
-    rescue StandardError => e
-      puts e.message
-      sleep 10
-      retry
     end
   end
 end
