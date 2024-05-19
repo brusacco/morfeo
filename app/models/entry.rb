@@ -99,7 +99,7 @@ class Entry < ApplicationRecord
   end
 
   def set_polarity(force: false)
-    return polarity unless polarity.empty?
+    return polarity unless polarity.nil?
 
     sleep 5
 
