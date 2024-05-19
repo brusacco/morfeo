@@ -19,7 +19,7 @@ module FacebookServices
         followers: parsed['fan_count'],
         category: parsed['category'],
         description: parsed['description'],
-        website: parsed['website'],
+        website: parsed&.dig('website') || nil
         picture: parsed['picture']['data']['url']
       }
       handle_success(result)
