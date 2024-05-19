@@ -3,7 +3,7 @@
 namespace :ai do
   desc 'Update topic polarities'
   task set_topic_polarity: :environment do
-    Topic.all.each do |topic|
+    Topic.all.find_each do |topic|
       entries = topic.topic_entries
 
       entries.each do |entry|
