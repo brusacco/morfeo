@@ -3,9 +3,9 @@
 class HomeController < ApplicationController
   before_action :authenticate_user!
 
-  caches_action :index, expires_in: 1.hour
+  # caches_action :index, expires_in: 1.hour
   # before_action :authenticate_user!, except: :deploy
-  # skip_before_action :verify_authenticity_token
+  skip_before_action :verify_authenticity_token
 
   def index
     @sites = Site.where(total_count: 1..).order(total_count: :desc)
