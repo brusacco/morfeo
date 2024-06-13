@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
 class TopicController < ApplicationController
-  caches_action :show, expires_in: 1.hour
   before_action :authenticate_user!
+  
+  caches_action :show, expires_in: 1.hour
 
   def show
     @topic = Topic.find(params[:id])

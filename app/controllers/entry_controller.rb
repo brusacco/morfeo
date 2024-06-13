@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class EntryController < ApplicationController
+  before_action :authenticate_user!
+  
   caches_action :popular, expires_in: 1.hour
   caches_action :commented, expires_in: 1.hour
   caches_action :week, expires_in: 1.hour
