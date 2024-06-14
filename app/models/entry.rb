@@ -110,9 +110,9 @@ class Entry < ApplicationRecord
     En caso de no poder analizar responder neutra."
 
     ai_polarity = call_ai(text)
-    if ai_polarity == 'negativa'
+    if ai_polarity == 'negativa' || ai_polarity == 'Negativa'
       update!(polarity: :negative)
-    elsif ai_polarity == 'positiva'
+    elsif ai_polarity == 'positiva' || ai_polarity == 'Positiva'
       update!(polarity: :positive)
     else
       update!(polarity: :neutral)
