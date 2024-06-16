@@ -4,6 +4,7 @@ object @entry
 attributes :id,
            :title,
            :description,
+           :content,
            :published_date,
            :tag_list,
            :total_count,
