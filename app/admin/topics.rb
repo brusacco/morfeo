@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
 ActiveAdmin.register Topic do
-  permit_params :name, :positive_words, :negative_words, tag_ids: [], user_ids: []
+  permit_params :name, :status, :positive_words, :negative_words, tag_ids: [], user_ids: []
 
   filter :name
+  filter :status
+  filter :users
 
   #------------------------------------------------------------------
   #
@@ -20,6 +22,8 @@ ActiveAdmin.register Topic do
       topic.users.map { |user| link_to user.name, admin_user_path(user) }.join('<br />').html_safe
     end    
 
+    column :status
+
     column :created_at
     actions
   end
@@ -33,7 +37,9 @@ ActiveAdmin.register Topic do
 
       row "Usuario(s) asignado(s)" do 
         topic.users.map { |user| link_to user.name, admin_user_path(user) }.join('<br />').html_safe
-      end      
+      end
+
+      row :status
     end
   end
 
@@ -43,6 +49,7 @@ ActiveAdmin.register Topic do
         f.inputs 'Crear Tópico', multipart: :true do
           f.input :name
           f.input :tags
+          f.input :status
           f.input :positive_words
           f.input :negative_words
         end

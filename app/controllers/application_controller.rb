@@ -38,4 +38,12 @@ class ApplicationController < ActionController::Base
                     .reverse
                     .take(limit)
   end
+
+  before_action :user_topics
+  
+  private
+    def user_topics
+      @topics = current_user.topics.where(status: true)
+    end
+  
 end
