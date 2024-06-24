@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_10_13_144237) do
+ActiveRecord::Schema[7.0].define(version: 2024_06_21_220215) do
   create_table "active_admin_comments", force: :cascade do |t|
     t.string "namespace"
     t.text "body"
@@ -163,6 +163,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_13_144237) do
     t.datetime "updated_at", null: false
     t.text "positive_words"
     t.text "negative_words"
+    t.boolean "status", default: true
   end
 
   create_table "user_topics", force: :cascade do |t|

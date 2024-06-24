@@ -117,3 +117,6 @@ rails generate devise User
 rails generate devise:views users
 rails generate model UserTopic user:references topic:references
 rails generate devise:controllers users
+
+# Fusion
+rails g migration AddStatusToTopics status:boolean
