@@ -5,6 +5,7 @@ class Entry < ApplicationRecord
   acts_as_taggable_on :tags
   validates :url, uniqueness: true
   belongs_to :site, touch: true
+  has_many :comments, dependent: :destroy
 
   scope :a_day_ago, -> { where(published_at: 1.day.ago..) }
   scope :a_week_ago, -> { where(published_at: 1.week.ago..) }

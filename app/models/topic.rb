@@ -12,7 +12,6 @@ class Topic < ApplicationRecord
 
   def list_entries
     tag_list = tags.map(&:name)
-    # Entry.normal_range.joins(:site).tagged_with(tag_list, any: true).order(published_at: :desc)
     result = Entry.search(
       where: {
         published_at: { gte: DAYS_RANGE.days.ago },
