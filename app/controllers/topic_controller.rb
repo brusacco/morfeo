@@ -19,7 +19,7 @@ class TopicController < ApplicationController
     @total_interactions = @entries.sum(&:total_count)
 
     # Calcular numeros de totales de la semana
-    @all_entries = Entry.normal_range.joins(:site).order(published_at: :desc).where.not(id: @entries.ids)
+    @all_entries = @topic.analytics_entries(@entries.ids)
 
     # Cosas nuevas
     @word_occurrences = @entries.word_occurrences

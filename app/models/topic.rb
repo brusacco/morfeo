@@ -23,6 +23,18 @@ class Topic < ApplicationRecord
     Entry.where(id: result.map(&:id)).joins(:site)
   end
 
+  def analytics_entries(ids)
+    result = Entry.search(
+      where: {
+        published_at: { gte: DAYS_RANGE.days.ago },
+        id: { not: ids }
+      },
+      order: { published_at: :desc },
+      load: true
+    )
+    Entry.where(id: result.map(&:id)).joins(:site)
+  end
+
   def analytics_topic_entries
     tag_list = tags.map(&:name)
     Entry.normal_range.tagged_with(tag_list, any: true).order(total_count: :desc).limit(20)
