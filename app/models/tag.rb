@@ -24,7 +24,7 @@ class Tag < ApplicationRecord
         tags: { in: tag_list }
       },
       order: { published_at: :desc },
-      load: true
+      load: false
     )
     Entry.where(id: result.map(&:id)).joins(:site)
   end

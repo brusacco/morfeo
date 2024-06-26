@@ -30,7 +30,7 @@ class Topic < ApplicationRecord
         id: { not: ids }
       },
       order: { published_at: :desc },
-      load: true
+      load: false
     )
     Entry.where(id: result.map(&:id)).joins(:site)
   end
