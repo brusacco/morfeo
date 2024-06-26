@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 class Topic < ApplicationRecord
-  has_many :user_topics
-  has_many :users, through: :user_topics  
+  has_many :user_topics, dependent: :destroy
+  has_many :users, through: :user_topics
   has_many :reports, dependent: :destroy
   # has_many :topic_words, dependent: :destroy
   has_and_belongs_to_many :tags
@@ -10,9 +10,18 @@ class Topic < ApplicationRecord
 
   before_update :remove_words_spaces
 
-  def topic_entries
+  def list_entries
     tag_list = tags.map(&:name)
-    Entry.normal_range.joins(:site).tagged_with(tag_list, any: true).order(published_at: :desc)
+    # Entry.normal_range.joins(:site).tagged_with(tag_list, any: true).order(published_at: :desc)
+    result = Entry.search(
+      where: {
+        published_at: { gte: DAYS_RANGE.days.ago },
+        tags: { in: tag_list }
+      },
+      order: { published_at: :desc },
+      load: true
+    )
+    Entry.where(id: result.map(&:id)).joins(:site)
   end
 
   def analytics_topic_entries

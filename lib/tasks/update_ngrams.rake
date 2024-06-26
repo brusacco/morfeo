@@ -14,7 +14,7 @@ task update_ngrams: :environment do
 end
 
 task update_ngrams_tags: :environment do
-  Tag.all.each do |tag|
+  Tag.find_each do |tag|
     puts "Updating NGrams for #{tag.name} - #{tag.id}"
     Parallel.each(Entry.normal_range.tagged_with(tag.name), in_threads: 5) do |entry|
       puts "Updating NGrams for #{entry.id} - #{entry.published_at}"

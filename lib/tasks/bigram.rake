@@ -6,7 +6,7 @@ task bigrams: :environment do
   File.readlines('stop-words.txt')
 
   freq = {}
-  Entry.a_month_ago.where.not(title: nil).each do |entry|
+  Entry.a_month_ago.where.not(title: nil).find_each do |entry|
     entry.generate_bigrams.each do |bigram|
       freq[bigram] = 0 unless freq[bigram]
       freq[bigram] += 1

@@ -2,7 +2,7 @@
 
 class SiteController < ApplicationController
   before_action :authenticate_user!
-  
+
   def show
     @site = Site.find(params[:id])
     @entries_stats = @site.entries.normal_range.group_by_day(:published_at)

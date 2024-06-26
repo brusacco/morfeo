@@ -66,6 +66,8 @@ group :development do
 
   # Speed up commands on slow machines / big apps [https://github.com/rails/spring]
   # gem "spring"
+  gem 'rubocop', require: false
+  gem 'rubocop-rails', '~> 2.24', require: false
 end
 
 group :test do
@@ -74,8 +76,6 @@ group :test do
   gem 'selenium-webdriver'
   gem 'webdrivers'
 end
-
-gem 'rubocop-rails', require: false
 
 gem 'nokogiri', '~> 1.13'
 
@@ -131,10 +131,10 @@ gem 'ruby-openai', '~> 4.2'
 
 gem 'tailwindcss-rails', '~> 2.0'
 
-gem 'searchkick', '~> 5.3'
+gem 'searchkick'
 
-gem 'elasticsearch', '~> 8.9'
+gem 'elasticsearch', '~> 7.17'
 
 gem 'textmood', '~> 0.1.3'
 
-gem "actionpack-action_caching", "~> 1.2"
+gem 'actionpack-action_caching', '~> 1.2'

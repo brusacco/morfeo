@@ -2,7 +2,7 @@
 
 desc 'Update Site stats'
 task update_site_stats: :environment do
-  Site.all.each do |site|
+  Site.find_each do |site|
     puts "Start processing site #{site.name}..."
     entries = site.entries.where(published_at: 7.days.ago..)
 

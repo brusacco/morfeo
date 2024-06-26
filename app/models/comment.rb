@@ -6,7 +6,7 @@ class Comment < ApplicationRecord
   def self.word_occurrences(limit = 100)
     word_occurrences = Hash.new(0)
 
-    all.find_each do |comment|
+    find_each do |comment|
       words = comment.message.gsub(/[[:punct:]]/, ' ').split
       words.each do |word|
         cleaned_word = word.downcase
@@ -27,7 +27,7 @@ class Comment < ApplicationRecord
   def self.bigram_occurrences(limit = 100)
     word_occurrences = Hash.new(0)
 
-    all.find_each do |comment|
+    find_each do |comment|
       words = comment.message.gsub(/[[:punct:]]/, '').split
       bigrams = words.each_cons(2).map { |word1, word2| "#{word1.downcase} #{word2.downcase}" }
       bigrams.each do |bigram|

@@ -16,6 +16,20 @@ class Tag < ApplicationRecord
     Topic.all.any? { |topic| topic.tag_ids.include?(id) }
   end
 
+  def list_entries
+    tag_list = name
+
+    result = Entry.search(
+      where: {
+        published_at: { gte: DAYS_RANGE.days.ago },
+        tags: { in: tag_list }
+      },
+      order: { published_at: :desc },
+      load: true
+    )
+    Entry.where(id: result.map(&:id)).joins(:site)
+  end
+
   private
 
   def tag_entries

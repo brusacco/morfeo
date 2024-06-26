@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class Entry < ApplicationRecord
+  searchkick
   acts_as_taggable_on :tags
   validates :url, uniqueness: true
   belongs_to :site, touch: true
@@ -19,7 +20,7 @@ class Entry < ApplicationRecord
 
   def self.positives
     positives = []
-    all.find_each do |entry|
+    find_each do |entry|
       positives << entry.id if entry.positive?
     end
     positives
@@ -98,6 +99,18 @@ class Entry < ApplicationRecord
                     .take(limit)
   end
 
+  def search_data
+    {
+      title: title,
+      description: description,
+      content: content,
+      published_at: published_at,
+      published_date: published_date,
+      total_count: total_count,
+      tags: tag_list
+    }
+  end
+
   def set_polarity(force: false)
     return polarity unless polarity.nil?
 
@@ -110,9 +123,9 @@ class Entry < ApplicationRecord
     En caso de no poder analizar responder neutra."
 
     ai_polarity = call_ai(text)
-    if ai_polarity == 'negativa' || ai_polarity == 'Negativa'
+    if %w[negativa Negativa].include?(ai_polarity)
       update!(polarity: :negative)
-    elsif ai_polarity == 'positiva' || ai_polarity == 'Positiva'
+    elsif %w[positiva Positiva].include?(ai_polarity)
       update!(polarity: :positive)
     else
       update!(polarity: :neutral)

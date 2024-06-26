@@ -21,7 +21,7 @@ namespace :facebook do
           res = WebExtractorServices::UrlCrawler.call(v, page.site, k)
           puts res
         end
-      rescue StandardError => e
+      rescue StandardError
         next
       end
 
@@ -42,7 +42,7 @@ namespace :facebook do
           res = WebExtractorServices::UrlCrawler.call(v, page.site, k)
           puts res
         end
-      rescue StandardError => e
+      rescue StandardError
         next
       end
     end

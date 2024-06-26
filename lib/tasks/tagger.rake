@@ -2,7 +2,7 @@
 
 desc 'Tagger'
 task tagger: :environment do
-  Entry.where(published_at: 3.months.ago..Time.current).each do |entry|
+  Entry.where(published_at: 3.months.ago..Time.current).find_each do |entry|
     result = WebExtractorServices::ExtractTags.call(entry.id)
     next unless result.success?
 
@@ -21,7 +21,7 @@ task tagger: :environment do
 end
 
 task retagger: :environment do
-  Entry.where(published_at: 3.months.ago..Time.current).each do |entry|
+  Entry.where(published_at: 3.months.ago..Time.current).find_each do |entry|
     next if entry.tags.any?
 
     result = WebExtractorServices::ExtractTags.call(entry.id)

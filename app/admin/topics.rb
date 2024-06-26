@@ -20,7 +20,7 @@ ActiveAdmin.register Topic do
 
     column "Usuario(s) asignado(s)" do |topic|
       topic.users.map { |user| link_to user.name, admin_user_path(user) }.join('<br />').html_safe
-    end    
+    end
 
     column :status
 
@@ -35,7 +35,7 @@ ActiveAdmin.register Topic do
       row :positive_words
       row :negative_words
 
-      row "Usuario(s) asignado(s)" do 
+      row "Usuario(s) asignado(s)" do
         topic.users.map { |user| link_to user.name, admin_user_path(user) }.join('<br />').html_safe
       end
 
@@ -45,7 +45,7 @@ ActiveAdmin.register Topic do
 
   form html: { enctype: 'multipart/form-data', multipart: true } do |f|
     columns do
-      column do    
+      column do
         f.inputs 'Crear Tópico', multipart: :true do
           f.input :name
           f.input :tags
@@ -60,7 +60,7 @@ ActiveAdmin.register Topic do
           f.input :users, label:'Asiganar a:', as: :check_boxes, :collection => User.all.collect {|user| [user.name, user.id]}
         end
       end
-    end      
+    end
 
     f.actions
   end

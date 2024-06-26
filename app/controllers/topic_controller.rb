@@ -2,7 +2,7 @@
 
 class TopicController < ApplicationController
   before_action :authenticate_user!
-  
+
   # caches_action :show, expires_in: 1.hour
 
   def show
@@ -11,7 +11,7 @@ class TopicController < ApplicationController
     return redirect_to root_path, alert: 'El Tópico al que intentaste acceder no está asignado a tu usuario o se encuentra deshabilitado' unless @topic.users.exists?(current_user.id) && @topic.status == true
 
     @tag_list = @topic.tags.map(&:name)
-    @entries = @topic.topic_entries
+    @entries = @topic.list_entries
     @analytics = @topic.analytics_topic_entries
 
     @top_entries = Entry.normal_range.joins(:site).order(total_count: :desc).limit(5)
