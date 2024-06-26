@@ -2,7 +2,7 @@
 
 class TagController < ApplicationController
   before_action :authenticate_user!
-  
+
   def show
     @tag = Tag.find(params[:id])
 
@@ -23,7 +23,7 @@ class TagController < ApplicationController
     @positives = @entries.where(polarity: 1).count('*')
     @negatives = @entries.where(polarity: 2).count('*')
     @neutrals = @entries.where(polarity: 0).count('*')
-    
+
     @percentage_positives = (@positives.to_f / @entries.size * 100).round(0) if @positives > 0
     @percentage_negatives = (@negatives.to_f / @entries.size * 100).round(0) if @negatives > 0
     @percentage_neutrals = (@neutrals.to_f / @entries.size * 100).round(0) if @neutrals > 0
