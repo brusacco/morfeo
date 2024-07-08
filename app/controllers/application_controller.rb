@@ -44,7 +44,7 @@ class ApplicationController < ActionController::Base
   private
     def user_topics
       if user_signed_in?
-        @topics = current_user.topics.where(status: true)
+        @topicos = current_user.topics.where(status: true)
       end
     end
 
