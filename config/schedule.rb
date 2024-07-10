@@ -7,6 +7,7 @@ every :hour do
   rake 'update_stats'
   rake 'update_site_stats'
   rake 'clean_site_content'
+  rake 'topic_stat_daily'
 end
 
 every 3.hours do

@@ -120,3 +120,5 @@ rails generate devise:controllers users
 
 # Fusion
 rails g migration AddStatusToTopics status:boolean
+
+rails g model TopicStatDaily entry_count:integer total_count:integer average:integer topic_date:date topic:references

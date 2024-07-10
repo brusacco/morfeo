@@ -29,6 +29,15 @@ class HomeController < ApplicationController
 
     @tags_count = {}
     @tags.each { |n| @tags_count[n.name] = n.count }
+
+    # Chart Multiple Interacciones x DIA x TOPICO
+    topics = current_user.topics.where(status: true)
+    @interacciones_dia_topico = topics.map do |topic|
+      {
+        name: topic.name,
+        data: topic.topic_stat_dailies.group_by_day(:topic_date).sum(:total_count)
+      }
+    end
   end
 
   def topic
