@@ -255,4 +255,14 @@ class Entry < ApplicationRecord
     end
     false
   end
+
+  scope :tagged_date, ->(date) { where(['entries.published_at >= ? AND entries.published_at <= ?', date, date + 1]) }
+
+  def self.tagged_on_shared(tag, date)
+    tagged_with(tag, any: true).tagged_date(date).sum(:total_count)
+  end
+
+  def self.tagged_on(tag, date)
+    tagged_with(tag, any: true).tagged_date(date).size
+  end  
 end
