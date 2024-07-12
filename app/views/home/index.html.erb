@@ -2,7 +2,65 @@
   <div class="chart-container">
     <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
       <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Interacciones x DIA x TOPICO</h2>
-      <%= line_chart @interacciones_dia_topico, xtitle: "Fecha", ytitle: "Cant. Interacciones", thousands: ".", curve: false %>
+      <%= line_chart @interacciones_dia_topico, xtitle: "Fecha", ytitle: "Cant. Interacciones", thousands: ".", curve: false, library: {
+          plotOptions: {
+            series: {
+              dataLabels: {
+                enabled: true
+              }
+            }
+          } } %>
+    </div>
+    <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
+      <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Notas x DIA x TOPICO</h2>
+      <%= line_chart @notas_dia_topico, xtitle: "Fecha", ytitle: "Cant. Notas", thousands: ".", curve: false, library: {
+          plotOptions: {
+            series: {
+              dataLabels: {
+                enabled: true
+              }
+            }
+          } } %>
+    </div>    
+  </div>
+</div>
+
+<div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
+  <div class="chart-container">
+    <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
+      <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Interacciones en las últimas 24 horas</h2>
+      <%= bar_chart @interacciones_ultimo_dia_topico, xtitle: "TOPICO", ytitle: "Cant. Interacciones", thousands: ".", library: {
+        plotOptions: {
+            series: {
+              dataLabels: {
+                enabled: true
+              }
+            }
+          } } %>
+    </div>
+    <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
+      <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Notas en las últimas 24 horas</h2>
+      <%= bar_chart @notas_ultimo_dia_topico, xtitle: "TOPICO", ytitle: "Cant. Notas", thousands: ".", library: {
+          plotOptions: {
+            series: {
+              dataLabels: {
+                enabled: true
+              }
+            }
+          } } %>
+    </div>    
+  </div>
+</div>
+
+<div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
+  <div class="chart-container">
+    <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
+      <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Nube de Etiquetas</h2>
+
+      <% tag_cloud(@tags_cloud, %w(css1 css2 css3 css4)) do |tag, css_class| %>
+        <span class="<%=css_class%>"><%= tag.name %></span>
+      <% end %>
+
     </div>
   </div>
 </div>

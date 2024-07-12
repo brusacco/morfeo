@@ -122,3 +122,11 @@ rails generate devise:controllers users
 rails g migration AddStatusToTopics status:boolean
 
 rails g model TopicStatDaily entry_count:integer total_count:integer average:integer topic_date:date topic:references
+
+# OTRA FORMA DE HACER LOS GRAFICOS DEL FRONT
+  @interacciones_ultimo_dia_topico = topics.map do |topic|
+    {
+      name: topic.name,
+      data: topic.topic_stat_dailies.where(created_at: 1.day.ago..).joins(:topic).group('topics.name').order(total_count: :desc).sum(:total_count)
+    }
+  end
