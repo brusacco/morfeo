@@ -37,6 +37,8 @@ class ApplicationController < ActionController::Base
                     .sort_by { |_k, v| v }
                     .reverse
                     .take(limit)
+
+    []
   end
 
   before_action :user_topics
