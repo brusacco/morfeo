@@ -36,7 +36,7 @@ class Comment < ApplicationRecord
       bigrams = words.each_cons(2).map { |word1, word2| "#{word1.downcase} #{word2.downcase}" }
       bigrams.each do |bigram|
         next if bigram.split.first.length <= 2 || bigram.split.last.length <= 2
-        next if contains_substring?(bigram, bad_words_array)
+        next unless contains_substring?(bigram, bad_words_array)
 
         word_occurrences[bigram] += 1
       end
@@ -48,8 +48,8 @@ class Comment < ApplicationRecord
                     .take(limit)
   end
 
-  def contains_substring?(string, substrings)
-    substrings.each do |substring|
+  def contains_substring?(string, substrings_array)
+    substrings_array.each do |substring|
       return true if string.match(/\b#{substring}\b/)
     end
     false
