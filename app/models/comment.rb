@@ -28,7 +28,7 @@ class Comment < ApplicationRecord
     word_occurrences = Hash.new(0)
 
     # Bad words array, including common stop words and some political ones.
-    bad_words_array = %w[http que les para eso la su sus por yo mi nos tu ellos ellas nosotros]
+    bad_words_array = %w[http www que les para eso la su sus por yo mi nos tu ellos ellas nosotros]
     bad_words_array += STOP_WORDS
 
     find_each do |comment|
