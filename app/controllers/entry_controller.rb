@@ -9,7 +9,7 @@ class EntryController < ApplicationController
   def show; end
 
   def popular
-    @entries = Entry.joins(:site).where(total_count: 1..).a_day_ago.where.not(image_url: nil).order(total_count: :desc).limit(50)
+    @entries = Entry.joins(:site).where(total_count: 1..).a_day_ago.order(total_count: :desc).limit(50)
     @tags = @entries.tag_counts_on(:tags).order('count desc')
 
     # Cosas nuevas

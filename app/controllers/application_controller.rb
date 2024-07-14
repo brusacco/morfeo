@@ -27,7 +27,7 @@ class ApplicationController < ActionController::Base
       words = "#{entry.title} #{entry.content}".gsub(/[[:punct:]]/, '').split
       bigrams = words.each_cons(2).map { |word1, word2| "#{word1.downcase} #{word2.downcase}" }
       bigrams.each do |bigram|
-        next if STOP_WORDS.include?(bigram.split.first) || STOP_WORDS.include?(bigram.split.last)
+        # next if STOP_WORDS.include?(bigram.split.first) || STOP_WORDS.include?(bigram.split.last)
 
         word_occurrences[bigram] += 1
       end
