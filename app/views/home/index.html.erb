@@ -88,7 +88,5 @@
       <%= render partial: "tag/tag_pill_interactions", collection: @tags.to_a.sort_by(&:interactions).reverse %>
       <p><small class="text-muted px-1">*Interacciones en las notas</small></p>
     </div>
-    <hr>
-    <%= render partial: 'entry/entries', locals: { last_entries: @entries, title: 'Últimas Noticias' } %>
   </div>
 </main>
