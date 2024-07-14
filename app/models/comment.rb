@@ -48,9 +48,7 @@ class Comment < ApplicationRecord
                     .take(limit)
   end
 
-  private
-
-  def contains_substring?(string, substrings_array)
+  def self.contains_substring?(string, substrings_array)
     substrings_array.each do |substring|
       return true if string.match(/\b#{substring}\b/)
     end
