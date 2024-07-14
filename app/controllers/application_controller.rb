@@ -21,7 +21,7 @@ class ApplicationController < ActionController::Base
   end
 
   def bigram_occurrences(entries, limit = 50)
-    word_occurrences = Hash.new(0)
+    occurrences = Hash.new(0)
 
     entries.each do |entry|
       words = "#{entry.title} #{entry.content}".gsub(/[[:punct:]]/, '').split
@@ -29,16 +29,14 @@ class ApplicationController < ActionController::Base
       bigrams.each do |bigram|
         next if STOP_WORDS.include?(bigram.split.first) || STOP_WORDS.include?(bigram.split.last)
 
-        word_occurrences[bigram] += 1
+        occurrences[bigram] += 1
       end
     end
 
-    word_occurrences.select { |_bigram, count| count > 1 }
-                    .sort_by { |_k, v| v }
-                    .reverse
-                    .take(limit)
-
-    []
+    occurrences.select { |_bigram, count| count > 10 }
+               .sort_by { |_k, v| v }
+               .reverse
+               .take(limit)
   end
 
   before_action :user_topics
