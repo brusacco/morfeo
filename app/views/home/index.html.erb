@@ -74,7 +74,7 @@
   <div class="mx-auto py-6 sm:px-6 lg:px-8">
     <%@topics.each do |topic|%>
     <% next if topic.list_entries.empty?%>
-    <%= render partial: 'entry/entries', locals: { last_entries: topic.list_entries.order(published_at: :desc).limit(12), title: topic.name } %>
+    <%= render partial: 'entry/entries', locals: { last_entries: topic.list_entries.limit(12), title: topic.name } %>
     <%end%>
   </div>
 </main>
