@@ -62,7 +62,7 @@ class HomeController < ApplicationController
       tags_list << topic.tags.map(&:name)
       break
     end
-    
+
     topics_entries = Entry.order(published_at: :desc).limit(100).tagged_with(tags_list.flatten.join(", "), any: true)
     @tags_cloud = topics_entries.tag_counts_on(:tags).order(count: :desc)
   end
