@@ -7,6 +7,8 @@ class HomeController < ApplicationController
 
   def index
     # Chart Multiple Interacciones x DIA x TOPICO
+    # en el application_controller ya asignas los topicos
+    # y aca lo haces de nuevo?
     topics = current_user.topics.where(status: true)
     @interacciones_dia_topico = topics.map do |topic|
       {
