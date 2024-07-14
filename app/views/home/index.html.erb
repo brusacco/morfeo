@@ -90,8 +90,7 @@
     </div>
     <hr>
     <%@topics.each do |topic|%>
-    <h2><%=topic.name%></h2>
-    <%= render partial: 'entry/entries', locals: { last_entries: topic.list_entries.limit(20), title: 'Últimas Noticias' } %>
+    <%= render partial: 'entry/entries', locals: { last_entries: topic.list_entries.limit(12), title: topic.name } %>
     <%end%>
   </div>
 </main>
