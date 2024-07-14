@@ -24,7 +24,7 @@
       <hr>
       <p class="card-text">
         <small class="text-muted px-1"><%= icon('fa-regular', 'calendar')%>
-          <%=entry.published_at.strftime('%Y-%m-%d')%>
+          <%=entry.published_at.strftime('%d-%m-%Y')%>
         </small>
         <small class="text-muted px-1"><i class="fa-solid fa-link"></i>
           <%= link_to entry.id, entry.url, target: :blank %>
