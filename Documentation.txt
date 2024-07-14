@@ -73,6 +73,7 @@ RAILS_ENV=production rake facebook:comment_crawler
 RAILS_ENV=production rake facebook:update_fanpages
 
 RAILS_ENV=production rake ai:set_polarity
+RAILS_ENV=production rake ai:generate_ai_reports
 RAILS_ENV=production rake ai:set_topic_polarity
 RAILS_ENV=production rake clean_site_content
 
