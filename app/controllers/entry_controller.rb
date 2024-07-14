@@ -13,8 +13,8 @@ class EntryController < ApplicationController
     @tags = @entries.tag_counts_on(:tags).order('count desc')
 
     # Cosas nuevas
-    @word_occurrences = word_occurrences(@entries)
-    @bigram_occurrences = bigram_occurrences(@entries)
+    @word_occurrences = @entries.word_occurrences
+    @bigram_occurrences = @entries.bigram_occurrences
 
     @comments = Comment.where(entry_id: @entries.pluck(:id)).order(created_time: :desc)
     @comments_word_occurrences = @comments.word_occurrences
