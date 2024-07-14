@@ -18,7 +18,7 @@ class Topic < ApplicationRecord
         published_at: { gte: DAYS_RANGE.days.ago },
         tags: { in: tag_list }
       },
-      order: { ∑: :desc },
+      order: { published_at: :desc },
       load: false
     )
     Entry.where(id: result.map(&:id)).joins(:site)
