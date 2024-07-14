@@ -27,13 +27,16 @@ class Comment < ApplicationRecord
   def self.bigram_occurrences(limit = 100)
     word_occurrences = Hash.new(0)
 
+    # Bad words array, including common stop words and some political ones.
+    bad_words_array = %w[Noticias Internacional Radio Noticiero Desde]
+    bad_words_array += STOP_WORDS
+
     find_each do |comment|
       words = comment.message.gsub(/[[:punct:]]/, '').split
       bigrams = words.each_cons(2).map { |word1, word2| "#{word1.downcase} #{word2.downcase}" }
       bigrams.each do |bigram|
         next if bigram.split.first.length <= 2 || bigram.split.last.length <= 2
-
-        # next if STOP_WORDS.include?(bigram.split.first) || STOP_WORDS.include?(bigram.split.last)
+        next if contains_substring?(bigram, bad_words_array)
 
         word_occurrences[bigram] += 1
       end
@@ -43,5 +46,12 @@ class Comment < ApplicationRecord
                     .sort_by { |_k, v| v }
                     .reverse
                     .take(limit)
+  end
+
+  def contains_substring?(string, substrings)
+    substrings.each do |substring|
+      return true if string.match(/\b#{substring}\b/)
+    end
+    false
   end
 end
