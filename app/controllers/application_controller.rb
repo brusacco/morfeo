@@ -42,10 +42,11 @@ class ApplicationController < ActionController::Base
   before_action :user_topics
 
   private
-    def user_topics
-      if user_signed_in?
-        @topicos = current_user.topics.where(status: true)
-      end
-    end
 
+  def user_topics
+    return unless user_signed_in?
+
+    @topicos = current_user.topics.where(status: true)
+    @topics = @topicos
+  end
 end
