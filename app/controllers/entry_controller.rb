@@ -70,8 +70,8 @@ class EntryController < ApplicationController
     @tags_interactions = Rails.cache.read('tags_interactions_commented')
 
     # Cosas nuevas
-    @word_occurrences = word_occurrences(@entries)
-    @bigram_occurrences = bigram_occurrences(@entries)
+    @word_occurrences = @entries.word_occurrences
+    @bigram_occurrences = @entries.bigram_occurrences
 
     # Cache tags interactions
     if @tags_interactions.nil?
