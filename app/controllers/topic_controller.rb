@@ -87,7 +87,7 @@ class TopicController < ApplicationController
     return redirect_to root_path, alert: 'El Tópico al que intentaste acceder no está asignado a tu usuario' unless @topic.users.exists?(current_user.id)
 
     @tag_list = @topic.tags.map(&:name)
-    @entries = @topic.topic_entries
+    @entries = @topic.list_entries
 
     @positive_words = @topic.positive_words.split(',') if @topic.positive_words.present?
     @negative_words = @topic.negative_words.split(',') if @topic.negative_words.present?
