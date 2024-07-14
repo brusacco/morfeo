@@ -264,5 +264,5 @@ class Entry < ApplicationRecord
 
   def self.tagged_on(tag, date)
     tagged_with(tag, any: true).tagged_date(date).size
-  end  
+  end
 end
