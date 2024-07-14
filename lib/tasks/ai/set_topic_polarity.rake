@@ -7,7 +7,7 @@ namespace :ai do
       puts topic.name
       puts '--------------------------------'
       Parallel.each(topic.list_entries.where(polarity: [nil, :neutral]), in_threads: 5) do |entry|
-        entry.set_polarity
+        entry.set_polarity(force: true)
         puts entry.id
         puts entry.title
         puts entry.polarity
