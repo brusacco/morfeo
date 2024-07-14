@@ -21,7 +21,7 @@ class Topic < ApplicationRecord
       order: { published_at: :desc },
       load: false
     )
-    Entry.where(id: result.map(&:id)).joins(:site)
+    Entry.where(id: result.map(&:id)).order(published_at: :desc).joins(:site)
   end
 
   def analytics_entries(ids)
