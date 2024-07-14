@@ -33,7 +33,7 @@ class ApplicationController < ActionController::Base
       end
     end
 
-    word_occurrences.select { |_bigram, count| count > 10 }
+    word_occurrences.select { |_bigram, count| count > 5 }
                     .sort_by { |_k, v| v }
                     .reverse
                     .take(limit)
