@@ -131,3 +131,10 @@ rails g model TopicStatDaily entry_count:integer total_count:integer average:int
       data: topic.topic_stat_dailies.where(created_at: 1.day.ago..).joins(:topic).group('topics.name').order(total_count: :desc).sum(:total_count)
     }
   end
+
+# Nube de palabras reemplazado
+  @tags_cloud = topics_entries.tag_counts_on(:tags).order(count: :desc)
+
+    <% tag_cloud(@tags_cloud, %w(css1 css2 css3 css4)) do |tag, css_class| %>
+      <span class="<%=css_class%>"><%= tag.name %></span>
+    <% end %>

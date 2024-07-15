@@ -37,8 +37,10 @@ class HomeController < ApplicationController
       tags_list << topic.tags.map(&:name)
     end
 
-    @topics_entries = Entry.order(published_at: :desc).limit(100).tagged_with(tags_list.flatten.join(", "), any: true)
-    @tags_cloud = @topics_entries.tag_counts_on(:tags).order(count: :desc)
+    topics_entries = Entry.order(published_at: :desc).limit(100).tagged_with(tags_list.flatten.join(", "), any: true)
+    @word_occurrences = topics_entries.word_occurrences
+    @positive_words = @topicos.all.map(&:positive_words).flatten.join(',')
+    @negative_words = @topicos.all.map(&:negative_words).flatten.join(',')
   end
 
   def topic
