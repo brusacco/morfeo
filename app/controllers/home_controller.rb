@@ -23,12 +23,12 @@ class HomeController < ApplicationController
 
     @interacciones_ultimo_dia_topico = @topicos.joins(:topic_stat_dailies)
                                       .where(topic_stat_dailies: { topic_date: 1.day.ago.. })
-                                      .group('topics.name').order('sum_topic_stat_dailies_total_count DESC')
+                                      .group('topics.name').order('sum_topic_stat_dailies_total_count DESC').limit(10)
                                       .sum('topic_stat_dailies.total_count')
 
     @notas_ultimo_dia_topico = @topicos.joins(:topic_stat_dailies)
                                       .where(topic_stat_dailies: { topic_date: 1.day.ago.. })
-                                      .group('topics.name').order('sum_topic_stat_dailies_entry_count DESC')
+                                      .group('topics.name').order('sum_topic_stat_dailies_entry_count DESC').limit(10)
                                       .sum('topic_stat_dailies.entry_count')
 
     # Tags Cloud
