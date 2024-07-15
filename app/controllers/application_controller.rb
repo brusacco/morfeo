@@ -47,6 +47,5 @@ class ApplicationController < ActionController::Base
     return unless user_signed_in?
 
     @topicos = current_user.topics.where(status: true)
-    @topics = @topicos
   end
 end

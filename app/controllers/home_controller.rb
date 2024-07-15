@@ -7,42 +7,38 @@ class HomeController < ApplicationController
 
   def index
     # Chart Multiple Interacciones x DIA x TOPICO
-    # en el application_controller ya asignas los topicos
-    # y aca lo haces de nuevo?
-    topics = current_user.topics.where(status: true)
-    @interacciones_dia_topico = topics.map do |topic|
+    @interacciones_dia_topico = @topicos.map do |topic|
       {
         name: topic.name,
         data: topic.topic_stat_dailies.group_by_day(:topic_date).sum(:total_count)
       }
     end
 
-    @notas_dia_topico = topics.map do |topic|
+    @notas_dia_topico = @topicos.map do |topic|
       {
         name: topic.name,
         data: topic.topic_stat_dailies.group_by_day(:topic_date).sum(:entry_count)
       }
     end
 
-    @interacciones_ultimo_dia_topico = topics.joins(:topic_stat_dailies)
+    @interacciones_ultimo_dia_topico = @topicos.joins(:topic_stat_dailies)
                                       .where(topic_stat_dailies: { topic_date: 1.day.ago.. })
                                       .group('topics.name').order('sum_topic_stat_dailies_total_count DESC')
                                       .sum('topic_stat_dailies.total_count')
 
-    @notas_ultimo_dia_topico = topics.joins(:topic_stat_dailies)
+    @notas_ultimo_dia_topico = @topicos.joins(:topic_stat_dailies)
                                       .where(topic_stat_dailies: { topic_date: 1.day.ago.. })
                                       .group('topics.name').order('sum_topic_stat_dailies_entry_count DESC')
                                       .sum('topic_stat_dailies.entry_count')
 
     # Tags Cloud
     tags_list = []
-    topics.each do |topic|
+    @topicos.each do |topic|
       tags_list << topic.tags.map(&:name)
-      break
     end
 
-    topics_entries = Entry.order(published_at: :desc).limit(100).tagged_with(tags_list.flatten.join(", "), any: true)
-    @tags_cloud = topics_entries.tag_counts_on(:tags).order(count: :desc)
+    @topics_entries = Entry.order(published_at: :desc).limit(100).tagged_with(tags_list.flatten.join(", "), any: true)
+    @tags_cloud = @topics_entries.tag_counts_on(:tags).order(count: :desc)
   end
 
   def topic
