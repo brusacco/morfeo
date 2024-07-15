@@ -607,3 +607,5 @@ yo
 últimas
 último
 últimos
+000
+500
