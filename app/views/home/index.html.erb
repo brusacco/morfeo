@@ -70,6 +70,7 @@
     <div class="newspaper-images">
       <% @newspapers.each do |newspaper| %>
         <%= link_to image_tag(newspaper.cover, height: '350', width: '250', title: "#{newspaper.site.name} - Click para ver en tamaño completo"), url_for(newspaper.cover), target: '_blank' %>
+        <%= link_to image_tag(newspaper.backcover, height: '350', width: '250', title: "#{newspaper.site.name} - Click para ver en tamaño completo"), url_for(newspaper.backcover), target: '_blank' %>
       <% end %>
     </div>
   </div>
