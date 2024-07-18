@@ -64,6 +64,17 @@
   </div>
 </div>
 
+<div class="overflow-hidden bg-white shadow sm:rounded-lg">
+  <h2 class="text-2xl mx-5 my-5 font-bold tracking-tight text-gray-900">Tapa y Contra Tapa de Periódicos</h2>
+  <div class="mt-0 mb-20 px-30 py-10 sm:p-6">
+    <div class="newspaper-images">
+      <% @newspapers.each do |newspaper| %>
+        <%= link_to image_tag(newspaper.cover, height: '350', width: '250', title: "#{newspaper.site.name} - Click para ver en tamaño completo"), url_for(newspaper.cover), target: '_blank' %>
+      <% end %>
+    </div>
+  </div>
+</div>
+
 <header class="bg-white shadow-sm">
   <div class="mx-auto px-4 py-4 sm:px-6 lg:px-8">
     <h1 class="text-2xl font-bold leading-6 text-gray-900">Últimas Noticias</h1>

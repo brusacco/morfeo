@@ -138,3 +138,10 @@ rails g model TopicStatDaily entry_count:integer total_count:integer average:int
     <% tag_cloud(@tags_cloud, %w(css1 css2 css3 css4)) do |tag, css_class| %>
       <span class="<%=css_class%>"><%= tag.name %></span>
     <% end %>
+
+# Newspaper 
+rails g model Newspaper date:date site:references
+rails g model NewspaperText title:string description:text newspaper:references
+rails generate active_admin:resource Newspaper
+
+bin/importmap pin @stimulus-components/lightbox

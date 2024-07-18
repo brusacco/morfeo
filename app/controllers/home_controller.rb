@@ -41,6 +41,9 @@ class HomeController < ApplicationController
     @word_occurrences = topics_entries.word_occurrences
     @positive_words = @topicos.all.map(&:positive_words).flatten.join(',')
     @negative_words = @topicos.all.map(&:negative_words).flatten.join(',')
+
+    # Tapa y Contra Tapa de Diarios
+    @newspapers = Newspaper.where(date: Date.today)
   end
 
   def topic
