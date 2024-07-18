@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class Site < ApplicationRecord
+  has_many :newspaper, dependent: :destroy
+
   validates :name, uniqueness: true
   validates :url, uniqueness: true
 
