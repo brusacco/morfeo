@@ -138,3 +138,5 @@ gem 'elasticsearch', '~> 7.17'
 gem 'textmood', '~> 0.1.3'
 
 gem 'actionpack-action_caching', '~> 1.2'
+
+gem "paper_trail", "~> 15.1"

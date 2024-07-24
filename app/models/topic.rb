@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class Topic < ApplicationRecord
+  has_paper_trail
   has_many :topic_stat_dailies, dependent: :destroy
   has_many :user_topics, dependent: :destroy
   has_many :users, through: :user_topics
