@@ -6,18 +6,60 @@ class HomeController < ApplicationController
   skip_before_action :verify_authenticity_token
 
   def index
-    # Chart Multiple Interacciones x DIA x TOPICO
-    @interacciones_dia_topico = @topicos.map do |topic|
+    # Multiple Charts
+    @entry_quantities = @topicos.map do |topic|
       {
         name: topic.name,
-        data: topic.topic_stat_dailies.group_by_day(:topic_date).sum(:total_count)
+        data: topic.topic_stat_dailies.normal_range.group_by_day(:topic_date).sum(:entry_count)
       }
     end
 
-    @notas_dia_topico = @topicos.map do |topic|
+    @entry_interactions = @topicos.map do |topic|
       {
         name: topic.name,
-        data: topic.topic_stat_dailies.group_by_day(:topic_date).sum(:entry_count)
+        data: topic.topic_stat_dailies.normal_range.group_by_day(:topic_date).sum(:total_count)
+      }
+    end
+
+    @neutral_quantity = @topicos.map do |topic|
+      {
+        name: topic.name,
+        data: topic.topic_stat_dailies.normal_range.group_by_day(:topic_date).sum(:neutral_quantity)
+      }
+    end
+
+    @neutral_interaction = @topicos.map do |topic|
+      {
+        name: topic.name,
+        data: topic.topic_stat_dailies.normal_range.group_by_day(:topic_date).sum(:neutral_interaction)
+      }
+    end
+
+    @positive_quantity = @topicos.map do |topic|
+      {
+        name: topic.name,
+        data: topic.topic_stat_dailies.normal_range.group_by_day(:topic_date).sum(:positive_quantity)
+      }
+    end
+
+    @positive_interaction = @topicos.map do |topic|
+      {
+        name: topic.name,
+        data: topic.topic_stat_dailies.normal_range.group_by_day(:topic_date).sum(:positive_interaction)
+      }
+    end
+
+    @negative_quantity = @topicos.map do |topic|
+      {
+        name: topic.name,
+        data: topic.topic_stat_dailies.normal_range.group_by_day(:topic_date).sum(:negative_quantity)
+      }
+    end
+
+    @negative_interaction = @topicos.map do |topic|
+      {
+        name: topic.name,
+        data: topic.topic_stat_dailies.normal_range.group_by_day(:topic_date).sum(:negative_interaction)
       }
     end
 

@@ -7,6 +7,12 @@ ActiveAdmin.register TopicStatDaily do
     column :entry_count
     column :total_count
     column :average
+    column :neutral_quantity
+    column :positive_quantity
+    column :negative_quantity
+    column :neutral_interaction
+    column :positive_interaction
+    column :negative_interaction
     column :topic_date
   end
 end

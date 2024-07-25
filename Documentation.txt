@@ -145,3 +145,5 @@ rails g model NewspaperText title:string description:text newspaper:references
 rails generate active_admin:resource Newspaper
 
 bin/importmap pin @stimulus-components/lightbox
+
+rails g migration AddPolaritiesToTopicStatDailies positive_quantity:integer negative_quantity:integer neutral_quantity:integer positive_interaction:integer negative_interaction:integer neutral_interaction:integer

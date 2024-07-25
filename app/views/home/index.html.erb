@@ -1,8 +1,35 @@
 <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
   <div class="chart-container">
+      <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
+      <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Notas x DIA x TOPICO</h2>
+      <%= line_chart @entry_quantities, xtitle: "Fecha", ytitle: "Cant. Notas", thousands: ".", curve: false, library: {
+          plotOptions: {
+            series: {
+              dataLabels: {
+                enabled: true
+              }
+            }
+          } } %>
+    </div>   
     <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
       <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Interacciones x DIA x TOPICO</h2>
-      <%= line_chart @interacciones_dia_topico, xtitle: "Fecha", ytitle: "Cant. Interacciones", thousands: ".", curve: false, library: {
+      <%= line_chart @entry_interactions, xtitle: "Fecha", ytitle: "Cant. Interacciones", thousands: ".", curve: false, library: {
+          plotOptions: {
+            series: {
+              dataLabels: {
+                enabled: true
+              }
+            }
+          } } %>
+    </div> 
+  </div>
+</div>
+
+<div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
+  <div class="chart-container">
+    <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
+      <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Notas por Sentimiento Neutral</h2>
+      <%= line_chart @neutral_quantity, xtitle: "Fecha", ytitle: "Cant. Notas", thousands: ".", curve: false, library: {
           plotOptions: {
             series: {
               dataLabels: {
@@ -11,9 +38,9 @@
             }
           } } %>
     </div>
-    <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
-      <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Notas x DIA x TOPICO</h2>
-      <%= line_chart @notas_dia_topico, xtitle: "Fecha", ytitle: "Cant. Notas", thousands: ".", curve: false, library: {
+    <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg">
+      <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Interacciones por Sentimiento Neutral</h2>
+      <%= line_chart @neutral_interaction, xtitle: "Fecha", ytitle: "Cant. Notas", thousands: ".", curve: false, library: {
           plotOptions: {
             series: {
               dataLabels: {
@@ -21,7 +48,61 @@
               }
             }
           } } %>
-    </div>    
+    </div>
+  </div>
+</div>
+
+<div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
+  <div class="chart-container">
+    <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
+      <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Notas por Sentimiento Positivo</h2>
+      <%= line_chart @positive_quantity, xtitle: "Fecha", ytitle: "Cant. Notas", thousands: ".", curve: false, library: {
+          plotOptions: {
+            series: {
+              dataLabels: {
+                enabled: true
+              }
+            }
+          } } %>
+    </div>
+    <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg">
+      <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Interacciones por Sentimiento Positivo</h2>
+      <%= line_chart @positive_interaction, xtitle: "Fecha", ytitle: "Cant. Notas", thousands: ".", curve: false, library: {
+          plotOptions: {
+            series: {
+              dataLabels: {
+                enabled: true
+              }
+            }
+          } } %>
+    </div>
+  </div>
+</div>
+
+<div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
+  <div class="chart-container">
+    <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
+      <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Notas por Sentimiento Negativo</h2>
+      <%= line_chart @negative_quantity, xtitle: "Fecha", ytitle: "Cant. Notas", thousands: ".", curve: false, library: {
+          plotOptions: {
+            series: {
+              dataLabels: {
+                enabled: true
+              }
+            }
+          } } %>
+    </div>
+    <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg">
+      <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Interacciones por Sentimiento Negativo</h2>
+      <%= line_chart @negative_interaction, xtitle: "Fecha", ytitle: "Cant. Notas", thousands: ".", curve: false, library: {
+          plotOptions: {
+            series: {
+              dataLabels: {
+                enabled: true
+              }
+            }
+          } } %>
+    </div>
   </div>
 </div>
 

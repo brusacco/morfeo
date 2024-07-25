@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-desc "Guardamos estadisticas diarias de topicos"
+desc "Guardar valores diarios por topico"
 task topic_stat_daily: :environment do
 
   topics = Topic.where(status: true)
@@ -12,23 +12,39 @@ task topic_stat_daily: :environment do
     # puts "- #{tag_list}"
     
     var_date.each do |day_date|
-      total_count = Entry.tagged_on_shared(tag_list, day_date)
-      entry_count = Entry.tagged_on(tag_list, day_date)
+      entry_quantity = Entry.tagged_on_entry_quantity(tag_list, day_date)
+      entry_interaction = Entry.tagged_on_entry_interaction(tag_list, day_date)
 
-      if entry_count > 0
-        average = total_count / entry_count
+      if entry_quantity > 0
+        average = entry_interaction / entry_quantity
       else
         average = 0
       end
 
-      stat = TopicStatDaily.find_or_create_by(topic_id: topic.id, topic_date: day_date)
-      stat.entry_count = entry_count
-      stat.total_count = total_count
-      stat.average = average
-      stat.save
+      neutral_quantity = Entry.tagged_on_neutral_quantity(tag_list, day_date)
+      positive_quantity = Entry.tagged_on_positive_quantity(tag_list, day_date)
+      negative_quantity = Entry.tagged_on_negative_quantity(tag_list, day_date)
 
-      puts "#{day_date} - #{entry_count} - #{total_count} - #{average}"
+      neutral_interaction = Entry.tagged_on_neutral_interaction(tag_list, day_date)
+      positive_interaction = Entry.tagged_on_positive_interaction(tag_list, day_date)
+      negative_interaction = Entry.tagged_on_negative_interaction(tag_list, day_date)
+
+      stat = TopicStatDaily.find_or_create_by(topic_id: topic.id, topic_date: day_date)
+      stat.entry_count = entry_quantity
+      stat.total_count = entry_interaction
+      stat.average = average
+
+      stat.neutral_quantity = neutral_quantity
+      stat.positive_quantity = positive_quantity
+      stat.negative_quantity = negative_quantity
+
+      stat.neutral_interaction = neutral_interaction
+      stat.positive_interaction = positive_interaction
+      stat.negative_interaction = negative_interaction
+
+      stat.save
+      puts "#{day_date} - #{entry_quantity} - #{entry_interaction} - #{average} | #{neutral_quantity} - #{positive_quantity} - #{negative_quantity} | #{neutral_interaction} - #{positive_interaction} - #{negative_interaction}"
     end
-    puts "----------------------"
+    puts "--------------------------------------------------------------------------------------------------------------"
   end
 end
