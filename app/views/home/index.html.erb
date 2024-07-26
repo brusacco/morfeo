@@ -109,17 +109,6 @@
 <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
   <div class="chart-container">
     <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
-      <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Interacciones en las últimas 24 horas</h2>
-      <%= bar_chart @interacciones_ultimo_dia_topico, xtitle: "TOPICO", ytitle: "Cant. Interacciones", thousands: ".", library: {
-        plotOptions: {
-            series: {
-              dataLabels: {
-                enabled: true
-              }
-            }
-          } } %>
-    </div>
-    <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
       <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Notas en las últimas 24 horas</h2>
       <%= bar_chart @notas_ultimo_dia_topico, xtitle: "TOPICO", ytitle: "Cant. Notas", thousands: ".", library: {
           plotOptions: {
@@ -129,7 +118,18 @@
               }
             }
           } } %>
-    </div>    
+    </div>
+    <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
+      <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Interacciones en las últimas 24 horas</h2>
+      <%= bar_chart @interacciones_ultimo_dia_topico, xtitle: "TOPICO", ytitle: "Cant. Interacciones", thousands: ".", library: {
+        plotOptions: {
+            series: {
+              dataLabels: {
+                enabled: true
+              }
+            }
+          } } %>
+    </div> 
   </div>
 </div>
 
@@ -145,14 +145,15 @@
   </div>
 </div>
 
-<div class="overflow-hidden bg-white shadow sm:rounded-lg">
-  <h2 class="text-2xl mx-5 my-5 font-bold tracking-tight text-gray-900">Tapa y Contra Tapa de Periódicos</h2>
-  <div class="mt-0 mb-20 px-30 py-10 sm:p-6">
-    <div class="newspaper-images">
-      <% @newspapers.each do |newspaper| %>
-        <%= link_to image_tag(newspaper.cover, height: '350', width: '250', title: "#{newspaper.site.name} - Click para ver en tamaño completo"), url_for(newspaper.cover), target: '_blank' if newspaper.cover.present? %>
-        <%= link_to image_tag(newspaper.backcover, height: '350', width: '250', title: "#{newspaper.site.name} - Click para ver en tamaño completo"), url_for(newspaper.backcover), target: '_blank' if newspaper.backcover.present? %>
-      <% end %>
+<div class="mx-auto py-6 sm:px-6 lg:px-8">
+  <h2 class="text-2xl mx-5 my-1 font-bold tracking-tight text-gray-900">Portada y Contra Tapa de Periódicos del día de hoy</h2>
+  <div class="bg-white">
+    <div class="mx-auto px-4 py-2 sm:px-6 sm:py-2 lg:px-8">
+      <div class="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
+        <% @newspapers.each do |newspaper| %>
+          <%= render partial: 'home/newspaper', locals: { newspaper: newspaper } %>
+        <% end %>
+      </div>
     </div>
   </div>
 </div>
@@ -165,8 +166,8 @@
 <main>
   <div class="mx-auto py-6 sm:px-6 lg:px-8">
     <%@topicos.each do |topic|%>
-    <% next if topic.list_entries.empty?%>
-    <%= render partial: 'entry/entries', locals: { last_entries: topic.list_entries.limit(12), title: topic.name } %>
+      <% next if topic.list_entries.empty?%>
+      <%= render partial: 'entry/entries', locals: { last_entries: topic.list_entries.limit(12), title: topic.name } %>
     <%end%>
   </div>
 </main>

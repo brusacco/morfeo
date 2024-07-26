@@ -1,0 +1,31 @@
+<% if newspaper.cover.present? %>
+  <div class="group relative rounded-md">
+    <div class="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-md bg-gray-200 lg:aspect-none group-hover:opacity-75 lg:h-80">
+      <%= link_to image_tag(newspaper.cover, height: '350', width: '250', loading: 'lazy', title: "Click para ver en tamaño completo", class: 'h-full w-full object-cover object-center lg:h-full lg:w-full'), url_for(newspaper.cover), target: '_blank' %>
+    </div>
+    <div class="mt-4 flex justify-between">
+      <div>
+        <h3 class="text-sm text-gray-700">Portada</h3>
+        <h3 class="px-1 text-sm">
+          <i class="fa-regular fa-newspaper"></i> <%= link_to newspaper.site.name, newspaper.site %>
+        </h3>
+      </div>
+    </div>
+  </div>
+<% end %>
+
+<% if newspaper.backcover.present? %>
+  <div class="group relative rounded-md">
+    <div class="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-md bg-gray-200 lg:aspect-none group-hover:opacity-75 lg:h-80">
+      <%= link_to image_tag(newspaper.backcover, height: '350', width: '250', loading: 'lazy', title: "Click para ver en tamaño completo", class: 'h-full w-full object-cover object-center lg:h-full lg:w-full'), url_for(newspaper.backcover), target: '_blank' %>
+    </div>
+    <div class="mt-4 flex justify-between">
+      <div>
+        <h3 class="text-sm text-gray-700">Contra Tapa</h3>
+        <h3 class="px-1 text-sm">
+          <i class="fa-regular fa-newspaper"></i> <%= link_to newspaper.site.name, newspaper.site %>
+        </h3>
+      </div>
+    </div>
+  </div>
+<% end %>
