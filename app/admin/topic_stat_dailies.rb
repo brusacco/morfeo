@@ -1,4 +1,5 @@
 ActiveAdmin.register TopicStatDaily do
+  menu parent: "Logs", label: 'Topic Stat Daily'
   # permit_params :entry_count, :total_count, :average, :topic_date, :topic_id
 
   index do
