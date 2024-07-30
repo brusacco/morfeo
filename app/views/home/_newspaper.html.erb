@@ -1,9 +1,9 @@
 <% if newspaper.cover.present? %>
-  <div class="group relative rounded-md w-[400px] h-[650px] bg-white-200 flex flex-col items-center justify-center overflow-hidden">
+  <div class="group relative rounded-md w-full max-w-[400px] h-[auto] max-h-[650px] bg-white-200 flex flex-col items-center justify-center overflow-hidden">
     <div class="flex items-center justify-center w-full h-full group-hover:opacity-75">
       <%= link_to image_tag(newspaper.cover, loading: 'lazy', title: "Click para ver en tamaño completo", class: 'max-w-full max-h-full object-contain'), url_for(newspaper.cover), target: '_blank' %>
     </div>
-    <div class="mt-4 flex justify-between w-full">
+    <div class="mt-4 flex flex-col sm:flex-row justify-between w-full px-4">
       <div>
         <h3 class="text-sm text-gray-700">Portada</h3>
         <h3 class="px-1 text-sm">
@@ -15,11 +15,11 @@
 <% end %>
 
 <% if newspaper.backcover.present? %>
-  <div class="group relative rounded-md w-[400px] h-[650px] bg-white-200 flex flex-col items-center justify-center overflow-hidden">
+  <div class="group relative rounded-md w-full max-w-[400px] h-[auto] max-h-[650px] bg-white-200 flex flex-col items-center justify-center overflow-hidden">
     <div class="flex items-center justify-center w-full h-full mt-6 group-hover:opacity-75">
       <%= link_to image_tag(newspaper.backcover, loading: 'lazy', title: "Click para ver en tamaño completo", class: 'max-w-full max-h-full object-contain'), url_for(newspaper.backcover), target: '_blank' %>
     </div>
-    <div class="mt-4 flex justify-between w-full">
+    <div class="mt-4 flex flex-col sm:flex-row justify-between w-full px-4">
       <div>
         <h3 class="text-sm text-gray-700">Contra Tapa</h3>
         <h3 class="px-1 text-sm">
