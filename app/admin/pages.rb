@@ -9,7 +9,7 @@ ActiveAdmin.register Page do
   index do
     id_column
     column 'Image' do |page|
-      image_tag(page.picture)
+      image_tag(page.picture || 'https://via.placeholder.com/50')
     end
     column :name
     column :username
