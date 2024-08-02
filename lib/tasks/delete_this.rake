@@ -97,13 +97,13 @@ task crawler_test: :environment do
           #---------------------------------------------------------------------------
           # Stats extractor
           #---------------------------------------------------------------------------
-          result = FacebookServices::UpdateStats.call(entry.id)
-          if result.success?
-            entry.update!(result.data) if result.success?
-            puts result.data
-          else
-            puts "ERROR STATS: #{result&.error}"
-          end
+          #result = FacebookServices::UpdateStats.call(entry.id)
+          #if result.success?
+          # entry.update!(result.data) if result.success?
+          # puts result.data
+          #else
+          #  puts "ERROR STATS: #{result&.error}"
+          #end
 
           #---------------------------------------------------------------------------
           # Extract and save ngrams
