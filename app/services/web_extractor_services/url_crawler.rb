@@ -12,7 +12,7 @@ module WebExtractorServices
       return handle_error('URL dont match') unless @url.match(@site.filter)
       return handle_error('URL alread exist') if Entry.exists?(url: @url)
 
-      doc = Nokogiri::HTML(URI.parse(@url).open.read.force_encoding('UTF-8'))
+      doc = Nokogiri::HTML(URI.parse(@url).open('User-Agent' => 'Mozilla/5.0').read.force_encoding('UTF-8'))
       Entry.create_with(site: @site, uid: @uid).find_or_create_by!(url: @url) do |entry|
         #---------------------------------------------------------------------------
         # Basic data extractor
