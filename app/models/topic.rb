@@ -20,7 +20,7 @@ class Topic < ApplicationRecord
         tags: { in: tag_list }
       },
       order: { published_at: :desc },
-      load: false
+      fields: ['id'] # Only return the ids to reduce payload
     )
     Entry.where(id: result.map(&:id)).order(published_at: :desc).joins(:site)
   end
