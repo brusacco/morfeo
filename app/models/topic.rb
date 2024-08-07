@@ -22,7 +22,7 @@ class Topic < ApplicationRecord
       order: { published_at: :desc },
       fields: ['id'] # Only return the ids to reduce payload
     )
-    Entry.where(id: result.map(&:id)).order(published_at: :desc).joins(:site)
+    Entry.where(id: result.map(&:id)).joins(:site)
   end
 
   def analytics_entries(ids)
