@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_07_17_194159) do
+ActiveRecord::Schema[7.0].define(version: 2024_07_25_170736) do
   create_table "active_admin_comments", force: :cascade do |t|
     t.string "namespace"
     t.text "body"
@@ -210,6 +210,12 @@ ActiveRecord::Schema[7.0].define(version: 2024_07_17_194159) do
     t.integer "topic_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "positive_quantity"
+    t.integer "negative_quantity"
+    t.integer "neutral_quantity"
+    t.integer "positive_interaction"
+    t.integer "negative_interaction"
+    t.integer "neutral_interaction"
     t.index ["topic_id"], name: "index_topic_stat_dailies_on_topic_id"
   end
 
@@ -244,6 +250,16 @@ ActiveRecord::Schema[7.0].define(version: 2024_07_17_194159) do
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["name"], name: "index_users_on_name"
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
+  end
+
+  create_table "versions", force: :cascade do |t|
+    t.string "item_type", null: false
+    t.bigint "item_id", null: false
+    t.string "event", null: false
+    t.string "whodunnit"
+    t.text "object", limit: 1073741823
+    t.datetime "created_at"
+    t.index ["item_type", "item_id"], name: "index_versions_on_item_type_and_item_id"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
