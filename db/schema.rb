@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_07_25_170736) do
+ActiveRecord::Schema[7.0].define(version: 2024_08_08_202226) do
   create_table "active_admin_comments", force: :cascade do |t|
     t.string "namespace"
     t.text "body"
@@ -159,6 +159,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_07_25_170736) do
     t.string "negative_filter"
     t.integer "entries_count", default: 0
     t.text "image64"
+    t.boolean "status", default: true
     t.index ["name"], name: "index_sites_on_name", unique: true
     t.index ["url"], name: "index_sites_on_url", unique: true
   end

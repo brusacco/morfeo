@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 ActiveAdmin.register Site do
-  permit_params :name, :url, :filter, :content_filter, :negative_filter, :page
+  permit_params :name, :url, :filter, :content_filter, :negative_filter, :page, :status
 
   filter :name
   filter :url
@@ -9,6 +9,9 @@ ActiveAdmin.register Site do
   index do
     id_column
     column :name
+		column 'Estado'do |site|
+			site.status
+		end
     column 'URL' do |site|
       link_to site.url, site.url, target: '_blank', rel: 'noopener'
     end
@@ -29,6 +32,7 @@ ActiveAdmin.register Site do
       f.input :filter
       f.input :content_filter
       f.input :negative_filter
+      f.input :status, label: 'Estado'
       f.actions
     end
   end

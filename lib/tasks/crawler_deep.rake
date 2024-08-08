@@ -24,7 +24,7 @@ task crawler_deep: :environment do
     feed
   ]
   directory_pattern = /#{directories.join('|')}/
-  Site.order(total_count: :desc).each do |site|
+  Site.where(status: true).order(total_count: :desc).each do |site|
     puts "Start test processing site #{site.name}..."
     puts '--------------------------------------------------------------------"'
     Anemone.crawl(
