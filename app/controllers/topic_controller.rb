@@ -34,9 +34,9 @@ class TopicController < ApplicationController
     @negative_words = @topic.negative_words.split(',') if @topic.negative_words.present?
 
     polarity_counts = @entries.group(:polarity).count
-    @neutrals = polarity_counts[0] || 0
-    @positives = polarity_counts[1] || 0
-    @negatives = polarity_counts[2] || 0
+    @neutrals = polarity_counts['neutral'] || 0
+    @positives = polarity_counts['positive'] || 0
+    @negatives = polarity_counts['negative'] || 0
 
     if @entries.any?
       @percentage_positives = (Float(@positives) / @entries.size * 100).round(0)
