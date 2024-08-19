@@ -8,7 +8,7 @@ module AiServices
 
     def call
       client = OpenAI::Client.new(access_token: Rails.application.credentials.openai_access_token)
-
+      response = []
       loop do
         response = client.chat(
           parameters: {
