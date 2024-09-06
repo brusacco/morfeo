@@ -11,7 +11,18 @@ ActiveAdmin.register Entry do
   filter :title
   filter :published_at
   filter :enabled
+  filter :repeated
 
+  scope 'Todos', :all, default: :true
+  scope :habilitados do |entry|
+    entry.where(enabled: true)
+  end
+  scope :deshabilitados do |entry|
+    entry.where(enabled: false)
+  end
+  scope :repetidos do |entry|
+    entry.where(repeated: true)
+  end  
   scope 'Null Date' do |entry|
     entry.where(published_at: nil)
   end
@@ -27,6 +38,8 @@ ActiveAdmin.register Entry do
       link_to entry.url, entry.url, target: :blank
     end
     column :published_at
+    column 'Habilitado', &:enabled
+    column 'Repetido', &:repeated
     column 'Image' do |entry|
       if entry.image_url.present?
         image_tag entry.image_url, size: 32

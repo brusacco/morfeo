@@ -16,6 +16,10 @@ every 3.hours do
   rake 'facebook:comment_crawler'
 end
 
+every 4.hours do
+  rake 'repeated_notes'
+end
+
 every 6.hours do
   rake 'ai:generate_ai_reports'
   rake 'ai:set_topic_polarity'
