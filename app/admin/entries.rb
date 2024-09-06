@@ -2,16 +2,16 @@
 
 ActiveAdmin.register Entry do
   config.sort_order = 'published_at_desc'
-  permit_params :url, :title, :enabled
+  permit_params :url, :title, :enabled, :repeated
 
   scoped_collection_action :scoped_collection_destroy
 
   filter :site, collection: proc { Site.order(:name) }
   filter :url
   filter :title
-  filter :published_at
-  filter :enabled
-  filter :repeated
+  filter :published_at, label: 'Fecha'
+  filter :enabled, label: 'Habilitado'
+  filter :repeated, label: 'Repetido'
 
   scope 'Todos', :all, default: :true
   scope :habilitados do |entry|
