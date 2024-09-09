@@ -23,7 +23,7 @@ task clean_content: :environment do
     single
   ]
   words.each do |word|
-    entries = Entry.find_by_sql("select * from entries where content like \"%#{word}%\" order by published_at DESC")
+    entries = Entry.enabled.find_by_sql("select * from entries where content like \"%#{word}%\" order by published_at DESC")
     Parallel.each(entries, in_threads: 4) do |entry|
       next unless entry.site.content_filter
 
@@ -40,7 +40,7 @@ task clean_content: :environment do
 end
 
 task clean_spaces: :environment do
-  entries = Entry.last(10_000)
+  entries = Entry.enabled.last(10_000)
   entries.each do |entry|
     next if entry.content.nil?
 
@@ -50,7 +50,7 @@ end
 
 task clean_site_content: :environment do
   site = Site.find(58)
-  entries = site.entries.order(published_at: :desc).limit(1000)
+  entries = site.entries.enabled.order(published_at: :desc).limit(1000)
   Parallel.each(entries, in_threads: 4) do |entry|
     next unless entry.site.content_filter
 

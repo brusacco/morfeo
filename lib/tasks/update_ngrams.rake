@@ -2,7 +2,7 @@
 
 desc 'Update NGRAMS'
 task update_ngrams: :environment do
-  Entry.a_month_ago.each do |entry|
+  Entry.enabled.a_month_ago.each do |entry|
     next if entry.bigram_list.present?
 
     puts "Updating NGrams for #{entry.id} - #{entry.published_at}"
@@ -16,7 +16,7 @@ end
 task update_ngrams_tags: :environment do
   Tag.find_each do |tag|
     puts "Updating NGrams for #{tag.name} - #{tag.id}"
-    Parallel.each(Entry.normal_range.tagged_with(tag.name), in_threads: 5) do |entry|
+    Parallel.each(Entry.enabled.normal_range.tagged_with(tag.name), in_threads: 5) do |entry|
       puts "Updating NGrams for #{entry.id} - #{entry.published_at}"
       entry.bigrams
       entry.trigrams

@@ -22,7 +22,7 @@ class Topic < ApplicationRecord
       order: { published_at: :desc },
       fields: ['id'] # Only return the ids to reduce payload
     )
-    Entry.where(id: result.map(&:id)).joins(:site)
+    Entry.enabled.where(id: result.map(&:id)).joins(:site)
   end
 
   def analytics_entries(ids)
@@ -34,12 +34,12 @@ class Topic < ApplicationRecord
       order: { published_at: :desc },
       load: false
     )
-    Entry.where(id: result.map(&:id)).joins(:site)
+    Entry.enabled.where(id: result.map(&:id)).joins(:site)
   end
 
   def analytics_topic_entries
     tag_list = tags.map(&:name)
-    Entry.normal_range.tagged_with(tag_list, any: true).order(total_count: :desc).limit(20)
+    Entry.enabled.normal_range.tagged_with(tag_list, any: true).order(total_count: :desc).limit(20)
   end
 
   private

@@ -26,7 +26,7 @@ class Tag < ApplicationRecord
       order: { published_at: :desc },
       load: false
     )
-    Entry.where(id: result.map(&:id)).joins(:site)
+    Entry.enabled.where(id: result.map(&:id)).joins(:site)
   end
 
   private

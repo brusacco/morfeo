@@ -4,7 +4,7 @@ desc 'Update Site stats'
 task update_site_stats: :environment do
   Site.find_each do |site|
     puts "Start processing site #{site.name}..."
-    entries = site.entries.where(published_at: 7.days.ago..)
+    entries = site.entries.enabled.where(published_at: 7.days.ago..)
 
     site.update!(
       reaction_count: entries.sum(:reaction_count),

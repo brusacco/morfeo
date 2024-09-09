@@ -90,7 +90,7 @@ class HomeController < ApplicationController
 
   def topic
     tags = 'Horacio Cartes, santiago Peña'
-    @entries = Entries.tagged_with(tags).limit(250)
+    @entries = Entries.enabled.tagged_with(tags).limit(250)
     @tags = @entries.tag_counts_on(:tags).order('count desc')
 
     # Sets counters and values

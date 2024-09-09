@@ -5,8 +5,8 @@ class SiteController < ApplicationController
 
   def show
     @site = Site.find(params[:id])
-    @entries_stats = @site.entries.normal_range.group_by_day(:published_at)
-    @entries = @site.entries.normal_range.order(published_at: :desc)
+    @entries_stats = @site.entries.enabled.normal_range.group_by_day(:published_at)
+    @entries = @site.entries.enabled.normal_range.order(published_at: :desc)
     @tags = @entries.tag_counts_on(:tags).order('count desc')
 
     # Cosas nuevas

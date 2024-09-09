@@ -73,8 +73,8 @@ end
 group :test do
   # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
   gem 'capybara'
-  gem 'selenium-webdriver'
-  gem 'webdrivers'
+  # gem 'selenium-webdriver'
+  # gem 'webdrivers'
 end
 
 gem 'nokogiri', '~> 1.13'
@@ -140,3 +140,6 @@ gem 'textmood', '~> 0.1.3'
 gem 'actionpack-action_caching', '~> 1.2'
 
 gem "paper_trail", "~> 15.1"
+
+gem 'selenium-webdriver'
+gem 'webdrivers'

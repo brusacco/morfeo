@@ -149,3 +149,11 @@ bin/importmap pin @stimulus-components/lightbox
 rails g migration AddPolaritiesToTopicStatDailies positive_quantity:integer negative_quantity:integer neutral_quantity:integer positive_interaction:integer negative_interaction:integer neutral_interaction:integer
 
 rails g migration AddStatusToSites status:boolean
+
+#-- Notas Repetidas
+rails g model title:string url:string date:date site:references entry:references
+
+rails g migration ChangeDefaultValueForEnabled
+Entry.update_all(enabled: true)
+
+rails g migration AddRepeatedToEntries repeated:boolean

@@ -14,7 +14,7 @@ class TopicController < ApplicationController
     @entries = @topic.list_entries
     @analytics = @topic.analytics_topic_entries
 
-    @top_entries = Entry.normal_range.joins(:site).order(total_count: :desc).limit(5)
+    @top_entries = Entry.enabled.normal_range.joins(:site).order(total_count: :desc).limit(5)
     @total_entries = @entries.size
     @total_interactions = @entries.sum(&:total_count)
 

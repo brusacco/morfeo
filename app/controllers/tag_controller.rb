@@ -28,7 +28,7 @@ class TagController < ApplicationController
     @percentage_negatives = (@negatives.to_f / @entries.size * 100).round(0) if @negatives > 0
     @percentage_neutrals = (@neutrals.to_f / @entries.size * 100).round(0) if @neutrals > 0
 
-    @top_entries = Entry.normal_range.joins(:site).order(total_count: :desc).limit(5)
+    @top_entries = Entry.enabled.normal_range.joins(:site).order(total_count: :desc).limit(5)
     @most_interactions = @entries.sort_by(&:total_count).reverse.take(8)
 
     if @total_entries.zero?
@@ -64,7 +64,7 @@ class TagController < ApplicationController
 
   def comments
     @tag = Tag.find(params[:id])
-    @entries = Entry.normal_range.joins(:site).tagged_with(@tag.name).has_image.order(published_at: :desc)
+    @entries = Entry.enabled.normal_range.joins(:site).tagged_with(@tag.name).has_image.order(published_at: :desc)
 
     @comments = Comment.where(entry_id: @entries.pluck(:id)).order(created_time: :desc)
     @comments_word_occurrences = @comments.word_occurrences
@@ -75,7 +75,7 @@ class TagController < ApplicationController
 
   def report
     @tag = Tag.find(params[:id])
-    @entries = Entry.normal_range.joins(:site).tagged_with(@tag.name).has_image.order(published_at: :desc)
+    @entries = Entry.enabled.normal_range.joins(:site).tagged_with(@tag.name).has_image.order(published_at: :desc)
     @tags = @entries.tag_counts_on(:tags).order('count desc').limit(20)
 
     @tags_interactions = {}

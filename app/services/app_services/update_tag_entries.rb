@@ -8,7 +8,7 @@ module AppServices
 
     def call
       tag = Tag.find(@tag_id)
-      entries = Entry.tagged_with(tag.name)
+      entries = Entry.enabled.tagged_with(tag.name)
       entries.each do |entry|
         result = WebExtractorServices::ExtractTags.call(entry.id, @tag_id)
         next unless result.success?

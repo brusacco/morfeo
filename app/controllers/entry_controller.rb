@@ -9,7 +9,7 @@ class EntryController < ApplicationController
   def show; end
 
   def popular
-    @entries = Entry.joins(:site).where(total_count: 1..).a_day_ago.order(total_count: :desc).limit(50)
+    @entries = Entry.enabled.joins(:site).where(total_count: 1..).a_day_ago.order(total_count: :desc).limit(50)
     @tags = @entries.tag_counts_on(:tags).order('count desc')
 
     # Cosas nuevas
@@ -39,7 +39,7 @@ class EntryController < ApplicationController
   end
 
   def twitter
-    @entries = Entry.joins(:site).a_day_ago.where.not(image_url: nil).order(tw_total: :desc)
+    @entries = Entry.enabled.joins(:site).a_day_ago.where.not(image_url: nil).order(tw_total: :desc)
     @tags = @entries.tag_counts_on(:tags).order('count desc')
 
     # Sets counters and values
@@ -62,7 +62,7 @@ class EntryController < ApplicationController
   end
 
   def commented
-    @entries = Entry.joins(:site).a_day_ago.where.not(image_url: nil).order(comment_count: :desc)
+    @entries = Entry.enabled.joins(:site).a_day_ago.where.not(image_url: nil).order(comment_count: :desc)
 
     @tags = @entries.tag_counts_on(:tags).order('count desc')
 
@@ -96,19 +96,19 @@ class EntryController < ApplicationController
   end
 
   def week
-    @entries = Entry.joins(:site).a_week_ago.where.not(image_url: nil).order(published_at: :desc)
+    @entries = Entry.enabled.joins(:site).a_week_ago.where.not(image_url: nil).order(published_at: :desc)
     @today = Time.zone.today
     @a_week_ago = @today - 7
   end
 
   def similar
     @entry = Entry.find_by(url: params[:url])
-    @entries = Entry.tagged_with(@entry.tags, any: true).order(published_at: :desc).limit(10)
+    @entries = Entry.enabled.tagged_with(@entry.tags, any: true).order(published_at: :desc).limit(10)
     render json: @entries
   end
 
   def search
     tag = params[:query]
-    @entries = Entry.includes(:site).tagged_with(tag).order(published_at: :desc).limit(50)
+    @entries = Entry.enabled.includes(:site).tagged_with(tag).order(published_at: :desc).limit(50)
   end
 end

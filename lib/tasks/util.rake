@@ -5,7 +5,7 @@
 #-------------------------------------------------------------------------------------
 desc 'Update dates from datetimes'
 task update_published_dates: :environment do
-  Entry.where(published_date: nil).order(published_at: :desc).each do |entry|
+  Entry.enabled.where(published_date: nil).order(published_at: :desc).each do |entry|
     entry.update!(published_date: entry.published_at.to_date) if entry.published_at
     puts entry.published_date
   rescue StandardError => e
@@ -24,7 +24,7 @@ task test_openai: :environment do
 
   topic = Topic.find_by(name: 'Honor Colorado')
   tags = topic.tags.pluck(:name)
-  entries = Entry.includes(:site).a_week_ago.tagged_with(tags, any: true).order(total_count: :desc).limit(10)
+  entries = Entry.enabled.includes(:site).a_week_ago.tagged_with(tags, any: true).order(total_count: :desc).limit(10)
   puts entries.prompt(topic.name)
 
   puts entries.prompt(topic.name).size
@@ -43,7 +43,7 @@ end
 #
 #-------------------------------------------------------------------------------------
 task update_basic_content: :environment do
-  Parallel.each(Entry.where(published_at: 1.week.ago..Time.current).order('RAND()'), in_threads: 4) do |entry|
+  Parallel.each(Entry.enabled.where(published_at: 1.week.ago..Time.current).order('RAND()'), in_threads: 4) do |entry|
     puts entry.url
     content = URI.open(entry.url).read
     doc = Nokogiri::HTML(content)

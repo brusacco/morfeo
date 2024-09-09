@@ -12,8 +12,8 @@ task topic_stat_daily: :environment do
     # puts "- #{tag_list}"
     
     var_date.each do |day_date|
-      entry_quantity = Entry.tagged_on_entry_quantity(tag_list, day_date)
-      entry_interaction = Entry.tagged_on_entry_interaction(tag_list, day_date)
+      entry_quantity = Entry.enabled.tagged_on_entry_quantity(tag_list, day_date)
+      entry_interaction = Entry.enabled.tagged_on_entry_interaction(tag_list, day_date)
 
       if entry_quantity > 0
         average = entry_interaction / entry_quantity
@@ -21,13 +21,13 @@ task topic_stat_daily: :environment do
         average = 0
       end
 
-      neutral_quantity = Entry.tagged_on_neutral_quantity(tag_list, day_date)
-      positive_quantity = Entry.tagged_on_positive_quantity(tag_list, day_date)
-      negative_quantity = Entry.tagged_on_negative_quantity(tag_list, day_date)
+      neutral_quantity = Entry.enabled.tagged_on_neutral_quantity(tag_list, day_date)
+      positive_quantity = Entry.enabled.tagged_on_positive_quantity(tag_list, day_date)
+      negative_quantity = Entry.enabled.tagged_on_negative_quantity(tag_list, day_date)
 
-      neutral_interaction = Entry.tagged_on_neutral_interaction(tag_list, day_date)
-      positive_interaction = Entry.tagged_on_positive_interaction(tag_list, day_date)
-      negative_interaction = Entry.tagged_on_negative_interaction(tag_list, day_date)
+      neutral_interaction = Entry.enabled.tagged_on_neutral_interaction(tag_list, day_date)
+      positive_interaction = Entry.enabled.tagged_on_positive_interaction(tag_list, day_date)
+      negative_interaction = Entry.enabled.tagged_on_negative_interaction(tag_list, day_date)
 
       stat = TopicStatDaily.find_or_create_by(topic_id: topic.id, topic_date: day_date)
       stat.entry_count = entry_quantity

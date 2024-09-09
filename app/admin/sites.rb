@@ -5,6 +5,11 @@ ActiveAdmin.register Site do
 
   filter :name
   filter :url
+  filter :status, label: 'Estado'
+
+  scope 'Todos', :all, default: :true
+  scope 'Activos', :enabled
+  scope 'Inactivos', :disabled
 
   index do
     id_column

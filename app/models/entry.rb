@@ -14,6 +14,8 @@ class Entry < ApplicationRecord
   scope :has_image, -> { where.not(image_url: nil) }
   scope :has_interactions, -> { where(total_count: 10..) }
   scope :has_any_interactions, -> { where(total_count: 1..) }
+  scope :enabled, -> { where(enabled: true) }
+  scope :disabled, -> { where(enabled: false) }
 
   enum polarity: { neutral: 0, positive: 1, negative: 2 }
 

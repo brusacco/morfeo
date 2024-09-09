@@ -9,6 +9,9 @@ class Site < ApplicationRecord
   has_many :entries, dependent: :destroy
   has_one :page, dependent: :destroy
 
+  scope :enabled, -> { where(status: true) }
+  scope :disabled, -> { where(status: false) }
+
   def save_image(url)
     response = HTTParty.get(url)
     update!(image64: Base64.strict_encode64(response))

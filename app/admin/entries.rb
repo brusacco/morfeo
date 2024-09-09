@@ -13,13 +13,9 @@ ActiveAdmin.register Entry do
   filter :enabled, label: 'Habilitado'
   filter :repeated, label: 'Repetido'
 
-  scope 'Todos', :all, default: :true
-  scope :habilitados do |entry|
-    entry.where(enabled: true)
-  end
-  scope :deshabilitados do |entry|
-    entry.where(enabled: false)
-  end
+  scope :todos, :all, default: :true
+  scope :habilitados, :enabled
+  scope :deshabilitados, :disabled
   scope :repetidos do |entry|
     entry.where(repeated: true)
   end  

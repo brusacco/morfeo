@@ -58,7 +58,7 @@ task telegram_bot: :environment do
         when '/stop'
           bot.api.send_message(chat_id: message.chat.id, text: "Adios, #{message.from.first_name}")
         when '/populares'
-          entries = Entry.includes(:site).where(total_count: 1..).a_day_ago.order(total_count: :desc).limit(10)
+          entries = Entry.enabled.includes(:site).where(total_count: 1..).a_day_ago.order(total_count: :desc).limit(10)
           bot.api.send_message(
             chat_id: message.chat.id,
             text: 'A continuacion, mostramos las 10 noticias mas importantes'
@@ -67,7 +67,7 @@ task telegram_bot: :environment do
             bot.api.send_message(chat_id: message.chat.id, text: "#{entry.title} #{entry.url}")
           end
         when '/recientes'
-          entries = @entries = Entry.includes(:site).order(published_at: :desc).limit(10)
+          entries = @entries = Entry.enabled.includes(:site).order(published_at: :desc).limit(10)
           bot.api.send_message(
             chat_id: message.chat.id,
             text: 'A continuacion, mostramos las 10 noticias mas recientes'
@@ -81,7 +81,7 @@ task telegram_bot: :environment do
 
           if topic
             tags = topic.tags.pluck(:name)
-            entries = Entry.includes(:site).a_week_ago.tagged_with(tags, any: true).order(total_count: :desc).limit(10)
+            entries = Entry.enabled.includes(:site).a_week_ago.tagged_with(tags, any: true).order(total_count: :desc).limit(10)
           end
 
           if topic.nil? || entries.empty?
@@ -100,7 +100,7 @@ task telegram_bot: :environment do
           end
         when %r{^/etiqueta (.+)}
           etiqueta = message&.text&.gsub('/etiqueta ', '')
-          entries = Entry.includes(:site).a_week_ago.tagged_with(
+          entries = Entry.enabled.includes(:site).a_week_ago.tagged_with(
             etiqueta,
             any: true
           ).order(total_count: :desc).limit(10)
@@ -139,7 +139,7 @@ task telegram_bot: :environment do
         case message.data
         when %r{^/etiqueta (.+)}
           selected_option = message.data.gsub('/etiqueta ', '')
-          entries = Entry.includes(:site).a_week_ago.tagged_with(selected_option).order(total_count: :desc).limit(10)
+          entries = Entry.enabled.includes(:site).a_week_ago.tagged_with(selected_option).order(total_count: :desc).limit(10)
 
           if entries.empty?
             bot.api.send_message(chat_id: message.from.id, text: 'No se encontro este tema')
@@ -161,7 +161,7 @@ task telegram_bot: :environment do
 
           if topic
             tags = topic.tags.pluck(:name)
-            entries = Entry.includes(:site).a_week_ago.tagged_with(tags, any: true).order(total_count: :desc).limit(10)
+            entries = Entry.enabled.includes(:site).a_week_ago.tagged_with(tags, any: true).order(total_count: :desc).limit(10)
           end
 
           if topic.nil? || entries.empty?
