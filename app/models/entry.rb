@@ -7,6 +7,8 @@ class Entry < ApplicationRecord
   belongs_to :site, touch: true
   has_many :comments, dependent: :destroy
 
+  alias_attribute :habilitar_Deshabilitar_Notas, :enabled
+
   scope :a_day_ago, -> { where(published_at: 1.day.ago..) }
   scope :a_week_ago, -> { where(published_at: 1.week.ago..) }
   scope :a_month_ago, -> { where(published_at: 1.month.ago..) }

@@ -17,3 +17,9 @@
 // For example, to change the default status-tag color:
 //
 //   .status_tag { background: #6090DB; }
+
+// Controlar las secciones del sidebar para subir o bajar las cajas
+#sidebar { display: flex; flex-direction: column; }
+#collection_actions_sidebar_section { order: 0; }
+#filters_sidebar_section { order: 1; }
+.sidebar_section { order: 2; }

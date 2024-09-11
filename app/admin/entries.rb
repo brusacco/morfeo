@@ -2,9 +2,16 @@
 
 ActiveAdmin.register Entry do
   config.sort_order = 'published_at_desc'
-  permit_params :url, :title, :enabled, :repeated
+  permit_params :url, :title, :enabled
 
   scoped_collection_action :scoped_collection_destroy
+
+  scoped_collection_action :scoped_collection_update, title: 'Actualizaciones Rapidas', form: -> do 
+    { 
+      habilitar_Deshabilitar_Notas: [['Habilitar', true], ['Deshabilitar', false]],
+      repeated: [['SI', true], ['NO', false]]
+    }
+  end
 
   filter :site, collection: proc { Site.order(:name) }
   filter :url
@@ -21,6 +28,15 @@ ActiveAdmin.register Entry do
   end  
   scope 'Null Date' do |entry|
     entry.where(published_at: nil)
+  end
+
+  form do |f|
+    f.inputs 'Nota' do
+      f.input :url
+      f.input :title
+      f.input :enabled, label: 'Habilitado?'
+    end
+    f.actions
   end
 
   index do
