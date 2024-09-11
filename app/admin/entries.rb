@@ -8,8 +8,8 @@ ActiveAdmin.register Entry do
 
   scoped_collection_action :scoped_collection_update, title: 'Actualizaciones Rapidas', form: -> do 
     { 
-      habilitar_Deshabilitar_Notas: [['Habilitar', true], ['Deshabilitar', false]],
-      repeated: [['SI', true], ['NO', false]]
+      # repeated: [['SI', true], ['NO', false]],
+      habilitar_Deshabilitar_Notas: [['Habilitar', true], ['Deshabilitar', false]]
     }
   end
 
