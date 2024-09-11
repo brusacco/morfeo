@@ -151,9 +151,9 @@ rails g migration AddPolaritiesToTopicStatDailies positive_quantity:integer nega
 rails g migration AddStatusToSites status:boolean
 
 #-- Notas Repetidas
-rails g model title:string url:string date:date site:references entry:references
-
 rails g migration ChangeDefaultValueForEnabled
 Entry.update_all(enabled: true)
 
 rails g migration AddRepeatedToEntries repeated:boolean
+
+rails g migration change_data_type_for_repeated

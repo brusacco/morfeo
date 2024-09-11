@@ -8,6 +8,10 @@ class Entry < ApplicationRecord
   has_many :comments, dependent: :destroy
 
   alias_attribute :habilitar_Deshabilitar_Notas, :enabled
+  alias_attribute :notas_Repetidas, :repeated
+
+  attribute :repeateds, :integer
+  enum repeateds: { 'No': 0, 'Si': 1, 'Limpiado': 2 }
 
   scope :a_day_ago, -> { where(published_at: 1.day.ago..) }
   scope :a_week_ago, -> { where(published_at: 1.week.ago..) }

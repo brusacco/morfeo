@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_09_06_181022) do
+ActiveRecord::Schema[7.0].define(version: 2024_09_11_192812) do
   create_table "active_admin_comments", force: :cascade do |t|
     t.string "namespace"
     t.text "body"
@@ -99,7 +99,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_09_06_181022) do
     t.string "uid"
     t.integer "polarity"
     t.integer "delta", default: 0
-    t.boolean "repeated", default: false, null: false
+    t.integer "repeated", default: 0, null: false
     t.index ["published_date"], name: "index_entries_on_published_date"
     t.index ["site_id"], name: "index_entries_on_site_id"
     t.index ["url"], name: "index_entries_on_url", unique: true

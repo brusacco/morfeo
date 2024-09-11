@@ -23,3 +23,9 @@
 #collection_actions_sidebar_section { order: 0; }
 #filters_sidebar_section { order: 1; }
 .sidebar_section { order: 2; }
+
+.status_tag {
+  &.ok, &.published, &.complete, &.completed, &.green { background: #8daa92; }
+  &.warn, &.warning, &.orange { background: #e29b20; }
+  &.error, &.errored, &.red { background: #d45f53; }
+}
