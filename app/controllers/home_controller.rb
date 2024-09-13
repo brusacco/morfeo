@@ -2,7 +2,7 @@
 
 class HomeController < ApplicationController
   # caches_action :index, expires_in: 1.hour
-  before_action :authenticate_user!, except: :deploy
+  before_action :authenticate_user!, except: %i[deploy check]
   skip_before_action :verify_authenticity_token
 
   def index
