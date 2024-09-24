@@ -1,34 +1,45 @@
-namespace :scraping do
-  desc "Scrape a web page using Chrome Headless"
-  task headless_crawler: :environment do
-    require 'selenium-webdriver'
-    require 'webdrivers'
+require 'selenium-webdriver'
+require 'nokogiri'
+require 'open-uri'
+require 'webdrivers'
 
-    # Configuración de Selenium con Chrome en modo Headless
+desc "Scrape a web page using Chrome Headless"
+task headless_crawler: :environment do
+  Site.enabled.where(id: 51).order(total_count: :desc).each do |site|
     options = Selenium::WebDriver::Chrome::Options.new
     options.add_argument('--headless')
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
 
-    # Inicializar el driver de Chrome
     driver = Selenium::WebDriver.for :chrome, options: options
 
-    # URL de la web a scrapear
-    url = 'https://delparaguay.com.py/'
-    driver.navigate.to url
+    puts "#{site.name} - #{site.url} - #{site.id}"
+    driver.navigate.to site.url
 
-    # Esperar a que la página se cargue completamente (si es necesario)
-    sleep 30 # Ajusta el tiempo de espera según la página
+    sleep 10
 
-    # Obtener el contenido de la página
-    content = driver.page_source
+    links = []
+    driver.find_elements(:tag_name, 'a').each do |link|
+      puts link.text
+      puts link.attribute('href')
+      
+      if link.attribute('href').to_s.match(/#{site.filter}/)
+        links.push link.attribute('href')
+        puts 'link ON!'
+      else
+        puts 'out'
+      end
+      puts '----------------------------------------------------'
+    end
+    links.uniq!
 
-    # Procesar el contenido (por ejemplo, guardar en un archivo)
-    File.write('scraped_content.html', content)
+    links.each do |link|
+      puts link
+    end
 
-    # Cerrar el navegador
+    # content = driver.page_source
+    # puts content
+
     driver.quit
-
-    puts "Scraping complete. Content saved to scraped_content.html."
   end
 end
