@@ -20,25 +20,45 @@ task headless_crawler: :environment do
 
     links = []
     driver.find_elements(:tag_name, 'a').each do |link|
-      puts link.text
-      puts link.attribute('href')
+      # puts link.text
+      # puts link.attribute('href')
       
       if link.attribute('href').to_s.match(/#{site.filter}/)
         links.push link.attribute('href')
-        puts 'link ON!'
-      else
-        puts 'out'
       end
-      puts '----------------------------------------------------'
     end
     links.uniq!
-
+    
     links.each do |link|
       puts link
-    end
 
-    # content = driver.page_source
-    # puts content
+      if entry = Entry.find_by(url: link)
+        puts 'NOTICIA YA EXISTE'
+        puts entry.title
+      else
+        driver.navigate.to link
+        sleep 10
+
+        content = driver.page_source
+        doc = Nokogiri::HTML(content)
+        # puts doc
+
+        if doc.at('meta[property="og:title"]')
+          title = doc.at('meta[property="og:title"]')[:content]
+        elsif doc.title && title.blank?
+          title = doc.title
+        else
+          title = ''
+        end
+        puts title
+
+        # Entry.create_with(site: site).find_or_create_by!(url: link) do |entry|
+        #   puts entry.url
+        # end
+
+        puts '----------------------------------------------------'
+      end
+    end
 
     driver.quit
   end
