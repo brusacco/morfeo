@@ -20,25 +20,25 @@ task headless_crawler: :environment do
     options.add_argument("--user-agent=#{user_agent}")
 
     driver = Selenium::WebDriver.for :chrome, options: options
-    
+
     puts "#{site.name} - #{site.url} - #{site.id}"
     driver.navigate.to site.url
 
     sleep 10
     # driver.manage.timeouts.implicit_wait = 500
     # puts driver
-    
+
     links = []
     driver.find_elements(:tag_name, 'a').each do |link|
       # puts link.text
       # puts link.attribute('href')
-      
+
       if link.attribute('href').to_s.match(/#{site.filter}/)
         links.push link.attribute('href')
       end
     end
     links.uniq!
-    
+
     links.each do |link|
       # puts link
 
@@ -55,7 +55,7 @@ task headless_crawler: :environment do
 
         Entry.create_with(site: site).find_or_create_by!(url: link) do |entry|
           puts entry.url
-  
+
           #---------------------------------------------------------------------------
           # Basic data extractor
           #---------------------------------------------------------------------------
@@ -65,7 +65,7 @@ task headless_crawler: :environment do
           else
             puts "ERROR BASIC: #{result.error}"
           end
-        
+
           #---------------------------------------------------------------------------
           # Content extractor
           #---------------------------------------------------------------------------
