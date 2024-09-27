@@ -60,7 +60,7 @@ task headless_crawler: :environment do
           # Content extractor
           #---------------------------------------------------------------------------
           if entry.site.content_filter.present?
-            result = WebExtractorServices::ExtractContent.call(page.doc, entry.site.content_filter)
+            result = WebExtractorServices::ExtractContent.call(doc, entry.site.content_filter)
             if result.success?
               entry.update!(result.data)
             else
@@ -71,7 +71,7 @@ task headless_crawler: :environment do
           #---------------------------------------------------------------------------
           # Date extractor
           #---------------------------------------------------------------------------
-          result = WebExtractorServices::ExtractDate.call(page.doc)
+          result = WebExtractorServices::ExtractDate.call(doc)
           if result.success?
             entry.update!(result.data)
             puts result.data
