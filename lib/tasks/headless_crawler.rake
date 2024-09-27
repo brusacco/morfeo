@@ -30,7 +30,7 @@ task headless_crawler: :environment do
     links.uniq!
     
     links.each do |link|
-      puts link
+      # puts link
 
       if entry = Entry.find_by(url: link)
         puts 'NOTICIA YA EXISTE'
