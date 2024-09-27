@@ -43,19 +43,71 @@ task headless_crawler: :environment do
         doc = Nokogiri::HTML(content)
         # puts doc
 
-        if doc.at('meta[property="og:title"]')
-          title = doc.at('meta[property="og:title"]')[:content]
-        elsif doc.title && title.blank?
-          title = doc.title
-        else
-          title = ''
+        Entry.create_with(site: site).find_or_create_by!(url: link) do |entry|
+          puts entry.url
+  
+          #---------------------------------------------------------------------------
+          # Basic data extractor
+          #---------------------------------------------------------------------------
+          result = WebExtractorServices::ExtractBasicInfo.call(doc)
+          if result.success?
+            entry.update!(result.data)
+          else
+            puts "ERROR BASIC: #{result.error}"
+          end
+        
+          #---------------------------------------------------------------------------
+          # Content extractor
+          #---------------------------------------------------------------------------
+          if entry.site.content_filter.present?
+            result = WebExtractorServices::ExtractContent.call(page.doc, entry.site.content_filter)
+            if result.success?
+              entry.update!(result.data)
+            else
+              puts "ERROR CONTENT: #{result&.error}"
+            end
+          end
+
+          #---------------------------------------------------------------------------
+          # Date extractor
+          #---------------------------------------------------------------------------
+          result = WebExtractorServices::ExtractDate.call(page.doc)
+          if result.success?
+            entry.update!(result.data)
+            puts result.data
+          else
+            puts "ERROR DATE: #{result&.error}"
+            next
+          end
+
+          #---------------------------------------------------------------------------
+          # Tagger
+          #---------------------------------------------------------------------------
+          result = WebExtractorServices::ExtractTags.call(entry.id)
+          if result.success?
+            entry.tag_list.add(result.data)
+            entry.save!
+            puts result.data
+          else
+            puts "ERROR TAGGER: #{result&.error}"
+          end
+
+          #---------------------------------------------------------------------------
+          # Stats extractor
+          #---------------------------------------------------------------------------
+          result = FacebookServices::UpdateStats.call(entry.id)
+          if result.success?
+            entry.update!(result.data)
+            puts result.data
+          else
+            puts "ERROR STATS: #{result&.error}"
+          end
+
+          #---------------------------------------------------------------------------
+          # Set entry polarity
+          #---------------------------------------------------------------------------
+          entry.set_polarity if entry.belongs_to_any_topic?
         end
-        puts title
-
-        # Entry.create_with(site: site).find_or_create_by!(url: link) do |entry|
-        #   puts entry.url
-        # end
-
         puts '----------------------------------------------------'
       end
     end
