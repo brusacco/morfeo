@@ -1,15 +1,17 @@
 # frozen_string_literal: true
 
 ActiveAdmin.register Site do
-  permit_params :name, :url, :filter, :content_filter, :negative_filter, :page, :status
+  permit_params :name, :url, :filter, :content_filter, :negative_filter, :page, :status, :is_js
 
   filter :name
   filter :url
   filter :status, label: 'Estado'
+  filter :is_js, label: 'Medios JS'
 
   scope 'Todos', :all, default: :true
   scope 'Activos', :enabled
   scope 'Inactivos', :disabled
+  scope 'Medios JS', :js_site
 
   index do
     id_column
@@ -27,6 +29,9 @@ ActiveAdmin.register Site do
     column 'Content Filter' do |site|
       !site.content_filter.nil?
     end
+		column 'Medio JS?'do |site|
+			site.is_js
+		end
     actions
   end
 
@@ -38,6 +43,7 @@ ActiveAdmin.register Site do
       f.input :content_filter
       f.input :negative_filter
       f.input :status, label: 'Estado'
+      f.input :is_js, label: 'Es un Medio JS?'
       f.actions
     end
   end

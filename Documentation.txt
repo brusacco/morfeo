@@ -157,3 +157,5 @@ Entry.update_all(enabled: true)
 rails g migration AddRepeatedToEntries repeated:boolean
 
 rails g migration change_data_type_for_repeated
+
+rails g migration AddIsJsToSites is_js:boolean
