@@ -5,7 +5,7 @@ require 'webdrivers'
 
 desc "Scrape a web page using Chrome Headless"
 task headless_crawler: :environment do
-  Site.enabled.where(id: 52).order(total_count: :desc).each do |site|
+  Site.enabled.where(id: 113).order(total_count: :desc).each do |site|
     options = Selenium::WebDriver::Chrome::Options.new
     options.add_argument('--headless')
     options.add_argument('--no-sandbox')

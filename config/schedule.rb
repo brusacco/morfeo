@@ -4,6 +4,7 @@ set :environment, 'production'
 
 every :hour do
   rake 'crawler'
+  rake 'headless_crawler'
   rake 'update_stats'
   rake 'update_site_stats'
   rake 'clean_site_content'
