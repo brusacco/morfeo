@@ -265,8 +265,8 @@ class Entry < ApplicationRecord
   end
 
   # For TopicStatDaily
-  scope :tagged_date, ->(date) { where(['entries.published_at >= ? AND entries.published_at <= ?', date, date + 1]) }
-  
+  scope :tagged_date, ->(date) { where(published_at: date.all_day) }
+
   def self.tagged_on_entry_quantity(tag, date)
     tagged_with(tag, any: true).tagged_date(date).size
   end
