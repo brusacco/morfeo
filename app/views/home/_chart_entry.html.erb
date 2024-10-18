@@ -1,0 +1,13 @@
+<tr class="even:bg-gray-50 odd:bg-white border-b border-gray-200 hover:bg-blue-100">
+  <td class="py-3 px-6 text-left whitespace-nowrap">
+    <div class="flex items-center">
+      <span class="font-medium text-gray-800"><%= link_to entry.title, entry.url, target: '_blank'%>\</span>
+    </div>
+  </td>
+  <td class="py-3 px-6 text-left">
+    <span class="text-gray-600"><%= entry.site.name %></span>
+  </td> 
+  <td class="py-3 px-6 text-left">
+    <span class="text-gray-600"><%= entry.total_count %></span>
+  </td>
+</tr>

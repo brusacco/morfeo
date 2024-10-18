@@ -22,6 +22,10 @@ Rails.application.routes.draw do
   get '/topic/:id/history', to: 'topic#history', as: 'topic_history'
   get '/topic/:id/comments', to: 'topic#comments', as: 'topic_comments'
 
+  resources :topics do
+    get 'entries_data', to: 'topic#entries_data', on: :collection
+  end
+
   devise_for :admin_users, ActiveAdmin::Devise.config
   ActiveAdmin.routes(self)
   get 'home/index'

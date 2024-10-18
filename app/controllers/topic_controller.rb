@@ -5,6 +5,24 @@ class TopicController < ApplicationController
 
   # caches_action :show, expires_in: 1.hour
 
+  def entries_data
+    topic_id = params[:topic_id]
+    date_filter = params[:date]
+
+    if date_filter.present?
+      date = Date.parse(date_filter)
+    end
+
+    topic = Topic.find_by(id: topic_id)
+
+    if topic
+      entries = topic.chart_entries(date)
+      entries = entries.where(published_at: date.all_day) if date_filter.present?
+    end
+
+    render partial: 'home/chart_entries', locals: { topic_entries: entries, entries_date: date, topic: topic.name }, layout: false
+  end
+
   def show
     @topic = Topic.find(params[:id])
 

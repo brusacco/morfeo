@@ -25,6 +25,18 @@ class Topic < ApplicationRecord
     Entry.enabled.where(id: result.map(&:id)).joins(:site)
   end
 
+  def chart_entries(date)
+    tag_list = tags.map(&:name)
+    result = Entry.search(
+      where: {
+        published_at: { gte: date.beginning_of_day, lte: date.end_of_day },
+        tags: { in: tag_list }
+      },
+      fields: [:id], misspellings: false
+    )
+    Entry.enabled.where(id: result.map(&:id)).order(total_count: :desc).joins(:site)
+  end
+
   def analytics_entries(ids)
     result = Entry.search(
       where: {

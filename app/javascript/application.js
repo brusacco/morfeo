@@ -2,7 +2,12 @@
 import "@hotwired/turbo-rails"
 import "controllers"
 import "chartkick"
+// import "Chart.bundle"
 import 'flowbite';
+
+import Highcharts from "highcharts"
+
+window.Highcharts = Highcharts
 
 document.addEventListener('turbo:load', function () {
   // profile - logout
