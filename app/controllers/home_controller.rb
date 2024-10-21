@@ -20,6 +20,7 @@ class HomeController < ApplicationController
       @topicos.map do |topic|
         {
           name: topic.name,
+          topicId: topic.id,
           data: topic.topic_stat_dailies.normal_range.group_by_day(:topic_date).sum(:total_count)
         }
       end

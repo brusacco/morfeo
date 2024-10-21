@@ -42,16 +42,25 @@ export default class extends Controller {
     fetch(this.urlValue + "?" + new URLSearchParams({ topic_id: topicId, date: date }))
       .then(response => response.text())
       .then(html => {
-        this.entriesTarget.innerHTML = html;
-        this.openModal();
+        const modalEntries = document.getElementById(`${this.idValue}Entries`);
+        if (modalEntries) {
+          modalEntries.innerHTML = html;
+          this.openModal();
+        }
       });
   }
 
   openModal() {
-    document.getElementById('entriesModal').classList.remove('hidden');
+    const modal = document.getElementById(`${this.idValue}Modal`);
+    if (modal) {
+      modal.classList.remove('hidden');
+    }
   }
 
   closeModal() {
-    document.getElementById('entriesModal').classList.add('hidden');
+    const modal = document.getElementById(`${this.idValue}Modal`);
+    if (modal) {
+      modal.classList.add('hidden');
+    }
   }
 }
