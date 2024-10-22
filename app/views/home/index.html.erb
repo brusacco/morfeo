@@ -1,7 +1,7 @@
 <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
   <div class="chart-container">
 
-    <!-- Gráfico 1: Notas x DIA x TOPICO -->
+    <!-- Gráfico 1 -->
     <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
       <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Notas x DIA x TOPICO</h2>
       <div class='outside'
@@ -9,12 +9,20 @@
         data-entries-chart-id-value='entryQuantitiesChart'
         data-entries-chart-url-value='<%= entries_data_topics_path %>'>
 
-        <%= line_chart @entry_quantities, xtitle: "Fecha", ytitle: "Cant. Notas", thousands: ".", curve: false, adapter: 'highcharts', id: 'entryQuantitiesChart' %>
+        <%= line_chart @entry_quantities, xtitle: "Fecha", ytitle: "Cant. Notas", thousands: ".", curve: false, 
+              adapter: 'highcharts', id: 'entryQuantitiesChart', library: {
+              plotOptions: {
+                series: {
+                  dataLabels: {
+                    enabled: true
+                  }
+                }
+              } } %>
         <%= render partial: 'modal', locals: { graph_id: 'entryQuantitiesChart' } %>
       </div>
     </div>
 
-    <!-- Gráfico 2: Interacciones x DIA x TOPICO -->
+    <!-- Gráfico 2 -->
     <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
       <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Interacciones x DIA x TOPICO</h2>
       <div class='outside'
@@ -22,7 +30,15 @@
         data-entries-chart-id-value='entryInteractionsChart'
         data-entries-chart-url-value='<%= entries_data_topics_path %>'>
 
-        <%= line_chart @entry_interactions, xtitle: "Fecha", ytitle: "Cant. Interacciones", thousands: ".", curve: false, adapter: 'highcharts', id: 'entryInteractionsChart' %>
+        <%= line_chart @entry_interactions, xtitle: "Fecha", ytitle: "Cant. Interacciones", thousands: ".", curve: false, 
+              adapter: 'highcharts', id: 'entryInteractionsChart', library: {
+              plotOptions: {
+                series: {
+                  dataLabels: {
+                    enabled: true
+                  }
+                }
+              } } %>
         <%= render partial: 'modal', locals: { graph_id: 'entryInteractionsChart' } %>
       </div>
     </div>
@@ -32,87 +48,142 @@
 
 <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
   <div class="chart-container">
+
+    <!-- Gráfico 3 -->
     <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
       <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Notas por Sentimiento Neutral</h2>
-      <%= line_chart @neutral_quantity, xtitle: "Fecha", ytitle: "Cant. Notas", thousands: ".", curve: false, library: {
-          plotOptions: {
-            series: {
-              dataLabels: {
-                enabled: true
-              }
-            }
-          } } %>
+      <div class='outside'
+        data-controller='entries-chart'
+        data-entries-chart-id-value='entryNeutralQuantitiesChart'
+        data-entries-chart-url-value='<%= entries_data_topics_path %>'>
+
+        <%= line_chart @neutral_quantity, xtitle: "Fecha", ytitle: "Cant. Notas", thousands: ".", curve: false, id: 'entryNeutralQuantitiesChart', library: {
+              plotOptions: {
+                series: {
+                  dataLabels: {
+                    enabled: true
+                  }
+                }
+              } } %>
+        <%= render partial: 'modal', locals: { graph_id: 'entryNeutralQuantitiesChart' } %>
+      </div>
     </div>
+
+    <!-- Gráfico 4 -->
     <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg">
       <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Interacciones por Sentimiento Neutral</h2>
-      <%= line_chart @neutral_interaction, xtitle: "Fecha", ytitle: "Cant. Notas", thousands: ".", curve: false, library: {
-          plotOptions: {
-            series: {
-              dataLabels: {
-                enabled: true
-              }
-            }
-          } } %>
+      <div class='outside'
+        data-controller='entries-chart'
+        data-entries-chart-id-value='entryNeutralInteractionsChart'
+        data-entries-chart-url-value='<%= entries_data_topics_path %>'>
+
+        <%= line_chart @neutral_interaction, xtitle: "Fecha", ytitle: "Cant. Notas", thousands: ".", curve: false, id: 'entryNeutralInteractionsChart', library: {
+              plotOptions: {
+                series: {
+                  dataLabels: {
+                    enabled: true
+                  }
+                }
+              } } %>
+        <%= render partial: 'modal', locals: { graph_id: 'entryNeutralInteractionsChart' } %>
+      </div>
     </div>
   </div>
 </div>
 
 <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
   <div class="chart-container">
+    
+    <!-- Gráfico 5 -->
     <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
       <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Notas por Sentimiento Positivo</h2>
-      <%= line_chart @positive_quantity, xtitle: "Fecha", ytitle: "Cant. Notas", thousands: ".", curve: false, library: {
-          plotOptions: {
-            series: {
-              dataLabels: {
-                enabled: true
+      <div class='outside'
+        data-controller='entries-chart'
+        data-entries-chart-id-value='entryPositiveQuantitiesChart'
+        data-entries-chart-url-value='<%= entries_data_topics_path %>'>    
+
+        <%= line_chart @positive_quantity, xtitle: "Fecha", ytitle: "Cant. Notas", thousands: ".", curve: false, id: 'entryPositiveQuantitiesChart', library: {
+            plotOptions: {
+              series: {
+                dataLabels: {
+                  enabled: true
+                }
               }
-            }
-          } } %>
+            } } %>
+        <%= render partial: 'modal', locals: { graph_id: 'entryPositiveQuantitiesChart' } %>
+      </div>
     </div>
+
+    <!-- Gráfico 6 -->
     <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg">
       <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Interacciones por Sentimiento Positivo</h2>
-      <%= line_chart @positive_interaction, xtitle: "Fecha", ytitle: "Cant. Notas", thousands: ".", curve: false, library: {
-          plotOptions: {
-            series: {
-              dataLabels: {
-                enabled: true
+      <div class='outside'
+        data-controller='entries-chart'
+        data-entries-chart-id-value='entryPositiveInteractionsChart'
+        data-entries-chart-url-value='<%= entries_data_topics_path %>'>
+
+        <%= line_chart @positive_interaction, xtitle: "Fecha", ytitle: "Cant. Notas", thousands: ".", curve: false, id: 'entryPositiveInteractionsChart', library: {
+            plotOptions: {
+              series: {
+                dataLabels: {
+                  enabled: true
+                }
               }
-            }
-          } } %>
+            } } %>
+        <%= render partial: 'modal', locals: { graph_id: 'entryPositiveInteractionsChart' } %>
+      </div>
     </div>
   </div>
 </div>
 
 <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
   <div class="chart-container">
+
+    <!-- Gráfico 7 -->
     <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
       <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Notas por Sentimiento Negativo</h2>
-      <%= line_chart @negative_quantity, xtitle: "Fecha", ytitle: "Cant. Notas", thousands: ".", curve: false, library: {
-          plotOptions: {
-            series: {
-              dataLabels: {
-                enabled: true
+      <div class='outside'
+        data-controller='entries-chart'
+        data-entries-chart-id-value='entryNegativeQuantitiesChart'
+        data-entries-chart-url-value='<%= entries_data_topics_path %>'>          
+        
+        <%= line_chart @negative_quantity, xtitle: "Fecha", ytitle: "Cant. Notas", thousands: ".", curve: false, id: 'entryNegativeQuantitiesChart', library: {
+            plotOptions: {
+              series: {
+                dataLabels: {
+                  enabled: true
+                }
               }
-            }
-          } } %>
+            } } %>
+        <%= render partial: 'modal', locals: { graph_id: 'entryNegativeQuantitiesChart' } %>
+      </div>
     </div>
+
+    <!-- Gráfico 8 -->
     <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg">
       <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Interacciones por Sentimiento Negativo</h2>
-      <%= line_chart @negative_interaction, xtitle: "Fecha", ytitle: "Cant. Notas", thousands: ".", curve: false, library: {
-          plotOptions: {
-            series: {
-              dataLabels: {
-                enabled: true
+      <div class='outside'
+        data-controller='entries-chart'
+        data-entries-chart-id-value='entryNegativeInteractionsChart'
+        data-entries-chart-url-value='<%= entries_data_topics_path %>'>
+
+        <%= line_chart @negative_interaction, xtitle: "Fecha", ytitle: "Cant. Notas", thousands: ".", curve: false, id: 'entryNegativeInteractionsChart', library: {
+            plotOptions: {
+              series: {
+                dataLabels: {
+                  enabled: true
+                }
               }
-            }
-          } } %>
+            } } %>
+        <%= render partial: 'modal', locals: { graph_id: 'entryNegativeInteractionsChart' } %>
+      </div>
     </div>
   </div>
 </div>
 
 <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
   <div class="chart-container">
+    <!-- Gráfico 9 -->
     <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
       <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Notas en las últimas 24 horas</h2>
       <%= bar_chart @notas_ultimo_dia_topico, xtitle: "TOPICO", ytitle: "Cant. Notas", thousands: ".", library: {
@@ -124,6 +195,7 @@
             }
           } } %>
     </div>
+    <!-- Gráfico 10 -->
     <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
       <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Interacciones en las últimas 24 horas</h2>
       <%= bar_chart @interacciones_ultimo_dia_topico, xtitle: "TOPICO", ytitle: "Cant. Interacciones", thousands: ".", library: {
@@ -170,9 +242,9 @@
 </header>
 <main>
   <div class="mx-auto py-6 sm:px-6 lg:px-8">
-    <%@topicos.each do |topic|%>
+    <% @topicos.each do |topic| %>
       <% next if topic.list_entries.empty?%>
       <%= render partial: 'entry/entries', locals: { last_entries: topic.list_entries.limit(12), title: topic.name } %>
-    <%end%>
+    <% end %>
   </div>
 </main>
