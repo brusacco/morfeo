@@ -16,8 +16,14 @@ module WebExtractorServices
         @date = @doc.at('meta[property="article:modified_time"]')[:content]
         @parsed = true
       elsif @doc.at('script[type="application/ld+json"]') && @date.nil?
-        @date = date_from_ld(@doc.at('script[type="application/ld+json"]').text)
-        @parsed = true
+        @doc.search('script[type="application/ld+json"]').each do |script|
+          ld_json_text = script.text
+          @date = date_from_ld(ld_json_text)
+          if @date
+            @parsed = true
+            break # Stop once a valid date is found
+          end
+        end
       elsif @doc.at_css('.entry-date') && @date.nil?
         @date = @doc.at_css('.entry-date')[:datetime]
         @parsed = false
