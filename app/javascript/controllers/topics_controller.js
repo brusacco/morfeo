@@ -1,11 +1,12 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Connects to data-controller="entries-chart"
+// Connects to data-controller="topics"
 export default class extends Controller {
   static targets = ['entries']
   static values = {
     id: String,
     url: String,
+    topicId: String
   }
 
   connect() {
@@ -14,21 +15,21 @@ export default class extends Controller {
 
   setupChartClickEvent() {
     let chart = Highcharts.charts.find(chart => chart.renderTo.id === this.idValue);
-
+  
     if (chart) {
       let _this = this;
-
+  
       chart.update({
         plotOptions: {
           series: {
             point: {
               events: {
                 click: function (event) {
-                  let topicId = event.point.series.options.topicId;
                   let clickedDate = new Date(event.point.category);
                   const formattedDate = clickedDate.toISOString().split('T')[0];
-
-                  _this.loadEntries(topicId, formattedDate);
+                  
+                  // Usar el topicId del controlador Stimulus
+                  _this.loadEntries(_this.topicIdValue, formattedDate);
                 }
               }
             }
@@ -37,8 +38,9 @@ export default class extends Controller {
       });
     }
   }
-
+  
   loadEntries(topicId, date) {
+    // Construir URL con topicId y fecha seleccionada
     fetch(this.urlValue + "?" + new URLSearchParams({ topic_id: topicId, date: date }))
       .then(response => response.text())
       .then(html => {
@@ -57,4 +59,11 @@ export default class extends Controller {
     }
   }
 
+  // closeModal() {
+  //   const modal = this.element.closest('.outside').querySelector('.fixed');
+  //   if (modal) {
+  //     modal.classList.add('hidden');
+  //   }
+  // }
+  
 }

@@ -30,7 +30,9 @@ class TopicController < ApplicationController
 
     @tag_list = @topic.tags.map(&:name)
     @entries = @topic.list_entries
+    @chart_entries = @entries.group_by_day(:published_at)
     @analytics = @topic.analytics_topic_entries
+
 
     @top_entries = Entry.enabled.normal_range.joins(:site).order(total_count: :desc).limit(5)
     @total_entries = @entries.size

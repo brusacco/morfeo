@@ -1,6 +1,13 @@
-<div class="text-center mb-4">
-  <span class="font-semibold">Fecha:</span> <%= entries_date.strftime("%d/%m/%Y") %> | 
-  <span class="font-semibold">Tópico:</span> <%= topic %>
+<div class="flex justify-between items-center mb-4">
+  <div>
+    <span class="font-semibold">Fecha:</span> <%= entries_date.strftime("%d/%m/%Y") %> | 
+    <span class="font-semibold">Tópico:</span> <%= topic %>
+  </div>
+
+  <button type="button" class="inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+    data-action="modal#closeModal">
+    Cerrar
+  </button>
 </div>
 
 <table class="min-w-full bg-white border border-gray-200 shadow-md rounded-lg">
