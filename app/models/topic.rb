@@ -34,7 +34,8 @@ class Topic < ApplicationRecord
       },
       fields: [:id], misspellings: false
     )
-    Entry.enabled.where(id: result.map(&:id)).order(total_count: :desc).joins(:site)
+    Entry.where(id: result.map(&:id)).enabled.order(total_count: :desc).joins(:site)
+    # Entry.where(id: result.map(&:id), total_count: 1..Float::INFINITY).enabled.order(total_count: :desc).joins(:site)
   end
 
   def analytics_entries(ids)
