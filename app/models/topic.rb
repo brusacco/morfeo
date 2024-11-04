@@ -16,13 +16,12 @@ class Topic < ApplicationRecord
     tag_list = tags.map(&:name)
     result = Entry.search(
       where: {
-        published_at: { gte: DAYS_RANGE.days.ago },
+        published_at: { gte: DAYS_RANGE.days.ago.beginning_of_day, lte: Date.today.end_of_day },
         tags: { in: tag_list }
       },
-      order: { published_at: :desc },
       fields: ['id'] # Only return the ids to reduce payload
     )
-    Entry.enabled.where(id: result.map(&:id)).joins(:site)
+    Entry.where(id: result.map(&:id)).enabled.order(published_at: :desc).joins(:site)
   end
 
   def chart_entries(date)
@@ -41,7 +40,7 @@ class Topic < ApplicationRecord
   def analytics_entries(ids)
     result = Entry.search(
       where: {
-        published_at: { gte: DAYS_RANGE.days.ago },
+        published_at: { gte: DAYS_RANGE.days.ago.beginning_of_day, lte: Date.today.end_of_day },
         id: { not: ids }
       },
       order: { published_at: :desc },
