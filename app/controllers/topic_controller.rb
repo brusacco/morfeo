@@ -31,6 +31,8 @@ class TopicController < ApplicationController
     @tag_list = @topic.tags.map(&:name)
     @entries = @topic.list_entries
     @chart_entries = @entries.group_by_day(:published_at)
+    @chart_entries_sentiments = @entries.where.not(polarity: nil).group(:polarity).group_by_day(:published_at)
+
     @analytics = @topic.analytics_topic_entries
 
 
