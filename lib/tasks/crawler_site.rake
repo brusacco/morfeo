@@ -74,6 +74,7 @@ task crawler_site: :environment do
           #---------------------------------------------------------------------------
           # Date extractor
           #---------------------------------------------------------------------------
+          puts 'Get fecha'
           result = WebExtractorServices::ExtractDate.call(page.doc)
           puts "result.data DATE: #{result.data}"
           if result.success?
