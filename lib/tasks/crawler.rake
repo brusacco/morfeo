@@ -24,7 +24,7 @@ task crawler: :environment do
     feed
   ]
   directory_pattern = /#{directories.join('|')}/
-  Site.enabled.where.not(id: [125, 91, 67]).order(total_count: :desc).each do |site|
+  Site.enabled.order(total_count: :desc).each do |site|
     puts "Start test processing site #{site.name}..."
     puts '--------------------------------------------------------------------"'
     Anemone.crawl(

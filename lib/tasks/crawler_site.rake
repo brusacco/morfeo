@@ -1,39 +1,42 @@
 # frozen_string_literal: true
 
-desc 'Moopio Morfeo web crawler'
+desc 'Moopio Morfeo web crawler for Sites'
 task crawler_site: :environment do
-  Site.where(id: 58).order(total_count: :desc).each do |site|
-    # Site.all.order(total_count: :desc).each do |site|
+  directories = %w[
+    blackhole
+    wp-login
+    wp-admin
+    galerias
+    fotoblog
+    radios
+    page
+    etiqueta
+    categoria
+    category
+    pagina
+    auth
+    wp-content
+    img
+    tag
+    contacto
+    programa
+    date
+    feed
+  ]
+  directory_pattern = /#{directories.join('|')}/
+  Site.where(id: 58).each do |site|
     puts "Start test processing site #{site.name}..."
     puts '--------------------------------------------------------------------"'
     Anemone.crawl(
       site.url,
+      read_timeout: 10,
       depth_limit: 2,
       discard_page_bodies: true,
       accept_cookies: true,
+      threads: 5,
       verbose: true
     ) do |anemone|
-      anemone.skip_links_like(
-        /.*(.jpeg|.jpg|.gif|.png|.pdf|.mp3|.mp4|.mpeg).*/,
-        /.*(.jpeg|.jpg|.gif|.png|.pdf|.mp3|.mp4|.mpeg)/,
-        /blackhole/,
-        /wp-login/,
-        /wp-admin/,
-        /galerias/,
-        /fotoblog/,
-        /radios/,
-        /page/,
-        /etiqueta/,
-        /categoria/,
-        /category/,
-        /pagina/,
-        /auth/,
-        /wp-content/,
-        /tag/,
-        %r{/contacto/},
-        /wp-admin/,
-        /wp-content/
-      )
+      anemone.skip_links_like(/.*\.(jpeg|jpg|gif|png|pdf|mp3|mp4|mpeg)/, directory_pattern)
 
       anemone.focus_crawl do |page|
         page.links.delete_if { |href| Entry.exists?(url: href.to_s) }
@@ -97,11 +100,16 @@ task crawler_site: :environment do
           #---------------------------------------------------------------------------
           result = FacebookServices::UpdateStats.call(entry.id)
           if result.success?
-            entry.update!(result.data) if result.success?
+            entry.update!(result.data)
             puts result.data
           else
             puts "ERROR STATS: #{result&.error}"
           end
+
+          #---------------------------------------------------------------------------
+          # Set entry polarity
+          #---------------------------------------------------------------------------
+          entry.set_polarity if entry.belongs_to_any_topic?
 
           #---------------------------------------------------------------------------
           # Extract and save ngrams
