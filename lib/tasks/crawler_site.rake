@@ -38,12 +38,12 @@ task crawler_site: :environment do
     ) do |anemone|
       anemone.skip_links_like(/.*\.(jpeg|jpg|gif|png|pdf|mp3|mp4|mpeg)/, directory_pattern)
 
-      #anemone.focus_crawl do |page|
-        #page.links.delete_if { |href| Entry.exists?(url: href.to_s) }
-        # page.links.delete_if do |href|
-        #  href.to_s.match(/#{site.negative_filter.presence || 'NUNCA'}/).present?
-        # end
-      #end
+      anemone.focus_crawl do |page|
+        page.links.delete_if { |href| Entry.exists?(url: href.to_s) }
+        page.links.delete_if do |href|
+          href.to_s.match(/#{site.negative_filter.presence || 'NUNCA'}/).present?
+        end
+      end
 
       anemone.on_pages_like(/#{site.filter}/) do |page|
         Entry.create_with(site: site).find_or_create_by!(url: page.url.to_s) do |entry|
