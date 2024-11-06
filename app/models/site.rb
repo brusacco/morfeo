@@ -12,7 +12,7 @@ class Site < ApplicationRecord
   scope :enabled, -> { where(status: true) }
   scope :disabled, -> { where(status: false) }
   scope :js_site, -> { where(is_js: true) }
-  scope :entry_none, -> { where(entries_count: 0 )}
+  scope :entry_none, -> { enabled.where(entries_count: 0 )}
 
   def save_image(url)
     response = HTTParty.get(url)
