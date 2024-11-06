@@ -52,6 +52,7 @@ task crawler_site: :environment do
           #---------------------------------------------------------------------------
           # Basic data extractor
           #---------------------------------------------------------------------------
+          puts 'Basic Data Extractor'
           result = WebExtractorServices::ExtractBasicInfo.call(page.doc)
           if result.success?
             entry.update!(result.data)
@@ -62,6 +63,7 @@ task crawler_site: :environment do
           #---------------------------------------------------------------------------
           # Content extractor
           #---------------------------------------------------------------------------
+          puts 'Content Extractor'
           if entry.site.content_filter.present?
             result = WebExtractorServices::ExtractContent.call(page.doc, entry.site.content_filter)
             if result.success?
@@ -74,7 +76,7 @@ task crawler_site: :environment do
           #---------------------------------------------------------------------------
           # Date extractor
           #---------------------------------------------------------------------------
-          puts 'Get fecha'
+          puts 'Date Extractor'
           result = WebExtractorServices::ExtractDate.call(page.doc)
           puts "result.data DATE: #{result.data}"
           if result.success?
