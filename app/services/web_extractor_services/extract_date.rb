@@ -3,6 +3,7 @@
 module WebExtractorServices
   class ExtractDate < ApplicationService
     def initialize(doc)
+      puts "STEP: initialize"
       @doc = doc
       @parsed = false
       @date = nil
