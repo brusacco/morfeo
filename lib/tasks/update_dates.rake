@@ -2,7 +2,7 @@
 
 desc 'Update dates'
 task update_dates: :environment do
-  Parallel.each(Entry.enabled.where(site_id: [58, 81], published_at: nil), in_threads: 3) do |entry|
+  Parallel.each(Entry.enabled.where(site_id: [58], published_at: nil), in_threads: 3) do |entry|
     begin
       doc = Nokogiri::HTML(URI.parse(entry.url).open)
     rescue StandardError => e
