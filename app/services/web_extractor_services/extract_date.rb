@@ -10,6 +10,7 @@ module WebExtractorServices
     end
 
     def call
+      puts "STEP: def call"
       if @doc.at('meta[property="article:published_time"]')
         @date = @doc.at('meta[property="article:published_time"]')[:content]
         @parsed = true
@@ -17,8 +18,10 @@ module WebExtractorServices
         @date = @doc.at('meta[property="article:modified_time"]')[:content]
         @parsed = true
       elsif @doc.at('script[type="application/ld+json"]') && @date.nil?
+        puts "ENTRO ACA"
         @doc.search('script[type="application/ld+json"]').each do |script|
           ld_json_text = script.text
+          puts "ld_json_text: #{ld_json_text}"
           @date = date_from_ld(ld_json_text)
           if @date
             @parsed = true
@@ -99,6 +102,7 @@ module WebExtractorServices
     #------------------------------------------------------------------------------------
     def date_from_ld(json_ld)
       data = JSON.parse(json_ld)
+      puts "STEP: json #{data}"
       find_key(data, 'datePublished')
     end
 
