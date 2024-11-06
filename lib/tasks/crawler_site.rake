@@ -30,13 +30,13 @@ task crawler_site: :environment do
     Anemone.crawl(
       site.url,
       read_timeout: 10,
-      depth_limit: 2,
+      depth_limit: 3,
       discard_page_bodies: true,
       accept_cookies: true,
       threads: 5,
       verbose: true
     ) do |anemone|
-      anemone.skip_links_like(/.*\.(jpeg|jpg|gif|png|pdf|mp3|mp4|mpeg)/, directory_pattern)
+      anemone.skip_links_like(/.*\.(jpeg|jpg|gif|png|pdf|mp3|mp4|mpeg)/)
 
       anemone.focus_crawl do |page|
         page.links.delete_if { |href| Entry.exists?(url: href.to_s) }
@@ -78,7 +78,6 @@ task crawler_site: :environment do
           #---------------------------------------------------------------------------
           puts 'Date Extractor'
           result = WebExtractorServices::ExtractDate.call(page.doc)
-          puts "result.data DATE: #{result.data}"
           if result.success?
             entry.update!(result.data)
             puts result.data

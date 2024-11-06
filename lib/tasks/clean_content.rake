@@ -50,7 +50,7 @@ end
 
 task clean_site_content: :environment do
   site = Site.find(58)
-  entries = site.entries.enabled.order(published_at: :desc).limit(1000)
+  entries = site.entries.enabled.order(created_at: :desc).limit(100)
   Parallel.each(entries, in_threads: 4) do |entry|
     next unless entry.site.content_filter
 
@@ -74,6 +74,17 @@ task clean_site_content: :environment do
       entry.update!(result.data)
     else
       puts "ERROR CONTENT: #{result&.error}"
+    end
+
+    #---------------------------------------------------------------------------
+    # Date extractor
+    #---------------------------------------------------------------------------
+    puts 'Date Extractor'
+    result = WebExtractorServices::ExtractDate.call(doc)
+    if result.success?
+      entry.update!(result.data)
+    else
+      puts "ERROR DATE: #{result&.error}"
     end
 
     #---------------------------------------------------------------------------
