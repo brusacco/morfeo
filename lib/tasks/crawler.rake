@@ -36,7 +36,7 @@ task crawler: :environment do
       threads: 5,
       verbose: true
     ) do |anemone|
-      anemone.skip_links_like(/.*\.(jpeg|jpg|gif|png|pdf|mp3|mp4|mpeg)/, directory_pattern)
+      anemone.skip_links_like(/.*\.(jpeg|jpg|gif|png|pdf|mp3|mp4|mpeg)/)
 
       anemone.focus_crawl do |page|
         page.links.delete_if { |href| Entry.exists?(url: href.to_s) }
