@@ -12,6 +12,7 @@ ActiveAdmin.register Site do
   scope 'Activos', :enabled
   scope 'Inactivos', :disabled
   scope 'Medios JS', :js_site
+  scope 'Sin Notas', :entry_none
 
   index do
     id_column
