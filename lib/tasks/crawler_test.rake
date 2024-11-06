@@ -2,7 +2,7 @@
 
 desc 'Moopio Morfeo web crawler'
 task crawler_test: :environment do
-  Site.where(id: 58).order(total_count: :desc).each do |site|
+  Site.where(id: 23).order(total_count: :desc).each do |site|
     # Site.all.order(total_count: :desc).each do |site|
     puts "Start test processing site #{site.name}..."
     puts '--------------------------------------------------------------------"'
