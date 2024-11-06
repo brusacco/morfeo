@@ -7,6 +7,7 @@ task update_dates: :environment do
       doc = Nokogiri::HTML(URI.parse(entry.url).open)
     rescue StandardError => e
       puts "#{entry.url}: #{e}"
+      next
     end
     result = WebExtractorServices::ExtractDate.call(doc)
     if result.success?
