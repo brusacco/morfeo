@@ -9,6 +9,8 @@ module WebExtractorServices
     end
 
     def call
+      puts "STEP: del call"
+      sleep 5
       if @doc.at('meta[property="article:published_time"]')
         @date = @doc.at('meta[property="article:published_time"]')[:content]
         @parsed = true
