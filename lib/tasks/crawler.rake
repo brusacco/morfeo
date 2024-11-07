@@ -80,7 +80,6 @@ task crawler: :environment do
             puts result.data
           else
             puts "ERROR DATE: #{result&.error}"
-            next
           end
 
           #---------------------------------------------------------------------------
