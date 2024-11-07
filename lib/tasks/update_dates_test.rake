@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 desc 'Update dates'
-task update_dates: :environment do
-  Parallel.each(Entry.enabled.where(site_id: [58], published_at: nil), in_threads: 3) do |entry|
+task update_dates_test: :environment do
+  Parallel.each(Entry.enabled.where(site_id: [110], published_at: nil), in_threads: 3) do |entry|
     begin
       doc = Nokogiri::HTML(URI.parse(entry.url).open)
     rescue StandardError => e

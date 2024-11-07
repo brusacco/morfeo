@@ -7,6 +7,7 @@ every :hour do
   rake 'headless_crawler'
   rake 'update_stats'
   rake 'update_site_stats'
+  rake 'update_dates'
   rake 'clean_site_content'
   rake 'topic_stat_daily'
 end
