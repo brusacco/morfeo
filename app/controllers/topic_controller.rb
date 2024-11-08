@@ -40,7 +40,9 @@ class TopicController < ApplicationController
     @total_interactions = @entries.sum(&:total_count)
 
     # Calcular numeros de totales de la semana
-    @all_entries = @topic.analytics_entries(@entries.ids)
+    # @all_entries = @topic.analytics_entries(@entries.ids)
+    @all_entries_size = Entry.enabled.normal_range.where.not(id: @entries.ids).count
+    @all_entries_interactions = Entry.enabled.normal_range.where.not(id: @entries.ids).sum(:total_count)
 
     # Cosas nuevas
     @word_occurrences = @entries.word_occurrences
