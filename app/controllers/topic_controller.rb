@@ -66,9 +66,9 @@ class TopicController < ApplicationController
       @percentage_negatives = (Float(@negatives) / @entries.size * 100).round(0)
       @percentage_neutrals = (Float(@neutrals) / @entries.size * 100).round(0)
 
-      total_count = @entries.size + @all_entries.size
+      total_count = @entries.size + @all_entries_size
       @topic_percentage = (Float(@entries.size) / total_count * 100).round(0)
-      @all_percentage = (Float(@all_entries.size) / total_count * 100).round(0)
+      @all_percentage = (Float(@all_entries_size) / total_count * 100).round(0)
 
       total_count = @entries.sum(:total_count) + @all_entries.sum(:total_count)
       @topic_interactions_percentage = (Float(@entries.sum(&:total_count)) / total_count * 100).round(1)
