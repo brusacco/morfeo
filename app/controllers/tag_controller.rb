@@ -20,9 +20,10 @@ class TagController < ApplicationController
     @word_occurrences = @entries.word_occurrences
     @bigram_occurrences = @entries.bigram_occurrences
 
-    @positives = @entries.where(polarity: 1).count('*')
-    @negatives = @entries.where(polarity: 2).count('*')
-    @neutrals = @entries.where(polarity: 0).count('*')
+    polarity_counts = @entries.group(:polarity).count
+    @neutrals = polarity_counts['neutral'] || 0
+    @positives = polarity_counts['positive'] || 0
+    @negatives = polarity_counts['negative'] || 0
 
     @percentage_positives = (@positives.to_f / @entries.size * 100).round(0) if @positives > 0
     @percentage_negatives = (@negatives.to_f / @entries.size * 100).round(0) if @negatives > 0
