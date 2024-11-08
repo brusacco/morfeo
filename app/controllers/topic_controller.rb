@@ -33,8 +33,7 @@ class TopicController < ApplicationController
     @chart_entries = @entries.group_by_day(:published_at)
     @chart_entries_sentiments = @entries.where.not(polarity: nil).group(:polarity).group_by_day(:published_at)
 
-    @analytics = @topic.analytics_topic_entries
-
+    # @analytics = @topic.analytics_topic_entries
 
     @top_entries = Entry.enabled.normal_range.joins(:site).order(total_count: :desc).limit(5)
     @total_entries = @entries.size
