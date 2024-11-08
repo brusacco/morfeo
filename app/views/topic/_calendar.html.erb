@@ -153,8 +153,15 @@
             <% hour = entry.published_at.hour %>
             <% minute = entry.published_at.min %>
             <% grid_row = (hour * 12) + (minute / 5) + 1 %>
+            <% background_color = if entry.total_count <= 100
+                          "bg-green-50"
+                        elsif entry.total_count <= 500
+                          "bg-yellow-50"
+                        else
+                          "bg-red-50"
+                        end %>
             <li class="relative mt-px flex sm:col-start-<%= 7 - (Date.today - entry.published_at.to_date).to_i %>" style="grid-row: <%= grid_row %> / span 10">
-              <a href="#" class="group absolute inset-1 flex flex-col overflow-y-auto rounded-lg bg-blue-50 p-2 text-xs/5 hover:bg-blue-100">
+              <a href="#" class="group absolute inset-1 flex flex-col overflow-y-auto rounded-lg <%= background_color %> p-2 text-xs/5 hover:bg-blue-100">
                 <p class="order-1 font-semibold text-blue-700"><%=entry.title%></p>
                 <p class="text-blue-500 group-hover:text-blue-700"><time datetime="<%=entry.published_at%>"><%= entry.published_at.strftime("%-I:%M %p") %></time></p>
               </a>
