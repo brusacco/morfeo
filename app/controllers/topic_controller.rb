@@ -70,9 +70,9 @@ class TopicController < ApplicationController
       @topic_percentage = (Float(@entries.size) / total_count * 100).round(0)
       @all_percentage = (Float(@all_entries_size) / total_count * 100).round(0)
 
-      total_count = @entries.sum(:total_count) + @all_entries.sum(:total_count)
+      total_count = @entries.sum(:total_count) + @all_entries_interactions
       @topic_interactions_percentage = (Float(@entries.sum(&:total_count)) / total_count * 100).round(1)
-      @all_intereactions_percentage = (Float(@all_entries.sum(&:total_count)) / total_count * 100).round(1)
+      @all_intereactions_percentage = (Float(@all_entries_interactions) / total_count * 100).round(1)
     end
 
     @most_interactions = @entries.sort_by(&:total_count).reverse.take(12)
