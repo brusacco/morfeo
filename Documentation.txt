@@ -200,3 +200,16 @@ rails g migration AddIsJsToSites is_js:boolean
     </div>
   </div>
 </div>
+
+
+SELECT * FROM pages 
+INTO OUTFILE '/tmp/pages.csv' 
+FIELDS TERMINATED BY ',' 
+ENCLOSED BY '"' 
+LINES TERMINATED BY '\n';
+
+SELECT * FROM sites 
+INTO OUTFILE '/tmp/sites.csv' 
+FIELDS TERMINATED BY ',' 
+ENCLOSED BY '"' 
+LINES TERMINATED BY '\n';

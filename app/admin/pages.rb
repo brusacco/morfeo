@@ -20,6 +20,11 @@ ActiveAdmin.register Page do
   end
 
   form do |f|
+    if !f.object.new_record?
+      panel 'Page' do
+        "<h2>#{f.object.name.to_s}</h2>".html_safe
+      end
+    end
     f.inputs 'Page' do
       f.input :uid, required: true
       f.input :site, required: true
