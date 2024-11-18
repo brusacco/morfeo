@@ -78,6 +78,9 @@ module WebExtractorServices
       elsif @doc.at('.main_content h4') && @date.nil?
         @date = @doc.at('.main_content h4').text
         @parsed = false
+      elsif @doc.at('c-hero__text--date') && @date.nil?
+        @date = @doc.at('c-hero__text--date').text
+        @parsed = false
       else
         @date = nil
       end
