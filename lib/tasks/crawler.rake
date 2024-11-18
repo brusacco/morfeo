@@ -34,7 +34,8 @@ task crawler: :environment do
       discard_page_bodies: true,
       accept_cookies: true,
       threads: 5,
-      verbose: true
+      verbose: true,
+      user_agent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3071.115 Safari/537.36'
     ) do |anemone|
       anemone.skip_links_like(/.*\.(jpeg|jpg|gif|png|pdf|mp3|mp4|mpeg)/, directory_pattern)
 
