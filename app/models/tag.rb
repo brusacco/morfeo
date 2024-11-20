@@ -17,7 +17,7 @@ class Tag < ApplicationRecord
   end
 
   def list_entries
-    filtered_entries = RecentEntry.where(published_at: DAYS_RANGE.days.ago..)
+    filtered_entries = Entry.where(published_at: DAYS_RANGE.days.ago..)
                             .tagged_with(name)
                             .order(published_at: :desc)
 
