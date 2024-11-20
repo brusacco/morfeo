@@ -1,5 +1,5 @@
 # frozen_string_literal: true
 
-class Entry < ApplicationRecord
+class RecentEntry < ApplicationRecord
   acts_as_taggable_on :tags
 end
