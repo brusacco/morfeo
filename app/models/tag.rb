@@ -17,9 +17,7 @@ class Tag < ApplicationRecord
   end
 
   def list_entries
-    filtered_entries = RecentEntry.tagged_with(name)
-                            .order(published_at: :desc)
-
+    filtered_entries = RecentEntry.tagged_with(name).order(published_at: :desc)
     filtered_entries.joins(:site)
   end
 
