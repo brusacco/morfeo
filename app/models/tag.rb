@@ -17,9 +17,11 @@ class Tag < ApplicationRecord
   end
 
   def list_entries
-    filtered_entries = RecentEntry.tagged_with(name)
+    filtered_entries = RecentEntry.where(published_at: DAYS_RANGE.days.ago..)
+                            .tagged_with(name)
+                            .order(published_at: :desc)
 
-    Entry.where(id: filtered_entries.map(&:id)).joins(:site).order(published_at: :desc)
+    filtered_entries.joins(:site)
   end
 
   def list_entries_old
