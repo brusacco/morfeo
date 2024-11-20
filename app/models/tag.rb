@@ -16,7 +16,7 @@ class Tag < ApplicationRecord
     Topic.all.any? { |topic| topic.tag_ids.include?(id) }
   end
 
-  def list_entries
+  def list_entries_old
     filtered_entries = Entry.where(published_at: DAYS_RANGE.days.ago..)
                             .tagged_with(name)
                             .order(published_at: :desc)
@@ -24,7 +24,7 @@ class Tag < ApplicationRecord
     filtered_entries.joins(:site)
   end
 
-  def list_entries_old
+  def list_entries
     tag_list = name
     result = Entry.search(
       where: {
