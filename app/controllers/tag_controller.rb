@@ -38,7 +38,7 @@ class TagController < ApplicationController
 
     @tags = @entries.tag_counts_on(:tags).order('count desc').limit(50)
 
-    @comments = Comment.where(entry_id: @entries.pluck(:id))
+    @comments = Comment.where(entry_id: 0)
     @comments_word_occurrences = @comments.word_occurrences
     @comments_bigram_occurrences = @comments.bigram_occurrences
 
