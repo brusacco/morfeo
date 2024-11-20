@@ -155,5 +155,6 @@ class HomeController < ApplicationController
     @url = params[:url]
     @doc = Nokogiri::HTML(URI.parse(@url).open)
     @result = WebExtractorServices::ExtractDate.call(@doc)
+    render layout: false
   end
 end
