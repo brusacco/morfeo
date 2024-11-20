@@ -21,7 +21,7 @@ class Tag < ApplicationRecord
                             .tagged_with(name)
                             .order(published_at: :desc)
 
-    filtered_entries.joins(:site)
+    filtered_entries.includes(:site)
   end
 
   def list_entries_old
