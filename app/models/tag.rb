@@ -17,6 +17,15 @@ class Tag < ApplicationRecord
   end
 
   def list_entries
+    filtered_entries = Entry.enabled
+                            .where(published_at: DAYS_RANGE.days.ago..)
+                            .tagged_with(name)
+                            .order(published_at: :desc)
+
+    filtered_entries.joins(:site)
+  end
+
+  def list_entries_old
     tag_list = name
     result = Entry.search(
       where: {
