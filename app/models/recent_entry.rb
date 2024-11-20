@@ -89,4 +89,12 @@ class RecentEntry < ApplicationRecord
     # save
     # trigram_list
   end
+
+  def clean_image
+    if image_url.blank? || image_url == 'null'
+      'https://via.placeholder.com/300x250'
+    else
+      image_url
+    end
+  end
 end
