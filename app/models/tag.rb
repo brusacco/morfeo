@@ -16,13 +16,13 @@ class Tag < ApplicationRecord
     Topic.all.any? { |topic| topic.tag_ids.include?(id) }
   end
 
-  def list_entries
+  def list_entries_test
     filtered_entries = RecentEntry.tagged_with(name).order(published_at: :desc)
     RecentEntry.tagged_with('Honor Colorado').order(published_at: :desc)
     filtered_entries.joins(:site)
   end
 
-  def list_entries_old
+  def list_entries
     tag_list = name
     result = Entry.search(
       where: {
