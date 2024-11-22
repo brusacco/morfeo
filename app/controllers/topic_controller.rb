@@ -8,6 +8,7 @@ class TopicController < ApplicationController
   def entries_data
     topic_id = params[:topic_id]
     date_filter = params[:date]
+    polarity = params[:polarity]
 
     if date_filter.present?
       date = Date.parse(date_filter)
@@ -18,6 +19,7 @@ class TopicController < ApplicationController
     if topic
       entries = topic.chart_entries(date)
       entries = entries.where(published_at: date.all_day) if date_filter.present?
+      entries = entries.where(polarity: polarity) if polarity.present?
     end
 
     render partial: 'home/chart_entries', locals: { topic_entries: entries, entries_date: date, topic: topic.name }, layout: false

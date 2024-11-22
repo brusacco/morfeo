@@ -28,7 +28,7 @@ export default class extends Controller {
                   let clickedDate = new Date(event.point.category);
                   const formattedDate = clickedDate.toISOString().split('T')[0];
                   
-                  // Usar el topicId del controlador Stimulus
+                  // topicId del controller
                   _this.loadEntries(_this.topicIdValue, formattedDate);
                 }
               }

@@ -55,6 +55,7 @@
       <div class='outside'
         data-controller='entries-chart'
         data-entries-chart-id-value='entryNeutralQuantitiesChart'
+        data-entries-chart-polarity-value='0'
         data-entries-chart-url-value='<%= entries_data_topics_path %>'>
 
         <%= line_chart @neutral_quantity, xtitle: "Fecha", ytitle: "Cant. Notas", thousands: ".", curve: false, id: 'entryNeutralQuantitiesChart', library: {

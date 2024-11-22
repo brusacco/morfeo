@@ -6,6 +6,7 @@ export default class extends Controller {
   static values = {
     id: String,
     url: String,
+    polarity: String
   }
 
   connect() {
@@ -27,8 +28,11 @@ export default class extends Controller {
                   let topicId = event.point.series.options.topicId;
                   let clickedDate = new Date(event.point.category);
                   const formattedDate = clickedDate.toISOString().split('T')[0];
+                  
+                  let polarity = _this.polarityValue
+                  console.log("polarity: " + polarity);
 
-                  _this.loadEntries(topicId, formattedDate);
+                  _this.loadEntries(topicId, formattedDate, polarity);
                 }
               }
             }
@@ -38,8 +42,8 @@ export default class extends Controller {
     }
   }
 
-  loadEntries(topicId, date) {
-    fetch(this.urlValue + "?" + new URLSearchParams({ topic_id: topicId, date: date }))
+  loadEntries(topicId, date, polarity) {
+    fetch(this.urlValue + "?" + new URLSearchParams({ topic_id: topicId, date: date, polarity: polarity }))
       .then(response => response.text())
       .then(html => {
         const modalEntries = document.getElementById(`${this.idValue}Entries`);
