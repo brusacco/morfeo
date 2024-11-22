@@ -76,6 +76,7 @@
       <div class='outside'
         data-controller='entries-chart'
         data-entries-chart-id-value='entryNeutralInteractionsChart'
+        data-entries-chart-polarity-value='0'
         data-entries-chart-url-value='<%= entries_data_topics_path %>'>
 
         <%= line_chart @neutral_interaction, xtitle: "Fecha", ytitle: "Cant. Notas", thousands: ".", curve: false, id: 'entryNeutralInteractionsChart', library: {
@@ -101,6 +102,7 @@
       <div class='outside'
         data-controller='entries-chart'
         data-entries-chart-id-value='entryPositiveQuantitiesChart'
+        data-entries-chart-polarity-value='1'
         data-entries-chart-url-value='<%= entries_data_topics_path %>'>    
 
         <%= line_chart @positive_quantity, xtitle: "Fecha", ytitle: "Cant. Notas", thousands: ".", curve: false, id: 'entryPositiveQuantitiesChart', library: {
@@ -121,6 +123,7 @@
       <div class='outside'
         data-controller='entries-chart'
         data-entries-chart-id-value='entryPositiveInteractionsChart'
+        data-entries-chart-polarity-value='1'
         data-entries-chart-url-value='<%= entries_data_topics_path %>'>
 
         <%= line_chart @positive_interaction, xtitle: "Fecha", ytitle: "Cant. Notas", thousands: ".", curve: false, id: 'entryPositiveInteractionsChart', library: {
@@ -146,6 +149,7 @@
       <div class='outside'
         data-controller='entries-chart'
         data-entries-chart-id-value='entryNegativeQuantitiesChart'
+        data-entries-chart-polarity-value='2'
         data-entries-chart-url-value='<%= entries_data_topics_path %>'>          
         
         <%= line_chart @negative_quantity, xtitle: "Fecha", ytitle: "Cant. Notas", thousands: ".", curve: false, id: 'entryNegativeQuantitiesChart', library: {
@@ -166,6 +170,7 @@
       <div class='outside'
         data-controller='entries-chart'
         data-entries-chart-id-value='entryNegativeInteractionsChart'
+        data-entries-chart-polarity-value='2'
         data-entries-chart-url-value='<%= entries_data_topics_path %>'>
 
         <%= line_chart @negative_interaction, xtitle: "Fecha", ytitle: "Cant. Notas", thousands: ".", curve: false, id: 'entryNegativeInteractionsChart', library: {
