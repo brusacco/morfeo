@@ -25,6 +25,9 @@ export default class extends Controller {
             point: {
               events: {
                 click: function (event) {
+                  let polarity = event.point.series.options.polarity;
+                  console.log("polarity: " + polarity);
+                  
                   let clickedDate = new Date(event.point.category);
                   const formattedDate = clickedDate.toISOString().split('T')[0];
                   

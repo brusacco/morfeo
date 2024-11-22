@@ -28,9 +28,7 @@ export default class extends Controller {
                   let topicId = event.point.series.options.topicId;
                   let clickedDate = new Date(event.point.category);
                   const formattedDate = clickedDate.toISOString().split('T')[0];
-                  
                   let polarity = _this.polarityValue
-                  console.log("polarity: " + polarity);
 
                   _this.loadEntries(topicId, formattedDate, polarity);
                 }
