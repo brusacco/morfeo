@@ -67,6 +67,7 @@ RAILS_ENV=production rails c -- --noautocomplete
 
 RAILS_ENV=production rake crawler
 RAILS_ENV=production rake update_stats
+RAILS_ENV=production rake update_dates_test
 
 RAILS_ENV=production rake facebook:fanpage_crawler
 RAILS_ENV=production rake facebook:comment_crawler
