@@ -46,7 +46,7 @@ module WebExtractorServices
         @date = @doc.at('.publish-date').text
         @parsed = false
       elsif @doc.at('.Leer_cat') && @date.nil?
-        @date = @doc.at('.Leer_cat').text
+        @date = @doc.at('.Leer_cat').text.split('/').first
         @parsed = false
       elsif @doc.at('.NotasFecha') && @date.nil?
         @date = @doc.at('.NotasFecha').text
