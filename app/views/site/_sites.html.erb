@@ -11,8 +11,8 @@
             </div>
             <p class="mt-1 truncate text-sm text-gray-500"><%= count %> publicaciones</p>
           </div>
-          <% if page %>
-            <%= image_tag page.picture, class: 'h-10 w-10 flex-shrink-0 rounded-full bg-gray-300' if page.present? %>            
+          <% if page.present? && page.picture %>
+            <%= image_tag page.picture, class: 'h-10 w-10 flex-shrink-0 rounded-full bg-gray-300' %>            
           <% else %>
             <img class="h-10 w-10 flex-shrink-0 rounded-full bg-gray-300" src="https://placehold.co/300x300" alt="">            
           <% end %>
