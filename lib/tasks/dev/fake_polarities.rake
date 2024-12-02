@@ -9,6 +9,8 @@ namespace :dev do
     entries.each do |entry|
       entry.polarity = polarities.sample
       entry.save!
+
+      puts "Set polarity: #{entry.polarity} to entry_id: #{entry.id}"
     end
 
     puts "Random polarities (0, 1, 2) assigned to #{entries.count} entries."

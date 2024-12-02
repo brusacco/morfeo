@@ -25,14 +25,12 @@ export default class extends Controller {
             point: {
               events: {
                 click: function (event) {
-                  let polarity = event.point.series.options.polarity;
-                  console.log("polarity: " + polarity);
-                  
+                  const polarity = event.point.series.name;
                   let clickedDate = new Date(event.point.category);
                   const formattedDate = clickedDate.toISOString().split('T')[0];
                   
                   // topicId del controller
-                  _this.loadEntries(_this.topicIdValue, formattedDate);
+                  _this.loadEntries(_this.topicIdValue, formattedDate, polarity);
                 }
               }
             }
@@ -42,9 +40,13 @@ export default class extends Controller {
     }
   }
   
-  loadEntries(topicId, date) {
-    // Construir URL con topicId y fecha seleccionada
-    fetch(this.urlValue + "?" + new URLSearchParams({ topic_id: topicId, date: date }))
+  loadEntries(topicId, date, polarity) {
+    // Construir URL con topicId, fecha seleccionada y polaridad
+    fetch(this.urlValue + "?" + new URLSearchParams({
+      topic_id: topicId,
+      date: date,
+      polarity: polarity
+    }))
       .then(response => response.text())
       .then(html => {
         const modalEntries = document.getElementById(`${this.idValue}Entries`);
@@ -61,12 +63,4 @@ export default class extends Controller {
       modal.classList.remove('hidden');
     }
   }
-
-  // closeModal() {
-  //   const modal = this.element.closest('.outside').querySelector('.fixed');
-  //   if (modal) {
-  //     modal.classList.add('hidden');
-  //   }
-  // }
-  
 }

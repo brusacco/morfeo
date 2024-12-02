@@ -16,13 +16,27 @@ class TopicController < ApplicationController
 
     topic = Topic.find_by(id: topic_id)
 
+    valid_polarities = %w[neutral positive negative 0 1 2]
+    polarity = nil unless valid_polarities.include?(polarity)
+
     if topic
       entries = topic.chart_entries(date)
       entries = entries.where(published_at: date.all_day) if date_filter.present?
       entries = entries.where(polarity: polarity) if polarity.present?
     end
 
-    render partial: 'home/chart_entries', locals: { topic_entries: entries, entries_date: date, topic: topic.name }, layout: false
+    case polarity
+    when 'neutral', '0'
+      polarityName = 'Neutral'
+    when 'positive', '1'
+      polarityName = 'Positiva'
+    when 'negative', '2'
+      polarityName = 'Negativa'
+    else
+      polarityName = 'Todas'
+    end
+
+    render partial: 'home/chart_entries', locals: { topic_entries: entries, entries_date: date, topic: topic.name, polarity: polarityName }, layout: false
   end
 
   def show

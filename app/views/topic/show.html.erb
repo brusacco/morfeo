@@ -97,9 +97,8 @@
                   stacked: false, curve: false, colors: ['red', 'lightgrey', 'lightgreen'], id: 'entryPolarityQuantitiesChart', library: {
                   plotOptions: {
                     series: {
-                      dataLabels: {
-                        enabled: true
-                      }
+                      name: 'Polarity',
+                      dataLabels: { enabled: true }
                     }
                   } } %>
             <%= render partial: 'home/modal', locals: { graph_id: 'entryPolarityQuantitiesChart', controller_name: 'topics' } %>   
