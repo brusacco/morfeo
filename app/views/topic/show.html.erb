@@ -162,6 +162,24 @@
       </div>
     </div>
     <hr>
+
+    <%= render partial: 'site/sites', locals: { sites: @entries.group("sites.id").count('*').sort_by { |site, count| -count }.take(10), title: 'Los medios que mas han mencionado' } %>
+    <hr>
+
+    <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
+      <div class="chart-container">
+        <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
+          <h3 class="mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Notas por medio</h3>
+          <%= pie_chart @entries.group("sites.name").count('*'), donut: true %>
+        </div>
+        <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
+          <h3 class="mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Interacciones por medio</h3>
+          <%= pie_chart @entries.group("sites.name").sum(:total_count), donut: true %>
+        </div>
+      </div>
+    </div>
+    <hr>
+
     <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
       <%= render partial: 'entry/entries_table', locals: { entries: @entries, title: "Últimas Noticias sobre #{@topic.name}" } %>
     </div>
@@ -232,21 +250,7 @@
     <hr>
     <%= render partial: 'entry/entries', locals: { last_entries: @most_interactions, title: 'Top Notas Interacciones del Tópico' } %>
     <hr>
-    <%= render partial: 'site/sites', locals: { sites: @entries.group("sites.id").count('*').sort_by { |site, count| -count }.take(10), title: 'Los medios que mas han mencionado' } %>
-    <hr>
 
-    <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
-      <div class="chart-container">
-        <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
-          <h3 class="mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Notas por medio</h3>
-          <%= pie_chart @entries.group("sites.name").count('*'), donut: true %>
-        </div>
-        <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
-          <h3 class="mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Interacciones por medio</h3>
-          <%= pie_chart @entries.group("sites.name").sum(:total_count), donut: true %>
-        </div>
-      </div>
-    </div>
     <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
       <div class="chart-container">
         <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
