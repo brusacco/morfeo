@@ -16,8 +16,7 @@ class TopicController < ApplicationController
 
     topic = Topic.find_by(id: topic_id)
 
-    valid_polarities = %w[neutral positive negative 0 1 2]
-    polarity = nil unless valid_polarities.include?(polarity)
+    polarity = validate_polarity(polarity)
 
     if topic
       entries = topic.chart_entries(date)
@@ -37,6 +36,11 @@ class TopicController < ApplicationController
     end
 
     render partial: 'home/chart_entries', locals: { topic_entries: entries, entries_date: date, topic: topic.name, polarity: polarityName }, layout: false
+  end
+
+  def validate_polarity(polarity)
+    valid_polarities = %w[neutral positive negative 0 1 2]
+    valid_polarities.include?(polarity) ? polarity : nil
   end
 
   def show
