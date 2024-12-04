@@ -3,6 +3,24 @@
     <h1 class="text-lg font-semibold leading-6 text-gray-900">Etiqueta: <%=@tag.name%></h1>
   </div>
 </header>
+<div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
+  <div class="chart-container">
+
+    <!-- Gráfico 1 -->
+    <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-0 sm:mb-0">
+      <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Notas x DIA</h2>
+      <%= line_chart @entries.group_by_day(:published_at).count, xtitle: "Fecha", ytitle: "Cant. Notas", label: "Notas", colors: ['blue'], curve: false %>
+    </div>
+
+    <!-- Gráfico 2 -->
+    <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-0 sm:mb-0">
+      <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">interacciones x DIA</h2>
+      <%= line_chart @entries.group_by_day(:published_at).sum(:total_count), xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones", colors: ['green'], curve: false %>
+    </div>
+  
+  </div>
+</div>
+
 <main>
   <div class="mx-auto sm:px-6 lg:px-8">
     <%if @tag.belongs_to_any_topic?%>
@@ -124,11 +142,7 @@
     <%= render partial: 'entry/entries', locals: { last_entries: @most_interactions, title: 'Top Interacciones de la Etiqueta' } %>
     <hr>
     <%= render partial: 'site/sites', locals: { sites: @entries.group("sites.id").count('*').sort_by { |site, count| -count }.take(10), title: 'Los medios que mas han mencionado' } %>
-    <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8  lg:px-8">
-      <h2 class="text-2xl font-bold tracking-tight text-gray-900">Análisis de los últimos <%=DAYS_RANGE%> días</h2>
-      <%= column_chart @entries.group_by_day(:published_at).count, xtitle: "Fecha", ytitle: "Cant. Notas", label: "Notas", colors: ['blue'] %>
-      <%= column_chart @entries.group_by_day(:published_at).sum(:total_count), xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones", colors: ['green']%>
-    </div>
+
     <hr>
     <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
       <div class="chart-container">
