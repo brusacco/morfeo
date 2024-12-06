@@ -3,29 +3,41 @@ import "@hotwired/turbo-rails"
 import "controllers"
 import "chartkick"
 // import "Chart.bundle"
-import 'flowbite';
 
 import Highcharts from "highcharts"
-
 window.Highcharts = Highcharts
 
-document.addEventListener('turbo:load', function () {
-  // profile - logout
-  const userMenuButton = document.getElementById('user-menu-button');
-  const userMenuDropdown = document.querySelector('.absolute.right-0');
+document.addEventListener("turbo:load", function() {
+  // Toggle para el menú de usuario (Cerrar Sesión)
+  var userMenuButton = document.getElementById('user-menu-button');
+  var userMenu = document.getElementById('user-menu');
 
-  let isMenuOpen = false;
-
-  userMenuButton.addEventListener('click', () => {
-    isMenuOpen = !isMenuOpen;
-    userMenuDropdown.classList.toggle('hidden', !isMenuOpen);
+  userMenuButton.addEventListener('click', function(event) {
+    userMenu.classList.toggle('hidden');
+    event.stopPropagation();
   });
 
-  // Cerrar el menú si se hace clic en cualquier otro lugar de la página
-  window.addEventListener('click', (event) => {
-    if (isMenuOpen && !userMenuButton.contains(event.target)) {
-      isMenuOpen = false;
-      userMenuDropdown.classList.add('hidden');
+  // Toggle para el menú de tópicos
+  var topicsMenuButton = document.getElementById('topics-menu-button');
+  var topicsMenu = document.getElementById('topics-menu');
+
+  topicsMenuButton.addEventListener('click', function(event) {
+    topicsMenu.classList.toggle('hidden');
+    event.stopPropagation();
+  });
+
+  // Ocultar menús cuando se hace clic fuera de ellos
+  document.addEventListener('click', function() {
+    if (!userMenu.classList.contains('hidden')) {
+      userMenu.classList.add('hidden');
     }
+    if (!topicsMenu.classList.contains('hidden')) {
+      topicsMenu.classList.add('hidden');
+    }
+  });
+
+  // Prevenir cierre de menús al hacer clic dentro de ellos
+  topicsMenu.addEventListener('click', function(event) {
+    event.stopPropagation();
   });
 });
