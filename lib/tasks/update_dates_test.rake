@@ -14,9 +14,9 @@ task update_dates_test: :environment do
     result = WebExtractorServices::ExtractDate.call(doc)
     if result.success?
       entry.update!(result.data)
-      puts "#{entry.url}: #{result.data}"
+      puts "#{entry.url} OK: #{result.data}"
     else
-      puts "#{entry.url}: #{result.error}"
+      puts "#{entry.url} ERROR: #{result.error}"
     end
   rescue StandardError => e
     puts "#{entry.url}: #{e}"
