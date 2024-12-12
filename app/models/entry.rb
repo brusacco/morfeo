@@ -2,7 +2,7 @@
 
 class Entry < ApplicationRecord
   searchkick
-  acts_as_taggable_on :tags
+  acts_as_taggable_on :tags, :title_tags
   validates :url, uniqueness: true
   belongs_to :site, touch: true
   has_many :comments, dependent: :destroy

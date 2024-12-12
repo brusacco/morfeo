@@ -96,6 +96,18 @@ task crawler: :environment do
           end
 
           #---------------------------------------------------------------------------
+          # Solo Title Tagger
+          #---------------------------------------------------------------------------
+          result = WebExtractorServices::ExtractTitleTags.call(entry.id)
+          if result.success?
+            entry.tag_list.add(result.data)
+            entry.save!
+            puts "TITLE TAGS: #{result.data}"
+          else
+            puts "ERROR TITLE TAGGER: #{result&.error}"
+          end
+
+          #---------------------------------------------------------------------------
           # Stats extractor
           #---------------------------------------------------------------------------
           result = FacebookServices::UpdateStats.call(entry.id)
