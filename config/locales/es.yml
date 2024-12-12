@@ -25,9 +25,28 @@ es:
     batch_destroy_status_msg: 'Batch eliminado correctamente'
     fail_on_destroy_msg: 'No se puede eliminar'
   activerecord:
+    models:
+      active_admin/managed_resource: Managed Resource
+      active_admin/permission: Permission
+    attributes:
+      base: &base
+        id: ID
+        created_at: Created at
+        updated_at: Updated at
+      managed_resource: &managed_resource
+        class_name: Class Name
+        action: Action
+        name: Name
+      active_admin/managed_resource:
+        <<: *base
+      active_admin/permission:
+        <<: *base
+        managed_resource_id: Managed Resource
+        role: Role
+        state: State
     errors:
       messages:
-        record_invalid: 'La validación falló: %{errors}'
+        record_invalid: "La validación falló: %{errors}"
         restrict_dependent_destroy:
           has_one: No se puede eliminar el registro porque existe un %{record} dependiente
           has_many: No se puede eliminar el registro porque existen %{record} dependientes
@@ -241,30 +260,6 @@ es:
       long: "%-d de %B de %Y %H:%M"
       short: "%-d de %b %H:%M"
     pm: pm
-
-  activerecord:
-    models:
-      active_admin/managed_resource: Managed Resource
-      active_admin/permission: Permission
-    attributes:
-      base: &base
-        id: ID
-        created_at: Created at
-        updated_at: Updated at
-      managed_resource: &managed_resource
-        class_name: Class Name
-        action: Action
-        name: Name
-      active_admin/managed_resource:
-        <<: *base
-        <<: *managed_resource
-      active_admin/permission:
-        <<: *base
-        <<: *managed_resource
-        managed_resource_id: Managed Resource
-        role: Role
-        state: State
-
   views:
     admin_user:
       notice:
