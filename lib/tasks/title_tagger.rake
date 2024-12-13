@@ -2,7 +2,7 @@
 
 desc 'Title Tagger'
 task title_tagger: :environment do
-  Entry.enabled.where(published_at: 3.months.ago..Time.current).find_each do |entry|
+  Entry.enabled.where(published_at: 7.days.ago..Time.current).find_each do |entry|
     result = WebExtractorServices::ExtractTitleTags.call(entry.id)
     next unless result.success?
 
@@ -15,7 +15,7 @@ task title_tagger: :environment do
     entry.touch
   rescue StandardError => e
     puts e.message
-    sleep 1
+    puts '---------------------------------------------------'
     retry
   end
 end
