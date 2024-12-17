@@ -6,9 +6,9 @@ task title_tagger: :environment do
     result = WebExtractorServices::ExtractTitleTags.call(entry.id)
     next unless result.success?
 
-    entry.tag_list = result.data
+    entry.title_tag_list = result.data
     puts entry.url
-    puts entry.tag_list
+    puts entry.title_tag_list
     puts '---------------------------------------------------'
 
     entry.save!

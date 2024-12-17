@@ -100,7 +100,7 @@ task crawler: :environment do
           #---------------------------------------------------------------------------
           result = WebExtractorServices::ExtractTitleTags.call(entry.id)
           if result.success?
-            entry.tag_list.add(result.data)
+            entry.title_tag_list.add(result.data)
             entry.save!
             puts "TITLE TAGS: #{result.data}"
           else
