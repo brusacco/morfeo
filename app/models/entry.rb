@@ -116,7 +116,8 @@ class Entry < ApplicationRecord
       published_at: published_at,
       published_date: published_date,
       total_count: total_count,
-      tags: tag_list
+      tags: tag_list,
+      title_tags: tag_list
     }
   end
 
