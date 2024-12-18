@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_10_01_211744) do
+ActiveRecord::Schema[7.0].define(version: 2024_12_18_203616) do
   create_table "active_admin_comments", force: :cascade do |t|
     t.string "namespace"
     t.text "body"
@@ -205,6 +205,17 @@ ActiveRecord::Schema[7.0].define(version: 2024_10_01_211744) do
     t.index ["topic_id"], name: "index_tags_topics_on_topic_id"
   end
 
+  create_table "title_topic_stat_dailies", force: :cascade do |t|
+    t.integer "entry_quantity"
+    t.integer "entry_interaction"
+    t.integer "average"
+    t.date "topic_date"
+    t.integer "topic_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["topic_id"], name: "index_title_topic_stat_dailies_on_topic_id"
+  end
+
   create_table "topic_stat_dailies", force: :cascade do |t|
     t.integer "entry_count"
     t.integer "total_count"
@@ -271,6 +282,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_10_01_211744) do
   add_foreign_key "newspapers", "sites"
   add_foreign_key "reports", "topics"
   add_foreign_key "taggings", "tags"
+  add_foreign_key "title_topic_stat_dailies", "topics"
   add_foreign_key "topic_stat_dailies", "topics"
   add_foreign_key "user_topics", "topics"
   add_foreign_key "user_topics", "users"

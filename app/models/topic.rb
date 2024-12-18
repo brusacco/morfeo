@@ -3,6 +3,7 @@
 class Topic < ApplicationRecord
   has_paper_trail on: [:create, :destroy, :update]
   has_many :topic_stat_dailies, dependent: :destroy
+  has_many :title_topic_stat_dailies, dependent: :destroy
   has_many :user_topics, dependent: :destroy
   has_many :users, through: :user_topics
   has_many :reports, dependent: :destroy

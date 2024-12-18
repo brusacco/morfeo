@@ -299,4 +299,13 @@ class Entry < ApplicationRecord
   def self.tagged_on_negative_interaction(tag, date)
     tagged_with(tag, any: true).tagged_date(date).where(polarity: 2).sum(:total_count)
   end
+
+  # Title
+  def self.tagged_on_title_entry_quantity(tag, date)
+    tagged_with(tag, on: :title_tags, any: true).tagged_date(date).size
+  end
+
+  def self.tagged_on_title_entry_interaction(tag, date)
+    tagged_with(tag, on: :title_tags, any: true).tagged_date(date).sum(:total_count)
+  end  
 end

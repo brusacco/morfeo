@@ -214,3 +214,12 @@ INTO OUTFILE '/tmp/sites.csv'
 FIELDS TERMINATED BY ',' 
 ENCLOSED BY '"' 
 LINES TERMINATED BY '\n';
+
+
+# Title
+rails g model TitleTopicStatDaily entry_quantity:integer entry_interaction:integer average:integer topic_date:date topic:references
+rails generate active_admin:resource TitleTopicStatDaily
+
+## REPORTES
+rails g model report_detail title:string sumary:text date:date
+rails g model Report title:string sumary:text topic:references report_detail:references 
