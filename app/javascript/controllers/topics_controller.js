@@ -6,7 +6,8 @@ export default class extends Controller {
   static values = {
     id: String,
     url: String,
-    topicId: String
+    topicId: String,
+    title: String
   }
 
   connect() {
@@ -25,12 +26,17 @@ export default class extends Controller {
             point: {
               events: {
                 click: function (event) {
-                  const polarity = event.point.series.name;
+                  let polarity = event.point.series.name;
+
+                  if (!['positive', 'negative', 'neutral'].includes(polarity)) {
+                    polarity = '';
+                  }
+
                   let clickedDate = new Date(event.point.category);
                   const formattedDate = clickedDate.toISOString().split('T')[0];
                   
                   // topicId del controller
-                  _this.loadEntries(_this.topicIdValue, formattedDate, polarity);
+                  _this.loadEntries(_this.topicIdValue, formattedDate, polarity, _this.titleValue);
                 }
               }
             }
@@ -40,12 +46,13 @@ export default class extends Controller {
     }
   }
   
-  loadEntries(topicId, date, polarity) {
-    // Construir URL con topicId, fecha seleccionada y polaridad
+  loadEntries(topicId, date, polarity, title) {
+    // Construir la URL
     fetch(this.urlValue + "?" + new URLSearchParams({
       topic_id: topicId,
       date: date,
-      polarity: polarity
+      polarity: polarity,
+      title: title
     }))
       .then(response => response.text())
       .then(html => {

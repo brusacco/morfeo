@@ -9,19 +9,27 @@ class TopicController < ApplicationController
     topic_id = params[:topic_id]
     date_filter = params[:date]
     polarity = params[:polarity]
+    title = params[:title]
 
     if date_filter.present?
       date = Date.parse(date_filter)
     end
 
     topic = Topic.find_by(id: topic_id)
-
     polarity = validate_polarity(polarity)
 
     if topic
-      entries = topic.chart_entries(date)
-      entries = entries.where(published_at: date.all_day) if date_filter.present?
-      entries = entries.where(polarity: polarity) if polarity.present?
+      if title == 'true'
+        entries = topic.title_chart_entries(date)
+      else
+        entries = topic.chart_entries(date)
+      end
+
+      entries = entries.where(published_at: date.all_day)
+
+      if polarity
+        entries = entries.where(polarity: polarity)
+      end
     end
 
     case polarity
@@ -52,6 +60,9 @@ class TopicController < ApplicationController
     @entries = @topic.list_entries
     @chart_entries = @entries.group_by_day(:published_at)
     @chart_entries_sentiments = @entries.where.not(polarity: nil).group(:polarity).group_by_day(:published_at)
+
+    @title_entries = @topic.title_list_entries
+    @title_chart_entries = @title_entries.group_by_day(:published_at)
 
     # @analytics = @topic.analytics_topic_entries
 

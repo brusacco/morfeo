@@ -58,6 +58,58 @@
     </div>
 
     <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
+      <div class="chart-container">
+
+        <!-- Gráfico SOLO en TITULOS 01 -->
+        <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-0 sm:mb-0">
+          <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Notas en TITULOS x DIA</h2>
+          <div class='outside'
+            data-controller='topics'
+            data-topics-id-value='titleEntryQuantitiesChart'
+            data-topics-url-value='<%= entries_data_topics_path %>'
+            data-topics-topic-id-value='<%= @topic.id %>'
+            data-topics-title-value='true'>
+
+            <%= line_chart @title_chart_entries.count('*'), xtitle: "Fecha", ytitle: "Cant. Notas en Titulo", label: "Cant. Notas en Titulo", thousands: ".", curve: false, 
+                  adapter: 'highcharts', id: 'titleEntryQuantitiesChart', colors: ['blue'], library: {
+                  plotOptions: {
+                    series: {
+                      dataLabels: {
+                        enabled: true
+                      }
+                    }
+                  } } %>
+            <%= render 'home/modal', graph_id: 'titleEntryQuantitiesChart', controller_name: 'topics' %>
+          </div>
+        </div>
+
+        <!-- Gráfico SOLO en TITULOS 02 -->
+        <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-0 sm:mb-0">
+          <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Interacciones en TITULOS x DIA</h2>
+          <div class='outside'
+            data-controller='topics'
+            data-topics-id-value='titleEntryInteractionsChart'
+            data-topics-url-value='<%= entries_data_topics_path %>'
+            data-topics-topic-id-value='<%= @topic.id %>'
+            data-topics-title-value='true'>
+
+            <%= line_chart @title_chart_entries.sum(:total_count), xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones en TITULO", thousands: ".", curve: false, 
+                  adapter: 'highcharts', id: 'titleEntryInteractionsChart', colors: ['green'], library: {
+                  plotOptions: {
+                    series: {
+                      dataLabels: {
+                        enabled: true
+                      }
+                    }
+                  } } %>
+            <%= render partial: 'home/modal', locals: { graph_id: 'titleEntryInteractionsChart', controller_name: 'topics' } %>         
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
       <div>
         <h2 class="text-2xl mx-5 my-5 font-bold tracking-tight text-gray-900">Análisis de sentimiento</h2>
         <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-4">
@@ -119,9 +171,8 @@
                   thousands: '.', stacked: false, curve: false, colors: ['red', 'lightgrey', 'lightgreen'], id: 'entryPolarityInteractionsChart', library: {
                   plotOptions: {
                     series: {
-                      dataLabels: {
-                        enabled: true
-                      }
+                      name: 'Polarity',
+                      dataLabels: { enabled: true }
                     }
                   } } %>
             <%= render partial: 'home/modal', locals: { graph_id: 'entryPolarityInteractionsChart', controller_name: 'topics' } %>   
