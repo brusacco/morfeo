@@ -24,6 +24,24 @@ class HomeController < ApplicationController
           data: topic.topic_stat_dailies.normal_range.group_by_day(:topic_date).sum(:total_count)
         }
       end
+  
+    @title_entry_quantities =
+      @topicos.map do |topic|
+        {
+          name: topic.name,
+          topicId: topic.id,
+          data: topic.title_topic_stat_dailies.normal_range.group_by_day(:topic_date).sum(:entry_quantity)
+        }
+      end #-- title
+
+    @title_entry_interactions =
+      @topicos.map do |topic|
+        {
+          name: topic.name,
+          topicId: topic.id,
+          data: topic.title_topic_stat_dailies.normal_range.group_by_day(:topic_date).sum(:entry_interaction)
+        }
+      end #-- title
 
     @neutral_quantity =
       @topicos.map do |topic|

@@ -46,6 +46,62 @@
   </div>
 </div>
 
+
+
+
+<div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
+  <div class="chart-container">
+
+    <!-- Gráfico Title 01 -->
+    <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
+      <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Notas en TITULOS x DIA x TOPICO</h2>
+      <div class='outside'
+        data-controller='entries-chart'
+        data-entries-chart-id-value='titleEntryQuantitiesChart'
+        data-entries-chart-url-value='<%= entries_data_topics_path %>'
+        data-entries-chart-title-value='true'>
+
+        <%= line_chart @title_entry_quantities, xtitle: "Fecha", ytitle: "Cant. Notas en Titulos", thousands: ".", curve: false, 
+              adapter: 'highcharts', id: 'titleEntryQuantitiesChart', library: {
+              plotOptions: {
+                series: {
+                  dataLabels: {
+                    enabled: true
+                  }
+                }
+              } } %>
+        <%= render partial: 'modal', locals: { graph_id: 'titleEntryQuantitiesChart', controller_name: 'entries-chart' } %>
+      </div>
+    </div>
+
+    <!-- Gráfico Title 02 -->
+    <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
+      <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Interacciones en TITULOS x DIA x TOPICO</h2>
+      <div class='outside'
+        data-controller='entries-chart'
+        data-entries-chart-id-value='titleEntryInteractionsChart'
+        data-entries-chart-url-value='<%= entries_data_topics_path %>'
+        data-entries-chart-title-value='true'></div>
+
+        <%= line_chart @title_entry_interactions, xtitle: "Fecha", ytitle: "Cant. Interacciones en Titulos", thousands: ".", curve: false, 
+              adapter: 'highcharts', id: 'titleEntryInteractionsChart', library: {
+              plotOptions: {
+                series: {
+                  dataLabels: {
+                    enabled: true
+                  }
+                }
+              } } %>
+        <%= render partial: 'modal', locals: { graph_id: 'titleEntryInteractionsChart', controller_name: 'entries-chart' } %>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+
+
 <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
   <div class="chart-container">
 
