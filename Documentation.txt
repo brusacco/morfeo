@@ -222,4 +222,7 @@ rails generate active_admin:resource TitleTopicStatDaily
 
 ## REPORTES
 rails g model report_detail title:string sumary:text date:date
-rails g model Report title:string sumary:text topic:references report_detail:references 
+rails g model Report title:string sumary:text topic:references report_detail:references
+
+rails g migration AddFieldsToReports title:string sumary:text date:date
+rails g controller Reports index show

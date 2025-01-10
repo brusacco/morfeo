@@ -143,3 +143,6 @@ gem "paper_trail", "~> 15.1"
 
 gem 'selenium-webdriver'
 gem 'webdrivers'
+
+gem "wicked_pdf", "~> 2.8"
+gem 'wkhtmltopdf-binary'
