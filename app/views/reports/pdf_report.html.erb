@@ -22,7 +22,7 @@
 </head>
 <body>
   <h1><%= @report.title %></h1>
-  <p><strong>Fecha:</strong> <%= @report.date.strftime('%d/%m/%Y') %></p>
+  <p><strong>Fecha:</strong> <%= @report.date.strftime('%d/%m/%Y') if @report.date.present? %></p>
   <p><strong>Resumen:</strong> <%= @report.sumary %></p>
   <div class="section">
     <p><strong>Texto del reporte:</strong></p>
