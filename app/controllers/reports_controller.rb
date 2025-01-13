@@ -1,4 +1,6 @@
 class ReportsController < ApplicationController
+  before_action :authenticate_user!
+  
   def index
     @reports = Report.all.order(created_at: :desc)
   end
