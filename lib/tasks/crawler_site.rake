@@ -24,7 +24,7 @@ task crawler_site: :environment do
     feed
   ]
   directory_pattern = /#{directories.join('|')}/
-  Site.where(id: 81).each do |site|
+  Site.where(id: 52).each do |site|
     puts "Start test processing site #{site.name}..."
     puts '--------------------------------------------------------------------"'
     Anemone.crawl(
