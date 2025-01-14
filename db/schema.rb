@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_01_09_184553) do
+ActiveRecord::Schema[7.0].define(version: 2024_12_18_203616) do
   create_table "active_admin_comments", force: :cascade do |t|
     t.string "namespace"
     t.text "body"
@@ -142,9 +142,6 @@ ActiveRecord::Schema[7.0].define(version: 2025_01_09_184553) do
     t.text "report_text"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.string "title"
-    t.text "sumary"
-    t.date "date"
     t.index ["topic_id"], name: "index_reports_on_topic_id"
   end
 

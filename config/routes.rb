@@ -17,7 +17,7 @@ Rails.application.routes.draw do
 
   get '/tag/search', to: 'tag#search', as: 'search_tag'
   get '/tag/:id', to: 'tag#show', as: 'tag'
-  # get '/tag/:id/report', to: 'tag#report', as: 'report'
+  get '/tag/:id/report', to: 'tag#report', as: 'report'
   get '/tag/:id/comments', to: 'tag#comments', as: 'tag_comments'
 
   get '/topic/:id', to: 'topic#show', as: 'topic'
@@ -35,11 +35,11 @@ Rails.application.routes.draw do
   post 'deploy', to: 'home#deploy'
   root 'home#index'
 
-  resources :reports, only: [:index, :new, :create, :show] do
-    member do
-      get :pdf_report
-    end
-  end
+  # resources :reports, only: [:index, :new, :create, :show] do
+  #   member do
+  #     get :pdf_report
+  #   end
+  # end
   
 
   # ChatGPT API definition routes
