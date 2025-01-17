@@ -221,8 +221,10 @@ rails g model TitleTopicStatDaily entry_quantity:integer entry_interaction:integ
 rails generate active_admin:resource TitleTopicStatDaily
 
 ## REPORTES
-rails g model report_detail title:string sumary:text date:date
-rails g model Report title:string sumary:text topic:references report_detail:references
+rails g model TemplateDetail title:string sumary:text start_date:date end_date:date
+rails g model Template template_detail:references topic:references title:string sumary:text 
 
-rails g migration AddFieldsToReports title:string sumary:text date:date
-rails g controller Reports index show
+rails g model Template topic:references title:string sumary:text date:date
+rails g controller Templates index new show
+
+rails generate active_admin:resource Template

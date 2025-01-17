@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Reporte PDF</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      font-size: 12px;
+    }
+    h1 {
+      text-align: center;
+      font-size: 16px;
+    }
+    p {
+      margin-bottom: 10px;
+    }
+    .section {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <%#= wicked_pdf_image_tag 'moopio-logo.png' %>
+  <p><strong>Fecha:</strong> <%= @template.date.strftime('%d/%m/%Y') %></p>
+  <h1><%= @template.title %></h1>
+  <p><strong>Topic:</strong> <%= @template.topic.name %></p>
+  <div class="section">
+    <p><strong>Resumen:</strong></p>
+    <p><%= @template.sumary %></p>
+  </div>
+
+  <div>
+    <%= @entries.inspect %>
+  </div>
+
+  <%= line_chart @chart_entries.count('*'), 
+      adapter: 'highcharts', 
+      library: {
+        exporting: {
+          enabled: true,
+          fallbackToExportServer: false
+        }
+      } %>
+
+  <%#= wicked_pdf_image_tag("path/to/exported_chart_image.png") %>
+
+  <div>
+    <% @chart_entries.each do |date, count| %>
+      <p><%= date.published_at.strftime('%d/%m/%Y') %>: <%= count %></p>
+    <% end %>
+  </div>
+
+
+</body>
+</html>

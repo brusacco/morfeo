@@ -1,0 +1,13 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  topic: one
+  title: MyString
+  sumary: MyText
+  date: 2025-01-15
+
+two:
+  topic: two
+  title: MyString
+  sumary: MyText
+  date: 2025-01-15

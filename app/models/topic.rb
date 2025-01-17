@@ -7,11 +7,14 @@ class Topic < ApplicationRecord
   has_many :user_topics, dependent: :destroy
   has_many :users, through: :user_topics
   has_many :reports, dependent: :destroy
+  has_many :templates, dependent: :destroy
   # has_many :topic_words, dependent: :destroy
   has_and_belongs_to_many :tags
   accepts_nested_attributes_for :tags
 
   before_update :remove_words_spaces
+
+  scope :active, -> { where(status: true) }
 
   def list_entries
     tag_list = tags.map(&:name)

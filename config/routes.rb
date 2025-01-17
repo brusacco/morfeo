@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 Rails.application.routes.draw do
-  # get 'reports/index'
-  # get 'reports/show'
   devise_for :users
   get 'topic/show'
   get 'tag/show'
@@ -35,12 +33,11 @@ Rails.application.routes.draw do
   post 'deploy', to: 'home#deploy'
   root 'home#index'
 
-  # resources :reports, only: [:index, :new, :create, :show] do
-  #   member do
-  #     get :pdf_report
-  #   end
-  # end
-  
+  resources :templates, only: [:index, :new, :create, :show] do
+    member do
+      get :pdf_report
+    end
+  end
 
   # ChatGPT API definition routes
   namespace :api do
