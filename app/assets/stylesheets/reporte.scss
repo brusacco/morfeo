@@ -1,0 +1,59 @@
+@media print {
+  body {
+    width: 100%;
+    height: auto;    
+    background-color: white;
+    color: black;
+    font-family: sans-serif;
+  }
+
+  .bg-gray-100 {
+    background-color: #f3f4f6 !important; /* Asegúrate de que el color coincida con tu Tailwind */
+  }
+
+  /* Quitar sombras y bordes innecesarios en impresión */
+  .shadow, .border {
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  .rounded-md {
+    border-radius: 0 !important;
+  }
+
+  /* Manejo de espacios y alineaciones */
+  .mb-6 {
+    margin-bottom: 20px !important;
+  }
+
+  /* Ajustar pre y código para impresión */
+  pre {
+    white-space: pre-wrap !important;
+    word-wrap: break-word !important;
+    background-color: white !important;
+  }
+
+  #loading {
+    width: 100%;
+    // max-width: 700px;
+    // height: 400px;
+    margin: 0 auto;
+    overflow: hidden;
+  }
+
+  /* Evitar cortes en el gráfico al imprimir */
+  #chart-container {
+    page-break-inside: avoid;
+    padding: 0px;
+    margin-bottom: 20px;
+  }
+
+  @page {
+    size: landscape letter;
+    margin: 10mm 10mm;
+  }
+
+  .print\:hidden {
+    display: none !important;
+  }  
+}

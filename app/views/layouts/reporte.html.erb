@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Morfeo Reporte</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highcharts/10.3.2/highcharts.js" crossorigin="anonymous"></script>
+    <%= stylesheet_link_tag "tailwind", "inter-font", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "reporte", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+
+  </head>
+
+  <body class="bg-gray-50 text-gray-900 font-sans">
+    <div class="container mx-auto p-6 print:p-0 print:w-full print:max-w-full">
+
+      <div class="flex justify-center mb-4">
+        <button
+          class="px-4 py-2 text-white bg-blue-600 rounded-md shadow hover:bg-blue-700 focus:outline-none print:hidden"
+          onclick="window.print()"
+        >
+          Imprimir PDF
+        </button>
+      </div>
+
+      <%= yield %>
+    </div>
+  </body>
+
+</html>

@@ -181,6 +181,8 @@ GEM
       activesupport (>= 6.1)
     groupdate (6.4.0)
       activesupport (>= 6.1)
+    grover (1.2.2)
+      nokogiri (~> 1)
     has_scope (0.8.2)
       actionpack (>= 5.2)
       activesupport (>= 5.2)
@@ -462,9 +464,6 @@ GEM
     websocket-extensions (0.1.5)
     whenever (1.0.0)
       chronic (>= 0.6.3)
-    wicked_pdf (2.6.3)
-      activesupport
-    wkhtmltopdf-binary (0.12.6.8)
     xdan-datetimepicker-rails (2.5.4)
       jquery-rails
       rails (>= 3.2.16)
@@ -492,6 +491,7 @@ DEPENDENCIES
   elasticsearch (~> 7.17)
   font-awesome-sass (~> 6.2)
   groupdate (~> 6.1)
+  grover
   httparty (~> 0.21.0)
   importmap-rails
   jbuilder
@@ -529,8 +529,6 @@ DEPENDENCIES
   webdrivers
   webrick (~> 1.7)
   whenever (~> 1.0)
-  wicked_pdf (= 2.6.3)
-  wkhtmltopdf-binary
 
 RUBY VERSION
    ruby 3.0.0p0
