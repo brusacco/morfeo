@@ -32,6 +32,25 @@ class TemplatesController < ApplicationController
 
       @top_entries = @entries.limit(10)
 
+      polarity_counts = @entries.group(:polarity).count
+      @neutrals = polarity_counts['neutral'] || 0
+      @positives = polarity_counts['positive'] || 0
+      @negatives = polarity_counts['negative'] || 0
+
+      if @entries.any?
+        @percentage_positives = (Float(@positives) / @entries.size * 100).round(0)
+        @percentage_negatives = (Float(@negatives) / @entries.size * 100).round(0)
+        @percentage_neutrals = (Float(@neutrals) / @entries.size * 100).round(0)
+  
+        # total_count = @entries.size + @all_entries_size
+        # @topic_percentage = (Float(@entries.size) / total_count * 100).round(0)
+        # @all_percentage = (Float(@all_entries_size) / total_count * 100).round(0)
+  
+        # total_count = @entries.sum(:total_count) + @all_entries_interactions
+        # @topic_interactions_percentage = (Float(@entries.sum(&:total_count)) / total_count * 100).round(1)
+        # @all_intereactions_percentage = (Float(@all_entries_interactions) / total_count * 100).round(1)
+      end
+      
     rescue => exception
       Rails.logger.error(exception.message)
       redirect_to templates_path, alert: 'Reporte no encontrado'
