@@ -26,9 +26,11 @@ class TemplatesController < ApplicationController
   def show
     begin
       @template = Template.find(params[:id])
-      @topic = @template.topic
-      @entries = @topic.list_entries
+      topic = @template.topic
+      @entries = topic.report_entries
       @chart_entries = @entries.group_by_day(:published_at)
+
+      @top_entries = @entries.limit(10)
 
     rescue => exception
       Rails.logger.error(exception.message)
@@ -71,15 +73,15 @@ class TemplatesController < ApplicationController
 
   private 
 
+  def template_params
+    params.require(:template).permit(:topic_id, :title, :sumary, :date)
+  end
+
   # def browser_endpoint
   #   if Rails.env.production?
   #     "https://morfeo.com.py"
   #   else 
   #     "http://localhost:6500"
   #   end
-  # end 
-
-  def template_params
-    params.require(:template).permit(:topic_id, :title, :sumary, :date)
-  end
+  # end  
 end

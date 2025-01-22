@@ -1,1 +1,0 @@
-Chartkick.options[:adapter] = "highcharts"

@@ -16,6 +16,18 @@ class Topic < ApplicationRecord
 
   scope :active, -> { where(status: true) }
 
+  def report_entries
+    tag_list = tags.map(&:name)
+    result = Entry.search(
+      where: {
+        published_at: { gte: 3.days.ago.beginning_of_day, lte: Date.today.end_of_day },
+        tags: { in: tag_list }
+      },
+      fields: ['id'] # Only return the ids to reduce payload
+    )
+    Entry.where(id: result.map(&:id)).enabled.order(total_count: :desc).joins(:site)
+  end
+
   def list_entries
     tag_list = tags.map(&:name)
     result = Entry.search(
