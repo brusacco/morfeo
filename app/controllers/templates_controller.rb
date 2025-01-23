@@ -39,8 +39,8 @@ class TemplatesController < ApplicationController
 
       if @entries.any?
         @percentage_positives = (Float(@positives) / @entries.size * 100).round(0)
-        @percentage_negatives = (Float(@negatives) / @entries.size * 100).round(0)
         @percentage_neutrals = (Float(@neutrals) / @entries.size * 100).round(0)
+        @percentage_negatives = (Float(@negatives) / @entries.size * 100).round(0)
   
         # total_count = @entries.size + @all_entries_size
         # @topic_percentage = (Float(@entries.size) / total_count * 100).round(0)
