@@ -29,8 +29,16 @@ class TemplatesController < ApplicationController
       topic = @template.topic
       @entries = topic.report_entries
       @chart_entries = @entries.group_by_day(:published_at)
-
+      
+      @total_entries = @entries.size
+      @total_interactions = @entries.sum(&:total_count)
       @top_entries = @entries.limit(15)
+
+      if @total_entries.zero?
+        @promedio = 0
+      else
+        @promedio = @total_interactions / @total_entries
+      end
 
       polarity_counts = @entries.group(:polarity).count
       @neutrals = polarity_counts['neutral'] || 0
