@@ -33,13 +33,13 @@ class TemplatesController < ApplicationController
       @top_entries = @entries.limit(15)
 
       polarity_counts = @entries.group(:polarity).count
-      @positives = polarity_counts['positive'] || 0
       @neutrals = polarity_counts['neutral'] || 0
+      @positives = polarity_counts['positive'] || 0
       @negatives = polarity_counts['negative'] || 0 
 
       if @entries.any?
-        @percentage_positives = (Float(@positives) / @entries.size * 100).round(0)
         @percentage_neutrals = (Float(@neutrals) / @entries.size * 100).round(0)
+        @percentage_positives = (Float(@positives) / @entries.size * 100).round(0)
         @percentage_negatives = (Float(@negatives) / @entries.size * 100).round(0)
   
         # total_count = @entries.size + @all_entries_size
@@ -58,6 +58,18 @@ class TemplatesController < ApplicationController
       polarities_interactions_counts = @entries.where.not(polarity: nil).group(:polarity).sum('total_count').sort_by { |key, _value| key }.to_h
       polarities_interactions_total_count = polarities_interactions_counts.values.sum.to_f
       @polarities_interactions_percentages = polarities_interactions_counts.transform_values { |count| (count / polarities_interactions_total_count * 100).round(0) }
+
+      # @demo_entries = {
+      #   "Negativas" => 68,
+      #   "Neutras" => 30,
+      #   "Positivas" => 2
+      # }
+
+      # @demo_interactions = {
+      #   "Negativas" => 8,
+      #   "Neutras" => 20,
+      #   "Positivas" => 72
+      # }     
 
     rescue => exception
       Rails.logger.error(exception.message)
