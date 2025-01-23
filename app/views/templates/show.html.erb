@@ -47,7 +47,7 @@
 
   <!-- Top entries -->
   <div class="mb-6">
-    <h2 class="text-lg font-semibold text-gray-700 mb-4">Noticias destacadas de la jornada</h2>
+    <h2 class="text-lg font-semibold text-gray-700 mb-4 text-center">Noticias destacadas</h2>
     <div class="overflow-x-auto border border-gray-200 rounded-lg shadow-sm">
       <table class="min-w-full divide-y divide-gray-200 text-sm text-gray-600">
         <thead class="bg-gray-100">
@@ -77,7 +77,7 @@
 
   <!-- Analisis de sentimientos -->
   <div class="mb-6">
-    <h2 class="text-lg font-semibold text-gray-700">Análisis de Sentimientos</h2>
+    <h2 class="text-lg font-semibold text-gray-700 text-center">Análisis de Sentimientos</h2>
     <div class="mt-4">
       <dl class="grid grid-cols-1 sm:grid-cols-4 lg:grid-cols-4 gap-4 print:grid-cols-4 print:gap-4">
         <!-- Total Noticias -->
@@ -105,6 +105,21 @@
         </div>
       </dl>
     </div>
+  </div>
+
+  <!-- Texto analisis de sentimientos -->
+  <div class="mb-6">
+    <p class="bg-gray-100 text-md p-4 rounded overflow-auto text-gray-800 print:bg-white">
+      El tópico <b><%= @template.topic.name %></b> en este periodo 
+      cuenta con un total de <b><%= number_with_delimiter(@total_entries, delimiter: '.') %></b> 
+      notas y generó un total de <b><%= number_with_delimiter(@total_interactions, delimiter: '.') %></b> interacciones, 
+      lo que nos da un promedio de <b><%= number_with_delimiter(@promedio, delimiter: '.') %></b> interacciones por nota.
+    </p>
+    <p class="bg-gray-100 text-md p-4 rounded overflow-auto text-gray-800 print:bg-white">
+      En contexto las <%= @top_entries.count %> notas más destacadas en <b>general</b>, en el mismo periodo tuvieron 
+      <b><%= @top_entries.pluck(:total_count).join(', ') %></b> interacciones respectivamente.
+      <i>Las notas más destacadas del tópico están en la tabla más arriba.</i>
+    </p>
   </div>
 
   <!-- Graficos de Sentimientos -->
@@ -161,19 +176,74 @@
     </div>
   </div>
 
-  <!-- Texto analisis -->
+  <!-- Medios - Texto analisis -->
   <div class="mb-6">
+    <h2 class="text-lg font-semibold text-gray-700 mb-2 text-center">Análisis y repercusiones por Medios</h2>
+
+    <% top_sites = @entries.group("sites.name").count('*').sort_by { |_, v| -v }.first(3) %>
     <p class="bg-gray-100 text-md p-4 rounded overflow-auto text-gray-800 print:bg-white">
-      El tópico <b><%= @template.topic.name %></b> en este periodo 
-      cuenta con un total de <b><%= number_with_delimiter(@total_entries, delimiter: '.') %></b> 
-      notas y generó un total de <b><%= number_with_delimiter(@total_interactions, delimiter: '.') %></b> interacciones, 
-      lo que nos da un promedio de <b><%= number_with_delimiter(@promedio, delimiter: '.') %></b> interacciones por nota.
+      El medio que más <b>Noticias</b> genera es <b><%= top_sites[0][0] %></b>, 
+      seguido por <b><%= top_sites[1][0] %></b> y <b><%= top_sites[2][0] %></b>.
     </p>
+
+    <% top_sites_interactions = @entries.group("sites.name").sum(:total_count).sort_by { |_, v| -v }.first(3) %>
     <p class="bg-gray-100 text-md p-4 rounded overflow-auto text-gray-800 print:bg-white">
-      En contexto las <%= @top_entries.count %> notas más destacadas en <b>general</b>, en el mismo periodo tuvieron 
-      <b><%= @top_entries.pluck(:total_count).join(', ') %></b> interacciones respectivamente.
-      <i>Las notas más destacadas del tópico están en la tabla más arriba.</i>
+      El medio que más <b>Interacciones</b> genera es <b><%= top_sites_interactions[0][0] %></b>,
+      seguido por <b><%= top_sites_interactions[1][0] %></b> y <b><%= top_sites_interactions[2][0] %></b>.
     </p>
+  </div>
+
+  <!-- Medios - Graficos -->
+  <div class="mb-6">
+    <div class="flex flex-wrap gap-6 mb-6 print:flex-nowrap">
+      <div class="flex-1 min-w-[300px]">
+        <h2 class="text-lg font-semibold text-gray-700 mb-2">Notas x Medio</h2>
+        <div id="chart-3" class="bg-gray-50 border border-gray-200 rounded p-2 shadow print:bg-white print:shadow-none print:border-none">        
+          <%= pie_chart @entries.group("sites.name").count('*'), donut: true, 
+                library: {
+                  plotOptions: {
+                    pie: {
+                      showInLegend: false,
+                      allowPointSelect: true,
+                      cursor: 'pointer',
+                      dataLabels: {
+                        enabled: true,
+                        distance: 10,
+                        format: '{point.name}: {point.y}',
+                        style: {
+                          fontSize: "0.8em"
+                        } 
+                      }
+                    }
+                  }
+                } %>
+        </div>
+      </div>
+
+      <div class="flex-1 min-w-[300px]">
+        <h2 class="text-lg font-semibold text-gray-700 mb-2">Interacciones x Medio</h2>
+        <div id="chart-4" class="bg-gray-50 border border-gray-200 rounded p-2 shadow print:bg-white print:shadow-none print:border-none">
+          <%= pie_chart @entries.group("sites.name").sum(:total_count), donut: true, 
+                library: {
+                  plotOptions: {
+                    pie: {
+                      showInLegend: false,
+                      allowPointSelect: true,
+                      cursor: 'pointer',
+                      dataLabels: {
+                        enabled: true,
+                        distance: 10,
+                        format: '{point.name}: {point.y}',
+                        style: {
+                          fontSize: "0.8em"
+                        } 
+                      }
+                    }
+                  }
+                } %>
+        </div>
+      </div>
+    </div>
   </div>
 
 </div>
