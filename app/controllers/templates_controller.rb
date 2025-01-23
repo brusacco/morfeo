@@ -30,12 +30,12 @@ class TemplatesController < ApplicationController
       @entries = topic.report_entries
       @chart_entries = @entries.group_by_day(:published_at)
 
-      @top_entries = @entries.limit(10)
+      @top_entries = @entries.limit(15)
 
       polarity_counts = @entries.group(:polarity).count
-      @neutrals = polarity_counts['neutral'] || 0
       @positives = polarity_counts['positive'] || 0
-      @negatives = polarity_counts['negative'] || 0
+      @neutrals = polarity_counts['neutral'] || 0
+      @negatives = polarity_counts['negative'] || 0 
 
       if @entries.any?
         @percentage_positives = (Float(@positives) / @entries.size * 100).round(0)
@@ -51,6 +51,14 @@ class TemplatesController < ApplicationController
         # @all_intereactions_percentage = (Float(@all_entries_interactions) / total_count * 100).round(1)
       end
       
+      polarities_entries_counts = @entries.where.not(polarity: nil).group(:polarity).count('*').sort_by { |key, _value| key }.to_h
+      polarity_entries_total_count = polarities_entries_counts.values.sum.to_f
+      @polarities_entries_percentages = polarities_entries_counts.transform_values { |count| (count / polarity_entries_total_count * 100).round(0) }
+
+      polarities_interactions_counts = @entries.where.not(polarity: nil).group(:polarity).sum('total_count').sort_by { |key, _value| key }.to_h
+      polarities_interactions_total_count = polarities_interactions_counts.values.sum.to_f
+      @polarities_interactions_percentages = polarities_interactions_counts.transform_values { |count| (count / polarities_interactions_total_count * 100).round(0) }
+
     rescue => exception
       Rails.logger.error(exception.message)
       redirect_to templates_path, alert: 'Reporte no encontrado'

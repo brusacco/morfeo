@@ -39,7 +39,7 @@
                   series: {
                     dataLabels: { enabled: true }
                   }
-                } 
+                }
               } %>
       </div>
     </div>
@@ -63,7 +63,7 @@
               <td class="px-4 py-2"><%= entry.published_at.strftime('%d/%m/%Y') %></td>
               <td class="px-6 py-2">
                 <%= link_to entry.url, target: '_blank', class: "flex items-center space-x-2" do %>
-                  <span class="truncate"><%= truncate(entry.title, length: 83) %></span>
+                  <span class="truncate"><%= truncate(entry.title, length: 80) %></span>
                   <%= image_tag 'external-link-gray.svg', size: 17, class: "flex-shrink-0" %>
                 <% end %>
               </td>
@@ -111,59 +111,52 @@
   <div class="flex flex-wrap gap-6 mb-6 print:flex-nowrap">
     <div class="flex-1 min-w-[300px]">
       <h2 class="text-lg font-semibold text-gray-700 mb-2">Notas x Sentimiento</h2>
-      <div id="chart-3" class="bg-gray-50 border border-gray-200 rounded p-2 shadow print:bg-white print:shadow-none print:border-none">
-
-        <% polarities_counts = @entries.where.not(polarity: nil).group(:polarity).count('*').sort_by { |key, _value| key }.to_h %>
-        <% total_count = polarities_counts.values.sum.to_f %>
-        <% polarities_percentages = polarities_counts.transform_values { |count| (count / total_count * 100).round(0) } %>
-        <%= pie_chart polarities_percentages, suffix: '%', 
-              plotOptions: {
-                series: {
-                  allowPointSelect: true,
-                  cursor: 'pointer',
-                  dataLabels: [{
-                    enabled: true,
-                    distance: 10
-                  }, {
+      <div id="chart-3" class="bg-gray-50 border border-gray-200 rounded p-2 shadow print:bg-white print:shadow-none print:border-none">        
+        <%= pie_chart @polarities_entries_percentages, colors: ["#307d24", "#686868", '#cb200f'], suffix: '%', 
+              library: {
+                plotOptions: {
+                  pie: {
+                    showInLegend: true,
+                    allowPointSelect: true,
+                    cursor: 'pointer',
+                    dataLabels: {
                       enabled: true,
-                      distance: -40,
-                      format: '{point.percentage:.1f}%',
+                      distance: -70,
+                      format: '{point.name}: {point.y}%',
+                      format: "{point.percentage:.1f}%",
                       style: {
-                        fontSize: '1em',
-                        textOutline: 'none'
-                      }
-                  }]
+                        fontSize: "1.2em",
+                        textOutline: "none"
+                      } 
+                    }
+                  }
                 }
               } %>
-
       </div>
     </div>
 
     <div class="flex-1 min-w-[300px]">
       <h2 class="text-lg font-semibold text-gray-700 mb-2">Interacciones x Sentimiento</h2>
       <div id="chart-4" class="bg-gray-50 border border-gray-200 rounded p-2 shadow print:bg-white print:shadow-none print:border-none">
-
-        <% polarities_counts = @entries.where.not(polarity: nil).group(:polarity).sum('total_count').sort_by { |key, _value| key }.to_h %>
-        <% total_count = polarities_counts.values.sum.to_f %>
-        <% polarities_percentages = polarities_counts.transform_values { |count| (count / total_count * 100).round(0) } %>
-        <%= pie_chart polarities_percentages, suffix: '%',
-              plotOptions: {
-                pie: {
-                  allowPointSelect: true,
-                  cursor: 'pointer',
-                  dataLabels: {
-                    enabled: true,
-                    distance: -40,
-                    format: '{point.percentage:.1f}%', 
-                    style: {
-                      fontSize: '1em',
-                      textOutline: 'none'
+        <%= pie_chart @polarities_interactions_percentages, colors: ["#307d24", "#686868", '#cb200f'], suffix: '%', 
+              library: {
+                plotOptions: {
+                  pie: {
+                    showInLegend: true,
+                    allowPointSelect: true,
+                    cursor: 'pointer',
+                    dataLabels: {
+                      enabled: true,
+                      distance: -70,
+                      format: "{point.percentage:.1f}%",
+                      style: {
+                        fontSize: "1.2em",
+                        textOutline: "none"
+                      } 
                     }
                   }
                 }
               } %>
-
-
       </div>
     </div>
   </div>
