@@ -119,7 +119,7 @@
       notas y generó un total de <b><%= number_with_delimiter(@total_interactions, delimiter: '.') %></b> interacciones, 
       lo que nos da un promedio de <b><%= number_with_delimiter(@promedio, delimiter: '.') %></b> interacciones por nota.
     </p>
-    <p class="bg-gray-100 text-md p-4 rounded overflow-auto text-gray-800 print:bg-white"></p>
+    <p class="bg-gray-100 text-md p-4 rounded overflow-auto text-gray-800 print:bg-white">
       En contexto las <%= @top_entries.count %> notas más destacadas en <b>general</b>, en el mismo periodo tuvieron 
       <b><%= @top_entries.pluck(:total_count).join(', ') %></b> interacciones respectivamente.
       <i>Las notas más destacadas del tópico están en la tabla más arriba.</i>
