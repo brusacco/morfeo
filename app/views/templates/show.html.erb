@@ -82,28 +82,28 @@
   <!-- Analisis de sentimientos -->
   <div class="mb-2 mt-6">
     <h2 class="text-lg font-semibold text-gray-700 text-center">Análisis de Sentimientos</h2>
-    <div class="mt-2">
+    <div class="mt-0">
       <dl class="grid grid-cols-1 sm:grid-cols-4 lg:grid-cols-4 gap-4 print:grid-cols-4 print:gap-4">
         <!-- Total Noticias -->
-        <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6 print:shadow-none print:bg-transparent">
+        <div class="overflow-hidden rounded-lg bg-white px-4 py-4 shadow sm:p-6 print:shadow-none print:bg-transparent">
           <dt class="truncate text-sm font-medium text-gray-500">Total Noticias</dt>
           <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900"><%= @entries.size %></dd>
         </div>
 
         <!-- Total Positivas -->
-        <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6 print:shadow-none print:bg-transparent">
+        <div class="overflow-hidden rounded-lg bg-white px-4 py-4 shadow sm:p-6 print:shadow-none print:bg-transparent">
           <dt class="truncate text-sm font-medium text-gray-500">Total Positivas</dt>
           <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900"><%= @percentage_positives %>%</dd>
         </div>
 
         <!-- Total Negativas -->
-        <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6 print:shadow-none print:bg-transparent">
+        <div class="overflow-hidden rounded-lg bg-white px-4 py-4 shadow sm:p-6 print:shadow-none print:bg-transparent">
           <dt class="truncate text-sm font-medium text-gray-500">Total Negativas</dt>
           <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900"><%= @percentage_negatives %>%</dd>
         </div>
 
         <!-- Total Neutras -->
-        <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6 print:shadow-none print:bg-transparent">
+        <div class="overflow-hidden rounded-lg bg-white px-4 py-4 shadow sm:p-6 print:shadow-none print:bg-transparent">
           <dt class="truncate text-sm font-medium text-gray-500">Total Neutras</dt>
           <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900"><%= @percentage_neutrals %>%</dd>
         </div>
