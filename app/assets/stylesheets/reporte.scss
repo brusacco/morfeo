@@ -55,5 +55,13 @@
 
   .print\:hidden {
     display: none !important;
+  }
+
+  .page-break {
+    page-break-before: always; /* Salta a una nueva página antes de este elemento */
+  }
+  
+  .page-break-after {
+    page-break-after: always; /* Salta a una nueva página después de este elemento */
   }  
 }
