@@ -82,7 +82,7 @@
   <!-- Analisis de sentimientos -->
   <div class="mb-2 mt-6">
     <h2 class="text-lg font-semibold text-gray-700 text-center">Análisis de Sentimientos</h2>
-    <div class="mt-4">
+    <div class="mt-2">
       <dl class="grid grid-cols-1 sm:grid-cols-4 lg:grid-cols-4 gap-4 print:grid-cols-4 print:gap-4">
         <!-- Total Noticias -->
         <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6 print:shadow-none print:bg-transparent">
@@ -114,12 +114,13 @@
   <!-- Texto analisis de sentimientos -->
   <div class="mb-2">
     <p class="bg-gray-100 text-md p-4 rounded overflow-auto text-gray-800 print:bg-white">
-      <span class="ml-4">El</span> tópico <b><%= @template.topic.name %></b> en este periodo 
+      El tópico <b><%= @template.topic.name %></b> en este periodo 
       cuenta con un total de <b><%= number_with_delimiter(@total_entries, delimiter: '.') %></b> 
       notas y generó un total de <b><%= number_with_delimiter(@total_interactions, delimiter: '.') %></b> interacciones, 
       lo que nos da un promedio de <b><%= number_with_delimiter(@promedio, delimiter: '.') %></b> interacciones por nota.
-      <br>
-      <span class="ml-4">En</span> contexto las <%= @top_entries.count %> notas más destacadas en <b>general</b>, en el mismo periodo tuvieron 
+    </p>
+    <p class="bg-gray-100 text-md p-4 rounded overflow-auto text-gray-800 print:bg-white"></p>
+      En contexto las <%= @top_entries.count %> notas más destacadas en <b>general</b>, en el mismo periodo tuvieron 
       <b><%= @top_entries.pluck(:total_count).join(', ') %></b> interacciones respectivamente.
       <i>Las notas más destacadas del tópico están en la tabla más arriba.</i>
     </p>
