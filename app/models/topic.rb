@@ -28,6 +28,18 @@ class Topic < ApplicationRecord
     Entry.where(id: result.map(&:id)).enabled.order(total_count: :desc).joins(:site)
   end
 
+  def report_title_entries
+    tag_list = tags.map(&:name)
+    result = Entry.search(
+      where: {
+        published_at: { gte: 4.days.ago.beginning_of_day, lte: Date.today.end_of_day },
+        title_tags: { in: tag_list }
+      },
+      fields: ['id']
+    )
+    Entry.where(id: result.map(&:id)).enabled.order(total_count: :desc).joins(:site)
+  end
+
   def list_entries
     tag_list = tags.map(&:name)
     result = Entry.search(
@@ -36,6 +48,18 @@ class Topic < ApplicationRecord
         tags: { in: tag_list }
       },
       fields: ['id'] # Only return the ids to reduce payload
+    )
+    Entry.where(id: result.map(&:id)).enabled.order(published_at: :desc).joins(:site)
+  end
+
+  def title_list_entries
+    tag_list = tags.map(&:name)
+    result = Entry.search(
+      where: {
+        published_at: { gte: DAYS_RANGE.days.ago.beginning_of_day, lte: Date.today.end_of_day },
+        title_tags: { in: tag_list }
+      },
+      fields: ['id']
     )
     Entry.where(id: result.map(&:id)).enabled.order(published_at: :desc).joins(:site)
   end
@@ -51,18 +75,6 @@ class Topic < ApplicationRecord
     )
     Entry.where(id: result.map(&:id)).enabled.order(total_count: :desc).joins(:site)
     # Entry.where(id: result.map(&:id), total_count: 1..Float::INFINITY).enabled.order(total_count: :desc).joins(:site)
-  end
-
-  def title_list_entries
-    tag_list = tags.map(&:name)
-    result = Entry.search(
-      where: {
-        published_at: { gte: DAYS_RANGE.days.ago.beginning_of_day, lte: Date.today.end_of_day },
-        title_tags: { in: tag_list }
-      },
-      fields: ['id']
-    )
-    Entry.where(id: result.map(&:id)).enabled.order(published_at: :desc).joins(:site)
   end
 
   def title_chart_entries(date)

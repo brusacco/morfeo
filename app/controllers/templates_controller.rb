@@ -34,6 +34,9 @@ class TemplatesController < ApplicationController
       @total_interactions = @entries.sum(&:total_count)
       @top_entries = @entries.limit(15)
 
+      @title_entries = topic.report_title_entries
+      @title_top_entries = @title_entries.limit(15)
+
       if @total_entries.zero?
         @promedio = 0
       else
