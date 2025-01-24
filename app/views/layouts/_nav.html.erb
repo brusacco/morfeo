@@ -46,7 +46,7 @@
             <%= link_to 'Semanal', week_entries_path, 
                   class: ["text-white hover:bg-indigo-700 hover:bg-opacity-75 rounded-md px-3 py-2 text-sm font-medium", ("bg-indigo-700" if request.path == week_entries_path)] %>
 
-            <% if current_user.id == 1 %>
+            <% if current_user.id == 1 || current_user.id == 6 || current_user.id == 8 %>
               <%= link_to 'Reporte', templates_path, 
                     class: ["text-white hover:bg-indigo-700 hover:bg-opacity-75 rounded-md px-3 py-2 text-sm font-medium", ("bg-indigo-700" if request.path == templates_path)] %>
             <% end %>
