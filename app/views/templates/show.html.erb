@@ -178,18 +178,13 @@
 
   <!-- Medios - Texto analisis -->
   <div class="mb-6">
-    <h2 class="text-lg font-semibold text-gray-700 mb-2 text-center">Análisis y repercusiones por Medios</h2>
-
-    <% top_sites = @entries.group("sites.name").count('*').sort_by { |_, v| -v }.first(3) %>
+    <h2 class="text-lg font-semibold text-gray-700 mb-2 text-center">Repercusiones por Medios</h2>
     <p class="bg-gray-100 text-md p-4 rounded overflow-auto text-gray-800 print:bg-white">
-      El medio que más <b>Noticias</b> genera es <b><%= top_sites[0][0] %></b>, 
-      seguido por <b><%= top_sites[1][0] %></b> y <b><%= top_sites[2][0] %></b>.
-    </p>
-
-    <% top_sites_interactions = @entries.group("sites.name").sum(:total_count).sort_by { |_, v| -v }.first(3) %>
-    <p class="bg-gray-100 text-md p-4 rounded overflow-auto text-gray-800 print:bg-white">
-      El medio que más <b>Interacciones</b> genera es <b><%= top_sites_interactions[0][0] %></b>,
-      seguido por <b><%= top_sites_interactions[1][0] %></b> y <b><%= top_sites_interactions[2][0] %></b>.
+      El medio que más <b>Noticias</b> genera es <b><%= @top_sites[0][0] %></b>, 
+      seguido por <b><%= @top_sites[1][0] %></b> y <b><%= @top_sites[2][0] %></b>.
+      <br>
+      El medio que más <b>Interacciones</b> genera es <b><%= @top_sites_interactions[0][0] %></b>,
+      seguido por <b><%= @top_sites_interactions[1][0] %></b> y <b><%= @top_sites_interactions[2][0] %></b>.
     </p>
   </div>
 
@@ -241,6 +236,94 @@
                     }
                   }
                 } %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Impacto del Tópico - Tabla -->
+  <div class="mb-6">
+    <h2 class="text-lg font-semibold text-gray-700 mb-2 text-center">Impacto del Tópico</h2>
+    <div class="bg-gray-100 p-2 rounded overflow-auto text-gray-800 print:bg-white">
+      <table class="w-full border-collapse border border-gray-200 text-sm text-left">
+        <!-- Header -->
+        <thead>
+          <tr>
+            <th class="border border-gray-300 px-4 py-2"></th>
+            <th class="border border-gray-300 px-4 py-2 bg-gray-200 text-center">Tópico</th>
+            <th class="border border-gray-300 px-4 py-2 bg-gray-200 text-center">Otros</th>
+            <th class="border border-gray-300 px-4 py-2 bg-gray-200 text-center">Total</th>
+          </tr>
+        </thead>
+        <!-- Body -->
+        <tbody>
+          <!-- Cantidad de Notas -->
+          <tr>
+            <th class="border border-gray-300 px-4 py-2 bg-gray-200 text-center">Cantidad de Notas</th>
+            <td class="border border-gray-300 px-4 py-2 text-center"><%= number_with_delimiter(@total_entries, delimiter: ".") %></td>
+            <td class="border border-gray-300 px-4 py-2 text-center"><%= number_with_delimiter(@other_entries_size, delimiter: ".") %></td>
+            <td class="border border-gray-300 px-4 py-2 text-center"><%= number_with_delimiter(@other_entries_size + @total_entries.size, delimiter: ".") %></td>
+          </tr>
+          <!-- Cantidad de Interacciones -->
+          <tr>
+            <th class="border border-gray-300 px-4 py-2 bg-gray-200 text-center">Interacciones</th>
+            <td class="border border-gray-300 px-4 py-2 text-center"><%= number_with_delimiter(@entries.sum(:total_count), delimiter: ".") %></td>
+            <td class="border border-gray-300 px-4 py-2 text-center"><%= number_with_delimiter(@other_entries_interactions, delimiter: ".") %></td>
+            <td class="border border-gray-300 px-4 py-2 text-center"><%= number_with_delimiter(@other_entries_interactions + @entries.sum(:total_count), delimiter: ".") %></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Impacto del Tópico - Graficos -->
+  <div class="mb-6">
+    <div class="flex flex-wrap gap-6 mb-6 print:flex-nowrap">
+      <div class="flex-1 min-w-[300px]">
+        <h2 class="text-lg font-semibold text-gray-700 mb-2">Cantidad de Notas</h2>
+        <div id="chart-3" class="bg-gray-50 border border-gray-200 rounded p-2 shadow print:bg-white print:shadow-none print:border-none">
+          <%= pie_chart({"Tópico" => @topic_entries_percentage, "Otros" => @all_entries_percentage}, donut: true, label: "Notas", colors: ["green", "grey"], suffix: '%',
+                library: {
+                  plotOptions: {
+                    pie: {
+                      showInLegend: false,
+                      allowPointSelect: true,
+                      cursor: 'pointer',
+                      dataLabels: {
+                        enabled: true,
+                        distance: 10,
+                        format: '{point.name}: {point.y}%',
+                        style: {
+                          fontSize: "0.8em"
+                        } 
+                      }
+                    }
+                  }
+                }) %>
+        </div>
+      </div>
+
+      <div class="flex-1 min-w-[300px]">
+        <h2 class="text-lg font-semibold text-gray-700 mb-2">Cantidad de Interacciones</h2>
+        <div id="chart-4" class="bg-gray-50 border border-gray-200 rounded p-2 shadow print:bg-white print:shadow-none print:border-none">
+          <%= pie_chart({"Tópico" => @topic_interactions_percentage, "Otros" => @all_intereactions_percentage}, donut: true, label: "Interacciones", colors: ["green", "grey"], suffix: '%',
+                library: {
+                  plotOptions: {
+                    pie: {
+                      showInLegend: false,
+                      allowPointSelect: true,
+                      cursor: 'pointer',
+                      dataLabels: {
+                        enabled: true,
+                        distance: 10,
+                        format: '{point.name}: {point.y}%',
+                        style: {
+                          fontSize: "0.8em"
+                        } 
+                      }
+                    }
+                  }
+                }) %>
         </div>
       </div>
     </div>

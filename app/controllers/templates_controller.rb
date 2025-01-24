@@ -45,18 +45,26 @@ class TemplatesController < ApplicationController
       @positives = polarity_counts['positive'] || 0
       @negatives = polarity_counts['negative'] || 0 
 
+      # Medios
+      @top_sites = @entries.group("sites.name").count('*').sort_by { |_, v| -v }.first(3)
+      @top_sites_interactions = @entries.group("sites.name").sum(:total_count).sort_by { |_, v| -v }.first(3)
+
+      # Impacto del Topico
+      @other_entries_size = Entry.enabled.normal_range.where.not(id: @entries.ids).count
+      @other_entries_interactions = Entry.enabled.normal_range.where.not(id: @entries.ids).sum(:total_count)
+
       if @entries.any?
         @percentage_neutrals = (Float(@neutrals) / @entries.size * 100).round(0)
         @percentage_positives = (Float(@positives) / @entries.size * 100).round(0)
         @percentage_negatives = (Float(@negatives) / @entries.size * 100).round(0)
   
-        # total_count = @entries.size + @all_entries_size
-        # @topic_percentage = (Float(@entries.size) / total_count * 100).round(0)
-        # @all_percentage = (Float(@all_entries_size) / total_count * 100).round(0)
+        total_entries_count = @entries.size + @other_entries_size
+        @topic_entries_percentage = (Float(@entries.size) / total_entries_count * 100).round(0)
+        @all_entries_percentage = (Float(@other_entries_size) / total_entries_count * 100).round(0)
   
-        # total_count = @entries.sum(:total_count) + @all_entries_interactions
-        # @topic_interactions_percentage = (Float(@entries.sum(&:total_count)) / total_count * 100).round(1)
-        # @all_intereactions_percentage = (Float(@all_entries_interactions) / total_count * 100).round(1)
+        total_interactions_count = @entries.sum(:total_count) + @other_entries_interactions
+        @topic_interactions_percentage = (Float(@entries.sum(&:total_count)) / total_interactions_count * 100).round(1)
+        @all_intereactions_percentage = (Float(@other_entries_interactions) / total_interactions_count * 100).round(1)
       end
       
       polarities_entries_counts = @entries.where.not(polarity: nil).group(:polarity).count('*').sort_by { |key, _value| key }.to_h
@@ -66,7 +74,7 @@ class TemplatesController < ApplicationController
       polarities_interactions_counts = @entries.where.not(polarity: nil).group(:polarity).sum('total_count').sort_by { |key, _value| key }.to_h
       polarities_interactions_total_count = polarities_interactions_counts.values.sum.to_f
       @polarities_interactions_percentages = polarities_interactions_counts.transform_values { |count| (count / polarities_interactions_total_count * 100).round(0) }
-
+            
       # @demo_entries = {
       #   "Negativas" => 68,
       #   "Neutras" => 30,
