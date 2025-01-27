@@ -28,7 +28,7 @@ class Site < ApplicationRecord
       )
     else
       image_tag(
-        'https://via.placeholder.com/300x300',
+        'default-entry.svg',
         size: 50,
         class: 'h-10 w-10 flex-shrink-0 rounded-full bg-gray-300'
       )

@@ -8,9 +8,18 @@ ActiveAdmin.register Page do
 
   index do
     id_column
+    # column 'Image' do |page|
+    #   image_tag(page.picture || 'default-entry.svg')
+    # end
+
     column 'Image' do |page|
-      image_tag(page.picture || 'https://via.placeholder.com/50')
+      if page.picture.present?
+        image_tag page.picture
+      else
+        image_tag 'default-entry.svg', size: 50
+      end
     end
+
     column :name
     column :username
     column :followers

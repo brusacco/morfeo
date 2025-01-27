@@ -11,7 +11,7 @@
         <div class="text-muted px-1"><i class="fa-solid fa-share"></i> <%=entry.share_count%></div>
       </span>
     </div>
-    <%=image_tag entry.clean_image, size: 150, loading: 'lazy', onerror: 'this.onerror=null;this.src="https://via.placeholder.com/300x250";', class: 'h-full w-full object-cover object-center lg:h-full lg:w-full'%>
+    <%= image_tag entry.clean_image, size: "150x150", loading: 'lazy', onerror: "this.onerror=null;this.src='#{asset_path('default-entry.svg', size: 150)}';", class: 'h-full w-full object-cover object-center lg:h-full lg:w-full' %>
   </div>
   <div class="mt-4 flex justify-between">
     <div>

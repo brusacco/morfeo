@@ -70,7 +70,7 @@ ActiveAdmin.register Entry do
       if entry.image_url.present?
         image_tag entry.image_url, size: 32
       else
-        image_tag 'https://via.placeholder.com/32', size: 32
+        image_tag 'default-entry.svg', size: 32
       end
     end
     actions

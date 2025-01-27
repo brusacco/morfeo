@@ -92,7 +92,7 @@ class RecentEntry < ApplicationRecord
 
   def clean_image
     if image_url.blank? || image_url == 'null'
-      'https://via.placeholder.com/300x250'
+      ActionController::Base.helpers.asset_path('default-entry.svg')
     else
       image_url
     end
