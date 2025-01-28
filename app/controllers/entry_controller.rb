@@ -18,7 +18,7 @@ class EntryController < ApplicationController
 
     @comments = Comment.where(entry_id: @entries.pluck(:id)).order(created_time: :desc)
     @comments_word_occurrences = @comments.word_occurrences
-    @comments_bigram_occurrences = @comments.bigram_occurrences
+    # @comments_bigram_occurrences = @comments.bigram_occurrences
 
     @tags_interactions = {}
     @tags.each do |tag|
@@ -71,7 +71,7 @@ class EntryController < ApplicationController
 
     # Cosas nuevas
     @word_occurrences = @entries.word_occurrences
-    @bigram_occurrences = @entries.bigram_occurrences
+    # @bigram_occurrences = @entries.bigram_occurrences
 
     # Cache tags interactions
     if @tags_interactions.nil?
