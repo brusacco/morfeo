@@ -1,27 +1,28 @@
 # require 'grover'
 
 class TemplatesController < ApplicationController
-  before_action :authenticate_user!
+  # before_action :authenticate_user!
+  before_action :authenticate_admin_user!
 
-  def index
-    @templates = Template.order(created_at: :desc)
-  end
+  # def index
+  #   @templates = Template.order(created_at: :desc)
+  # end
 
-  def new
-    @template = Template.new
-  end
+  # def new
+  #   @template = Template.new
+  # end
 
-  def create
-    template = Template.new(template_params)
-    if template.save
-      # redirect_to template_path(template, format: :pdf)
-      redirect_to template_path(template)
-    else
-      Rails.logger.info(template.errors.inspect)
-      flash[:alert] = "Error al intentar crear el reporte."
-      render :new
-    end
-  end
+  # def create
+  #   template = Template.new(template_params)
+  #   if template.save
+  #     # redirect_to template_path(template, format: :pdf)
+  #     redirect_to template_path(template)
+  #   else
+  #     Rails.logger.info(template.errors.inspect)
+  #     flash[:alert] = "Error al intentar crear el reporte."
+  #     render :new
+  #   end
+  # end
  
   def show
     begin
@@ -90,11 +91,11 @@ class TemplatesController < ApplicationController
       #   "Positivas" => 72
       # }     
 
+      render layout: 'reporte'
     rescue => exception
       Rails.logger.error(exception.message)
-      redirect_to templates_path, alert: 'Reporte no encontrado'
+      redirect_to root_path, alert: 'Reporte no encontrado'
     end
-    render layout: 'reporte'
   end
 
   # def pdf_report
@@ -129,11 +130,11 @@ class TemplatesController < ApplicationController
   #     end 
   # end
 
-  private 
+  # private 
 
-  def template_params
-    params.require(:template).permit(:topic_id, :title, :sumary, :date)
-  end
+  # def template_params
+  #   params.require(:template).permit(:topic_id, :title, :sumary, :date, :user_id)
+  # end
 
   # def browser_endpoint
   #   if Rails.env.production?

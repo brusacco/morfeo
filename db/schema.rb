@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_01_15_174623) do
+ActiveRecord::Schema[7.0].define(version: 2025_01_28_201629) do
   create_table "active_admin_comments", force: :cascade do |t|
     t.string "namespace"
     t.text "body"
@@ -212,6 +212,8 @@ ActiveRecord::Schema[7.0].define(version: 2025_01_15_174623) do
     t.date "date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "admin_user_id"
+    t.index ["admin_user_id"], name: "index_templates_on_admin_user_id"
     t.index ["topic_id"], name: "index_templates_on_topic_id"
   end
 
@@ -292,6 +294,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_01_15_174623) do
   add_foreign_key "newspapers", "sites"
   add_foreign_key "reports", "topics"
   add_foreign_key "taggings", "tags"
+  add_foreign_key "templates", "admin_users"
   add_foreign_key "templates", "topics"
   add_foreign_key "title_topic_stat_dailies", "topics"
   add_foreign_key "topic_stat_dailies", "topics"

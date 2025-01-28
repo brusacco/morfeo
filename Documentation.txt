@@ -228,3 +228,5 @@ rails g model Template topic:references title:string sumary:text date:date
 rails g controller Templates index new show
 
 rails generate active_admin:resource Template
+
+rails g migration AddAdminUserToTemplates admin_user:references
