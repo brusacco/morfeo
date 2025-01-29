@@ -48,10 +48,10 @@
     margin-bottom: 20px;
   }
 
-  @page {
-    size: landscape letter;
-    margin: 10mm 10mm;
-  }
+  // @page {
+  //   size: A4 landscape;
+  //   margin: 10mm 10mm;
+  // }
 
   .print\:hidden {
     display: none !important;
