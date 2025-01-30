@@ -78,7 +78,17 @@ class TemplatesController < ApplicationController
       polarities_interactions_counts = @entries.where.not(polarity: nil).group(:polarity).sum('total_count').sort_by { |key, _value| key }.to_h
       polarities_interactions_total_count = polarities_interactions_counts.values.sum.to_f
       @polarities_interactions_percentages = polarities_interactions_counts.transform_values { |count| (count / polarities_interactions_total_count * 100).round(0) }
-            
+
+      @interacciones_ultimo_dia_topico = Topic.joins(:topic_stat_dailies)
+                                                .where(topic_stat_dailies: { topic_date: 1.day.ago.. })
+                                                .group('topics.name').order('sum_topic_stat_dailies_total_count DESC').limit(10)
+                                                .sum('topic_stat_dailies.total_count')
+
+      @notas_ultimo_dia_topico = Topic.joins(:topic_stat_dailies)
+                                        .where(topic_stat_dailies: { topic_date: 1.day.ago.. })
+                                        .group('topics.name').order('sum_topic_stat_dailies_entry_count DESC').limit(10)
+                                        .sum('topic_stat_dailies.entry_count')      
+      
       # @demo_entries = {
       #   "Negativas" => 68,
       #   "Neutras" => 30,

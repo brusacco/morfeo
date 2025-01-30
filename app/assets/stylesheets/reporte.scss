@@ -12,10 +12,10 @@
   }
 
   /* Quitar sombras y bordes innecesarios en impresión */
-  .shadow, .border {
-    box-shadow: none !important;
-    border: none !important;
-  }
+  // .shadow, .border {
+  //   box-shadow: none !important;
+  //   border: none !important;
+  // }
 
   .rounded-md {
     border-radius: 0 !important;

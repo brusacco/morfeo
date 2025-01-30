@@ -16,7 +16,7 @@
   <div class="flex flex-wrap gap-6 mb-6 print:flex-nowrap">
     <div class="flex-1 min-w-[300px]">
       <h2 class="text-lg font-semibold text-gray-700 mb-2">Notas x DIA</h2>
-      <div id="chart-1" class="bg-gray-50 border border-gray-200 rounded p-2 shadow print:bg-white print:shadow-none print:border-none">
+      <div id="chart-1" class="bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
         <%= line_chart @chart_entries.count('*'), label: "Cant. Notas", thousands: ".", curve: false, adapter: 'highcharts',
               library: { 
                 chart: { height: 250 },
@@ -31,7 +31,7 @@
 
     <div class="flex-1 min-w-[300px]">
       <h2 class="text-lg font-semibold text-gray-700 mb-2">Interacciones x DIA</h2>
-      <div id="chart-2" class="bg-gray-50 border border-gray-200 rounded p-2 shadow print:bg-white print:shadow-none print:border-none">
+      <div id="chart-2" class="bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
         <%= line_chart @chart_entries.sum(:total_count), label: "Interacciones", thousands: ".", curve: false, adapter: 'highcharts',
               library: {
                 chart: { height: 250 },
@@ -45,11 +45,11 @@
     </div>
   </div>
 
-  <div class="page-break"></div>
+  <div class="page-break-after"></div>
 
   <!-- Top entries -->
   <div class="mb-6 mt-6">
-    <h2 class="text-lg font-semibold text-gray-700 mb-4 text-center">Noticias destacadas</h2>
+    <h2 class="text-xl font-bold text-gray-700 mb-4 text-center">Noticias destacadas</h2>
     <div class="overflow-x-auto border border-gray-200 rounded-lg shadow-sm">
       <table class="min-w-full divide-y divide-gray-200 text-sm text-gray-600">
         <thead class="bg-gray-100">
@@ -77,11 +77,11 @@
     </div>
   </div>
 
-  <div class="page-break"></div>
+  <div class="page-break-after"></div>
 
   <!-- Analisis de sentimientos -->
   <div class="mb-2 mt-6">
-    <h2 class="text-lg font-semibold text-gray-700 text-center">Análisis de Sentimientos</h2>
+    <h2 class="text-xl font-bold text-gray-700 text-center">Análisis de Sentimientos</h2>
     <div class="mt-0">
       <dl class="grid grid-cols-1 sm:grid-cols-4 lg:grid-cols-4 gap-4 print:grid-cols-4 print:gap-4">
         <!-- Total Noticias -->
@@ -130,7 +130,7 @@
   <div class="flex flex-wrap gap-6 mb-6 print:flex-nowrap">
     <div class="flex-1 min-w-[300px]">
       <h2 class="text-lg font-semibold text-gray-700 mb-2">Notas x Sentimiento</h2>
-      <div id="chart-3" class="bg-gray-50 border border-gray-200 rounded p-2 shadow print:bg-white print:shadow-none print:border-none">        
+      <div id="chart-3" class="bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">        
         <%= pie_chart @polarities_entries_percentages, colors: ["#cb200f", "#686868", '#307d24'], suffix: '%', 
               library: {
                 plotOptions: {
@@ -156,7 +156,7 @@
 
     <div class="flex-1 min-w-[300px]">
       <h2 class="text-lg font-semibold text-gray-700 mb-2">Interacciones x Sentimiento</h2>
-      <div id="chart-4" class="bg-gray-50 border border-gray-200 rounded p-2 shadow print:bg-white print:shadow-none print:border-none">
+      <div id="chart-4" class="bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
         <%= pie_chart @polarities_interactions_percentages, colors: ["#cb200f", "#686868", '#307d24'], suffix: '%', 
               library: {
                 plotOptions: {
@@ -180,11 +180,11 @@
     </div>
   </div>
 
-  <div class="page-break"></div>
+  <div class="page-break-after"></div>
 
   <!-- Medios - Texto analisis -->
   <div class="mb-6 mt-6">
-    <h2 class="text-lg font-semibold text-gray-700 mb-2 text-center">Repercusiones por Medios</h2>
+    <h2 class="text-xl font-bold text-gray-700 mb-2 text-center">Repercusiones por Medios</h2>
     <p class="bg-gray-100 text-md p-4 rounded overflow-auto text-gray-800 print:bg-white">
       El medio que más <b>Noticias</b> genera es <b><%= @top_sites[0][0] %></b>, 
       seguido por <b><%= @top_sites[1][0] %></b> y <b><%= @top_sites[2][0] %></b>.
@@ -199,7 +199,7 @@
     <div class="flex flex-wrap gap-6 mb-6 print:flex-nowrap">
       <div class="flex-1 min-w-[300px]">
         <h2 class="text-lg font-semibold text-gray-700 mb-2">Notas x Medio</h2>
-        <div id="chart-3" class="bg-gray-50 border border-gray-200 rounded p-2 shadow print:bg-white print:shadow-none print:border-none">        
+        <div id="chart-3" class="bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
           <%= pie_chart @entries.group("sites.name").count('*'), donut: true, 
                 library: {
                   plotOptions: {
@@ -223,7 +223,7 @@
 
       <div class="flex-1 min-w-[300px]">
         <h2 class="text-lg font-semibold text-gray-700 mb-2">Interacciones x Medio</h2>
-        <div id="chart-4" class="bg-gray-50 border border-gray-200 rounded p-2 shadow print:bg-white print:shadow-none print:border-none">
+        <div id="chart-4" class="bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
           <%= pie_chart @entries.group("sites.name").sum(:total_count), donut: true, 
                 library: {
                   plotOptions: {
@@ -247,11 +247,11 @@
     </div>
   </div>
 
-  <div class="page-break"></div>
+  <div class="page-break-after"></div>
 
   <!-- Impacto del Tópico - Tabla -->
   <div class="mb-6 mt-6">
-    <h2 class="text-lg font-semibold text-gray-700 mb-2 text-center">Impacto del Tópico</h2>
+    <h2 class="text-xl font-bold text-gray-700 mb-2 text-center">Impacto del Tópico</h2>
     <div class="bg-gray-100 p-2 rounded overflow-auto text-gray-800 print:bg-white">
       <table class="w-full border-collapse border border-gray-200 text-sm text-left">
         <!-- Header -->
@@ -289,7 +289,7 @@
     <div class="flex flex-wrap gap-6 mb-6 print:flex-nowrap">
       <div class="flex-1 min-w-[300px]">
         <h2 class="text-lg font-semibold text-gray-700 mb-2">Cantidad de Notas</h2>
-        <div id="chart-3" class="bg-gray-50 border border-gray-200 rounded p-2 shadow print:bg-white print:shadow-none print:border-none">
+        <div id="chart-3" class="bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
           <%= pie_chart({"Tópico" => @topic_entries_percentage, "Otros" => @all_entries_percentage}, donut: true, label: "Notas", colors: ["green", "grey"], suffix: '%',
                 library: {
                   plotOptions: {
@@ -313,7 +313,7 @@
 
       <div class="flex-1 min-w-[300px]">
         <h2 class="text-lg font-semibold text-gray-700 mb-2">Cantidad de Interacciones</h2>
-        <div id="chart-4" class="bg-gray-50 border border-gray-200 rounded p-2 shadow print:bg-white print:shadow-none print:border-none">
+        <div id="chart-4" class="bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
           <%= pie_chart({"Tópico" => @topic_interactions_percentage, "Otros" => @all_intereactions_percentage}, donut: true, label: "Interacciones", colors: ["green", "grey"], suffix: '%',
                 library: {
                   plotOptions: {
@@ -337,11 +337,11 @@
     </div>
   </div>
 
-  <div class="page-break"></div>
+  <div class="page-break-after"></div>
 
   <!-- Top entries on title -->
   <div class="mb-6 mt-6">
-    <h2 class="text-lg font-semibold text-gray-700 mb-4 text-center">Noticias destacadas con presencia del Tópico en titulares</h2>
+    <h2 class="text-xl font-bold text-gray-700 mb-4 text-center">Noticias destacadas con presencia del Tópico en titulares</h2>
     <div class="overflow-x-auto border border-gray-200 rounded-lg shadow-sm">
       <table class="min-w-full divide-y divide-gray-200 text-sm text-gray-600">
         <thead class="bg-gray-100">
@@ -366,6 +366,44 @@
           <% end %>
         </tbody>
       </table>
+    </div>
+  </div>
+
+  <div class="page-break-after"></div>
+
+  <!-- Tendencias -->
+  <div class="mb-6 mt-6">
+    <h2 class="text-xl font-bold text-gray-700 mb-4 text-center">Tendencias en Tópicos últimas 24 horas</h2>
+  </div>
+
+
+  <div class="flex flex-wrap gap-6 mb-6 print:flex-nowrap">
+    <div class="flex-1 min-w-[300px]">
+      <h2 class="text-lg font-semibold text-gray-700 mb-2">Cantidad de Notas</h2>
+      <div class="bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
+        <%= bar_chart @notas_ultimo_dia_topico, xtitle: "TOPICO", ytitle: "Cant. Notas", thousands: ".", library: {
+            plotOptions: {
+              series: {
+                dataLabels: {
+                  enabled: true
+                }
+              }
+            } } %>
+      </div>
+    </div>
+
+    <div class="flex-1 min-w-[300px]">
+      <h2 class="text-lg font-semibold text-gray-700 mb-2">Cantidad de Interacciones</h2>
+      <div class="bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
+        <%= bar_chart @interacciones_ultimo_dia_topico, xtitle: "TOPICO", ytitle: "Cant. Interacciones", thousands: ".", library: {
+          plotOptions: {
+              series: {
+                dataLabels: {
+                  enabled: true
+                }
+              }
+            } } %>
+      </div>
     </div>
   </div>
 
