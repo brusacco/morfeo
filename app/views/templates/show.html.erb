@@ -49,7 +49,7 @@
 
   <!-- Top entries -->
   <div class="mt-6">
-    <h2 class="text-xl font-bold text-gray-700 mb-4 text-center">Noticias destacadas</h2>
+    <h2 class="text-xl font-bold text-gray-700 mb-6 text-center">Noticias destacadas</h2>
     <div class="overflow-x-auto border border-gray-200 rounded-lg shadow-sm">
       <table class="min-w-full divide-y divide-gray-200 text-sm text-gray-600">
         <thead class="bg-gray-100">
@@ -82,30 +82,30 @@
   <!-- Analisis de sentimientos -->
   <div class="mt-6">
     <h2 class="text-xl font-bold text-gray-700 text-center">Análisis de Sentimientos</h2>
-    <div class="mt-0">
+    <div class="mt-2 mb-2">
       <dl class="grid grid-cols-1 sm:grid-cols-4 lg:grid-cols-4 gap-4 print:grid-cols-4 print:gap-4">
         <!-- Total Noticias -->
-        <div class="overflow-hidden rounded-lg bg-white px-4 py-4 shadow sm:p-6 print:shadow-none print:bg-transparent">
+        <div class="overflow-hidden rounded-lg bg-white px-2 py-2 shadow sm:p-4">
           <dt class="truncate text-sm font-medium text-gray-500">Total Noticias</dt>
-          <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900"><%= @entries.size %></dd>
+          <dd class="text-2xl font-semibold tracking-tight text-gray-900"><%= @entries.size %></dd>
         </div>
 
         <!-- Total Positivas -->
-        <div class="overflow-hidden rounded-lg bg-white px-4 py-4 shadow sm:p-6 print:shadow-none print:bg-transparent">
+        <div class="overflow-hidden rounded-lg bg-white px-2 py-2 shadow sm:p-4">
           <dt class="truncate text-sm font-medium text-gray-500">Total Positivas</dt>
-          <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900"><%= @percentage_positives %>%</dd>
+          <dd class="text-2xl font-semibold tracking-tight text-gray-900"><%= @percentage_positives %>%</dd>
         </div>
 
         <!-- Total Negativas -->
-        <div class="overflow-hidden rounded-lg bg-white px-4 py-4 shadow sm:p-6 print:shadow-none print:bg-transparent">
+        <div class="overflow-hidden rounded-lg bg-white px-2 py-2 shadow sm:p-4">
           <dt class="truncate text-sm font-medium text-gray-500">Total Negativas</dt>
-          <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900"><%= @percentage_negatives %>%</dd>
+          <dd class="text-2xl font-semibold tracking-tight text-gray-900"><%= @percentage_negatives %>%</dd>
         </div>
 
         <!-- Total Neutras -->
-        <div class="overflow-hidden rounded-lg bg-white px-4 py-4 shadow sm:p-6 print:shadow-none print:bg-transparent">
+        <div class="overflow-hidden rounded-lg bg-white px-2 py-2 shadow sm:p-4">
           <dt class="truncate text-sm font-medium text-gray-500">Total Neutras</dt>
-          <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900"><%= @percentage_neutrals %>%</dd>
+          <dd class="text-2xl font-semibold tracking-tight text-gray-900"><%= @percentage_neutrals %>%</dd>
         </div>
       </dl>
     </div>
@@ -118,8 +118,7 @@
       cuenta con un total de <b><%= number_with_delimiter(@total_entries, delimiter: '.') %></b> 
       notas y generó un total de <b><%= number_with_delimiter(@total_interactions, delimiter: '.') %></b> interacciones, 
       lo que nos da un promedio de <b><%= number_with_delimiter(@promedio, delimiter: '.') %></b> interacciones por nota.
-    </p>
-    <p class="bg-gray-100 text-md p-4 rounded overflow-auto text-gray-800 print:bg-white">
+      <br>
       En contexto las <%= @top_entries.count %> notas más destacadas en <b>general</b>, en el mismo periodo tuvieron 
       <b><%= @top_entries.pluck(:total_count).join(', ') %></b> interacciones respectivamente.
       <i>Las notas más destacadas del tópico están en la tabla más arriba.</i>
@@ -133,6 +132,7 @@
       <div id="chart-3" class="bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">        
         <%= pie_chart @polarities_entries_percentages, colors: ["#cb200f", "#686868", '#307d24'], suffix: '%', 
               library: {
+                chart: { height: 350 },
                 plotOptions: {
                   pie: {
                     showInLegend: true,
@@ -159,6 +159,7 @@
       <div id="chart-4" class="bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
         <%= pie_chart @polarities_interactions_percentages, colors: ["#cb200f", "#686868", '#307d24'], suffix: '%', 
               library: {
+                chart: { height: 350 },
                 plotOptions: {
                   pie: {
                     showInLegend: true,
@@ -184,7 +185,7 @@
 
   <!-- Medios - Texto analisis -->
   <div class="mb-6 mt-6">
-    <h2 class="text-xl font-bold text-gray-700 mb-2 text-center">Repercusiones por Medios</h2>
+    <h2 class="text-xl font-bold text-gray-700 mb-4 text-center">Repercusiones por Medios</h2>
     <p class="bg-gray-100 text-md p-4 rounded overflow-auto text-gray-800 print:bg-white">
       El medio que más <b>Noticias</b> genera es <b><%= @top_sites[0][0] %></b>, 
       seguido por <b><%= @top_sites[1][0] %></b> y <b><%= @top_sites[2][0] %></b>.
@@ -199,7 +200,7 @@
     <div class="flex flex-wrap gap-6 mb-6 print:flex-nowrap">
       <div class="flex-1 min-w-[300px]">
         <h2 class="text-lg font-semibold text-gray-700 mb-2">Notas x Medio</h2>
-        <div id="chart-3" class="bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
+        <div class="bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
           <%= pie_chart @entries.group("sites.name").count('*'), donut: true, 
                 library: {
                   plotOptions: {
@@ -223,7 +224,7 @@
 
       <div class="flex-1 min-w-[300px]">
         <h2 class="text-lg font-semibold text-gray-700 mb-2">Interacciones x Medio</h2>
-        <div id="chart-4" class="bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
+        <div class="bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
           <%= pie_chart @entries.group("sites.name").sum(:total_count), donut: true, 
                 library: {
                   plotOptions: {
@@ -251,7 +252,7 @@
 
   <!-- Impacto del Tópico - Tabla -->
   <div class="mb-6 mt-6">
-    <h2 class="text-xl font-bold text-gray-700 mb-2 text-center">Impacto del Tópico</h2>
+    <h2 class="text-xl font-bold text-gray-700 mb-4 text-center">Impacto del Tópico</h2>
     <div class="bg-gray-100 p-2 rounded overflow-auto text-gray-800 print:bg-white">
       <table class="w-full border-collapse border border-gray-200 text-sm text-left">
         <!-- Header -->
@@ -289,7 +290,7 @@
     <div class="flex flex-wrap gap-6 mb-6 print:flex-nowrap">
       <div class="flex-1 min-w-[300px]">
         <h2 class="text-lg font-semibold text-gray-700 mb-2">Cantidad de Notas</h2>
-        <div id="chart-3" class="bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
+        <div class="bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
           <%= pie_chart({"Tópico" => @topic_entries_percentage, "Otros" => @all_entries_percentage}, donut: true, label: "Notas", colors: ["green", "grey"], suffix: '%',
                 library: {
                   plotOptions: {
@@ -374,44 +375,43 @@
   <!-- Tendencias -->
   <div class="mb-6 mt-6">
     <h2 class="text-xl font-bold text-gray-700 mb-4 text-center">Tendencias en Tópicos últimas 24 horas</h2>
-  </div>
+    <div class="flex flex-wrap gap-6 print:flex-nowrap">
+      <div class="flex-1 min-w-[300px]">
+        <h2 class="text-lg font-semibold text-gray-700 mb-2">Cantidad de Notas</h2>
+        <div class="bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
+          <%= bar_chart @notas_ultimo_dia_topico, xtitle: "TOPICO", ytitle: "Cant. Notas", thousands: ".", library: {
+              plotOptions: {
+                series: {
+                  dataLabels: {
+                    enabled: true
+                  }
+                }
+              } } %>
+        </div>
+      </div>
 
-
-  <div class="flex flex-wrap gap-6 mb-6 print:flex-nowrap">
-    <div class="flex-1 min-w-[300px]">
-      <h2 class="text-lg font-semibold text-gray-700 mb-2">Cantidad de Notas</h2>
-      <div class="bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
-        <%= bar_chart @notas_ultimo_dia_topico, xtitle: "TOPICO", ytitle: "Cant. Notas", thousands: ".", library: {
+      <div class="flex-1 min-w-[300px]">
+        <h2 class="text-lg font-semibold text-gray-700 mb-2">Cantidad de Interacciones</h2>
+        <div class="bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
+          <%= bar_chart @interacciones_ultimo_dia_topico, xtitle: "TOPICO", ytitle: "Cant. Interacciones", thousands: ".", library: {
             plotOptions: {
-              series: {
-                dataLabels: {
-                  enabled: true
+                series: {
+                  dataLabels: {
+                    enabled: true
+                  }
                 }
-              }
-            } } %>
-      </div>
-    </div>
-
-    <div class="flex-1 min-w-[300px]">
-      <h2 class="text-lg font-semibold text-gray-700 mb-2">Cantidad de Interacciones</h2>
-      <div class="bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
-        <%= bar_chart @interacciones_ultimo_dia_topico, xtitle: "TOPICO", ytitle: "Cant. Interacciones", thousands: ".", library: {
-          plotOptions: {
-              series: {
-                dataLabels: {
-                  enabled: true
-                }
-              }
-            } } %>
+              } } %>
+        </div>
       </div>
     </div>
   </div>
+
 
   <div class="page-break-after"></div>
 
   <!-- AI Reports -->
   <div class="mt-6">
-    <h2 class="text-xl font-bold text-gray-700 mb-4 text-center">Análisis general de Tópico durante este periodo</h2>
+    <h2 class="text-xl font-bold text-gray-700 mb-4 text-center">Análisis general del Tópico durante este periodo</h2>
     <div class="overflow-x-auto border border-gray-200 rounded-lg shadow-sm">
       <table class="min-w-full divide-y divide-gray-200 text-sm text-gray-600">
         <thead class="bg-gray-100">
