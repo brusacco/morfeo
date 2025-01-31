@@ -89,6 +89,8 @@ class TemplatesController < ApplicationController
                                         .group('topics.name').order('sum_topic_stat_dailies_entry_count DESC').limit(10)
                                         .sum('topic_stat_dailies.entry_count')      
       
+      @ai_reports = topic.reports.last(10)
+      
       # @demo_entries = {
       #   "Negativas" => 68,
       #   "Neutras" => 30,

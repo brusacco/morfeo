@@ -13,7 +13,7 @@
   </div>
 
   <!-- Graficos 1 y 2 -->
-  <div class="flex flex-wrap gap-6 mb-6 print:flex-nowrap">
+  <div class="flex flex-wrap gap-6 print:flex-nowrap">
     <div class="flex-1 min-w-[300px]">
       <h2 class="text-lg font-semibold text-gray-700 mb-2">Notas x DIA</h2>
       <div id="chart-1" class="bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
@@ -48,7 +48,7 @@
   <div class="page-break-after"></div>
 
   <!-- Top entries -->
-  <div class="mb-6 mt-6">
+  <div class="mt-6">
     <h2 class="text-xl font-bold text-gray-700 mb-4 text-center">Noticias destacadas</h2>
     <div class="overflow-x-auto border border-gray-200 rounded-lg shadow-sm">
       <table class="min-w-full divide-y divide-gray-200 text-sm text-gray-600">
@@ -80,7 +80,7 @@
   <div class="page-break-after"></div>
 
   <!-- Analisis de sentimientos -->
-  <div class="mb-2 mt-6">
+  <div class="mt-6">
     <h2 class="text-xl font-bold text-gray-700 text-center">Análisis de Sentimientos</h2>
     <div class="mt-0">
       <dl class="grid grid-cols-1 sm:grid-cols-4 lg:grid-cols-4 gap-4 print:grid-cols-4 print:gap-4">
@@ -127,7 +127,7 @@
   </div>
 
   <!-- Graficos de Sentimientos -->
-  <div class="flex flex-wrap gap-6 mb-6 print:flex-nowrap">
+  <div class="flex flex-wrap gap-6 print:flex-nowrap">
     <div class="flex-1 min-w-[300px]">
       <h2 class="text-lg font-semibold text-gray-700 mb-2">Notas x Sentimiento</h2>
       <div id="chart-3" class="bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">        
@@ -405,6 +405,31 @@
             } } %>
       </div>
     </div>
+  </div>
+
+  <div class="page-break-after"></div>
+
+  <!-- AI Reports -->
+  <div class="mt-6">
+    <h2 class="text-xl font-bold text-gray-700 mb-4 text-center">Análisis general de Tópico durante este periodo</h2>
+    <div class="overflow-x-auto border border-gray-200 rounded-lg shadow-sm">
+      <table class="min-w-full divide-y divide-gray-200 text-sm text-gray-600">
+        <thead class="bg-gray-100">
+          <tr>
+            <th class="px-4 py-2 text-left font-semibold text-gray-700">Fecha</th>
+            <th class="px-6 py-2 text-left font-semibold text-gray-700">Análisis</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          <% @ai_reports.each do |report| %>
+            <tr>
+              <td class="px-4 py-2"><%= report.created_at.strftime('%d/%m/%Y %H:%M') %></td>
+              <td class="px-6 py-2"><%= report.report_text %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>    
   </div>
 
 </div>
