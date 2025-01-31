@@ -379,7 +379,7 @@
       <div class="flex-1 min-w-[300px]">
         <h2 class="text-lg font-semibold text-gray-700 mb-2">Cantidad de Notas</h2>
         <div class="bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
-          <%= bar_chart @notas_ultimo_dia_topico, xtitle: "TOPICO", ytitle: "Cant. Notas", thousands: ".", library: {
+          <%= bar_chart @notas_ultimo_dia_topico, thousands: ".", library: {
               plotOptions: {
                 series: {
                   dataLabels: {
@@ -393,7 +393,7 @@
       <div class="flex-1 min-w-[300px]">
         <h2 class="text-lg font-semibold text-gray-700 mb-2">Cantidad de Interacciones</h2>
         <div class="bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
-          <%= bar_chart @interacciones_ultimo_dia_topico, xtitle: "TOPICO", ytitle: "Cant. Interacciones", thousands: ".", library: {
+          <%= bar_chart @interacciones_ultimo_dia_topico, thousands: ".", library: {
             plotOptions: {
                 series: {
                   dataLabels: {
@@ -405,7 +405,6 @@
       </div>
     </div>
   </div>
-
 
   <div class="page-break-after"></div>
 

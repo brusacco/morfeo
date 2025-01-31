@@ -88,7 +88,7 @@ class TemplatesController < ApplicationController
                                         .group('topics.name').order('sum_topic_stat_dailies_entry_count DESC').limit(10)
                                         .sum('topic_stat_dailies.entry_count')      
       
-      @ai_reports = topic.reports.where.not(created_at: Time.zone.now.beginning_of_day..Time.zone.now.end_of_day).order(created_at: :desc).limit(12)
+      @ai_reports = topic.reports.where.not(created_at: Time.zone.now.beginning_of_day..Time.zone.now.end_of_day).order(created_at: :desc).limit(11)
 
       # @demo_entries = {
       #   "Negativas" => 68,
