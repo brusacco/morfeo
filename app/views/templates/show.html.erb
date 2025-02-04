@@ -1,48 +1,46 @@
-<div class="p-6 max-w-4xl mx-auto bg-white border border-gray-200 rounded-lg shadow-md print:shadow-none print:border-none">
+<div class="p-4 max-w-4xl mx-auto bg-white border border-gray-200 rounded-lg shadow-md print:shadow-none print:border-none">
   <!-- Encabezado -->
-  <div class="mb-6 text-center">
+  <div class="mb-4 text-center">
     <p class="text-sm text-gray-500"><strong>Fecha:</strong> <%= @template.date.strftime('%d/%m/%Y') %></p>
     <h1 class="text-2xl font-bold text-gray-800"><%= @template.title %></h1>
     <p class="text-sm text-gray-500"><strong>Tópico:</strong> <%= @template.topic.name %></p>
   </div>
 
   <!-- Resumen -->
-  <div class="mb-6">
+  <div class="mb-4">
     <h2 class="text-lg font-semibold text-gray-700 mb-2">Resumen</h2>
     <p class="bg-gray-100 text-md p-4 rounded overflow-auto text-gray-800 print:bg-white"><%= @template.sumary %></p>
   </div>
 
-  <!-- Graficos 1 y 2 -->
-  <div class="flex flex-wrap gap-6 print:flex-nowrap">
-    <div class="flex-1 min-w-[300px]">
-      <h2 class="text-lg font-semibold text-gray-700 mb-2">Notas x DIA</h2>
-      <div id="chart-1" class="bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
-        <%= line_chart @chart_entries.count('*'), label: "Cant. Notas", thousands: ".", curve: false, adapter: 'highcharts',
-              library: { 
-                chart: { height: 250 },
-                plotOptions: {
-                  series: {
-                    dataLabels: { enabled: true }
-                  }
-                } 
-              } %>
-      </div>
-    </div>
+  <!-- Grafico 1 -->
+  <div class="mx-auto w-full max-w-3xl bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
+    <h2 class="text-lg font-semibold text-gray-700 mb-2">Notas x DIA</h2>
+    <%= line_chart @chart_entries.count('*'), 
+        label: "Cant. Notas", 
+        thousands: ".", 
+        curve: false, 
+        adapter: 'highcharts',
+        library: { 
+          chart: { width: 750 },
+          plotOptions: {
+            series: {
+              dataLabels: { enabled: true }
+            }
+          } 
+        } %>
+  </div>
 
-    <div class="flex-1 min-w-[300px]">
-      <h2 class="text-lg font-semibold text-gray-700 mb-2">Interacciones x DIA</h2>
-      <div id="chart-2" class="bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
-        <%= line_chart @chart_entries.sum(:total_count), label: "Interacciones", thousands: ".", curve: false, adapter: 'highcharts',
-              library: {
-                chart: { height: 250 },
-                plotOptions: {
-                  series: {
-                    dataLabels: { enabled: true }
-                  }
-                }
-              } %>
-      </div>
-    </div>
+  <!-- Grafico 2 -->
+  <div class="mt-4 mx-auto w-full max-w-3xl bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
+    <h2 class="text-lg font-semibold text-gray-700 mb-2">Interacciones x DIA</h2>
+    <%= line_chart @chart_entries.sum(:total_count), label: "Interacciones", thousands: ".", curve: false, adapter: 'highcharts',
+          library: {
+            plotOptions: {
+              series: {
+                dataLabels: { enabled: true }
+              }
+            }
+          } %>
   </div>
 
   <div class="page-break-after"></div>
@@ -54,7 +52,7 @@
       <table class="min-w-full divide-y divide-gray-200 text-sm text-gray-600">
         <thead class="bg-gray-100">
           <tr>
-            <th class="px-4 py-2 text-left font-semibold text-gray-700">Fecha</th>
+            <th class="px-4 py- text-left font-semibold text-gray-700">Fecha</th>
             <th class="px-6 py-2 text-left font-semibold text-gray-700">Título</th>
             <th class="px-2 py-2 text-left font-semibold text-gray-700">Interacciones</th>
           </tr>
@@ -65,7 +63,7 @@
               <td class="px-4 py-2"><%= entry.published_at.strftime('%d/%m/%Y') %></td>
               <td class="px-6 py-2">
                 <%= link_to entry.url, target: '_blank', class: "flex items-center space-x-2" do %>
-                  <span class="truncate"><%= truncate(entry.title, length: 80) %></span>
+                  <span class="truncate"><%= truncate(entry.title, length: 68) %></span>
                   <%= image_tag 'external-link-gray.svg', size: 17, class: "flex-shrink-0" %>
                 <% end %>
               </td>
@@ -112,80 +110,75 @@
   </div>
 
   <!-- Texto analisis de sentimientos -->
-  <div class="mb-2">
+  <div class="mb-3">
     <p class="bg-gray-100 text-md p-4 rounded overflow-auto text-gray-800 print:bg-white">
       El tópico <b><%= @template.topic.name %></b> en este periodo 
       cuenta con un total de <b><%= number_with_delimiter(@total_entries, delimiter: '.') %></b> 
       notas y generó un total de <b><%= number_with_delimiter(@total_interactions, delimiter: '.') %></b> interacciones, 
       lo que nos da un promedio de <b><%= number_with_delimiter(@promedio, delimiter: '.') %></b> interacciones por nota.
-      <br>
+    </p>
+    <p class="bg-gray-100 text-md p-4 rounded overflow-auto text-gray-800 print:bg-white">
       En contexto las <%= @top_entries.count %> notas más destacadas en <b>general</b>, en el mismo periodo tuvieron 
       <b><%= @top_entries.pluck(:total_count).join(', ') %></b> interacciones respectivamente.
       <i>Las notas más destacadas del tópico están en la tabla más arriba.</i>
     </p>
   </div>
 
-  <!-- Graficos de Sentimientos -->
-  <div class="flex flex-wrap gap-6 print:flex-nowrap">
-    <div class="flex-1 min-w-[300px]">
-      <h2 class="text-lg font-semibold text-gray-700 mb-2">Notas x Sentimiento</h2>
-      <div id="chart-3" class="bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">        
-        <%= pie_chart @polarities_entries_percentages, colors: ["#cb200f", "#686868", '#307d24'], suffix: '%', 
-              library: {
-                chart: { height: 350 },
-                plotOptions: {
-                  pie: {
-                    showInLegend: true,
-                    allowPointSelect: true,
-                    cursor: 'pointer',
-                    dataLabels: {
-                      enabled: true,
-                      distance: 10,
-                      format: '{point.name}: {point.y}%',
-                      format: "{point.percentage:.1f}%",
-                      style: {
-                        fontSize: "1.2em",
-                        textOutline: "none"
-                      } 
-                    }
-                  }
+  <!-- Grafico de Sentimientos 01 -->
+  <div class="mx-auto w-full max-w-3xl bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
+    <h2 class="text-lg font-semibold text-gray-700 mb-2">Notas x Sentimiento</h2>
+    <%= pie_chart @polarities_entries_percentages, colors: ["#cb200f", "#686868", '#307d24'], suffix: '%', 
+          library: {
+            #chart: { height: 350 },
+            plotOptions: {
+              pie: {
+                showInLegend: true,
+                allowPointSelect: true,
+                cursor: 'pointer',
+                dataLabels: {
+                  enabled: true,
+                  distance: 10,
+                  format: '{point.name}: {point.y}%',
+                  format: "{point.percentage:.1f}%",
+                  style: {
+                    fontSize: "1.2em",
+                    textOutline: "none"
+                  } 
                 }
-              } %>
-      </div>
-    </div>
+              }
+            }
+          } %>
+  </div>
 
-    <div class="flex-1 min-w-[300px]">
-      <h2 class="text-lg font-semibold text-gray-700 mb-2">Interacciones x Sentimiento</h2>
-      <div id="chart-4" class="bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
-        <%= pie_chart @polarities_interactions_percentages, colors: ["#cb200f", "#686868", '#307d24'], suffix: '%', 
-              library: {
-                chart: { height: 350 },
-                plotOptions: {
-                  pie: {
-                    showInLegend: true,
-                    allowPointSelect: true,
-                    cursor: 'pointer',
-                    dataLabels: {
-                      enabled: true,
-                      distance: 10,
-                      format: "{point.percentage:.1f}%",
-                      style: {
-                        fontSize: "1.2em",
-                        textOutline: "none"
-                      } 
-                    }
-                  }
+  <!-- Grafico de Sentimientos 01 -->
+  <div class="mt-3 mx-auto w-full max-w-3xl bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
+    <h2 class="text-lg font-semibold text-gray-700 mb-2">Interacciones x Sentimiento</h2>
+    <%= pie_chart @polarities_interactions_percentages, colors: ["#cb200f", "#686868", '#307d24'], suffix: '%', 
+          library: {
+            plotOptions: {
+              pie: {
+                showInLegend: true,
+                allowPointSelect: true,
+                cursor: 'pointer',
+                dataLabels: {
+                  enabled: true,
+                  distance: 10,
+                  format: "{point.percentage:.1f}%",
+                  style: {
+                    fontSize: "1.2em",
+                    textOutline: "none"
+                  } 
                 }
-              } %>
-      </div>
-    </div>
+              }
+            }
+          } %>
   </div>
 
   <div class="page-break-after"></div>
 
   <!-- Medios - Texto analisis -->
-  <div class="mb-6 mt-6">
-    <h2 class="text-xl font-bold text-gray-700 mb-4 text-center">Repercusiones por Medios</h2>
+  <div class="mb-2 mt-4">
+    <h2 class="text-xl font-bold text-gray-700 mb-2 text-center">Repercusiones por Medios</h2>
     <p class="bg-gray-100 text-md p-4 rounded overflow-auto text-gray-800 print:bg-white">
       El medio que más <b>Noticias</b> genera es <b><%= @top_sites[0][0] %></b>, 
       seguido por <b><%= @top_sites[1][0] %></b> y <b><%= @top_sites[2][0] %></b>.
@@ -195,64 +188,62 @@
     </p>
   </div>
 
-  <!-- Medios - Graficos -->
-  <div class="mb-6">
-    <div class="flex flex-wrap gap-6 mb-6 print:flex-nowrap">
-      <div class="flex-1 min-w-[300px]">
-        <h2 class="text-lg font-semibold text-gray-700 mb-2">Notas x Medio</h2>
-        <div class="bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
-          <%= pie_chart @entries.group("sites.name").count('*'), donut: true, 
-                library: {
-                  plotOptions: {
-                    pie: {
-                      showInLegend: false,
-                      allowPointSelect: true,
-                      cursor: 'pointer',
-                      dataLabels: {
-                        enabled: true,
-                        distance: 10,
-                        format: '{point.name}: {point.y}',
-                        style: {
-                          fontSize: "0.8em"
-                        } 
-                      }
-                    }
+  <!-- Medios - Grafico 01 -->
+  <div class="mx-auto w-full max-w-3xl bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
+    <h2 class="text-lg font-semibold text-gray-700 mb-2">Notas x Medio</h2>
+    <div id="chart-5">
+      <%= pie_chart @entries.group("sites.name").count('*'), donut: true, 
+            library: {
+              #chart: { height: 350 },
+              plotOptions: {
+                pie: {
+                  showInLegend: false,
+                  allowPointSelect: true,
+                  cursor: 'pointer',
+                  dataLabels: {
+                    enabled: true,
+                    distance: 10,
+                    format: '{point.name}: {point.y}',
+                    style: {
+                      fontSize: "0.8em"
+                    } 
                   }
-                } %>
-        </div>
-      </div>
+                }
+              }
+            } %>
+    </div>
+  </div>
 
-      <div class="flex-1 min-w-[300px]">
-        <h2 class="text-lg font-semibold text-gray-700 mb-2">Interacciones x Medio</h2>
-        <div class="bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
-          <%= pie_chart @entries.group("sites.name").sum(:total_count), donut: true, 
-                library: {
-                  plotOptions: {
-                    pie: {
-                      showInLegend: false,
-                      allowPointSelect: true,
-                      cursor: 'pointer',
-                      dataLabels: {
-                        enabled: true,
-                        distance: 10,
-                        format: '{point.name}: {point.y}',
-                        style: {
-                          fontSize: "0.8em"
-                        } 
-                      }
-                    }
+  <!-- Medios - Grafico 02 -->
+  <div class="mt-4 mx-auto w-full max-w-3xl bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
+    <h2 class="text-lg font-semibold text-gray-700 mb-2">Interacciones x Medio</h2>
+    <div id="chart-6">
+      <%= pie_chart @entries.group("sites.name").sum(:total_count), donut: true, 
+            library: {
+              plotOptions: {
+                pie: {
+                  showInLegend: false,
+                  allowPointSelect: true,
+                  cursor: 'pointer',
+                  dataLabels: {
+                    enabled: true,
+                    distance: 10,
+                    format: '{point.name}: {point.y}',
+                    style: {
+                      fontSize: "0.8em"
+                    } 
                   }
-                } %>
-        </div>
-      </div>
+                }
+              }
+            } %>
     </div>
   </div>
 
   <div class="page-break-after"></div>
 
   <!-- Impacto del Tópico - Tabla -->
-  <div class="mb-6 mt-6">
-    <h2 class="text-xl font-bold text-gray-700 mb-4 text-center">Impacto del Tópico</h2>
+  <div class="mt-6 mb-2">
+    <h2 class="text-xl font-bold text-gray-700 mb-2 text-center">Impacto del Tópico</h2>
     <div class="bg-gray-100 p-2 rounded overflow-auto text-gray-800 print:bg-white">
       <table class="w-full border-collapse border border-gray-200 text-sm text-left">
         <!-- Header -->
@@ -285,56 +276,55 @@
     </div>
   </div>
 
-  <!-- Impacto del Tópico - Graficos -->
-  <div class="mb-6">
-    <div class="flex flex-wrap gap-6 mb-6 print:flex-nowrap">
-      <div class="flex-1 min-w-[300px]">
-        <h2 class="text-lg font-semibold text-gray-700 mb-2">Cantidad de Notas</h2>
-        <div class="bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
-          <%= pie_chart({"Tópico" => @topic_entries_percentage, "Otros" => @all_entries_percentage}, donut: true, label: "Notas", colors: ["green", "grey"], suffix: '%',
-                library: {
-                  plotOptions: {
-                    pie: {
-                      showInLegend: false,
-                      allowPointSelect: true,
-                      cursor: 'pointer',
-                      dataLabels: {
-                        enabled: true,
-                        distance: 10,
-                        format: '{point.name}: {point.y}%',
-                        style: {
-                          fontSize: "0.8em"
-                        } 
-                      }
-                    }
+  <!-- Impacto del Topico - Grafico 01 -->
+  <div class="mx-auto w-full max-w-3xl bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
+    <h2 class="text-lg font-semibold text-gray-700 mb-2">Cantidad de Notas</h2>
+    <div id="chart-7">
+      <%= pie_chart({"Tópico" => @topic_entries_percentage, "Otros" => @all_entries_percentage}, donut: true, label: "Notas", colors: ["green", "grey"], suffix: '%',
+            library: {
+              chart: { height: 375 },
+              plotOptions: {
+                pie: {
+                  showInLegend: false,
+                  allowPointSelect: true,
+                  cursor: 'pointer',
+                  dataLabels: {
+                    enabled: true,
+                    distance: 10,
+                    format: '{point.name}: {point.y}%',
+                    style: {
+                      fontSize: "0.8em"
+                    } 
                   }
-                }) %>
-        </div>
-      </div>
+                }
+              }
+            }) %>
+    </div>
+  </div>
 
-      <div class="flex-1 min-w-[300px]">
-        <h2 class="text-lg font-semibold text-gray-700 mb-2">Cantidad de Interacciones</h2>
-        <div id="chart-4" class="bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
-          <%= pie_chart({"Tópico" => @topic_interactions_percentage, "Otros" => @all_intereactions_percentage}, donut: true, label: "Interacciones", colors: ["green", "grey"], suffix: '%',
-                library: {
-                  plotOptions: {
-                    pie: {
-                      showInLegend: false,
-                      allowPointSelect: true,
-                      cursor: 'pointer',
-                      dataLabels: {
-                        enabled: true,
-                        distance: 10,
-                        format: '{point.name}: {point.y}%',
-                        style: {
-                          fontSize: "0.8em"
-                        } 
-                      }
-                    }
+  <!-- Impacto del Topico - Grafico 02 -->
+  <div class="mt-2 mx-auto w-full max-w-3xl bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
+    <h2 class="text-lg font-semibold text-gray-700 mb-2">Cantidad de Notas</h2>
+    <div id="chart-8">
+      <%= pie_chart({"Tópico" => @topic_interactions_percentage, "Otros" => @all_intereactions_percentage}, donut: true, label: "Interacciones", colors: ["green", "grey"], suffix: '%',
+            library: {
+              chart: { height: 375 },
+              plotOptions: {
+                pie: {
+                  showInLegend: false,
+                  allowPointSelect: true,
+                  cursor: 'pointer',
+                  dataLabels: {
+                    enabled: true,
+                    distance: 10,
+                    format: '{point.name}: {point.y}%',
+                    style: {
+                      fontSize: "0.8em"
+                    } 
                   }
-                }) %>
-        </div>
-      </div>
+                }
+              }
+            }) %>
     </div>
   </div>
 
@@ -358,7 +348,7 @@
               <td class="px-4 py-2"><%= entry.published_at.strftime('%d/%m/%Y') %></td>
               <td class="px-6 py-2">
                 <%= link_to entry.url, target: '_blank', class: "flex items-center space-x-2" do %>
-                  <span class="truncate"><%= truncate(entry.title, length: 80) %></span>
+                  <span class="truncate"><%= truncate(entry.title, length: 68) %></span>
                   <%= image_tag 'external-link-gray.svg', size: 17, class: "flex-shrink-0" %>
                 <% end %>
               </td>
@@ -373,35 +363,34 @@
   <div class="page-break-after"></div>
 
   <!-- Tendencias -->
-  <div class="mb-6 mt-6">
+  <div class="mt-6">
     <h2 class="text-xl font-bold text-gray-700 mb-4 text-center">Tendencias en Tópicos últimas 24 horas</h2>
-    <div class="flex flex-wrap gap-6 print:flex-nowrap">
-      <div class="flex-1 min-w-[300px]">
-        <h2 class="text-lg font-semibold text-gray-700 mb-2">Cantidad de Notas</h2>
-        <div class="bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
-          <%= bar_chart @notas_ultimo_dia_topico, thousands: ".", library: {
-              plotOptions: {
-                series: {
-                  dataLabels: {
-                    enabled: true
-                  }
-                }
-              } } %>
-        </div>
-      </div>
 
-      <div class="flex-1 min-w-[300px]">
-        <h2 class="text-lg font-semibold text-gray-700 mb-2">Cantidad de Interacciones</h2>
-        <div class="bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
-          <%= bar_chart @interacciones_ultimo_dia_topico, thousands: ".", library: {
+    <div class="mx-auto w-full max-w-3xl bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
+      <h2 class="text-lg font-semibold text-gray-700 mb-2">Cantidad de Notas</h2>
+      <div id="chart-9">
+        <%= bar_chart @notas_ultimo_dia_topico, thousands: ".", library: {
             plotOptions: {
-                series: {
-                  dataLabels: {
-                    enabled: true
-                  }
+              series: {
+                dataLabels: {
+                  enabled: true
                 }
-              } } %>
-        </div>
+              }
+            } } %>
+      </div>
+    </div>
+
+    <div class="mt-2 mx-auto w-full max-w-3xl bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
+      <h2 class="text-lg font-semibold text-gray-700 mb-2">Cantidad de Notas</h2>
+      <div id="chart-10">
+        <%= bar_chart @interacciones_ultimo_dia_topico, thousands: ".", library: {
+          plotOptions: {
+              series: {
+                dataLabels: {
+                  enabled: true
+                }
+              }
+            } } %>
       </div>
     </div>
   </div>

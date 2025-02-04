@@ -32,7 +32,7 @@ class TemplatesController < ApplicationController
       
       @total_entries = @entries.size
       @total_interactions = @entries.sum(&:total_count)
-      @top_entries = @entries.limit(15)
+      @top_entries = @entries.limit(25)
 
       @title_entries = topic.report_title_entries
       @title_top_entries = @title_entries.limit(15)
@@ -100,7 +100,7 @@ class TemplatesController < ApplicationController
       #   "Negativas" => 8,
       #   "Neutras" => 20,
       #   "Positivas" => 72
-      # }     
+      # }
 
       render layout: 'reporte'
     rescue => exception

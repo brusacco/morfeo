@@ -42,10 +42,18 @@
     margin-bottom: 20px;
   }
 
-  // @page {
-  //   size: A4 landscape;
-  //   margin: 10mm 10mm;
-  // }
+  #chart-5, #chart-6 {
+    height: 400px !important;
+  }
+
+  #chart-7, #chart-8 {
+    height: 375px !important;
+  }  
+
+  @page {
+    size: A4 portrait;
+    // margin: 10mm 8mm;
+  }
 
   .print\:hidden {
     display: none !important;

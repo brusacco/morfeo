@@ -32,7 +32,7 @@ class Topic < ApplicationRecord
     tag_list = tags.map(&:name)
     result = Entry.search(
       where: {
-        published_at: { gte: 4.days.ago.beginning_of_day, lte: Date.today.end_of_day },
+        published_at: { gte: 7.days.ago.beginning_of_day, lte: Date.today.end_of_day },
         title_tags: { in: tag_list }
       },
       fields: ['id']
