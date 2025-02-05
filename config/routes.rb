@@ -33,7 +33,7 @@ Rails.application.routes.draw do
   post 'deploy', to: 'home#deploy'
   root 'home#index'
 
-  resources :templates, only: [:index, :new, :create, :show] do
+  resources :templates, only: [:show] do
     member do
       get :pdf_report
     end

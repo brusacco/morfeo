@@ -84,7 +84,7 @@ class TemplatesController < ApplicationController
                                         .group('topics.name').order('sum_topic_stat_dailies_entry_count DESC').limit(10)
                                         .sum('topic_stat_dailies.entry_count')      
       
-      @ai_reports = topic.reports.where.not(created_at: Time.zone.now.beginning_of_day..Time.zone.now.end_of_day).order(created_at: :desc).limit(11)
+      @ai_reports = topic.reports.where.not(created_at: Time.zone.now.beginning_of_day..Time.zone.now.end_of_day, report_text: nil).order(created_at: :desc).limit(10)
 
       # @demo_entries = {
       #   "Negativas" => 68,
@@ -138,10 +138,6 @@ class TemplatesController < ApplicationController
   # end
 
   # private 
-
-  # def template_params
-  #   params.require(:template).permit(:topic_id, :title, :sumary, :date, :user_id)
-  # end
 
   # def browser_endpoint
   #   if Rails.env.production?
