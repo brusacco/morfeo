@@ -1,40 +1,36 @@
-# require 'grover'
-
 class TemplatesController < ApplicationController
   before_action :authenticate_admin_user!
 
-  # def index
-  #   @templates = Template.order(created_at: :desc)
-  # end
-
-  # def new
-  #   @template = Template.new
-  # end
-
-  # def create
-  #   template = Template.new(template_params)
-  #   if template.save
-  #     # redirect_to template_path(template, format: :pdf)
-  #     redirect_to template_path(template)
-  #   else
-  #     Rails.logger.info(template.errors.inspect)
-  #     flash[:alert] = "Error al intentar crear el reporte."
-  #     render :new
-  #   end
-  # end
- 
   def show
     begin
       @template = Template.find(params[:id])
       topic = @template.topic
-      @entries = topic.report_entries
-      @chart_entries = @entries.group_by_day(:published_at)
+
+      filter_start_date = params[:start_date]
+      filter_end_date = params[:end_date]
+
+      # si no se completa ninguna fecha, toma del dia actual a una semana atras
+      if !filter_start_date.present? && !filter_end_date.present?
+        start_date = DAYS_RANGE.days.ago
+        end_date = Date.today
+      # si se completa solo la FECHA DESDE, toma la FECHA HASTA del dia actual  
+      elsif filter_start_date.present? && !filter_end_date.present?
+        start_date = Date.parse(filter_start_date)
+        end_date = Date.today
+      # si se completan ambas fechas, normal
+      else
+        start_date = Date.parse(filter_start_date)
+        end_date = Date.parse(filter_end_date)
+      end
+
+      @entries = topic.report_entries(start_date, end_date)
+      @top_entries = @entries.limit(25)
       
+      @chart_entries = @entries.group_by_day(:published_at)      
       @total_entries = @entries.size
       @total_interactions = @entries.sum(&:total_count)
-      @top_entries = @entries.limit(25)
 
-      @title_entries = topic.report_title_entries
+      @title_entries = topic.report_title_entries(start_date, end_date)
       @title_top_entries = @title_entries.limit(15)
 
       if @total_entries.zero?

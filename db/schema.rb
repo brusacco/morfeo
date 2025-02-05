@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_01_28_201629) do
+ActiveRecord::Schema[7.0].define(version: 2025_02_04_182006) do
   create_table "active_admin_comments", force: :cascade do |t|
     t.string "namespace"
     t.text "body"
@@ -209,10 +209,11 @@ ActiveRecord::Schema[7.0].define(version: 2025_01_28_201629) do
     t.integer "topic_id", null: false
     t.string "title"
     t.text "sumary"
-    t.date "date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "admin_user_id"
+    t.date "start_date"
+    t.date "end_date"
     t.index ["admin_user_id"], name: "index_templates_on_admin_user_id"
     t.index ["topic_id"], name: "index_templates_on_topic_id"
   end

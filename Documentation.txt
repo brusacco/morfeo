@@ -230,3 +230,4 @@ rails g controller Templates index new show
 rails generate active_admin:resource Template
 
 rails g migration AddAdminUserToTemplates admin_user:references
+rails g migration RemoveDateAndAddDatesRangeToTemplates start_date:date end_date:date

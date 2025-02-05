@@ -16,23 +16,23 @@ class Topic < ApplicationRecord
 
   scope :active, -> { where(status: true) }
 
-  def report_entries
+  def report_entries(start_date, end_date)
     tag_list = tags.map(&:name)
     result = Entry.search(
       where: {
-        published_at: { gte: 7.days.ago.beginning_of_day, lte: Date.today.end_of_day },
+        published_at: { gte: start_date.beginning_of_day, lte: end_date.end_of_day },
         tags: { in: tag_list }
       },
-      fields: ['id'] # Only return the ids to reduce payload
+      fields: ['id']
     )
     Entry.where(id: result.map(&:id)).enabled.order(total_count: :desc).joins(:site)
   end
 
-  def report_title_entries
+  def report_title_entries(start_date, end_date)
     tag_list = tags.map(&:name)
     result = Entry.search(
       where: {
-        published_at: { gte: 7.days.ago.beginning_of_day, lte: Date.today.end_of_day },
+        published_at: { gte: start_date.beginning_of_day, lte: end_date.end_of_day },
         title_tags: { in: tag_list }
       },
       fields: ['id']
