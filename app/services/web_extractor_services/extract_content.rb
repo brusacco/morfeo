@@ -14,6 +14,7 @@ module WebExtractorServices
         @doc.css('script').remove
         @doc.css('style').remove
         @doc.css('a').remove
+        @doc.css('b').remove
         sanitized_string = @doc.at(@content_filter).text.strip
         sanitized_string = sanitized_string.gsub(/[\n\r\t]/, '').squish
         result = { content: sanitized_string }
