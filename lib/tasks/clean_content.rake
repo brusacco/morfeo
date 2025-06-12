@@ -51,7 +51,6 @@ end
 task clean_site_content: :environment do
   site = Site.find(52)
   entries = site.entries.enabled.order(created_at: :desc).limit(1000)
-  entries = Entry.where(id: 1644410)
   Parallel.each(entries, in_threads: 4) do |entry|
     next unless entry.site.content_filter
 
