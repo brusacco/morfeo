@@ -51,8 +51,8 @@ end
 task clean_site_content: :environment do
   site = Site.find(52)
   # entries = site.entries.enabled.order(created_at: :desc).limit(1000)
-  entries = site.entries.where(content: '').order(created_at: :desc).limit(1000)
-  Parallel.each(entries, in_threads: 4) do |entry|
+  entries = site.entries.order(created_at: :desc).limit(5000)
+  Parallel.each(entries, in_threads: 2) do |entry|
     next unless entry.site.content_filter
 
     doc = Nokogiri::HTML(URI.parse(entry.url).open.read.force_encoding('UTF-8'))
