@@ -16,6 +16,7 @@ ActiveAdmin.register Entry do
   filter :site, collection: proc { Site.order(:name) }
   filter :url
   filter :title
+  filter :category
   filter :published_at, label: 'Fecha'
   filter :enabled, label: 'Habilitado'
   filter :repeated, label: 'Repetido', as: :select, collection: Entry.repeateds
@@ -50,6 +51,7 @@ ActiveAdmin.register Entry do
     column :total_count
     column :site
     column :tag_list
+    column :category
     column 'Url' do |entry|
       link_to entry.url, entry.url, target: :blank
     end
