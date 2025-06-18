@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_02_04_182006) do
+ActiveRecord::Schema[7.0].define(version: 2025_06_18_183424) do
   create_table "active_admin_comments", force: :cascade do |t|
     t.string "namespace"
     t.text "body"
@@ -100,6 +100,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_02_04_182006) do
     t.integer "polarity"
     t.integer "delta", default: 0
     t.integer "repeated", default: 0, null: false
+    t.string "category"
     t.index ["published_date"], name: "index_entries_on_published_date"
     t.index ["site_id"], name: "index_entries_on_site_id"
     t.index ["url"], name: "index_entries_on_url", unique: true
