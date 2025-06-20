@@ -9,6 +9,7 @@ every :hour do
   rake 'update_site_stats'
   rake 'update_dates'
   rake 'clean_site_content'
+  rake 'category'
   rake 'topic_stat_daily'
   rake 'title_topic_stat_daily'
 end
