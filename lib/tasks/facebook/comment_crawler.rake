@@ -10,7 +10,7 @@ namespace :facebook do
     entries.find_each do |entry|
       next unless entry.belongs_to_any_topic?
 
-      sleep 1
+      sleep 2
 
       puts entry.id
       puts entry.url
