@@ -30,6 +30,10 @@ namespace :facebook do
           db_comment.created_time = comment['created_time']
         end
       end
+    rescue StandardError => e
+      puts "Error processing entry #{entry.id}: #{e.message}"
+      sleep 10
+      next
     end
   end
 
