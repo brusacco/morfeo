@@ -1,12 +1,13 @@
-Grover.configure do |config|
-  config.options = {
-    format: 'A4',
-    margin: {
-      top: '1cm',
-      bottom: '1cm',
-      left: '1cm',
-      right: '1cm'
-    },
+if defined?(Grover)
+  Grover.configure do |config|
+    config.options = {
+      format: 'A4',
+      margin: {
+        top: '1cm',
+        bottom: '1cm',
+        left: '1cm',
+        right: '1cm'
+      },
     user_agent: 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0',
     display_url: Rails.application.routes.default_url_options[:host] || 'http://localhost:6500',
     # launch_options: {
@@ -33,4 +34,5 @@ Grover.configure do |config|
     # launch_args: ['--font-render-hinting=medium'],
     # wait_until: 'domcontentloaded'
   }
+end
 end
