@@ -1,9 +1,11 @@
-require: rubocop-rails
 AllCops:
   EnabledByDefault: true
+
+plugins:
+  - rubocop-rails
 Style/Copyright:
   Enabled: false
-  AutocorrectNotice: 'Copyright 2022 Mind'
+  AutocorrectNotice: "Copyright 2022 Mind"
 Lint/ConstantResolution:
   Enabled: false
 Style/MissingElse:
