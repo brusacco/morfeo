@@ -139,9 +139,11 @@ gem 'textmood', '~> 0.1.3'
 
 gem 'actionpack-action_caching', '~> 1.2'
 
-gem "paper_trail", "~> 15.1"
+gem 'paper_trail', '~> 15.1'
 
 gem 'selenium-webdriver'
 gem 'webdrivers'
 
 gem 'grover'
+
+gem 'colorize'
