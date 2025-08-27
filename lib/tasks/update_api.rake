@@ -15,107 +15,124 @@ task update_api: :environment do
     puts "Processing site: #{site.name} (UID: #{site.uid})"
     puts '-' * 30
 
-    posts = {}
-    cursor = nil
-    page_number = 1
-    max_pages = 2
+    # Retry logic for entire site processing
+    site_max_retries = 2
+    site_retry_count = 0
 
-    # Loop through pages using pagination (limited to 3 pages)
-    while page_number <= max_pages
-      puts "Fetching page #{page_number}/#{max_pages}..."
-      data = call_api(site.uid, cursor)
+    begin
+      posts = {}
+      cursor = nil
+      page_number = 1
+      max_pages = 2
 
-      # Break if no data returned
-      break if data['data'].nil? || data['data'].empty?
+      # Loop through pages using pagination (limited to 2 pages)
+      while page_number <= max_pages
+        puts "Fetching page #{page_number}/#{max_pages}..."
+        data = call_api(site.uid, cursor)
 
-      data['data'].each do |post|
-        next unless post['attachments'] &&
-                    post['attachments']['data'] &&
-                    post['attachments']['data'][0] &&
-                    post['attachments']['data'][0]['type'] == 'share'
+        # Break if no data returned
+        break if data['data'].nil? || data['data'].empty?
 
-        attachment = post['attachments']['data'][0]
+        data['data'].each do |post|
+          next unless post['attachments'] &&
+                      post['attachments']['data'] &&
+                      post['attachments']['data'][0] &&
+                      post['attachments']['data'][0]['type'] == 'share'
 
-        # Clean target URL if it exists
-        if attachment['target'] && attachment['target']['url']
-          attachment['target']['url'] = clean_facebook_url(attachment['target']['url'])
-        end
+          attachment = post['attachments']['data'][0]
 
-        # Clean main URL if it exists
-        attachment['url'] = clean_facebook_url(attachment['url']) if attachment['url']
-
-        # Use the cleaned target URL for processing
-        target_url = attachment['target'] ? attachment['target']['url'] : nil
-        next if target_url.nil?
-
-        # Calculate total engagement
-        total_engagement = calculate_total_engagement(post)
-
-        post_data = {
-          url: target_url,
-          total_engagement: total_engagement,
-          details: get_engagement_breakdown(post),
-          post_id: post['id']
-        }
-
-        # If we already have a post with this URL, keep the one with higher engagement
-        if posts[target_url]
-          if total_engagement > posts[target_url][:total_engagement]
-            puts "  → Replacing duplicate URL with higher engagement: #{total_engagement} > #{posts[target_url][:total_engagement]}"
-            posts[target_url] = post_data
-          else
-            puts "  → Skipping duplicate URL with lower engagement: #{total_engagement} <= #{posts[target_url][:total_engagement]}"
+          # Clean target URL if it exists
+          if attachment['target'] && attachment['target']['url']
+            attachment['target']['url'] = clean_facebook_url(attachment['target']['url'])
           end
+
+          # Clean main URL if it exists
+          attachment['url'] = clean_facebook_url(attachment['url']) if attachment['url']
+
+          # Use the cleaned target URL for processing
+          target_url = attachment['target'] ? attachment['target']['url'] : nil
+          next if target_url.nil?
+
+          # Calculate total engagement
+          total_engagement = calculate_total_engagement(post)
+
+          post_data = {
+            url: target_url,
+            total_engagement: total_engagement,
+            details: get_engagement_breakdown(post),
+            post_id: post['id']
+          }
+
+          # If we already have a post with this URL, keep the one with higher engagement
+          if posts[target_url]
+            if total_engagement > posts[target_url][:total_engagement]
+              puts "  → Replacing duplicate URL with higher engagement: #{total_engagement} > #{posts[target_url][:total_engagement]}"
+              posts[target_url] = post_data
+            else
+              puts "  → Skipping duplicate URL with lower engagement: #{total_engagement} <= #{posts[target_url][:total_engagement]}"
+            end
+          else
+            posts[target_url] = post_data
+          end
+        end
+
+        # Check if there's a next page and we haven't reached the limit
+        if data['paging'] && data['paging']['next'] && data['paging']['cursors'] && data['paging']['cursors']['after'] && page_number < max_pages
+          cursor = data['paging']['cursors']['after']
+          page_number += 1
+          puts "Found next page cursor: #{cursor}"
         else
-          posts[target_url] = post_data
+          if page_number >= max_pages
+            puts "Reached maximum pages limit (#{max_pages})."
+          else
+            puts 'No more pages available.'
+          end
+          break
         end
       end
 
-      # Check if there's a next page and we haven't reached the limit
-      if data['paging'] && data['paging']['next'] && data['paging']['cursors'] && data['paging']['cursors']['after'] && page_number < max_pages
-        cursor = data['paging']['cursors']['after']
-        page_number += 1
-        puts "Found next page cursor: #{cursor}"
-      else
-        if page_number >= max_pages
-          puts "Reached maximum pages limit (#{max_pages})."
+      # Print all clean URLs at the end
+      puts "\n" + ('=' * 50)
+      puts 'CLEAN URLs EXTRACTED WITH ENGAGEMENT:'
+      puts '=' * 50
+      posts.each do |_url, post_data|
+        puts "Post ID: #{post_data[:post_id]}"
+
+        # Check if URL exists in database
+        entry = Entry.find_by_url(post_data[:url])
+        delta_change = 0 # Initialize delta_change for all posts
+
+        if entry
+          puts "Clean URL: #{post_data[:url]}"
+
+          entry.reaction_count = post_data[:details][:reactions][:total]
+          entry.comment_count = post_data[:details][:comments]
+          entry.share_count = post_data[:details][:shares]
+          entry.total_count = post_data[:total_engagement]
+          entry.save!
+          puts "  → Stats updated: R:#{entry.reaction_count} C:#{entry.comment_count} S:#{entry.share_count} T:#{entry.total_count}"
         else
-          puts 'No more pages available.'
+          puts "Clean URL: #{post_data[:url]}"
         end
-        break
+
+        puts "Total Engagement: #{post_data[:total_engagement]} - Delta: #{delta_change}"
+        puts "Breakdown: #{post_data[:details]}"
+        puts '-' * 30
       end
-    end
-
-    # Print all clean URLs at the end
-    puts "\n" + ('=' * 50)
-    puts 'CLEAN URLs EXTRACTED WITH ENGAGEMENT:'
-    puts '=' * 50
-    posts.each do |_url, post_data|
-      puts "Post ID: #{post_data[:post_id]}"
-
-      # Check if URL exists in database
-      entry = Entry.find_by_url(post_data[:url])
-      delta_change = 0 # Initialize delta_change for all posts
-
-      if entry
-        puts "Clean URL: #{post_data[:url]}"
-
-        entry.reaction_count = post_data[:details][:reactions][:total]
-        entry.comment_count = post_data[:details][:comments]
-        entry.share_count = post_data[:details][:shares]
-        entry.total_count = post_data[:total_engagement]
-        entry.save!
-        puts "  → Stats updated: R:#{entry.reaction_count} C:#{entry.comment_count} S:#{entry.share_count} T:#{entry.total_count}"
+      puts "Total posts processed: #{posts.count}"
+      puts '=' * 50
+    rescue Net::OpenTimeout, Net::ReadTimeout, Errno::ECONNRESET, SocketError => e
+      site_retry_count += 1
+      if site_retry_count <= site_max_retries
+        puts "  ⚠️  Site processing failed (attempt #{site_retry_count}/#{site_max_retries}): #{e.class.name}"
+        puts "  🔄 Retrying entire site in #{site_retry_count * 5} seconds..."
+        sleep(site_retry_count * 5) # Progressive delay: 5s, 10s
+        retry
       else
-        puts "Clean URL: #{post_data[:url]}"
+        puts "  ❌ Site processing failed after #{site_max_retries} retries: #{e.class.name}"
+        puts '  ⏭️  Skipping to next site...'
       end
-
-      puts "Total Engagement: #{post_data[:total_engagement]} - Delta: #{delta_change}"
-      puts "Breakdown: #{post_data[:details]}"
-      puts '-' * 30
     end
-    puts "Total posts processed: #{posts.count}"
-    puts '=' * 50
   end
 end
 
@@ -131,8 +148,25 @@ def call_api(page_uid, cursor = nil)
   url = "#{page_uid}/posts?fields=id%2Cattachments%2Ccreated_time%2Cmessage"
   request = "#{api_url}#{url}#{shares}#{comments}#{reactions}#{limit}#{token}#{next_page}"
 
-  response = HTTParty.get(request, timeout: 60)
-  JSON.parse(response.body)
+  # Retry logic for API calls
+  max_retries = 3
+  retry_count = 0
+
+  begin
+    response = HTTParty.get(request, timeout: 60)
+    JSON.parse(response.body)
+  rescue Net::OpenTimeout, Net::ReadTimeout, Errno::ECONNRESET, SocketError => e
+    retry_count += 1
+    if retry_count <= max_retries
+      puts "  ⚠️  API call failed (attempt #{retry_count}/#{max_retries}): #{e.class.name}"
+      puts "  🔄 Retrying in #{retry_count * 2} seconds..."
+      sleep(retry_count * 2) # Progressive delay: 2s, 4s, 6s
+      retry
+    else
+      puts "  ❌ API call failed after #{max_retries} retries: #{e.class.name}"
+      raise e
+    end
+  end
 end
 
 def clean_facebook_url(facebook_url)
