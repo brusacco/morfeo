@@ -18,7 +18,7 @@ task update_api: :environment do
     posts = {}
     cursor = nil
     page_number = 1
-    max_pages = 3
+    max_pages = 2
 
     # Loop through pages using pagination (limited to 3 pages)
     while page_number <= max_pages
