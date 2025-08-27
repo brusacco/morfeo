@@ -3,12 +3,11 @@
 require 'json'
 require 'pp'
 require 'cgi'
-require 'colorize'
 
 desc 'Actualiza la info de los sitios'
 task update_api: :environment do
   # Reset all delta values for entries from this site
-  puts 'Resetting delta values for all entries'.colorize(:yellow)
+  puts 'Resetting delta values for all entries'
   pages = Page.where("uid <> ''")
 
   pages.each do |site|
@@ -23,7 +22,7 @@ task update_api: :environment do
 
     # Loop through pages using pagination (limited to 3 pages)
     while page_number <= max_pages
-      puts "Fetching page #{page_number}/#{max_pages}...".colorize(:cyan)
+      puts "Fetching page #{page_number}/#{max_pages}..."
       data = call_api(site.fuid, cursor)
 
       # Break if no data returned
@@ -62,10 +61,10 @@ task update_api: :environment do
         # If we already have a post with this URL, keep the one with higher engagement
         if posts[target_url]
           if total_engagement > posts[target_url][:total_engagement]
-            puts "  → Replacing duplicate URL with higher engagement: #{total_engagement} > #{posts[target_url][:total_engagement]}".colorize(:yellow)
+            puts "  → Replacing duplicate URL with higher engagement: #{total_engagement} > #{posts[target_url][:total_engagement]}"
             posts[target_url] = post_data
           else
-            puts "  → Skipping duplicate URL with lower engagement: #{total_engagement} <= #{posts[target_url][:total_engagement]}".colorize(:yellow)
+            puts "  → Skipping duplicate URL with lower engagement: #{total_engagement} <= #{posts[target_url][:total_engagement]}"
           end
         else
           posts[target_url] = post_data
@@ -76,12 +75,12 @@ task update_api: :environment do
       if data['paging'] && data['paging']['next'] && data['paging']['cursors'] && data['paging']['cursors']['after'] && page_number < max_pages
         cursor = data['paging']['cursors']['after']
         page_number += 1
-        puts "Found next page cursor: #{cursor}".colorize(:yellow)
+        puts "Found next page cursor: #{cursor}"
       else
         if page_number >= max_pages
-          puts "Reached maximum pages limit (#{max_pages}).".colorize(:green)
+          puts "Reached maximum pages limit (#{max_pages})."
         else
-          puts 'No more pages available.'.colorize(:green)
+          puts 'No more pages available.'
         end
         break
       end
@@ -99,16 +98,16 @@ task update_api: :environment do
       delta_change = 0 # Initialize delta_change for all posts
 
       if entry
-        puts "Clean URL: #{post_data[:url]}".colorize(:green)
+        puts "Clean URL: #{post_data[:url]}"
 
         entry.reaction_count = post_data[:details][:reactions][:total]
         entry.comment_count = post_data[:details][:comments]
         entry.share_count = post_data[:details][:shares]
         entry.total_count = post_data[:total_engagement]
         entry.save!
-        puts "  → Stats updated: R:#{entry.reaction_count} C:#{entry.comment_count} S:#{entry.share_count} T:#{entry.total_count}".colorize(:blue)
+        puts "  → Stats updated: R:#{entry.reaction_count} C:#{entry.comment_count} S:#{entry.share_count} T:#{entry.total_count}"
       else
-        puts "Clean URL: #{post_data[:url]}".colorize(:red)
+        puts "Clean URL: #{post_data[:url]}"
       end
 
       puts "Total Engagement: #{post_data[:total_engagement]} - Delta: #{delta_change}"

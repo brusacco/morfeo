@@ -143,7 +143,3 @@ gem 'paper_trail', '~> 15.1'
 
 gem 'selenium-webdriver'
 gem 'webdrivers'
-
-gem 'grover'
-
-gem 'colorize'
