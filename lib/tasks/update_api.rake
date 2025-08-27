@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'json'
-require 'thread/pool'
 require 'pp'
 require 'cgi'
 require 'colorize'
