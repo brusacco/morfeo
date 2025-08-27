@@ -12,7 +12,7 @@ task update_api: :environment do
 
   pages.each do |site|
     puts '-' * 30
-    puts "Processing site: #{site.name} (FUID: #{site.fuid})"
+    puts "Processing site: #{site.name} (UID: #{site.uid})"
     puts '-' * 30
 
     posts = {}
@@ -23,7 +23,7 @@ task update_api: :environment do
     # Loop through pages using pagination (limited to 3 pages)
     while page_number <= max_pages
       puts "Fetching page #{page_number}/#{max_pages}..."
-      data = call_api(site.fuid, cursor)
+      data = call_api(site.uid, cursor)
 
       # Break if no data returned
       break if data['data'].nil? || data['data'].empty?
