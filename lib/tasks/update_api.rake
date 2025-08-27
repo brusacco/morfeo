@@ -131,7 +131,7 @@ def call_api(page_uid, cursor = nil)
   url = "#{page_uid}/posts?fields=id%2Cattachments%2Ccreated_time%2Cmessage"
   request = "#{api_url}#{url}#{shares}#{comments}#{reactions}#{limit}#{token}#{next_page}"
 
-  response = HTTParty.get(request)
+  response = HTTParty.get(request, timeout: 60)
   JSON.parse(response.body)
 end
 
