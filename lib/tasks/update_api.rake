@@ -23,9 +23,9 @@ task update_api: :environment do
       posts = {}
       cursor = nil
       page_number = 1
-      max_pages = 2
+      max_pages = 3
 
-      # Loop through pages using pagination (limited to 2 pages)
+      # Loop through pages using pagination (limited to 3 pages)
       while page_number <= max_pages
         puts "Fetching page #{page_number}/#{max_pages}..."
         data = call_api(site.uid, cursor)
