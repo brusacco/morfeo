@@ -99,7 +99,7 @@ task update_api: :environment do
         puts "Post ID: #{post_data[:post_id]}"
 
         # Check if URL exists in database
-        entry = Entry.find_by_url(post_data[:url])
+        entry = Entry.find_by_url_and_site_id(post_data[:url], site.id)
         delta_change = 0 # Initialize delta_change for all posts
 
         if entry
