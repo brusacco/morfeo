@@ -3,7 +3,7 @@ require 'nokogiri'
 require 'open-uri'
 require 'webdrivers'
 
-desc "Scrape a web page using Chrome Headless"
+desc 'Scrape a web page using Chrome Headless'
 task headless_crawler: :environment do
   Site.enabled.where(is_js: true).order(total_count: :desc).each do |site|
     options = Selenium::WebDriver::Chrome::Options.new
@@ -16,7 +16,7 @@ task headless_crawler: :environment do
     options.add_argument('--disable-popup-blocking')
     options.add_argument('--disable-translate')
 
-    user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36"
+    user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36'
     options.add_argument("--user-agent=#{user_agent}")
 
     driver = Selenium::WebDriver.for :chrome, options: options
@@ -33,18 +33,18 @@ task headless_crawler: :environment do
       # puts link.text
       # puts link.attribute('href')
 
-      if link.attribute('href').to_s.match(/#{site.filter}/)
-        links.push link.attribute('href')
-      end
+      links.push link.attribute('href') if link.attribute('href').to_s.match(/#{site.filter}/)
     end
     links.uniq!
 
     links.each do |link|
       # puts link
-
-      if entry = Entry.find_by(url: link)
+      check_entry = Entry.find_by(url: link)
+      if check_entry
         puts 'NOTICIA YA EXISTE'
-        puts entry.title
+        puts check_entry.title
+        puts check_entry.url
+        puts '------------------------------------------------------'
       else
         driver.navigate.to link
         sleep 10
