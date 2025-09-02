@@ -96,13 +96,13 @@ task crawler_deep: :environment do
           #---------------------------------------------------------------------------
           # Stats extractor
           #---------------------------------------------------------------------------
-          result = FacebookServices::UpdateStats.call(entry.id)
-          if result.success?
-            entry.update!(result.data)
-            puts result.data
-          else
-            puts "ERROR STATS: #{result&.error}"
-          end
+          # result = FacebookServices::UpdateStats.call(entry.id)
+          # if result.success?
+          #   entry.update!(result.data)
+          #   puts result.data
+          # else
+          #   puts "ERROR STATS: #{result&.error}"
+          # end
 
           #---------------------------------------------------------------------------
           # Set entry polarity
