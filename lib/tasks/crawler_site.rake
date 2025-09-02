@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-desc 'Moopio Morfeo web crawler for Sites'
-task crawler_site: :environment do
+desc 'Moopio Morfeo web crawler'
+task crawler: :environment do
   directories = %w[
     blackhole
     wp-login
@@ -24,23 +24,23 @@ task crawler_site: :environment do
     feed
   ]
   directory_pattern = /#{directories.join('|')}/
-  Site.where(id: 52).each do |site|
+  Site.where(id: 87).find_each do |site|
     puts "Start test processing site #{site.name}..."
     puts '--------------------------------------------------------------------"'
     Anemone.crawl(
       site.url,
       read_timeout: 10,
-      depth_limit: 3,
+      depth_limit: 2,
       discard_page_bodies: true,
       accept_cookies: true,
       threads: 5,
       verbose: true,
       user_agent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3071.115 Safari/537.36'
     ) do |anemone|
-      anemone.skip_links_like(/.*\.(jpeg|jpg|gif|png|pdf|mp3|mp4|mpeg)/)
+      anemone.skip_links_like(/.*\.(jpeg|jpg|gif|png|pdf|mp3|mp4|mpeg)/, directory_pattern)
 
       anemone.focus_crawl do |page|
-        # page.links.delete_if { |href| Entry.exists?(url: href.to_s) }
+        page.links.delete_if { |href| Entry.exists?(url: href.to_s) }
         page.links.delete_if do |href|
           href.to_s.match(/#{site.negative_filter.presence || 'NUNCA'}/).present?
         end
@@ -53,7 +53,6 @@ task crawler_site: :environment do
           #---------------------------------------------------------------------------
           # Basic data extractor
           #---------------------------------------------------------------------------
-          puts 'Basic Data Extractor'
           result = WebExtractorServices::ExtractBasicInfo.call(page.doc)
           if result.success?
             entry.update!(result.data)
@@ -64,7 +63,6 @@ task crawler_site: :environment do
           #---------------------------------------------------------------------------
           # Content extractor
           #---------------------------------------------------------------------------
-          puts 'Content Extractor'
           if entry.site.content_filter.present?
             result = WebExtractorServices::ExtractContent.call(page.doc, entry.site.content_filter)
             if result.success?
@@ -77,7 +75,6 @@ task crawler_site: :environment do
           #---------------------------------------------------------------------------
           # Date extractor
           #---------------------------------------------------------------------------
-          puts 'Date Extractor'
           result = WebExtractorServices::ExtractDate.call(page.doc)
           if result.success?
             entry.update!(result.data)
@@ -96,6 +93,18 @@ task crawler_site: :environment do
             puts result.data
           else
             puts "ERROR TAGGER: #{result&.error}"
+          end
+
+          #---------------------------------------------------------------------------
+          # Solo Title Tagger
+          #---------------------------------------------------------------------------
+          result = WebExtractorServices::ExtractTitleTags.call(entry.id)
+          if result.success?
+            entry.title_tag_list.add(result.data)
+            entry.save!
+            puts "TITLE TAGS: #{result.data}"
+          else
+            puts "ERROR TITLE TAGGER: #{result&.error}"
           end
 
           #---------------------------------------------------------------------------
