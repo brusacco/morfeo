@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 desc 'Moopio Morfeo web crawler'
-task crawler: :environment do
+task site_crawler: :environment do
   directories = %w[
     blackhole
     wp-login
