@@ -7,7 +7,7 @@ desc 'Scrape a web page using Chrome Headless'
 task headless_site_crawler: :environment do
   Site.enabled.where(id: 134, is_js: true).order(total_count: :desc).each do |site|
     options = Selenium::WebDriver::Chrome::Options.new
-    options.add_argument('--headless')
+    options.add_argument('--headless=new') # Use new headless mode for better stealth
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
     options.add_argument('--disable-gpu')
@@ -15,6 +15,14 @@ task headless_site_crawler: :environment do
     options.add_argument('--ignore-certificate-errors')
     options.add_argument('--disable-popup-blocking')
     options.add_argument('--disable-translate')
+    options.add_argument('--disable-blink-features=AutomationControlled')
+    options.add_argument('--window-size=1920,1080')
+    options.add_argument('--lang=es-ES')
+    # Use a real user data directory for persistent browser profile (optional, comment out if not needed)
+    # options.add_argument('--user-data-dir=/tmp/selenium-profile')
+    # Remove WebDriver flag from navigator (stealth)
+    options.add_option('excludeSwitches', ['enable-automation'])
+    options.add_option('useAutomationExtension', false)
 
     user_agents = [
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
