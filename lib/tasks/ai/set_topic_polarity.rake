@@ -6,7 +6,7 @@ namespace :ai do
     tags.each do |tag|
       next if tag.name.blank?
 
-      entries = Entry.tagged_with(tag.name, any: true)
+      entries = Entry.tagged_with(tag.name, any: true).limit(500)
       puts "Found #{entries.count} entries tagged with '#{tag}'"
       entries.find_each do |entry|
         entry.reindex
