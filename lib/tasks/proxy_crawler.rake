@@ -14,7 +14,87 @@ task proxy_crawler: :environment do
     # Process the document as needed
     links = get_links(doc, site)
     puts '---------------------------------------------------'
-    puts links
+
+    links.each do |link|
+      # puts link
+      check_entry = Entry.find_by(url: link)
+      if check_entry
+        puts 'NOTICIA YA EXISTE'
+        puts check_entry.title
+        puts check_entry.url
+        puts '------------------------------------------------------'
+      else
+        content = proxy_request(link).body
+        doc = Nokogiri::HTML(content)
+
+        Entry.create_with(site: site).find_or_create_by!(url: link) do |entry|
+          puts entry.url
+
+          #---------------------------------------------------------------------------
+          # Basic data extractor
+          #---------------------------------------------------------------------------
+          result = WebExtractorServices::ExtractBasicInfo.call(doc)
+          if result.success?
+            entry.update!(result.data)
+          else
+            puts "ERROR BASIC: #{result.error}"
+          end
+
+          #---------------------------------------------------------------------------
+          # Content extractor
+          #---------------------------------------------------------------------------
+          if entry.site.content_filter.present?
+            result = WebExtractorServices::ExtractContent.call(doc, entry.site.content_filter)
+            if result.success?
+              entry.update!(result.data)
+            else
+              puts "ERROR CONTENT: #{result&.error}"
+            end
+          end
+
+          #---------------------------------------------------------------------------
+          # Date extractor
+          #---------------------------------------------------------------------------
+          result = WebExtractorServices::ExtractDate.call(doc)
+          if result.success?
+            entry.update!(result.data)
+            puts result.data
+          else
+            puts "ERROR DATE: #{result&.error}"
+            next
+          end
+
+          #---------------------------------------------------------------------------
+          # Tagger
+          #---------------------------------------------------------------------------
+          result = WebExtractorServices::ExtractTags.call(entry.id)
+          if result.success?
+            entry.tag_list.add(result.data)
+            entry.save!
+            puts result.data
+          else
+            puts "ERROR TAGGER: #{result&.error}"
+          end
+
+          #---------------------------------------------------------------------------
+          # Stats extractor
+          #---------------------------------------------------------------------------
+          # result = FacebookServices::UpdateStats.call(entry.id)
+          # if result.success?
+          #   entry.update!(result.data)
+          #   puts result.data
+          # else
+          #   puts "ERROR STATS: #{result&.error}"
+          # end
+
+          #---------------------------------------------------------------------------
+          # Set entry polarity
+          #---------------------------------------------------------------------------
+          entry.set_polarity if entry.belongs_to_any_topic?
+        end
+        puts '----------------------------------------------------'
+      end
+    end
   end
 end
 
