@@ -10,25 +10,18 @@ task proxy_crawler: :environment do
 
     doc = Nokogiri::HTML(response)
     # Process the document as needed
-    links = []
-    doc.css('a').each do |link|
-      puts link.text
-      puts link.attribute('href')
-      links.push link.attribute('href') if link.attribute('href').to_s.match(/#{site.filter}/)
-    end
-    links.uniq!
+    links = get_links(doc, site)
     puts links
   end
 end
 
-# def get_links(doc, site)
-#   links = []
-#   doc.css('a').each do |link|
-
-#     links.push link.attribute('href') if link.attribute('href').to_s.match(/#{site.filter}/)
-#   end
-#   links.uniq!
-# end
+def get_links(doc, site)
+  links = []
+  doc.css('a').each do |link|
+    links.push link.attribute('href') if link.attribute('href').to_s.match(/#{site.filter}/)
+  end
+  links.uniq!
+end
 
 def proxy_request(url)
   url = "http://api.scrape.do?token=ed138ed418924138923ced2b81e04d53&url=#{CGI.escape(url)}&render=True"
