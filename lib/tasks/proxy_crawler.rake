@@ -11,7 +11,7 @@ task proxy_crawler: :environment do
     doc = Nokogiri::HTML(response)
     # Process the document as needed
     links = get_links(doc, site)
-    puts links
+    puts "Found #{links.size} links matching the filter."
   end
 end
 
