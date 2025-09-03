@@ -7,10 +7,11 @@ task proxy_crawler: :environment do
     puts '--------------------------------------------------------------------'
 
     response = proxy_request(site.url)
-    doc = Nokogiri::HTML(response)
 
+    doc = Nokogiri::HTML(response)
     # Process the document as needed
-    puts get_links(doc, site)
+    links = get_links(doc, site)
+    puts links
   end
 end
 
