@@ -24,16 +24,10 @@ def get_links(doc, site)
     links.push link.attribute('href') if link.attribute('href').to_s.match(/#{site.filter}/)
   end
   links.uniq!
+  links
 end
 
 def proxy_request(url)
   url = "http://api.scrape.do?token=ed138ed418924138923ced2b81e04d53&url=#{CGI.escape(url)}&render=True"
-  attempts = 0
-  response = nil
-  loop do
-    response = HTTParty.get(url, timeout: 60)
-    attempts += 1
-    break if response.code == 200 || attempts >= 3
-  end
-  response
+  HTTParty.get(url, timeout: 60)
 end
