@@ -81,6 +81,9 @@ module WebExtractorServices
       elsif @doc.at('.c-hero__text--date') && @date.nil?
         @date = @doc.at('.c-hero__text--date').text
         @parsed = false
+      elsif @doc.at_xpath('//figure[svg]/following-sibling::p[1]')&.text&.strip && @date.nil?
+        @date = @doc.at_xpath('//figure[svg]/following-sibling::p[1]')&.text&.strip
+        @parsed = false
       else
         @date = nil
       end
