@@ -5,6 +5,7 @@ set :environment, 'production'
 every :hour do
   rake 'crawler'
   rake 'headless_crawler'
+  rake 'proxy_crawler'
   # rake 'update_stats'
   rake 'update_api'
   rake 'update_site_stats'
