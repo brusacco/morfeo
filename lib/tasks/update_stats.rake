@@ -6,6 +6,8 @@ task update_stats: :environment do
     result = FacebookServices::UpdateStats.call(entry.id)
     puts result
     if result.success?
+      next if result.data['total_count'].zero?
+
       entry.update!(result.data)
     else
       Rails.logger.error "Failed to update Facebook stats for #{entry.id}: #{result.error}"
