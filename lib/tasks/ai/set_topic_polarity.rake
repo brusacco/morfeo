@@ -3,9 +3,9 @@
 namespace :ai do
   # Helper function to reindex entries for a list of tags
   def reindex_entries_for_tags(tags)
-    Array(tags).each do |tag|
-      entries = Entry.tagged_with(tag, any: true)
-      puts "Found \\#{entries.count} entries tagged with '#{tag}'"
+    tags.each do |tag|
+      entries = Entry.tagged_with(tag.name, any: true)
+      puts "Found #{entries.count} entries tagged with '#{tag}'"
       entries.find_each do |entry|
         entry.reindex
         puts "Reindexed entry ##{entry.id}: #{entry.title}"
@@ -29,7 +29,7 @@ namespace :ai do
       end
       # Reindex all entries for this topic's tags
       puts "Reindexing entries for topic: #{topic.name}"
-      reindex_entries_for_tags(topic.tags.map(&:name))
+      reindex_entries_for_tags(topic.tags)
     end
   end
 end
