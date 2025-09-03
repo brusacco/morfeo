@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-namespace :ai do
+namespace :util do
   # Helper function to reindex entries for a list of tags
   def reindex_entries_for_tags(tags)
     tags.each do |tag|
@@ -17,7 +17,7 @@ namespace :ai do
   end
 
   desc 'Update topic polarities'
-  task set_topic_polarity: :environment do
+  task reindex_topic: :environment do
     Topic.where(status: true).find_each do |topic|
       reindex_entries_for_tags(topic.tags)
     end
