@@ -29,6 +29,7 @@ end
 def proxy_request(url)
   url = "http://api.scrape.do?token=ed138ed418924138923ced2b81e04d53&url=#{CGI.escape(url)}&render=True"
   attempts = 0
+  response = nil
   loop do
     response = HTTParty.get(url, timeout: 60)
     attempts += 1
