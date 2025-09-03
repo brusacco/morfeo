@@ -31,7 +31,7 @@ task headless_site_crawler: :environment do
     links = []
     driver.find_elements(:tag_name, 'a').each do |link|
       # puts link.text
-      # puts link.attribute('href')
+      puts link.attribute('href')
 
       links.push link.attribute('href') if link.attribute('href').to_s.match(/#{site.filter}/)
     end
