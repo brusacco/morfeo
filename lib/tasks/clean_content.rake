@@ -49,9 +49,7 @@ task clean_spaces: :environment do
 end
 
 task clean_site_content: :environment do
-  site = Site.find(52)
-  # entries = site.entries.enabled.order(created_at: :desc).limit(1000)
-  entries = site.entries.order(created_at: :desc).limit(5000)
+  entries = Entries.where(site_id: [52, 58]).order(created_at: :desc).limit(5000)
   Parallel.each(entries, in_threads: 2) do |entry|
     next unless entry.site.content_filter
 
