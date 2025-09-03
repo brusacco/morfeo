@@ -7,7 +7,9 @@ task update_stats: :environment do
     if result.success?
       next if entry.total_count.zero?
 
+      puts entry.url
       puts result
+      puts '----------------------------------------------------'
       entry.update!(result.data)
     else
       Rails.logger.error "Failed to update Facebook stats for #{entry.id}: #{result.error}"
