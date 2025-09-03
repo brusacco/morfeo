@@ -5,8 +5,6 @@ task update_stats: :environment do
   Parallel.each(Entry.enabled.where(published_at: 1.week.ago..Time.current), in_threads: 4) do |entry|
     result = FacebookServices::UpdateStats.call(entry.id)
     if result.success?
-      next if entry.total_count.zero?
-
       puts entry.url
       puts result
       puts '----------------------------------------------------'
