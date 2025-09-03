@@ -7,8 +7,10 @@ task proxy_crawler: :environment do
     puts '--------------------------------------------------------------------'
 
     response = proxy_request(site.url)
+    puts response.code
+    puts '--------------------------------------------------------------------'
 
-    doc = Nokogiri::HTML(response)
+    doc = Nokogiri::HTML(response.body)
     # Process the document as needed
     links = []
     doc.css('a').each do |link|
@@ -32,6 +34,5 @@ end
 
 def proxy_request(url)
   url = "http://api.scrape.do?token=ed138ed418924138923ced2b81e04d53&url=#{CGI.escape(url)}&render=True"
-  response = HTTParty.get(url, timeout: 60)
-  response.body
+  HTTParty.get(url, timeout: 60)
 end
