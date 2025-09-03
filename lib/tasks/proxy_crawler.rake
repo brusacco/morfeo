@@ -10,10 +10,10 @@ task proxy_crawler: :environment do
     puts "Start processing site #{site.name}..."
     puts '--------------------------------------------------------------------'
     url = CGI.escape(site.url)
-    api_url = "http://api.scrape.do?token=ed138ed418924138923ced2b81e04d53&url=#{CGI.escape(url)}"
+    api_url = URI("http://api.scrape.do?token=ed138ed418924138923ced2b81e04d53&url=#{CGI.escape(url)}")
     https = Net::HTTP.new(api_url.host, api_url.port)
     https.use_ssl = true
-    request = Net::HTTP::Get.new(url)
+    request = Net::HTTP::Get.new(api_url)
     response = https.request(request)
     puts response.read_body
   end
