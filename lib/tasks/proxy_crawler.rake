@@ -13,7 +13,7 @@ task proxy_crawler: :environment do
     doc = Nokogiri::HTML(response.body)
     # Process the document as needed
     links = get_links(doc, site)
-    puts '---------------------------------------------------'
+    puts '--------------------------------------------------------------------'
 
     links.each do |link|
       # puts link
@@ -101,7 +101,7 @@ end
 def get_links(doc, site)
   links = []
   doc.css('a').each do |link|
-    links.push link.attribute('href') if link.attribute('href').to_s.match(/#{site.filter}/)
+    links.push link.attribute('href').to_s if link.attribute('href').to_s.match(/#{site.filter}/)
   end
   links.uniq!
   links
