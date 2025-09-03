@@ -30,7 +30,7 @@ namespace :ai do
         sleep 1
       end
       # Reindex all entries for this topic's tags
-      puts "Reindexing entries for topic: #{topic.name}"
+      puts "Reindexing entries for topic: #{topic.name} #{topic.id}"
       reindex_entries_for_tags(topic.tags)
     end
   end
