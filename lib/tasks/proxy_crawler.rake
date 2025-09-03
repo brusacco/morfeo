@@ -7,7 +7,6 @@ task proxy_crawler: :environment do
     puts '--------------------------------------------------------------------'
     url = "http://api.scrape.do?token=ed138ed418924138923ced2b81e04d53&url=#{CGI.escape(site.url)}&render=True"
     response = HTTParty.get(url, timeout: 60)
-    data = JSON.parse(response.body)
-    puts data
+    puts response.body
   end
 end
