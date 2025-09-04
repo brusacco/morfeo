@@ -112,7 +112,8 @@ class TopicController < ApplicationController
       @all_intereactions_percentage = (Float(@all_entries_interactions) / total_count * 100).round(1)
     end
 
-    @most_interactions = @topic.list_entries.order(total_count: :desc).limit(12)
+    @most_interactions = @entries.sort_by { |e| -e.total_count }
+                                 .take(12)
 
     if @total_entries.zero?
       @promedio = 0
@@ -125,7 +126,7 @@ class TopicController < ApplicationController
     @tags_interactions = {}
     @tags.each do |tag|
       @entries.each do |entry|
-        next if entry.tag_list.exclude?(tag.name)
+        next unless entry.tag_list.include?(tag.name)
 
         tag.interactions ||= 0
         tag.interactions += entry.total_count
