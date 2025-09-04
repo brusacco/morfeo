@@ -11,9 +11,7 @@ class TopicController < ApplicationController
     polarity = params[:polarity]
     title = params[:title]
 
-    if date_filter.present?
-      date = Date.parse(date_filter)
-    end
+    date = Date.parse(date_filter) if date_filter.present?
 
     topic = Topic.find_by(id: topic_id)
     polarity = validate_polarity(polarity)
@@ -27,9 +25,7 @@ class TopicController < ApplicationController
 
       entries = entries.where(published_at: date.all_day)
 
-      if polarity
-        entries = entries.where(polarity: polarity)
-      end
+      entries = entries.where(polarity: polarity) if polarity
     end
 
     case polarity
@@ -43,7 +39,14 @@ class TopicController < ApplicationController
       polarityName = 'Todas'
     end
 
-    render partial: 'home/chart_entries', locals: { topic_entries: entries, entries_date: date, topic: topic.name, polarity: polarityName }, layout: false
+    render partial: 'home/chart_entries',
+           locals: {
+             topic_entries: entries,
+             entries_date: date,
+             topic: topic.name,
+             polarity: polarityName
+           },
+           layout: false
   end
 
   def validate_polarity(polarity)
@@ -54,7 +57,10 @@ class TopicController < ApplicationController
   def show
     @topic = Topic.find(params[:id])
 
-    return redirect_to root_path, alert: 'El Tópico al que intentaste acceder no está asignado a tu usuario o se encuentra deshabilitado' unless @topic.users.exists?(current_user.id) && @topic.status == true
+    unless @topic.users.exists?(current_user.id) && @topic.status == true
+      return redirect_to root_path,
+                         alert: 'El Tópico al que intentaste acceder no está asignado a tu usuario o se encuentra deshabilitado'
+    end
 
     @tag_list = @topic.tags.map(&:name)
     @entries = @topic.list_entries
@@ -106,7 +112,7 @@ class TopicController < ApplicationController
       @all_intereactions_percentage = (Float(@all_entries_interactions) / total_count * 100).round(1)
     end
 
-    @most_interactions = @entries.sort_by(&:total_count).reverse.take(12)
+    @most_interactions = @entries.order(total_count: :desc).limit(12)
 
     if @total_entries.zero?
       @promedio = 0
@@ -139,7 +145,9 @@ class TopicController < ApplicationController
   def comments
     @topic = Topic.find(params[:id])
 
-    return redirect_to root_path, alert: 'El Tópico al que intentaste acceder no está asignado a tu usuario' unless @topic.users.exists?(current_user.id)
+    unless @topic.users.exists?(current_user.id)
+      return redirect_to root_path, alert: 'El Tópico al que intentaste acceder no está asignado a tu usuario'
+    end
 
     @tag_list = @topic.tags.map(&:name)
     @entries = @topic.list_entries
