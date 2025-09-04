@@ -155,6 +155,6 @@ class TopicController < ApplicationController
 
   def history
     @topic = Topic.find(params[:id])
-    @reports = @topic.reports.order(created_at: :desc).limit(20)
+    @reports = @topic.reports.where.not(report_text: nil).order(created_at: :desc).limit(20)
   end
 end
