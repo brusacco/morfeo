@@ -7,7 +7,7 @@ namespace :util do
       next if tag.name.blank?
 
       entries = Entry.tagged_with(tag.name, any: true).limit(500)
-      puts "Found entries tagged with '#{tag}'"
+      puts "Found entries tagged with '#{tag.name}'"
       entries.find_each do |entry|
         entry.reindex
         puts "Reindexed entry ##{entry.id}: #{entry.title}"
