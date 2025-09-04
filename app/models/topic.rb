@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Topic < ApplicationRecord
-  has_paper_trail on: [:create, :destroy, :update]
+  has_paper_trail on: %i[create destroy update]
   has_many :topic_stat_dailies, dependent: :destroy
   has_many :title_topic_stat_dailies, dependent: :destroy
   has_many :user_topics, dependent: :destroy
@@ -47,9 +47,10 @@ class Topic < ApplicationRecord
         published_at: { gte: DAYS_RANGE.days.ago.beginning_of_day, lte: Date.today.end_of_day },
         tags: { in: tag_list }
       },
+      order: { published_at: :desc },
       fields: ['id'] # Only return the ids to reduce payload
     )
-    Entry.where(id: result.map(&:id)).enabled.order(published_at: :desc).joins(:site)
+    Entry.where(id: result.map(&:id)).joins(:site)
   end
 
   def title_list_entries
@@ -71,7 +72,8 @@ class Topic < ApplicationRecord
         published_at: { gte: date.beginning_of_day, lte: date.end_of_day },
         tags: { in: tag_list }
       },
-      fields: [:id], misspellings: false
+      fields: [:id],
+      misspellings: false
     )
     Entry.where(id: result.map(&:id)).enabled.order(total_count: :desc).joins(:site)
     # Entry.where(id: result.map(&:id), total_count: 1..Float::INFINITY).enabled.order(total_count: :desc).joins(:site)
@@ -84,7 +86,8 @@ class Topic < ApplicationRecord
         published_at: { gte: date.beginning_of_day, lte: date.end_of_day },
         title_tags: { in: tag_list }
       },
-      fields: [:id], misspellings: false
+      fields: [:id],
+      misspellings: false
     )
     Entry.where(id: result.map(&:id)).enabled.order(total_count: :desc).joins(:site)
   end
