@@ -129,9 +129,6 @@ class TopicController < ApplicationController
                               .sum(:total_count)
                               .sort_by { |_k, v| -v }
 
-    @tags_interactions = @tags_interactions.sort_by { |_k, v| v }
-                                           .reverse
-
     @tags_count = {}
     @tags.each { |n| @tags_count[n.name] = n.count }
   end
