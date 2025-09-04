@@ -74,7 +74,7 @@ class TopicController < ApplicationController
 
     @top_entries = Entry.enabled.normal_range.joins(:site).order(total_count: :desc).limit(5)
     @total_entries = @entries.size
-    @total_interactions = @entries.sum(&:total_count)
+    @total_interactions = @entries.sum(:total_count)
 
     # Calcular numeros de totales de la semana
     # @all_entries = @topic.analytics_entries(@entries.ids)
@@ -86,7 +86,7 @@ class TopicController < ApplicationController
     @bigram_occurrences = @entries.bigram_occurrences
     @report = @topic.reports.last
 
-    @comments = Comment.where(entry_id: @entries.pluck(:id))
+    @comments = Comment.where(entry_id: @entries.select(:id))
     @comments_word_occurrences = @comments.word_occurrences
     # @comments_bigram_occurrences = @comments.bigram_occurrences
 
@@ -146,7 +146,7 @@ class TopicController < ApplicationController
     @positive_words = @topic.positive_words.split(',') if @topic.positive_words.present?
     @negative_words = @topic.negative_words.split(',') if @topic.negative_words.present?
 
-    @comments = Comment.where(entry_id: @entries.pluck(:id)).order(created_time: :desc)
+    @comments = Comment.where(entry_id: @entries.select(:id)).order(created_time: :desc)
     @comments_word_occurrences = @comments.word_occurrences
     # @comments_bigram_occurrences = @comments.bigram_occurrences
 
