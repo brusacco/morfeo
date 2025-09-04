@@ -4,10 +4,10 @@ namespace :util do
   # Helper function to reindex entries for a list of tags
   def reindex_entries_for_tags(tags)
     tags.each do |tag|
-      next if tag.name.blank?
+      next if tag.blank?
 
-      entries = Entry.tagged_with(tag.name, any: true).limit(500)
-      puts "Found entries tagged with '#{tag.name}'"
+      entries = Entry.tagged_with(tag, any: true).limit(500)
+      puts "Found entries tagged with '#{tag}'"
       entries.find_each do |entry|
         entry.reindex
         puts "Reindexed entry ##{entry.id}: #{entry.title}"
