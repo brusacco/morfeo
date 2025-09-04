@@ -22,14 +22,6 @@ namespace :util do
     Topic.where(status: true).find_each do |topic|
       topic.tags.each do |tag|
         tags << tag.name
-        # Add variations as Tag-like OpenStructs for reindexing
-        next if tag.variations.blank?
-
-        tag.variations.split(',').each do |variation|
-          next if variation.blank?
-
-          tags << variation
-        end
       end
     end
     reindex_entries_for_tags(tags.uniq)
