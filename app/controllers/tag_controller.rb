@@ -10,7 +10,7 @@ class TagController < ApplicationController
     @total_entries = @entries.size
     @total_interactions = @entries.sum(:total_count)
 
-    @comments = Comment.where(entry_id: @entries.pluck(:id))
+    @comments = Comment.where(entry_id: @entries.select(:id))
     @comments_word_occurrences = @comments.word_occurrences
     # @comments_bigram_occurrences = @comments.bigram_occurrences
 
@@ -28,7 +28,7 @@ class TagController < ApplicationController
     @percentage_neutrals = (@neutrals.to_f / @entries.size * 100).round(0) if @neutrals > 0
 
     @top_entries = Entry.enabled.normal_range.joins(:site).order(total_count: :desc).limit(5)
-    @most_interactions = @entries.sort_by(&:total_count).reverse.take(8)
+    @most_interactions = @entries.sort_by(&:total_count).reverse.take(12)
 
     if @total_entries.zero?
       @promedio = 0
@@ -38,21 +38,11 @@ class TagController < ApplicationController
 
     @tags = @entries.tag_counts_on(:tags).order('count desc').limit(50)
 
-    @tags_interactions = {}
-    @tags.each do |tag|
-      @entries.each do |entry|
-        next unless entry.tag_list.include?(tag.name)
-
-        tag.interactions ||= 0
-        tag.interactions += entry.total_count
-
-        @tags_interactions[tag.name] ||= 0
-        @tags_interactions[tag.name] += entry.total_count
-      end
-    end
-
-    @tags_interactions = @tags_interactions.sort_by { |_k, v| v }
-                                           .reverse
+    @tags_interactions = Entry.joins(:tags)
+                              .where(id: @entries.select(:id), tags: { id: @tags.map(&:id) })
+                              .group('tags.name')
+                              .sum(:total_count)
+                              .sort_by { |_k, v| -v }
     @tags_count = {}
     @tags.each { |n| @tags_count[n.name] = n.count }
   end
@@ -61,7 +51,7 @@ class TagController < ApplicationController
     @tag = Tag.find(params[:id])
     @entries = Entry.enabled.normal_range.joins(:site).tagged_with(@tag.name).has_image.order(published_at: :desc)
 
-    @comments = Comment.where(entry_id: @entries.pluck(:id)).order(created_time: :desc)
+    @comments = Comment.where(entry_id: @entries.select(:id)).order(created_time: :desc)
     @comments_word_occurrences = @comments.word_occurrences
     # @comments_bigram_occurrences = @comments.bigram_occurrences
 
