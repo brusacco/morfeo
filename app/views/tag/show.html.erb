@@ -8,12 +8,12 @@
     <!-- Gráfico 1 -->
     <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-0 sm:mb-0">
       <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Notas x DIA</h2>
-      <%= line_chart @entries.group_by_day(:published_at).count, xtitle: "Fecha", ytitle: "Cant. Notas", label: "Notas", colors: ['blue'], curve: false %>
+      <%= column_chart @entries.group_by_day(:published_at).count, xtitle: "Fecha", ytitle: "Cant. Notas", label: "Notas", colors: ['blue'], curve: false %>
     </div>
     <!-- Gráfico 2 -->
     <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-0 sm:mb-0">
       <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">interacciones x DIA</h2>
-      <%= line_chart @entries.group_by_day(:published_at).sum(:total_count), xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones", colors: ['green'], curve: false %>
+      <%= column_chart @entries.group_by_day(:published_at).sum(:total_count), xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones", colors: ['green'], curve: false %>
     </div>
   </div>
 </div>
