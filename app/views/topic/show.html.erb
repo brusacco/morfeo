@@ -16,7 +16,7 @@
             data-topics-id-value='entryQuantitiesChart'
             data-topics-url-value='<%= entries_data_topics_path %>'
             data-topics-topic-id-value='<%= @topic.id %>'>
-            <%= line_chart @chart_entries.count('*'), xtitle: "Fecha", ytitle: "Cant. Notas", label: "Cant. Notas", thousands: ".", curve: false, 
+            <%= column_chart @chart_entries.count('*'), xtitle: "Fecha", ytitle: "Cant. Notas", label: "Cant. Notas", thousands: ".", curve: false, 
                   adapter: 'highcharts', id: 'entryQuantitiesChart', colors: ['blue'], library: {
                   plotOptions: {
                     series: {
