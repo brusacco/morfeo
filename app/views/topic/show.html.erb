@@ -36,7 +36,7 @@
             data-topics-id-value='entryInteractionsChart'
             data-topics-url-value='<%= entries_data_topics_path %>'
             data-topics-topic-id-value='<%= @topic.id %>'>
-            <%= line_chart @chart_entries.sum(:total_count), xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones", thousands: ".", curve: false, 
+            <%= column_chart @chart_entries.sum(:total_count), xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones", thousands: ".", curve: false, 
                   adapter: 'highcharts', id: 'entryInteractionsChart', colors: ['green'], library: {
                   plotOptions: {
                     series: {
@@ -61,7 +61,7 @@
             data-topics-url-value='<%= entries_data_topics_path %>'
             data-topics-topic-id-value='<%= @topic.id %>'
             data-topics-title-value='true'>
-            <%= line_chart @title_chart_entries.count('*'), xtitle: "Fecha", ytitle: "Cant. Notas en Titulo", label: "Cant. Notas en Titulo", thousands: ".", curve: false, 
+            <%= column_chart @title_chart_entries.count('*'), xtitle: "Fecha", ytitle: "Cant. Notas en Titulo", label: "Cant. Notas en Titulo", thousands: ".", curve: false, 
                   adapter: 'highcharts', id: 'titleEntryQuantitiesChart', colors: ['blue'], library: {
                   plotOptions: {
                     series: {
@@ -82,7 +82,7 @@
             data-topics-url-value='<%= entries_data_topics_path %>'
             data-topics-topic-id-value='<%= @topic.id %>'
             data-topics-title-value='true'>
-            <%= line_chart @title_chart_entries.sum(:total_count), xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones en TITULO", thousands: ".", curve: false, 
+            <%= column_chart @title_chart_entries.sum(:total_count), xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones en TITULO", thousands: ".", curve: false, 
                   adapter: 'highcharts', id: 'titleEntryInteractionsChart', colors: ['green'], library: {
                   plotOptions: {
                     series: {
