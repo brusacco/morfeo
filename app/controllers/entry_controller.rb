@@ -62,7 +62,7 @@ class EntryController < ApplicationController
   end
 
   def commented
-    @entries = Entry.enabled.joins(:site).a_day_ago.where.not(image_url: nil).order(comment_count: :desc)
+    @entries = Entry.enabled.joins(:site).a_day_ago.where.not(image_url: nil).order(comment_count: :desc).limit(50)
 
     @tags = @entries.tag_counts_on(:tags).order('count desc')
 
