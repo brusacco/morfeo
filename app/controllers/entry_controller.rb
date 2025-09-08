@@ -20,19 +20,11 @@ class EntryController < ApplicationController
     @comments_word_occurrences = @comments.word_occurrences
     # @comments_bigram_occurrences = @comments.bigram_occurrences
 
-    @tags_interactions = {}
-    @tags.each do |tag|
-      @entries.each do |entry|
-        tag.interactions ||= 0
-        tag.interactions += entry.total_count if entry.tag_list.include?(tag.name)
-
-        @tags_interactions[tag.name] ||= 0
-        @tags_interactions[tag.name] += entry.total_count if entry.tag_list.include?(tag.name)
-      end
-    end
-
-    @tags_interactions = @tags_interactions.sort_by { |_k, v| v }
-    @tags_interactions.reverse
+    @tags_interactions = Entry.joins(:tags)
+                              .where(id: @entries.select(:id), tags: { id: @tags.map(&:id) })
+                              .group('tags.name')
+                              .sum(:total_count)
+                              .sort_by { |_k, v| -v }
 
     @tags_count = {}
     @tags.each { |n| @tags_count[n.name] = n.count }
