@@ -149,7 +149,11 @@ class Entry < ApplicationRecord
 
   def clean_image
     if image_url.blank? || image_url == 'null'
-      ActionController::Base.helpers.asset_path('default-entry.svg')
+      if site.page && site.page.picture.present?
+        site.page.picture
+      else
+        ActionController::Base.helpers.asset_path('default-entry.svg')
+      end
     else
       image_url
     end
