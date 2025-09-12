@@ -50,7 +50,7 @@ class Topic < ApplicationRecord
       order: { published_at: :desc },
       fields: ['id'] # Only return the ids to reduce payload
     )
-    Entry.where(id: result.map(&:id)).joins(:site)
+    Entry.where(id: result.map(&:id)).includes(:site)
   end
 
   def title_list_entries
