@@ -42,16 +42,15 @@ class Topic < ApplicationRecord
 
   def list_entries
     tag_list = tags.map(&:name)
-    Entry.search(
+    result = Entry.search(
       where: {
         published_at: { gte: DAYS_RANGE.days.ago.beginning_of_day, lte: Date.today.end_of_day },
         tags: { in: tag_list }
       },
       order: { published_at: :desc },
-      load: true,
-      includes: [:site]
+      fields: ['id'] # Only return the ids to reduce payload
     )
-    # Entry.where(id: result.map(&:id)).joins(:site)
+    Entry.where(id: result.map(&:id)).joins(:site)
   end
 
   def title_list_entries
