@@ -83,7 +83,7 @@ nohup rake telegram_bot RAILS_ENV=production &
 
 git reset --hard origin/main
 
-
+aaa
 
 PARA ARGENTINA
 
