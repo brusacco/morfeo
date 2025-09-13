@@ -35,15 +35,37 @@
   </tbody>
 </table>
 <script>
-  // document.addEventListener('turbo:load', function () {
-  $(document).ready( function () {
-    new DataTable('#entradas', {
+  function initializeDataTable() {
+    // Destroy existing DataTable if it exists
+    if ($.fn.DataTable.isDataTable('#entradas')) {
+      $('#entradas').DataTable().destroy();
+    }
+
+    // Initialize new DataTable
+    $('#entradas').DataTable({
       order: [[0, 'desc']],
       language: {
         url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json',
       },
-      "pageLength": 25,
-      "lengthChange": false
+      pageLength: 25,
+      lengthChange: false
     });
+  }
+
+  // Handle both initial load and Turbo navigation
+  $(document).ready(function() {
+    initializeDataTable();
+  });
+
+  // Handle Turbo navigation (Rails 7 with Turbo)
+  document.addEventListener('turbo:load', function() {
+    initializeDataTable();
+  });
+
+  // Clean up DataTable before Turbo navigates away
+  document.addEventListener('turbo:before-cache', function() {
+    if ($.fn.DataTable.isDataTable('#entradas')) {
+      $('#entradas').DataTable().destroy();
+    }
   });
 </script>

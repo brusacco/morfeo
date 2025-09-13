@@ -10,6 +10,7 @@ class EntryController < ApplicationController
 
   def popular
     @entries = Entry.enabled.joins(:site).where(total_count: 1..).a_day_ago.order(total_count: :desc).limit(50)
+    @entries_for_grouping = Entry.enabled.joins(:site).where(total_count: 1..).a_day_ago
     @tags = @entries.tag_counts_on(:tags).order('count desc')
 
     # Cosas nuevas
