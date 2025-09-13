@@ -248,12 +248,12 @@
             data-topics-id-value='entryPolarityQuantitiesChart'
             data-topics-url-value='<%= entries_data_topics_path %>'
             data-topics-topic-id-value='<%= @topic.id %>'>
-            <%= line_chart @chart_entries_sentiments.count('*').sort_by { |key, _value| key }.to_h, xtitle: 'Fecha', ytitle: 'Cant. Notas', label: 'Notas', thousands: '.', 
-                  stacked: false, curve: false, colors: ['#EF4444', '#9CA3AF', '#10B981'], id: 'entryPolarityQuantitiesChart', library: {
+            <%= area_chart @chart_entries_sentiments.count('*').sort_by { |key, _value| key }.to_h, xtitle: 'Fecha', ytitle: 'Cant. Notas', label: 'Notas', thousands: '.', 
+                  stacked: true, curve: false, colors: ['#EF4444', '#9CA3AF', '#10B981'], id: 'entryPolarityQuantitiesChart', library: {
                   plotOptions: {
                     series: {
                       name: 'Polarity',
-                      dataLabels: { enabled: true }
+                      dataLabels: { enabled: false }
                     }
                   } } %>
             <%= render partial: 'home/modal', locals: { graph_id: 'entryPolarityQuantitiesChart', controller_name: 'topics' } %>
@@ -283,8 +283,8 @@
             data-topics-id-value='entryPolarityInteractionsChart'
             data-topics-url-value='<%= entries_data_topics_path %>'
             data-topics-topic-id-value='<%= @topic.id %>'>
-            <%= line_chart @chart_entries_sentiments.sum('total_count').sort_by { |key, _value| key }.to_h, xtitle: 'Fecha', ytitle: 'Cant. Interacciones', label: 'Interacciones', 
-                  thousands: '.', stacked: false, curve: false, colors: ['#EF4444', '#9CA3AF', '#10B981'], id: 'entryPolarityInteractionsChart', library: {
+            <%= area_chart @chart_entries_sentiments.sum('total_count').sort_by { |key, _value| key }.to_h, xtitle: 'Fecha', ytitle: 'Cant. Interacciones', label: 'Interacciones', 
+                  thousands: '.', stacked: true, curve: false, colors: ['#EF4444', '#9CA3AF', '#10B981'], id: 'entryPolarityInteractionsChart', library: {
                   plotOptions: {
                     series: {
                       name: 'Polarity',
@@ -328,22 +328,82 @@
     <section class="mb-8">
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <h2 class="text-2xl font-bold text-gray-900 mb-6">Impacto del Tópico</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <div class="bg-gray-50 rounded-lg p-4">
-            <h3 class="text-sm font-medium text-gray-700 mb-2">Cantidad de Notas</h3>
-            <p class="text-lg text-gray-900">
-              <span class="font-semibold text-blue-600">Tópico:</span> <%=number_with_delimiter(@entries.size, delimiter: ".")%> |
-              <span class="font-semibold text-gray-600">Demás:</span> <%=number_with_delimiter(@all_entries_size, delimiter: ".")%> |
-              <span class="font-semibold text-green-600">Total:</span> <%=number_with_delimiter(@all_entries_size + @entries.size, delimiter: ".")%>
-            </p>
+        <!-- Improved Statistics Cards -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <!-- News Count Statistics -->
+          <div class="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-lg p-6 border border-blue-200">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-semibold text-blue-900">📰 Cantidad de Notas</h3>
+              <div class="text-xs text-blue-600 bg-blue-200 px-2 py-1 rounded-full">
+                Últimos <%=DAYS_RANGE%> días
+              </div>
+            </div>
+            <div class="grid grid-cols-3 gap-4">
+              <div class="text-center">
+                <div class="text-sm text-blue-800 font-medium">
+                  <span class="text-2xl font-bold text-blue-600"><%=number_with_delimiter(@entries.size, delimiter: ".")%></span>
+                  Este Tópico • <%=@topic_percentage%>% del total
+                </div>
+              </div>
+              <div class="text-center">
+                <div class="text-sm text-gray-700 font-medium">
+                  <span class="text-2xl font-bold text-gray-600"><%=number_with_delimiter(@all_entries_size, delimiter: ".")%></span>
+                  Otros Tópicos • <%=@all_percentage%>% del total
+                </div>
+              </div>
+              <div class="text-center">
+                <div class="text-sm text-green-800 font-medium">
+                  <span class="text-2xl font-bold text-green-600"><%=number_with_delimiter(@all_entries_size + @entries.size, delimiter: ".")%></span>
+                  Total General • 100% cobertura
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="bg-gray-50 rounded-lg p-4">
-            <h3 class="text-sm font-medium text-gray-700 mb-2">Cantidad de Interacciones</h3>
-            <p class="text-lg text-gray-900">
-              <span class="font-semibold text-blue-600">Tópico:</span> <%=number_with_delimiter(@entries.sum(:total_count), delimiter: ".")%> |
-              <span class="font-semibold text-gray-600">Demás:</span> <%=number_with_delimiter(@all_entries_interactions, delimiter: ".")%> |
-              <span class="font-semibold text-green-600">Total:</span> <%=number_with_delimiter(@all_entries_interactions + @entries.sum(:total_count), delimiter: ".")%>
-            </p>
+          <!-- Interactions Count Statistics -->
+          <div class="bg-gradient-to-br from-amber-50 to-orange-100 rounded-lg p-6 border border-amber-200">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-semibold text-amber-900">💬 Cantidad de Interacciones</h3>
+              <div class="text-xs text-amber-600 bg-amber-200 px-2 py-1 rounded-full">
+                Engagement Total
+              </div>
+            </div>
+            <div class="grid grid-cols-3 gap-4">
+              <div class="text-center">
+                <div class="text-sm text-amber-800 font-medium">
+                  <span class="text-2xl font-bold text-amber-600"><%=number_with_delimiter(@entries.sum(:total_count), delimiter: ".")%></span>
+                  Este Tópico • <%=@topic_interactions_percentage%>% del total
+                </div>
+              </div>
+              <div class="text-center">
+                <div class="text-sm text-gray-700 font-medium">
+                  <span class="text-2xl font-bold text-gray-600"><%=number_with_delimiter(@all_entries_interactions, delimiter: ".")%></span>
+                  Otros Tópicos • <%=@all_intereactions_percentage%>% del total
+                </div>
+              </div>
+              <div class="text-center">
+                <div class="text-sm text-green-800 font-medium">
+                  <span class="text-2xl font-bold text-green-600"><%=number_with_delimiter(@all_entries_interactions + @entries.sum(:total_count), delimiter: ".")%></span>
+                  Total General • Todas las interacciones
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Performance Metrics -->
+        <div class="bg-gray-50 rounded-lg p-4 mb-6">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+            <div class="bg-white rounded-lg p-4 shadow-sm">
+              <div class="text-2xl font-bold text-indigo-600"><%=number_with_delimiter(@promedio, delimiter: '.')%></div>
+              <div class="text-sm text-gray-600">Promedio Interacciones/Nota</div>
+            </div>
+            <div class="bg-white rounded-lg p-4 shadow-sm">
+              <div class="text-2xl font-bold text-purple-600"><%=((@entries.sum(:total_count).to_f / (@all_entries_interactions + @entries.sum(:total_count)) * 100).round(1))%>%</div>
+              <div class="text-sm text-gray-600">Share of Voice (Interacciones)</div>
+            </div>
+            <div class="bg-white rounded-lg p-4 shadow-sm">
+              <div class="text-2xl font-bold text-pink-600"><%=((@entries.size.to_f / (@all_entries_size + @entries.size) * 100).round(1))%>%</div>
+              <div class="text-sm text-gray-600">Share of Voice (Volumen)</div>
+            </div>
           </div>
         </div>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
