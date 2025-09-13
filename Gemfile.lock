@@ -514,7 +514,7 @@ DEPENDENCIES
   rails (~> 7.0.4)
   redis (~> 4.0)
   rubocop
-  rubocop-rails (~> 2.24)
+  rubocop-rails
   ruby-openai (~> 4.2)
   sassc (~> 2.4)
   sassc-rails

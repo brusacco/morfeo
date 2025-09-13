@@ -11,13 +11,13 @@
 # It's strongly recommended that you check this file into your version control system.
 
 ActiveRecord::Schema[7.0].define(version: 2025_06_18_183424) do
-  create_table "active_admin_comments", force: :cascade do |t|
+  create_table "active_admin_comments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "namespace"
     t.text "body"
     t.string "resource_type"
-    t.integer "resource_id"
+    t.bigint "resource_id"
     t.string "author_type"
-    t.integer "author_id"
+    t.bigint "author_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["author_type", "author_id"], name: "index_active_admin_comments_on_author"
@@ -25,7 +25,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_06_18_183424) do
     t.index ["resource_type", "resource_id"], name: "index_active_admin_comments_on_resource"
   end
 
-  create_table "active_storage_attachments", force: :cascade do |t|
+  create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
     t.bigint "record_id", null: false
@@ -35,7 +35,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_06_18_183424) do
     t.index ["record_type", "record_id", "name", "blob_id"], name: "index_active_storage_attachments_uniqueness", unique: true
   end
 
-  create_table "active_storage_blobs", force: :cascade do |t|
+  create_table "active_storage_blobs", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "key", null: false
     t.string "filename", null: false
     t.string "content_type"
@@ -47,13 +47,13 @@ ActiveRecord::Schema[7.0].define(version: 2025_06_18_183424) do
     t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
   end
 
-  create_table "active_storage_variant_records", force: :cascade do |t|
+  create_table "active_storage_variant_records", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
-  create_table "admin_users", force: :cascade do |t|
+  create_table "admin_users", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
     t.string "reset_password_token"
@@ -65,7 +65,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_06_18_183424) do
     t.index ["reset_password_token"], name: "index_admin_users_on_reset_password_token", unique: true
   end
 
-  create_table "comments", force: :cascade do |t|
+  create_table "comments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "uid"
     t.datetime "created_time"
     t.text "message"
@@ -76,7 +76,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_06_18_183424) do
     t.index ["uid"], name: "index_comments_on_uid"
   end
 
-  create_table "entries", force: :cascade do |t|
+  create_table "entries", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "url"
     t.string "title"
     t.boolean "enabled", default: true
@@ -85,7 +85,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_06_18_183424) do
     t.integer "site_id"
     t.text "description"
     t.text "content"
-    t.datetime "published_at"
+    t.timestamp "published_at"
     t.text "image_url"
     t.integer "reaction_count", default: 0
     t.integer "comment_count", default: 0
@@ -106,24 +106,24 @@ ActiveRecord::Schema[7.0].define(version: 2025_06_18_183424) do
     t.index ["url"], name: "index_entries_on_url", unique: true
   end
 
-  create_table "newspaper_texts", force: :cascade do |t|
+  create_table "newspaper_texts", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "title"
     t.text "description"
-    t.integer "newspaper_id", null: false
+    t.bigint "newspaper_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["newspaper_id"], name: "index_newspaper_texts_on_newspaper_id"
   end
 
-  create_table "newspapers", force: :cascade do |t|
+  create_table "newspapers", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.date "date"
-    t.integer "site_id", null: false
+    t.bigint "site_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["site_id"], name: "index_newspapers_on_site_id"
   end
 
-  create_table "pages", force: :cascade do |t|
+  create_table "pages", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "uid"
     t.string "name"
     t.string "username"
@@ -138,15 +138,15 @@ ActiveRecord::Schema[7.0].define(version: 2025_06_18_183424) do
     t.index ["site_id"], name: "index_pages_on_site_id"
   end
 
-  create_table "reports", force: :cascade do |t|
-    t.integer "topic_id", null: false
+  create_table "reports", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "topic_id", null: false
     t.text "report_text"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["topic_id"], name: "index_reports_on_topic_id"
   end
 
-  create_table "sites", force: :cascade do |t|
+  create_table "sites", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name"
     t.string "url"
     t.datetime "created_at", null: false
@@ -167,12 +167,12 @@ ActiveRecord::Schema[7.0].define(version: 2025_06_18_183424) do
     t.index ["url"], name: "index_sites_on_url", unique: true
   end
 
-  create_table "taggings", force: :cascade do |t|
-    t.integer "tag_id"
+  create_table "taggings", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "tag_id"
     t.string "taggable_type"
-    t.integer "taggable_id"
+    t.bigint "taggable_id"
     t.string "tagger_type"
-    t.integer "tagger_id"
+    t.bigint "tagger_id"
     t.string "context", limit: 128
     t.datetime "created_at", precision: nil
     t.string "tenant", limit: 128
@@ -190,51 +190,51 @@ ActiveRecord::Schema[7.0].define(version: 2025_06_18_183424) do
     t.index ["tenant"], name: "index_taggings_on_tenant"
   end
 
-  create_table "tags", force: :cascade do |t|
-    t.string "name"
+  create_table "tags", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.string "name", collation: "utf8mb3_bin"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "taggings_count", default: 0
     t.string "variations"
   end
 
-  create_table "tags_topics", id: false, force: :cascade do |t|
+  create_table "tags_topics", id: false, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "tag_id"
     t.integer "topic_id"
     t.index ["tag_id"], name: "index_tags_topics_on_tag_id"
     t.index ["topic_id"], name: "index_tags_topics_on_topic_id"
   end
 
-  create_table "templates", force: :cascade do |t|
-    t.integer "topic_id", null: false
+  create_table "templates", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "topic_id", null: false
     t.string "title"
     t.text "sumary"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.integer "admin_user_id"
+    t.bigint "admin_user_id"
     t.date "start_date"
     t.date "end_date"
     t.index ["admin_user_id"], name: "index_templates_on_admin_user_id"
     t.index ["topic_id"], name: "index_templates_on_topic_id"
   end
 
-  create_table "title_topic_stat_dailies", force: :cascade do |t|
+  create_table "title_topic_stat_dailies", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "entry_quantity"
     t.integer "entry_interaction"
     t.integer "average"
     t.date "topic_date"
-    t.integer "topic_id", null: false
+    t.bigint "topic_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["topic_id"], name: "index_title_topic_stat_dailies_on_topic_id"
   end
 
-  create_table "topic_stat_dailies", force: :cascade do |t|
+  create_table "topic_stat_dailies", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "entry_count"
     t.integer "total_count"
     t.integer "average"
     t.date "topic_date"
-    t.integer "topic_id", null: false
+    t.bigint "topic_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "positive_quantity"
@@ -246,7 +246,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_06_18_183424) do
     t.index ["topic_id"], name: "index_topic_stat_dailies_on_topic_id"
   end
 
-  create_table "topics", force: :cascade do |t|
+  create_table "topics", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -255,16 +255,16 @@ ActiveRecord::Schema[7.0].define(version: 2025_06_18_183424) do
     t.boolean "status", default: true
   end
 
-  create_table "user_topics", force: :cascade do |t|
-    t.integer "user_id", null: false
-    t.integer "topic_id", null: false
+  create_table "user_topics", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "topic_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["topic_id"], name: "index_user_topics_on_topic_id"
     t.index ["user_id"], name: "index_user_topics_on_user_id"
   end
 
-  create_table "users", force: :cascade do |t|
+  create_table "users", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name"
     t.boolean "status", default: true, null: false
     t.string "email", default: "", null: false
@@ -274,17 +274,17 @@ ActiveRecord::Schema[7.0].define(version: 2025_06_18_183424) do
     t.datetime "remember_created_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["email"], name: "index_users_on_email", unique: true
-    t.index ["name"], name: "index_users_on_name"
-    t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
+    t.index ["email"], name: "index_users_on_email", unique: true, length: 191
+    t.index ["name"], name: "index_users_on_name", length: 191
+    t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true, length: 191
   end
 
-  create_table "versions", force: :cascade do |t|
+  create_table "versions", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "item_type", null: false
     t.bigint "item_id", null: false
     t.string "event", null: false
     t.string "whodunnit"
-    t.text "object", limit: 1073741823
+    t.text "object", size: :long
     t.datetime "created_at"
     t.index ["item_type", "item_id"], name: "index_versions_on_item_type_and_item_id"
   end

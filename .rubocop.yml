@@ -1,7 +1,7 @@
 AllCops:
   EnabledByDefault: true
 
-plugins:
+require:
   - rubocop-rails
 Style/Copyright:
   Enabled: false
@@ -24,11 +24,7 @@ Style/Documentation:
   Enabled: false
 Style/DocumentationMethod:
   Enabled: false
-Rails/SchemaComment:
-  Enabled: false
 Style/MethodCallWithArgsParentheses:
-  Enabled: false
-Rails/ReversibleMigrationMethodDefinition:
   Enabled: false
 Style/OpenStructUse:
   Enabled: false

@@ -5,18 +5,18 @@
 #   gem "sqlite3"
 #
 default: &default
-  adapter: sqlite3
+  adapter: mysql2
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 10 } %>
   timeout: 5000
 
 development:
   <<: *default
-  database: db/development.sqlite3
-  # adapter: mysql2
-  # encoding: utf8
-  # database: morfeo
-  # username: root
-  # password:
+  database: morfeo_development
+  username: root
+  password: root
+  host: 127.0.0.1
+  encoding: utf8mb4
+  collation: utf8mb4_unicode_ci
   # host: localhost
   # encoding: utf8mb4
   # collation: utf8mb4_unicode_ci
