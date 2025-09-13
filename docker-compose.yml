@@ -14,3 +14,19 @@ services:
     ports:
       - 6379:6379
     container_name: redis-morfeo
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-morfeo
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: morfeo_development
+      MYSQL_USER: morfeo
+      MYSQL_PASSWORD: morfeo_pass
+    ports:
+      - 3306:3306
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mysql_data:
