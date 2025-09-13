@@ -25,7 +25,7 @@ class TopicController < ApplicationController
 
       entries = entries.where(published_at: date.all_day)
 
-      entries = entries.where(polarity: polarity) if polarity
+      entries = entries.where(polarity:) if polarity
     end
 
     case polarity
@@ -68,7 +68,7 @@ class TopicController < ApplicationController
     @chart_entries_sentiments = @entries.where.not(polarity: nil).group(:polarity).group_by_day(:published_at)
 
     @title_entries = @topic.title_list_entries
-    @title_chart_entries = @title_entries.group_by_day(:published_at)
+    @title_chart_entries = @title_entries.reorder(nil).group_by_day(:published_at)
 
     # @analytics = @topic.analytics_topic_entries
 
