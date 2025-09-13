@@ -107,14 +107,19 @@ class HomeController < ApplicationController
                                        .group('topics.name').order('sum_topic_stat_dailies_entry_count DESC').limit(10)
                                        .sum('topic_stat_dailies.entry_count')
 
-    # Tags Cloud
-    tags_list = []
+    # Tags Cloud - Using exact same method as topic pages for accuracy
+    all_entry_ids = []
     @topicos.each do |topic|
-      tags_list << topic.tags.map(&:name)
+      # Use the exact same method as topic controller
+      topic_entries = topic.list_entries
+      all_entry_ids.concat(topic_entries.pluck(:id))
     end
 
-    topics_entries = Entry.order(published_at: :desc).limit(100).tagged_with(tags_list.flatten.join(', '), any: true)
-    @word_occurrences = topics_entries.word_occurrences
+    # Remove duplicates and create the same type of relation as topic pages
+    unique_entry_ids = all_entry_ids.uniq
+    combined_entries = Entry.where(id: unique_entry_ids).joins(:site)
+    @word_occurrences = combined_entries.word_occurrences
+
     @positive_words = @topicos.all.map(&:positive_words).flatten.join(',')
     @negative_words = @topicos.all.map(&:negative_words).flatten.join(',')
 
@@ -171,7 +176,7 @@ class HomeController < ApplicationController
 
   def check
     @url = params[:url]
-    @doc = Nokogiri::HTML(URI.parse(@url).open("User-Agent" => "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36"))
+    @doc = Nokogiri::HTML(URI.parse(@url).open('User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36'))
     @result = WebExtractorServices::ExtractDate.call(@doc)
     render layout: false
   end

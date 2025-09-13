@@ -22,6 +22,7 @@ class EntryController < ApplicationController
     # @comments_bigram_occurrences = @comments.bigram_occurrences
 
     @tags_interactions = {}
+
     @tags.each do |tag|
       @entries.each do |entry|
         tag.interactions ||= 0

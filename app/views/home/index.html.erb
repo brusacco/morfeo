@@ -363,7 +363,7 @@
           <div class="mt-4 px-4 py-6 bg-gray-50 rounded-lg">
             <%min_max = find_max_and_min_occurrences(@word_occurrences)%>
             <ul class="cloud">
-              <%@word_occurrences.take(25).shuffle { |a, b| a[1] <=> b[1] }.each do |word, value|%>
+              <%@word_occurrences.shuffle { |a, b| a[1] <=> b[1] }.each do |word, value|%>
                 <li style='color: <%=word_color(@positive_words, @negative_words, word)%>' data-weight="<%=normalize_to_scale(value, min_max[:max], min_max[:min])%>"><%=word%></li>
               <%end%>
             </ul>
