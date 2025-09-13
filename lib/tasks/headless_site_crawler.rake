@@ -12,9 +12,9 @@ task headless_site_crawler: :environment do
     options.add_argument('--disable-dev-shm-usage')
     options.add_argument('--disable-gpu')
     options.add_argument('--disable-prompt-on-repost')
-  options.add_argument('--ignore-certificate-errors')
-  options.add_argument('--allow-insecure-localhost')
-  options.add_argument('--ignore-ssl-errors=yes')
+    options.add_argument('--ignore-certificate-errors')
+    options.add_argument('--allow-insecure-localhost')
+    options.add_argument('--ignore-ssl-errors=yes')
     options.add_argument('--disable-popup-blocking')
     options.add_argument('--disable-translate')
 

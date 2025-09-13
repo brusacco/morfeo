@@ -2,7 +2,13 @@
 
 desc 'Encuentra notas repetidas (mismo titulo y mismo sitio)'
 task repeated_notes: :environment do
-  entries = Entry.enabled.a_month_ago.where.not(repeated: 2).where.not(title: nil).pluck(:id, :title, :url, :published_at, :site_id)
+  entries = Entry.enabled.a_month_ago.where.not(repeated: 2).where.not(title: nil).pluck(
+    :id,
+    :title,
+    :url,
+    :published_at,
+    :site_id
+  )
   entries.map do |entry|
     title = entry[1]
     site = entry[4]

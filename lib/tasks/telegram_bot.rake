@@ -81,7 +81,10 @@ task telegram_bot: :environment do
 
           if topic
             tags = topic.tags.pluck(:name)
-            entries = Entry.enabled.includes(:site).a_week_ago.tagged_with(tags, any: true).order(total_count: :desc).limit(10)
+            entries = Entry.enabled.includes(:site).a_week_ago.tagged_with(
+              tags,
+              any: true
+            ).order(total_count: :desc).limit(10)
           end
 
           if topic.nil? || entries.empty?
@@ -161,7 +164,10 @@ task telegram_bot: :environment do
 
           if topic
             tags = topic.tags.pluck(:name)
-            entries = Entry.enabled.includes(:site).a_week_ago.tagged_with(tags, any: true).order(total_count: :desc).limit(10)
+            entries = Entry.enabled.includes(:site).a_week_ago.tagged_with(
+              tags,
+              any: true
+            ).order(total_count: :desc).limit(10)
           end
 
           if topic.nil? || entries.empty?

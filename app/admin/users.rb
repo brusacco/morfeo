@@ -1,5 +1,4 @@
 ActiveAdmin.register User do
-
   # filters
   scope 'Todos', :all, default: :true
 
@@ -26,7 +25,12 @@ ActiveAdmin.register User do
       end
       column do
         f.inputs "Lista de Topicos", multipart: :true do
-          f.input :topics, label:'Asiganar a:', as: :check_boxes, :collection => Topic.all.collect {|topic| [topic.name, topic.id]}
+          f.input :topics,
+                  label: 'Asiganar a:',
+                  as: :check_boxes,
+                  :collection => Topic.all.collect { |topic|
+                    [topic.name, topic.id]
+                  }
         end
       end
     end
@@ -44,7 +48,8 @@ ActiveAdmin.register User do
     column :email
 
     column "Tópico(s) asignado(s)" do |user|
-      user.topics.map { |topic| link_to topic.name, admin_topic_path(topic) }.join('<br />').html_safe
+      user.topics.map { |topic| link_to topic.name, admin_topic_path(topic) }
+          .join('<br />').html_safe
     end
 
     column 'Fecha de Creación', :created_at

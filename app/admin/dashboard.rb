@@ -3,7 +3,6 @@
 ActiveAdmin.register_page 'Dashboard' do
   menu priority: 1, label: proc { I18n.t('active_admin.dashboard') }
   content title: proc { I18n.t('active_admin.dashboard') } do
-
     section "Contenido actualizado recientemente" do
       table_for PaperTrail::Version.order(id: :desc).limit(20) do
         # column ("Item") { |v| v.item_id }
@@ -21,6 +20,5 @@ ActiveAdmin.register_page 'Dashboard' do
         column ("Admin") { |v| link_to AdminUser.find(v.whodunnit).email, [:admin, AdminUser.find(v.whodunnit)] }
       end
     end
-
   end
 end

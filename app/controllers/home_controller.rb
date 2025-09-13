@@ -24,7 +24,7 @@ class HomeController < ApplicationController
           data: topic.topic_stat_dailies.normal_range.group_by_day(:topic_date).sum(:total_count)
         }
       end
-  
+
     @title_entry_quantities =
       @topicos.map do |topic|
         {

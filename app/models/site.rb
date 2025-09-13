@@ -12,7 +12,7 @@ class Site < ApplicationRecord
   scope :enabled, -> { where(status: true) }
   scope :disabled, -> { where(status: false) }
   scope :js_site, -> { where(is_js: true) }
-  scope :entry_none, -> { enabled.where(entries_count: 0 )}
+  scope :entry_none, -> { enabled.where(entries_count: 0) }
 
   def save_image(url)
     response = HTTParty.get(url)
@@ -27,11 +27,7 @@ class Site < ApplicationRecord
         class: 'h-10 w-10 flex-shrink-0 rounded-full bg-gray-300'
       )
     else
-      image_tag(
-        'default-entry.svg',
-        size: 50,
-        class: 'h-10 w-10 flex-shrink-0 rounded-full bg-gray-300'
-      )
+      image_tag('default-entry.svg', size: 50, class: 'h-10 w-10 flex-shrink-0 rounded-full bg-gray-300')
     end
   end
 end

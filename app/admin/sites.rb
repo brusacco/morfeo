@@ -17,9 +17,9 @@ ActiveAdmin.register Site do
   index do
     id_column
     column :name
-		column 'Estado'do |site|
-			site.status
-		end
+    column 'Estado' do |site|
+      site.status
+    end
     column 'URL' do |site|
       link_to site.url, site.url, target: '_blank', rel: 'noopener'
     end
@@ -30,9 +30,9 @@ ActiveAdmin.register Site do
     column 'Content Filter' do |site|
       !site.content_filter.nil?
     end
-		column 'Medio JS?'do |site|
-			site.is_js
-		end
+    column 'Medio JS?' do |site|
+      site.is_js
+    end
     actions
   end
 

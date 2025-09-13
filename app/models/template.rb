@@ -11,5 +11,5 @@ class Template < ApplicationRecord
     if start_date.present? && end_date.present? && start_date > end_date
       self.start_date, self.end_date = end_date, start_date
     end
-  end  
+  end
 end

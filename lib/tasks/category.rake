@@ -13,7 +13,7 @@ task category: :environment do
     end
   end
 
-  #ENTRENAMOS EL CLASIFICADOR CON SITIOS ESPECTACULOS
+  # ENTRENAMOS EL CLASIFICADOR CON SITIOS ESPECTACULOS
   Site.where(id: [84, 129]).each do |site| # Epa, TeleShow
     puts "#{site.name} - #{site.url}"
     puts '----------------------------------------------------------------------'
@@ -28,14 +28,14 @@ task category: :environment do
     end
   end
 
-  #ENTRENAMOS EL CLASIFICADOR CON SITIOS DEPORTES
+  # ENTRENAMOS EL CLASIFICADOR CON SITIOS DEPORTES
   Site.where(id: [65, 110, 61]).each do |site| # D10, APF, Versus. Obs.: Tigo Sports ya no trackeamos (id 13 en Moopio)
     puts "#{site.name} - #{site.url}"
     puts '----------------------------------------------------------------------'
 
     site.entries.where(category: nil).limit(10_000).order('created_at DESC').find_each do |entry|
       begin
-        puts "DEPORTES " +  entry.url
+        puts "DEPORTES " + entry.url
         entry.update_attribute(:category, 'DEPORTES') if entry.category.nil?
       rescue
         next
@@ -43,14 +43,14 @@ task category: :environment do
     end
   end
 
-  #ENTRENAMOS EL CLASIFICADOR CON SITIOS JUDICIALES
+  # ENTRENAMOS EL CLASIFICADOR CON SITIOS JUDICIALES
   Site.where(id: [133]).each do |site| # Judiciales Paraguay. Obs.: Corte Suprema ya no trackeamos (id 119 en Moopio)
     puts "#{site.name} - #{site.url}"
     puts '----------------------------------------------------------------------'
 
     site.entries.where(category: nil).limit(10_000).order('created_at DESC').find_each do |entry|
       begin
-        puts "JUDICIALES " +  entry.url
+        puts "JUDICIALES " + entry.url
         entry.update_attribute(:category, 'JUDICIALES') if entry.category.nil?
       rescue
         next
@@ -60,7 +60,7 @@ task category: :environment do
 
   Site.where(id: [55, 54, 52, 58, 106, 76, 100, 59, 74, 69, 81, 68, 63, 66, 77, 123, 99]).each do |site|
     # Diario Extra, Diario HOY, ABC, La Nación, Paraguay.com, SNT, Mas Encarnacion, C9N, Amambay News, Radio Monumental, CdeHot, Red Chaqueña, NPY, Trece, Unicanal, El Poder, La Tribuna.
-    
+
     puts "MASS UPDATE: #{site.name} - #{site.url}"
     puts '----------------------------------------------------------------------'
 
@@ -71,12 +71,21 @@ task category: :environment do
       'POLITICA' => ['/politica/'],
       'DEPORTES' => ['/deportes/', '/deporte/', '/futbol/', '/tenis/'],
       'NACIONALES' => [
-        '/nacionales/', '/pais/', '/actualidad/', '/interior/',
-        '/locales/', '/chaco/'
+        '/nacionales/',
+        '/pais/',
+        '/actualidad/',
+        '/interior/',
+        '/locales/',
+        '/chaco/'
       ],
       'ESPECTACULOS' => [
-        '/espectaculos/', '/lnpop/', '/artes-espectaculos/', '/teatro/',
-        '/musica/', '/fama/', '/cultural/'
+        '/espectaculos/',
+        '/lnpop/',
+        '/artes-espectaculos/',
+        '/teatro/',
+        '/musica/',
+        '/fama/',
+        '/cultural/'
       ],
       'INTERNACIONALES' => ['/internacionales/', '/mundo/']
     }

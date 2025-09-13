@@ -6,12 +6,14 @@ ActiveAdmin.register Entry do
 
   scoped_collection_action :scoped_collection_destroy
 
-  scoped_collection_action :scoped_collection_update, title: 'Actualizaciones Rapidas', form: -> do 
-    { 
-      notas_Repetidas: [['Hecho. Quitar del listado', 2], ['No es nota repetida', 0]],
-      habilitar_Deshabilitar_Notas: [['Habilitar', true], ['Deshabilitar', false]]
-    }
-  end
+  scoped_collection_action :scoped_collection_update,
+                           title: 'Actualizaciones Rapidas',
+                           form: -> do
+                                   {
+                                     notas_Repetidas: [['Hecho. Quitar del listado', 2], ['No es nota repetida', 0]],
+                                     habilitar_Deshabilitar_Notas: [['Habilitar', true], ['Deshabilitar', false]]
+                                   }
+                                 end
 
   filter :site, collection: proc { Site.order(:name) }
   filter :url
@@ -29,7 +31,7 @@ ActiveAdmin.register Entry do
   end
   scope :limpiados do |entry|
     entry.where(repeated: 2)
-  end  
+  end
   scope 'Null Date' do |entry|
     entry.where(published_at: nil)
   end

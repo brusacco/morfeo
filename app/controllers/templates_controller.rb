@@ -13,7 +13,7 @@ class TemplatesController < ApplicationController
       if !filter_start_date.present? && !filter_end_date.present?
         start_date = DAYS_RANGE.days.ago
         end_date = Date.today
-      # si se completa solo la FECHA DESDE, toma la FECHA HASTA del dia actual  
+      # si se completa solo la FECHA DESDE, toma la FECHA HASTA del dia actual
       elsif filter_start_date.present? && !filter_end_date.present?
         start_date = Date.parse(filter_start_date)
         end_date = Date.today
@@ -25,8 +25,8 @@ class TemplatesController < ApplicationController
 
       @entries = topic.report_entries(start_date, end_date)
       @top_entries = @entries.limit(25)
-      
-      @chart_entries = @entries.group_by_day(:published_at)      
+
+      @chart_entries = @entries.group_by_day(:published_at)
       @total_entries = @entries.size
       @total_interactions = @entries.sum(&:total_count)
 
@@ -42,11 +42,13 @@ class TemplatesController < ApplicationController
       polarity_counts = @entries.group(:polarity).count
       @neutrals = polarity_counts['neutral'] || 0
       @positives = polarity_counts['positive'] || 0
-      @negatives = polarity_counts['negative'] || 0 
+      @negatives = polarity_counts['negative'] || 0
 
       # Medios
-      @top_sites = @entries.group("sites.name").count('*').sort_by { |_, v| -v }.first(3)
-      @top_sites_interactions = @entries.group("sites.name").sum(:total_count).sort_by { |_, v| -v }.first(3)
+      @top_sites = @entries.group("sites.name").count('*').sort_by { |_, v| -v }
+                           .first(3)
+      @top_sites_interactions = @entries.group("sites.name").sum(:total_count).sort_by { |_, v| -v }
+                                        .first(3)
 
       # Impacto del Topico
       @other_entries_size = Entry.enabled.normal_range.where.not(id: @entries.ids).count
@@ -56,34 +58,46 @@ class TemplatesController < ApplicationController
         @percentage_neutrals = (Float(@neutrals) / @entries.size * 100).round(0)
         @percentage_positives = (Float(@positives) / @entries.size * 100).round(0)
         @percentage_negatives = (Float(@negatives) / @entries.size * 100).round(0)
-  
+
         total_entries_count = @entries.size + @other_entries_size
         @topic_entries_percentage = (Float(@entries.size) / total_entries_count * 100).round(0)
         @all_entries_percentage = (Float(@other_entries_size) / total_entries_count * 100).round(0)
-  
+
         total_interactions_count = @entries.sum(:total_count) + @other_entries_interactions
         @topic_interactions_percentage = (Float(@entries.sum(&:total_count)) / total_interactions_count * 100).round(1)
         @all_intereactions_percentage = (Float(@other_entries_interactions) / total_interactions_count * 100).round(1)
       end
-      
-      polarities_entries_counts = @entries.where.not(polarity: nil).group(:polarity).count('*').sort_by { |key, _value| key }.to_h
-      polarity_entries_total_count = polarities_entries_counts.values.sum.to_f
-      @polarities_entries_percentages = polarities_entries_counts.transform_values { |count| (count / polarity_entries_total_count * 100).round(0) }
 
-      polarities_interactions_counts = @entries.where.not(polarity: nil).group(:polarity).sum('total_count').sort_by { |key, _value| key }.to_h
+      polarities_entries_counts = @entries.where.not(polarity: nil).group(:polarity).count('*').sort_by { |key, _value|
+        key
+      }
+.to_h
+      polarity_entries_total_count = polarities_entries_counts.values.sum.to_f
+      @polarities_entries_percentages =
+        polarities_entries_counts.transform_values { |count|
+          (count / polarity_entries_total_count * 100).round(0)
+        }
+
+      polarities_interactions_counts = @entries.where.not(polarity: nil).group(:polarity).sum('total_count').sort_by { |key, _value|
+        key
+      }
+.to_h
       polarities_interactions_total_count = polarities_interactions_counts.values.sum.to_f
-      @polarities_interactions_percentages = polarities_interactions_counts.transform_values { |count| (count / polarities_interactions_total_count * 100).round(0) }
+      @polarities_interactions_percentages =
+        polarities_interactions_counts.transform_values { |count|
+          (count / polarities_interactions_total_count * 100).round(0)
+        }
 
       @interacciones_ultimo_dia_topico = Topic.joins(:topic_stat_dailies)
-                                                .where(topic_stat_dailies: { topic_date: 1.day.ago.. })
-                                                .group('topics.name').order('sum_topic_stat_dailies_total_count DESC').limit(10)
-                                                .sum('topic_stat_dailies.total_count')
+                                              .where(topic_stat_dailies: { topic_date: 1.day.ago.. })
+                                              .group('topics.name').order('sum_topic_stat_dailies_total_count DESC').limit(10)
+                                              .sum('topic_stat_dailies.total_count')
 
       @notas_ultimo_dia_topico = Topic.joins(:topic_stat_dailies)
-                                        .where(topic_stat_dailies: { topic_date: 1.day.ago.. })
-                                        .group('topics.name').order('sum_topic_stat_dailies_entry_count DESC').limit(10)
-                                        .sum('topic_stat_dailies.entry_count')      
-      
+                                      .where(topic_stat_dailies: { topic_date: 1.day.ago.. })
+                                      .group('topics.name').order('sum_topic_stat_dailies_entry_count DESC').limit(10)
+                                      .sum('topic_stat_dailies.entry_count')
+
       @ai_reports = topic.reports.where.not(report_text: nil).where.not(created_at: Time.zone.now.beginning_of_day..Time.zone.now.end_of_day).order(created_at: :desc).limit(10)
 
       # @demo_entries = {
@@ -127,23 +141,23 @@ class TemplatesController < ApplicationController
   #       #   wait_until: 'networkidle0', # Espera hasta que no haya solicitudes de red activas
   #       #   convert_timeout: 100000 # Extiende el tiempo de conversión
   #       # }).to_pdf
-        
+
   #       # pdf = Grover.new(html, format: 'A4', display_url: 'http://localhost:3000', options: { launch_args: ['--no-sandbox'] }).to_pdf
 
   #       send_data pdf,
   #                 filename: "#{@template.topic.name}_#{@template.title}.pdf",
   #                 type: "application/pdf",
   #                 disposition: "inline"
-  #     end 
+  #     end
   # end
 
-  # private 
+  # private
 
   # def browser_endpoint
   #   if Rails.env.production?
   #     "https://morfeo.com.py"
-  #   else 
+  #   else
   #     "http://localhost:6500"
   #   end
-  # end  
+  # end
 end

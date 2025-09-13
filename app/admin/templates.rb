@@ -30,7 +30,6 @@ ActiveAdmin.register Template do
     f.actions
   end
 
-
   index do
     id_column
     column 'Topico', :topic

@@ -108,6 +108,47 @@ class Entry < ApplicationRecord
                     .take(limit)
   end
 
+  def self.tagged_on_entry_quantity(tag, date)
+    tagged_with(tag, any: true).tagged_date(date).size
+  end
+
+  def self.tagged_on_entry_interaction(tag, date)
+    tagged_with(tag, any: true).tagged_date(date).sum(:total_count)
+  end
+
+  def self.tagged_on_neutral_quantity(tag, date)
+    tagged_with(tag, any: true).tagged_date(date).where(polarity: 0).size
+  end
+
+  def self.tagged_on_positive_quantity(tag, date)
+    tagged_with(tag, any: true).tagged_date(date).where(polarity: 1).size
+  end
+
+  def self.tagged_on_negative_quantity(tag, date)
+    tagged_with(tag, any: true).tagged_date(date).where(polarity: 2).size
+  end
+
+  def self.tagged_on_neutral_interaction(tag, date)
+    tagged_with(tag, any: true).tagged_date(date).where(polarity: 0).sum(:total_count)
+  end
+
+  def self.tagged_on_positive_interaction(tag, date)
+    tagged_with(tag, any: true).tagged_date(date).where(polarity: 1).sum(:total_count)
+  end
+
+  def self.tagged_on_negative_interaction(tag, date)
+    tagged_with(tag, any: true).tagged_date(date).where(polarity: 2).sum(:total_count)
+  end
+
+  # Title
+  def self.tagged_on_title_entry_quantity(tag, date)
+    tagged_with(tag, on: :title_tags, any: true).tagged_date(date).size
+  end
+
+  def self.tagged_on_title_entry_interaction(tag, date)
+    tagged_with(tag, on: :title_tags, any: true).tagged_date(date).sum(:total_count)
+  end
+
   def search_data
     {
       title: title,
@@ -271,45 +312,4 @@ class Entry < ApplicationRecord
 
   # For TopicStatDaily
   scope :tagged_date, ->(date) { where(published_at: date.all_day) }
-
-  def self.tagged_on_entry_quantity(tag, date)
-    tagged_with(tag, any: true).tagged_date(date).size
-  end
-
-  def self.tagged_on_entry_interaction(tag, date)
-    tagged_with(tag, any: true).tagged_date(date).sum(:total_count)
-  end
-
-  def self.tagged_on_neutral_quantity(tag, date)
-    tagged_with(tag, any: true).tagged_date(date).where(polarity: 0).size
-  end
-
-  def self.tagged_on_positive_quantity(tag, date)
-    tagged_with(tag, any: true).tagged_date(date).where(polarity: 1).size
-  end
-  
-  def self.tagged_on_negative_quantity(tag, date)
-    tagged_with(tag, any: true).tagged_date(date).where(polarity: 2).size
-  end
-
-  def self.tagged_on_neutral_interaction(tag, date)
-    tagged_with(tag, any: true).tagged_date(date).where(polarity: 0).sum(:total_count)
-  end
-
-  def self.tagged_on_positive_interaction(tag, date)
-    tagged_with(tag, any: true).tagged_date(date).where(polarity: 1).sum(:total_count)
-  end
-  
-  def self.tagged_on_negative_interaction(tag, date)
-    tagged_with(tag, any: true).tagged_date(date).where(polarity: 2).sum(:total_count)
-  end
-
-  # Title
-  def self.tagged_on_title_entry_quantity(tag, date)
-    tagged_with(tag, on: :title_tags, any: true).tagged_date(date).size
-  end
-
-  def self.tagged_on_title_entry_interaction(tag, date)
-    tagged_with(tag, on: :title_tags, any: true).tagged_date(date).sum(:total_count)
-  end  
 end
