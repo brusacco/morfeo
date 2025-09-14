@@ -24,7 +24,7 @@ task crawler_fast: :environment do
     feed
   ]
   directory_pattern = /#{directories.join('|')}/
-  Site.enabled.non_js_site.order(total_count: :desc).each do |site|
+  Site.enabled.where(is_js: false).order(total_count: :desc).each do |site|
     puts "Start test processing site #{site.name}..."
     puts '--------------------------------------------------------------------"'
     Anemone.crawl(
