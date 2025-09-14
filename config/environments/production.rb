@@ -6,6 +6,13 @@ Rails.application.configure do
   config.hosts << 'localhost:7500'
   config.hosts << 'morfeo.com.py'
   config.hosts << 'www.morfeo.com.py'
+
+  # Enable JIT compilation for better performance in production
+  # YJIT is more efficient than MJIT for Ruby 3.1+
+  if (RUBY_VERSION >= '3.1.0') && defined?(RubyVM::YJIT.enable)
+    RubyVM::YJIT.enable
+  end
+
   # Settings specified here will take precedence over those in config/application.rb.
 
   # Code is not reloaded between requests.
