@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <title>Reporte: <%=@topic.name%> - Morfeo Analytics</title>
+    <!-- Chartkick for Charts -->
+    <script src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartkick@4.2.0/dist/chartkick.min.js"></script>
+    <style>
+      /* PDF Print Optimized Styles */
+      @page {
+        margin: 2cm;
+        size: A4;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Arial', 'Helvetica', sans-serif;
+        font-size: 11pt;
+        line-height: 1.4;
+        margin: 0;
+        padding: 0;
+        color: #1a1a1a;
+        background: white;
+      }
+
+      /* Typography */
+      h1 {
+        font-size: 20pt;
+        font-weight: bold;
+        margin: 0 0 12pt 0;
+        color: #1e3a8a;
+        border-bottom: 2pt solid #e5e7eb;
+        padding-bottom: 6pt;
+      }
+
+      h2 {
+        font-size: 16pt;
+        font-weight: bold;
+        margin: 16pt 0 8pt 0;
+        color: #1f2937;
+        page-break-after: avoid;
+      }
+
+      h3 {
+        font-size: 14pt;
+        font-weight: 600;
+        margin: 12pt 0 6pt 0;
+        color: #374151;
+        page-break-after: avoid;
+      }
+
+      p {
+        margin: 6pt 0;
+        text-align: justify;
+      }
+
+      /* Layout Structure */
+      .pdf-container {
+        width: 100%;
+        max-width: none;
+      }
+
+      .pdf-section {
+        margin-bottom: 20pt;
+        page-break-inside: avoid;
+      }
+
+      .pdf-section.break-before {
+        page-break-before: always;
+      }
+
+      .pdf-header {
+        text-align: center;
+        margin-bottom: 20pt;
+        padding-bottom: 12pt;
+        border-bottom: 1pt solid #e5e7eb;
+      }
+
+      /* Chart Containers */
+      .pdf-chart-row {
+        display: flex;
+        gap: 16pt;
+        margin-bottom: 16pt;
+        page-break-inside: avoid;
+      }
+
+      .pdf-chart-single {
+        width: 100%;
+        margin-bottom: 16pt;
+        page-break-inside: avoid;
+      }
+
+      .pdf-chart-half {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .pdf-chart-card {
+        background: white;
+        border: 1pt solid #e5e7eb;
+        border-radius: 6pt;
+        padding: 12pt;
+        box-shadow: 0 1pt 3pt rgba(0, 0, 0, 0.1);
+      }
+
+      .pdf-chart-title {
+        font-size: 12pt;
+        font-weight: 600;
+        color: #374151;
+        margin: 0 0 8pt 0;
+        text-align: center;
+      }
+
+      .pdf-chart-canvas {
+        width: 100% !important;
+        height: 200px !important;
+        max-height: 200px;
+      }
+
+      /* Chartkick specific styles */
+      .pdf-chart-canvas canvas {
+        width: 100% !important;
+        height: 200px !important;
+      }
+
+      /* Statistics Grid */
+      .pdf-stats-grid {
+        display: flex;
+        gap: 8pt;
+        margin-bottom: 16pt;
+        page-break-inside: avoid;
+      }
+
+      .pdf-stats-card {
+        flex: 1;
+        background: white;
+        border: 1pt solid #e5e7eb;
+        border-radius: 4pt;
+        padding: 8pt;
+        text-align: center;
+      }
+
+      .pdf-stats-label {
+        font-size: 9pt;
+        color: #6b7280;
+        margin-bottom: 4pt;
+      }
+
+      .pdf-stats-value {
+        font-size: 18pt;
+        font-weight: bold;
+        color: #1f2937;
+      }
+
+      /* Summary Text */
+      .pdf-summary {
+        background: #f8fafc;
+        border-left: 4pt solid #3b82f6;
+        padding: 12pt;
+        margin: 16pt 0;
+        page-break-inside: avoid;
+      }
+
+      .pdf-summary p {
+        margin: 0;
+        font-size: 10pt;
+        line-height: 1.5;
+      }
+
+      /* Report Section */
+      .pdf-report {
+        background: #eff6ff;
+        border: 1pt solid #dbeafe;
+        border-radius: 6pt;
+        padding: 12pt;
+        margin: 16pt 0;
+        page-break-inside: avoid;
+      }
+
+      /* Media Sources */
+      .pdf-media-list {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8pt;
+        margin: 12pt 0;
+      }
+
+      .pdf-media-item {
+        background: white;
+        border: 1pt solid #e5e7eb;
+        border-radius: 4pt;
+        padding: 6pt;
+        font-size: 10pt;
+      }
+
+      .pdf-media-name {
+        font-weight: 600;
+        color: #374151;
+      }
+
+      .pdf-media-count {
+        color: #059669;
+        font-weight: bold;
+      }
+
+      /* Word Analysis */
+      .pdf-words {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4pt;
+        margin: 8pt 0;
+      }
+
+      .pdf-word {
+        background: #e0e7ff;
+        color: #3730a3;
+        padding: 2pt 6pt;
+        border-radius: 2pt;
+        font-size: 9pt;
+        white-space: nowrap;
+      }
+
+      /* News Items */
+      .pdf-news-item {
+        background: white;
+        border: 1pt solid #e5e7eb;
+        border-radius: 6pt;
+        padding: 12pt;
+        margin-bottom: 12pt;
+        page-break-inside: avoid;
+      }
+
+      .pdf-news-header {
+        display: flex;
+        align-items: center;
+        gap: 8pt;
+        margin-bottom: 8pt;
+        font-size: 9pt;
+        color: #6b7280;
+        border-bottom: 1pt solid #f3f4f6;
+        padding-bottom: 6pt;
+      }
+
+      .pdf-news-rank {
+        background: #3b82f6;
+        color: white;
+        padding: 2pt 6pt;
+        border-radius: 4pt;
+        font-weight: bold;
+        font-size: 8pt;
+      }
+
+      .pdf-news-site {
+        font-weight: 600;
+        color: #374151;
+      }
+
+      .pdf-news-date {
+        color: #6b7280;
+      }
+
+      .pdf-news-interactions {
+        margin-left: auto;
+        font-weight: bold;
+        color: #059669;
+      }
+
+      .pdf-news-title {
+        font-size: 12pt;
+        font-weight: 600;
+        color: #1f2937;
+        margin: 6pt 0;
+        line-height: 1.3;
+      }
+
+      .pdf-news-content {
+        font-size: 10pt;
+        color: #374151;
+        line-height: 1.4;
+        margin: 6pt 0;
+        text-align: justify;
+      }
+
+      .pdf-news-metrics {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12pt;
+        margin-top: 8pt;
+        padding-top: 6pt;
+        border-top: 1pt solid #f3f4f6;
+        font-size: 9pt;
+      }
+
+      .pdf-metric {
+        color: #374151;
+      }
+
+      .pdf-metric strong {
+        color: #1f2937;
+      }
+
+      .sentiment-positive strong {
+        color: #059669;
+      }
+
+      .sentiment-negative strong {
+        color: #dc2626;
+      }
+
+      .sentiment-neutral strong {
+        color: #6b7280;
+      }
+
+      /* Page Breaks */
+      .page-break {
+        page-break-before: always;
+      }
+
+      .avoid-break {
+        page-break-inside: avoid;
+      }
+
+      /* Tag Cloud Styles */
+      .pdf-word-cloud {
+        padding: 20pt;
+        text-align: center;
+        background-color: #f9fafb;
+        border-radius: 6pt;
+        margin: 12pt 0;
+      }
+
+      .pdf-cloud {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        line-height: 2.5;
+      }
+
+      .pdf-cloud li {
+        display: inline;
+        margin: 0 4pt;
+        font-weight: 600;
+        text-decoration: none;
+        border-radius: 3pt;
+        padding: 2pt 4pt;
+      }
+
+      /* Dynamic font sizes based on data-weight attribute */
+      .pdf-cloud li[data-weight="1"] { font-size: 9pt; }
+      .pdf-cloud li[data-weight="2"] { font-size: 11pt; }
+      .pdf-cloud li[data-weight="3"] { font-size: 13pt; }
+      .pdf-cloud li[data-weight="4"] { font-size: 15pt; }
+      .pdf-cloud li[data-weight="5"] { font-size: 17pt; }
+      .pdf-cloud li[data-weight="6"] { font-size: 19pt; }
+      .pdf-cloud li[data-weight="7"] { font-size: 21pt; }
+      .pdf-cloud li[data-weight="8"] { font-size: 23pt; }
+      .pdf-cloud li[data-weight="9"] { font-size: 25pt; }
+      .pdf-cloud li[data-weight="10"] { font-size: 27pt; }
+
+      /* Ensure good contrast for print */
+      .pdf-cloud li {
+        text-shadow: 1pt 1pt 2pt rgba(0,0,0,0.1);
+      }
+
+      /* Print Optimizations */
+      @media print {
+        body {
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="pdf-container">
+      <!-- Header -->
+      <div class="pdf-header">
+        <h1>Reporte de Análisis: <%=@topic.name%></h1>
+        <p>Período: Últimos <%=DAYS_RANGE%> días | Generado: <%=Time.current.strftime("%d/%m/%Y %H:%M")%></p>
+      </div>
+      <!-- Main Charts Section -->
+      <div class="pdf-section">
+        <h2>Análisis Temporal de Menciones</h2>
+        <!-- Row 1: Main Charts -->
+        <div class="pdf-chart-row">
+          <div class="pdf-chart-half">
+            <div class="pdf-chart-card">
+              <h3 class="pdf-chart-title">Notas por Día</h3>
+              <div class="pdf-chart-canvas">
+                <%= column_chart @chart_entries.count('*'), xtitle: "Fecha", ytitle: "Cant. Notas", label: "Cant. Notas", thousands: ".", curve: false, 
+                      colors: ['blue'], height: "200px", library: {
+                      plotOptions: {
+                        series: {
+                          dataLabels: {
+                            enabled: true
+                          }
+                        }
+                      } } %>
+              </div>
+            </div>
+          </div>
+          <div class="pdf-chart-half">
+            <div class="pdf-chart-card">
+              <h3 class="pdf-chart-title">Interacciones por Día</h3>
+              <div class="pdf-chart-canvas">
+                <%= column_chart @chart_entries.sum(:total_count), xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones", thousands: ".", curve: false, 
+                      colors: ['green'], height: "200px", library: {
+                      plotOptions: {
+                        series: {
+                          dataLabels: {
+                            enabled: true
+                          }
+                        }
+                      } } %>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Row 2: Title Charts -->
+        <div class="pdf-chart-row">
+          <div class="pdf-chart-half">
+            <div class="pdf-chart-card">
+              <h3 class="pdf-chart-title">Notas en Títulos por Día</h3>
+              <div class="pdf-chart-canvas">
+                <%= column_chart @title_chart_entries.count('*'), xtitle: "Fecha", ytitle: "Cant. Notas en Titulo", label: "Cant. Notas en Titulo", thousands: ".", curve: false, 
+                      colors: ['blue'], height: "200px", library: {
+                      plotOptions: {
+                        series: {
+                          dataLabels: {
+                            enabled: true
+                          }
+                        }
+                      } } %>
+              </div>
+            </div>
+          </div>
+          <div class="pdf-chart-half">
+            <div class="pdf-chart-card">
+              <h3 class="pdf-chart-title">Interacciones en Títulos por Día</h3>
+              <div class="pdf-chart-canvas">
+                <%= column_chart @title_chart_entries.sum(:total_count), xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones en TITULO", thousands: ".", curve: false, 
+                      colors: ['green'], height: "200px", library: {
+                      plotOptions: {
+                        series: {
+                          dataLabels: {
+                            enabled: true
+                          }
+                        }
+                      } } %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Sentiment Analysis Section -->
+      <div class="pdf-section">
+        <h2>Análisis de Sentimiento</h2>
+        <!-- Sentiment Statistics -->
+        <div class="pdf-stats-grid">
+          <div class="pdf-stats-card">
+            <div class="pdf-stats-label">Total Noticias</div>
+            <div class="pdf-stats-value"><%=number_with_delimiter(@entries.size, delimiter: ".")%></div>
+          </div>
+          <div class="pdf-stats-card">
+            <div class="pdf-stats-label">Positivas</div>
+            <div class="pdf-stats-value"><%=@percentage_positives%>%</div>
+          </div>
+          <div class="pdf-stats-card">
+            <div class="pdf-stats-label">Negativas</div>
+            <div class="pdf-stats-value"><%=@percentage_negatives%>%</div>
+          </div>
+          <div class="pdf-stats-card">
+            <div class="pdf-stats-label">Neutras</div>
+            <div class="pdf-stats-value"><%=@percentage_neutrals%>%</div>
+          </div>
+        </div>
+        <!-- Sentiment Trend Charts -->
+        <div class="pdf-chart-row">
+          <div class="pdf-chart-half">
+            <div class="pdf-chart-card">
+              <h3 class="pdf-chart-title">Notas por Sentimiento</h3>
+              <div class="pdf-chart-canvas">
+                <%= column_chart @chart_entries_sentiments.count('*'), xtitle: 'Fecha', ytitle: 'Cant. Notas', thousands: '.', 
+                      stacked: true, colors: ['red', 'lightgrey', 'lightgreen'], height: "200px", library: {
+                      plotOptions: {
+                        series: {
+                          dataLabels: { enabled: true }
+                        }
+                      } } %>
+              </div>
+            </div>
+          </div>
+          <div class="pdf-chart-half">
+            <div class="pdf-chart-card">
+              <h3 class="pdf-chart-title">Interacciones por Sentimiento</h3>
+              <div class="pdf-chart-canvas">
+                <%= column_chart @chart_entries_sentiments.sum('total_count'), xtitle: 'Fecha', ytitle: 'Cant. Interacciones', 
+                      thousands: '.', stacked: true, colors: ['red', 'lightgrey', 'lightgreen'], height: "200px", library: {
+                      plotOptions: {
+                        series: {
+                          dataLabels: { enabled: true }
+                        }
+                      } } %>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Sentiment Distribution Pie Charts -->
+        <div class="pdf-chart-row">
+          <div class="pdf-chart-half">
+            <div class="pdf-chart-card">
+              <h3 class="pdf-chart-title">Distribución de Notas por Sentimiento</h3>
+              <div class="pdf-chart-canvas">
+                <% polarities_counts = @entries.where.not(polarity: nil).group(:polarity).count('*').sort_by { |key, _value| key }.to_h %>
+                <% total_count = polarities_counts.values.sum.to_f %>
+                <% polarities_percentages = polarities_counts.transform_values { |count| (count / total_count * 100).round(0) } %>
+                <%= pie_chart polarities_percentages, colors: ["red", "lightgrey", 'lightgreen'], donut: true, suffix: "%", height: "200px" %>
+              </div>
+            </div>
+          </div>
+          <div class="pdf-chart-half">
+            <div class="pdf-chart-card">
+              <h3 class="pdf-chart-title">Distribución de Interacciones por Sentimiento</h3>
+              <div class="pdf-chart-canvas">
+                <% polarities_counts = @entries.where.not(polarity: nil).group(:polarity).sum('total_count').sort_by { |key, _value| key }.to_h %>
+                <% total_count = polarities_counts.values.sum.to_f %>
+                <% polarities_percentages = polarities_counts.transform_values { |count| (count / total_count * 100).round(0) } %>
+                <%= pie_chart polarities_percentages, colors: ["red", "lightgrey", 'lightgreen'], donut: true, suffix: "%", height: "200px" %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Summary Section -->
+      <div class="pdf-section">
+        <div class="pdf-summary">
+          <p>El tópico <strong><%=@topic.name%></strong> en los últimos <strong><%=DAYS_RANGE%> días</strong> cuenta con un total de <strong><%=number_with_delimiter(@total_entries, delimiter: ".")%></strong> notas y generó un total de <strong><%=number_with_delimiter(@total_interactions, delimiter: '.')%></strong> interacciones, lo que nos da un promedio de <strong><%=number_with_delimiter(@promedio, delimiter: '.')%></strong> interacciones por nota.</p>
+        </div>
+      </div>
+      <!-- AI Report Section -->
+      <% if @report && @report.report_text %>
+        <div class="pdf-section">
+          <h2>Análisis del Tópico</h2>
+          <div class="pdf-report">
+            <p><%=@report.report_text.gsub("\n", "<br>").html_safe%></p>
+            <p style="margin-top: 12pt; font-size: 9pt; color: #6b7280;">
+              Generado: <%=@report.created_at.strftime("%d/%m/%Y a las %H:%M")%>
+            </p>
+          </div>
+        </div>
+      <% end %>
+      <!-- Page Break for Media Analysis -->
+      <div class="pdf-section break-before">
+        <h2>Distribución por Medios</h2>
+        <!-- Media Pie Charts -->
+        <div class="pdf-chart-row">
+          <div class="pdf-chart-half">
+            <div class="pdf-chart-card">
+              <h3 class="pdf-chart-title">Notas por Medio</h3>
+              <div class="pdf-chart-canvas">
+                <%= pie_chart @entries.group("sites.name").count('*'), donut: true, height: "200px" %>
+              </div>
+            </div>
+          </div>
+          <div class="pdf-chart-half">
+            <div class="pdf-chart-card">
+              <h3 class="pdf-chart-title">Interacciones por Medio</h3>
+              <div class="pdf-chart-canvas">
+                <%= pie_chart @entries.group("sites.name").sum(:total_count), donut: true, height: "200px" %>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Top Media Sources -->
+        <h3>Medios que Más Han Mencionado</h3>
+        <div class="pdf-media-list">
+          <% @entries.group("sites.id").count('*').sort_by { |site, count| -count }.take(12).each do |site_id, count| %>
+            <% site = Site.find(site_id) %>
+            <div class="pdf-media-item">
+              <div class="pdf-media-name"><%=site.name%></div>
+              <div class="pdf-media-count"><%=count%> menciones</div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+      <!-- Topic Impact Section -->
+      <div class="pdf-section">
+        <h2>Impacto del Tópico</h2>
+        <!-- Impact Statistics -->
+        <div class="pdf-stats-grid">
+          <div class="pdf-stats-card">
+            <div class="pdf-stats-label">Notas del Tópico</div>
+            <div class="pdf-stats-value"><%=number_with_delimiter(@entries.size, delimiter: ".")%></div>
+          </div>
+          <div class="pdf-stats-card">
+            <div class="pdf-stats-label">Otras Notas</div>
+            <div class="pdf-stats-value"><%=number_with_delimiter(@all_entries_size, delimiter: ".")%></div>
+          </div>
+          <div class="pdf-stats-card">
+            <div class="pdf-stats-label">Total Interacciones Tópico</div>
+            <div class="pdf-stats-value"><%=number_with_delimiter(@entries.sum(:total_count), delimiter: ".")%></div>
+          </div>
+          <div class="pdf-stats-card">
+            <div class="pdf-stats-label">Otras Interacciones</div>
+            <div class="pdf-stats-value"><%=number_with_delimiter(@all_entries_interactions, delimiter: ".")%></div>
+          </div>
+        </div>
+        <!-- Impact Pie Charts -->
+        <div class="pdf-chart-row">
+          <div class="pdf-chart-half">
+            <div class="pdf-chart-card">
+              <h3 class="pdf-chart-title">Proporción de Notas</h3>
+              <div class="pdf-chart-canvas">
+                <%= pie_chart({"Topico" => @topic_percentage, "Otras" => @all_percentage}, donut: true, label: "Notas", colors: ["green", "grey"], suffix: "%", height: "200px") %>
+              </div>
+            </div>
+          </div>
+          <div class="pdf-chart-half">
+            <div class="pdf-chart-card">
+              <h3 class="pdf-chart-title">Proporción de Interacciones</h3>
+              <div class="pdf-chart-canvas">
+                <%= pie_chart({"Topico" => @topic_interactions_percentage, "Otras" => @all_intereactions_percentage}, donut: true, label: "Interacciones", colors: ["yellow", "grey"], suffix: "%", height: "200px") %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Tags Analysis Section -->
+      <div class="pdf-section">
+        <h2>Análisis de Tags Relacionados</h2>
+        <div class="pdf-chart-row">
+          <div class="pdf-chart-half">
+            <div class="pdf-chart-card">
+              <h3 class="pdf-chart-title">Notas por Tag</h3>
+              <div class="pdf-chart-canvas">
+                <%= pie_chart @tags_count, donut: true, height: "200px" %>
+              </div>
+            </div>
+          </div>
+          <div class="pdf-chart-half">
+            <div class="pdf-chart-card">
+              <h3 class="pdf-chart-title">Interacciones por Tag</h3>
+              <div class="pdf-chart-canvas">
+                <%= pie_chart @tags_interactions, donut: true, height: "200px" %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Words Analysis Section -->
+      <div class="pdf-section">
+        <h2>Análisis de Palabras</h2>
+        <h3>Palabras Más Frecuentes en Notas</h3>
+        <div class="pdf-words">
+          <% @word_occurrences.take(50).each do |word, count| %>
+            <span class="pdf-word"><%=word%> (<%=count%>)</span>
+          <% end %>
+        </div>
+        <h3>Bigramas Más Frecuentes</h3>
+        <div class="pdf-words">
+          <% @bigram_occurrences.take(30).each do |bigram, count| %>
+            <span class="pdf-word"><%=bigram%> (<%=count%>)</span>
+          <% end %>
+        </div>
+      </div>
+      <!-- Top News Interactions Section -->
+      <div class="pdf-section break-before">
+        <h2>Top Noticias con Más Interacciones del Tópico</h2>
+        <% @most_interactions.take(10).each_with_index do |entry, index| %>
+          <div class="pdf-news-item">
+            <div class="pdf-news-header">
+              <span class="pdf-news-rank">#<%=index + 1%></span>
+              <span class="pdf-news-site"><%=entry.site.name%></span>
+              <span class="pdf-news-date"><%=entry.published_at.strftime("%d/%m/%Y")%></span>
+              <span class="pdf-news-interactions"><%=number_with_delimiter(entry.total_count, delimiter: ".")%> interacciones</span>
+            </div>
+            <h4 class="pdf-news-title"><%=truncate(entry.title, length: 120)%></h4>
+            <% if entry.content.present? %>
+              <p class="pdf-news-content"><%=truncate(strip_tags(entry.content), length: 200)%></p>
+            <% end %>
+            <div class="pdf-news-metrics">
+              <span class="pdf-metric">
+                <strong>Reacciones:</strong> <%=number_with_delimiter(entry.reaction_count || 0, delimiter: ".")%>
+              </span>
+              <span class="pdf-metric">
+                <strong>Comentarios:</strong> <%=number_with_delimiter(entry.comment_count || 0, delimiter: ".")%>
+              </span>
+              <span class="pdf-metric">
+                <strong>Compartidas:</strong> <%=number_with_delimiter(entry.share_count || 0, delimiter: ".")%>
+              </span>
+              <% if entry.polarity.present? %>
+                <span class="pdf-metric sentiment-<%=entry.polarity%>">
+                  <strong>Sentimiento:</strong>
+                  <% case entry.polarity %>
+                  <% when 'positive' %>
+                    Positivo
+                  <% when 'negative' %>
+                    Negativo
+                  <% else %>
+                    Neutral
+                  <% end %>
+                </span>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+    <!-- Tag Cloud Section -->
+    <div class="pdf-section break-before">
+      <h2>Nube de Palabras de Notas</h2>
+      <div class="pdf-word-cloud">
+        <% if @word_occurrences&.any? %>
+          <% min_max = find_max_and_min_occurrences(@word_occurrences) %>
+          <ul class="pdf-cloud">
+            <% @word_occurrences.shuffle { |a, b| a[1] <=> b[1] }.each do |word, value| %>
+              <li style='color: <%= word_color(@positive_words, @negative_words, word) %>' 
+                  data-weight="<%= normalize_to_scale(value, min_max[:max], min_max[:min]) %>">
+                <%= word %>
+              </li>
+            <% end %>
+          </ul>
+        <% else %>
+          <p class="pdf-no-data">No hay datos de palabras disponibles para este tópico</p>
+        <% end %>
+      </div>
+    </div>
+    <!-- Comments Tag Cloud Section -->
+    <% if @comments_word_occurrences&.any? %>
+      <div class="pdf-section break-before">
+        <h2>Nube de Palabras de Comentarios</h2>
+        <div class="pdf-word-cloud">
+          <% min_max = find_max_and_min_occurrences(@comments_word_occurrences) %>
+          <ul class="pdf-cloud">
+            <% @comments_word_occurrences.shuffle { |a, b| a[1] <=> b[1] }.each do |word, value| %>
+              <li style='color: <%= word_color(@positive_words, @negative_words, word) %>' 
+                  data-weight="<%= normalize_to_scale(value, min_max[:max], min_max[:min]) %>">
+                <%= word %>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      </div>
+    <% end %>
+    <!-- Auto-print after page loads -->
+    <script>
+      setTimeout(function() {
+        window.print();
+      }, 1000);
+    </script>
+  </body>
+</html>

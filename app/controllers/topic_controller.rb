@@ -153,6 +153,83 @@ class TopicController < ApplicationController
     @tm = TextMood.new(language: 'es', normalize_score: true)
   end
 
+  def pdf
+    @topic = Topic.find(params[:id])
+
+    unless @topic.users.exists?(current_user.id) && @topic.status == true
+      return redirect_to root_path,
+                         alert: 'El Tópico al que intentaste acceder no está asignado a tu usuario o se encuentra deshabilitado'
+    end
+
+    # Reuse the same data preparation logic as show action
+    @tag_list = @topic.tags.map(&:name)
+    @entries = @topic.list_entries
+    @chart_entries = @entries.group_by_day(:published_at)
+    @chart_entries_sentiments = @entries.where.not(polarity: nil).group(:polarity).group_by_day(:published_at)
+
+    @title_entries = @topic.title_list_entries
+    @title_chart_entries = @title_entries.reorder(nil).group_by_day(:published_at)
+
+    @top_entries = Entry.enabled.normal_range.joins(:site).order(total_count: :desc).limit(5)
+    @total_entries = @entries.size
+    @total_interactions = @entries.sum(:total_count)
+
+    @all_entries_size = Entry.enabled.normal_range.where.not(id: @entries.ids).count
+    @all_entries_interactions = Entry.enabled.normal_range.where.not(id: @entries.ids).sum(:total_count)
+
+    @word_occurrences = @entries.word_occurrences
+    @bigram_occurrences = @entries.bigram_occurrences
+    @report = @topic.reports.last
+
+    @comments = Comment.where(entry_id: @entries.select(:id))
+    @comments_word_occurrences = @comments.word_occurrences
+
+    @positive_words = @topic.positive_words.split(',') if @topic.positive_words.present?
+    @negative_words = @topic.negative_words.split(',') if @topic.negative_words.present?
+
+    polarity_counts = @entries.group(:polarity).count
+    @neutrals = polarity_counts['neutral'] || 0
+    @positives = polarity_counts['positive'] || 0
+    @negatives = polarity_counts['negative'] || 0
+
+    if @entries.any?
+      @percentage_positives = (Float(@positives) / @entries.size * 100).round(0)
+      @percentage_negatives = (Float(@negatives) / @entries.size * 100).round(0)
+      @percentage_neutrals = (Float(@neutrals) / @entries.size * 100).round(0)
+
+      total_count = @entries.size + @all_entries_size
+      @topic_percentage = (Float(@entries.size) / total_count * 100).round(0)
+      @all_percentage = (Float(@all_entries_size) / total_count * 100).round(0)
+
+      total_count = @entries.sum(:total_count) + @all_entries_interactions
+      @topic_interactions_percentage = (Float(@entries.sum(&:total_count)) / total_count * 100).round(1)
+      @all_intereactions_percentage = (Float(@all_entries_interactions) / total_count * 100).round(1)
+    end
+
+    @most_interactions = @entries.sort_by { |e| -e.total_count }
+                                 .take(12)
+
+    if @total_entries.zero?
+      @promedio = 0
+    else
+      @promedio = @total_interactions / @total_entries
+    end
+
+    @tags = @entries.tag_counts_on(:tags).order('count desc').limit(20)
+
+    @tags_interactions = Entry.joins(:tags)
+                              .where(id: @entries.select(:id), tags: { id: @tags.map(&:id) })
+                              .group('tags.name')
+                              .sum(:total_count)
+                              .sort_by { |_k, v| -v }
+
+    @tags_count = {}
+    @tags.each { |n| @tags_count[n.name] = n.count }
+
+    # Render with specific layout for PDF
+    render layout: false
+  end
+
   def history
     @topic = Topic.find(params[:id])
     @reports = @topic.reports.where.not(report_text: nil).order(created_at: :desc).limit(20)
