@@ -84,7 +84,6 @@ Morfeo is a Rails 7 news monitoring system that crawls websites, extracts articl
 ### Frontend & Assets
 
 - **Tailwind CSS** via **tailwindcss-rails** for styling
-- **Official Tailwind Components Library** (https://tailwindui.com/components) is used for UI building blocks and best practices
 - **Importmap** for JavaScript dependencies (no webpack)
 - **Stimulus** + **Turbo** for modern Rails frontend
 - **jQuery Rails** for legacy JavaScript components

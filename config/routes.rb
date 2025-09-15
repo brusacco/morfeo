@@ -19,6 +19,7 @@ Rails.application.routes.draw do
   get '/tag/:id/comments', to: 'tag#comments', as: 'tag_comments'
 
   get '/topic/:id', to: 'topic#show', as: 'topic'
+  get '/topic/:id/pdf', to: 'topic#pdf', as: 'topic_pdf'
   get '/topic/:id/history', to: 'topic#history', as: 'topic_history'
   get '/topic/:id/comments', to: 'topic#comments', as: 'topic_comments'
 

@@ -1,68 +1,118 @@
-<header class="bg-white shadow-sm">
-  <div class="mx-auto px-4 py-4 sm:px-6 lg:px-8">
-    <h1 class="text-lg font-semibold leading-6 text-gray-900">Tópico: <%=@topic.name%></h1>
+<!-- Enhanced Header with Better Typography and Layout -->
+<header class="bg-white shadow-sm border-b border-gray-200">
+  <div class="mx-auto px-4 py-6 sm:px-6 lg:px-8">
+    <div class="md:flex md:items-center md:justify-between">
+      <div class="flex-1 min-w-0">
+        <h1 class="text-3xl font-bold text-gray-900 tracking-tight"><%=@topic.name%></h1>
+        <p class="mt-1 text-sm text-gray-600">Análisis completo del tópico - Últimos <%=DAYS_RANGE%> días</p>
+      </div>
+      <div class="mt-4 flex space-x-3 md:mt-0 md:ml-4">
+        <%= link_to topic_pdf_path(@topic), target: '_blank', class: 'inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors' do %>
+          <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clip-rule="evenodd" />
+          </svg>
+          Generar Reporte PDF
+        <% end %>
+      </div>
+    </div>
   </div>
 </header>
-<main>
-  <div class="mx-auto py-8 sm:px-6 lg:px-8">
-    <%= render partial: "tag/tag_entry", collection: @topic.tags %>
-    <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
-      <div class="chart-container">
-        <!-- Gráfico 1 -->
-        <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-0 sm:mb-0">
-          <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Notas x DIA</h2>
-          <div class='outside'
-            data-controller='topics'
-            data-topics-id-value='entryQuantitiesChart'
-            data-topics-url-value='<%= entries_data_topics_path %>'
-            data-topics-topic-id-value='<%= @topic.id %>'>
+<main class="bg-gray-50 min-h-screen">
+  <div class="mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    <!-- Tags Section -->
+    <section class="mb-8">
+      <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-medium text-gray-900 mb-4">Etiquetas del Tópico</h2>
+        <div class="flex flex-wrap gap-2">
+          <%= render partial: "tag/tag_entry", collection: @topic.tags %>
+        </div>
+      </div>
+    </section>
+    <!-- Charts Grid Section -->
+    <section class="mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">Análisis Temporal</h2>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
+        <!-- Chart Card 1: Entry Quantities -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow w-full">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-medium text-gray-900">Notas por Día</h3>
+            <div class="flex items-center text-sm text-gray-500">
+              <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+              </svg>
+              Últimos <%=DAYS_RANGE%> días
+            </div>
+          </div>
+          <div class='w-full overflow-hidden'
+              data-controller='topics'
+              data-topics-id-value='entryQuantitiesChart'
+              data-topics-url-value='<%= entries_data_topics_path %>'
+              data-topics-topic-id-value='<%= @topic.id %>'>
             <%= column_chart @chart_entries.count('*'), xtitle: "Fecha", ytitle: "Cant. Notas", label: "Cant. Notas", thousands: ".", curve: false, 
-                  adapter: 'highcharts', id: 'entryQuantitiesChart', colors: ['blue'], library: {
-                  plotOptions: {
-                    series: {
-                      dataLabels: {
-                        enabled: true
+                    adapter: 'highcharts', id: 'entryQuantitiesChart', colors: ['#3B82F6'], library: {
+                    plotOptions: {
+                      series: {
+                        dataLabels: {
+                          enabled: true
+                        }
                       }
-                    }
-                  } } %>
+                    } } %>
             <%= render 'home/modal', graph_id: 'entryQuantitiesChart', controller_name: 'topics' %>
           </div>
         </div>
-        <!-- Gráfico 2 -->
-        <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-0 sm:mb-0">
-          <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Interacciones x DIA</h2>
-          <div class='outside'
-            data-controller='topics'
-            data-topics-id-value='entryInteractionsChart'
-            data-topics-url-value='<%= entries_data_topics_path %>'
-            data-topics-topic-id-value='<%= @topic.id %>'>
+        <!-- Chart Card 2: Interactions -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow w-full">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-medium text-gray-900">Interacciones por Día</h3>
+            <div class="flex items-center text-sm text-gray-500">
+              <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" />
+              </svg>
+              Total de interacciones
+            </div>
+          </div>
+          <div class='w-full overflow-hidden'
+              data-controller='topics'
+              data-topics-id-value='entryInteractionsChart'
+              data-topics-url-value='<%= entries_data_topics_path %>'
+              data-topics-topic-id-value='<%= @topic.id %>'>
             <%= column_chart @chart_entries.sum(:total_count), xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones", thousands: ".", curve: false, 
-                  adapter: 'highcharts', id: 'entryInteractionsChart', colors: ['green'], library: {
-                  plotOptions: {
-                    series: {
-                      dataLabels: {
-                        enabled: true
+                    adapter: 'highcharts', id: 'entryInteractionsChart', colors: ['#10B981'], library: {
+                    plotOptions: {
+                      series: {
+                        dataLabels: {
+                          enabled: true
+                        }
                       }
-                    }
-                  } } %>
+                    } } %>
             <%= render partial: 'home/modal', locals: { graph_id: 'entryInteractionsChart', controller_name: 'topics' } %>
           </div>
         </div>
       </div>
-    </div>
-    <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
-      <div class="chart-container">
-        <!-- Gráfico SOLO en TITULOS 01 -->
-        <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-0 sm:mb-0">
-          <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Notas en TITULOS x DIA</h2>
-          <div class='outside'
+    </section>
+    <!-- Title Analysis Section -->
+    <section class="mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">Análisis de Títulos</h2>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Title Chart 1: Entry Quantities -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-medium text-gray-900">Notas en Títulos por Día</h3>
+            <div class="flex items-center text-sm text-gray-500">
+              <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2h-3a1 1 0 01-1-1v-6a1 1 0 00-1-1H9a1 1 0 00-1 1v6a1 1 0 01-1 1H4a1 1 0 110-2V4zm3 1h2v2H7V5zm2 4H7v2h2V9zm2-4h2v2h-2V5zm2 4h-2v2h2V9z" clip-rule="evenodd" />
+              </svg>
+              Solo títulos
+            </div>
+          </div>
+          <div class='chart-container'
             data-controller='topics'
             data-topics-id-value='titleEntryQuantitiesChart'
             data-topics-url-value='<%= entries_data_topics_path %>'
             data-topics-topic-id-value='<%= @topic.id %>'
             data-topics-title-value='true'>
             <%= column_chart @title_chart_entries.count('*'), xtitle: "Fecha", ytitle: "Cant. Notas en Titulo", label: "Cant. Notas en Titulo", thousands: ".", curve: false, 
-                  adapter: 'highcharts', id: 'titleEntryQuantitiesChart', colors: ['blue'], library: {
+                  adapter: 'highcharts', id: 'titleEntryQuantitiesChart', colors: ['#8B5CF6'], library: {
                   plotOptions: {
                     series: {
                       dataLabels: {
@@ -73,17 +123,25 @@
             <%= render 'home/modal', graph_id: 'titleEntryQuantitiesChart', controller_name: 'topics' %>
           </div>
         </div>
-        <!-- Gráfico SOLO en TITULOS 02 -->
-        <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-0 sm:mb-0">
-          <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Interacciones en TITULOS x DIA</h2>
-          <div class='outside'
+        <!-- Title Chart 2: Interactions -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-medium text-gray-900">Interacciones en Títulos por Día</h3>
+            <div class="flex items-center text-sm text-gray-500">
+              <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" />
+              </svg>
+              Interacciones en títulos
+            </div>
+          </div>
+          <div class='chart-container'
             data-controller='topics'
             data-topics-id-value='titleEntryInteractionsChart'
             data-topics-url-value='<%= entries_data_topics_path %>'
             data-topics-topic-id-value='<%= @topic.id %>'
             data-topics-title-value='true'>
             <%= column_chart @title_chart_entries.sum(:total_count), xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones en TITULO", thousands: ".", curve: false, 
-                  adapter: 'highcharts', id: 'titleEntryInteractionsChart', colors: ['green'], library: {
+                  adapter: 'highcharts', id: 'titleEntryInteractionsChart', colors: ['#F59E0B'], library: {
                   plotOptions: {
                     series: {
                       dataLabels: {
@@ -95,61 +153,146 @@
           </div>
         </div>
       </div>
-    </div>
-    <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
-      <div>
-        <h2 class="text-2xl mx-5 my-5 font-bold tracking-tight text-gray-900">Análisis de sentimiento</h2>
-        <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-4">
-          <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
-            <dt class="truncate text-sm font-medium text-gray-500">Total Noticias</dt>
-            <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900"><%=@entries.size%></dd>
+    </section>
+    <!-- Sentiment Analysis Overview -->
+    <section class="mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">Análisis de Sentimiento</h2>
+      <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="bg-white overflow-hidden rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+          <div class="p-6">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <div class="w-8 h-8 bg-blue-100 rounded-md flex items-center justify-center">
+                  <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dt class="text-sm font-medium text-gray-500 truncate">Total Noticias</dt>
+                <dd class="mt-1 text-3xl font-semibold text-gray-900"><%=number_with_delimiter(@entries.size, delimiter: ".")%></dd>
+              </div>
+            </div>
           </div>
-          <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
-            <dt class="truncate text-sm font-medium text-gray-500">Total Positivas</dt>
-            <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900"><%=@percentage_positives%>%</dd>
+        </div>
+        <div class="bg-white overflow-hidden rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+          <div class="p-6">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <div class="w-8 h-8 bg-green-100 rounded-md flex items-center justify-center">
+                  <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dt class="text-sm font-medium text-gray-500 truncate">Positivas</dt>
+                <dd class="mt-1 text-3xl font-semibold text-green-600"><%=@percentage_positives%>%</dd>
+              </div>
+            </div>
           </div>
-          <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
-            <dt class="truncate text-sm font-medium text-gray-500">Total Negativas</dt>
-            <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900"><%=@percentage_negatives%>%</dd>
+        </div>
+        <div class="bg-white overflow-hidden rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+          <div class="p-6">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <div class="w-8 h-8 bg-red-100 rounded-md flex items-center justify-center">
+                  <svg class="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dt class="text-sm font-medium text-gray-500 truncate">Negativas</dt>
+                <dd class="mt-1 text-3xl font-semibold text-red-600"><%=@percentage_negatives%>%</dd>
+              </div>
+            </div>
           </div>
-          <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
-            <dt class="truncate text-sm font-medium text-gray-500">Total Neutras</dt>
-            <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900"><%=@percentage_neutrals%>%</dd>
+        </div>
+        <div class="bg-white overflow-hidden rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+          <div class="p-6">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <div class="w-8 h-8 bg-gray-100 rounded-md flex items-center justify-center">
+                  <svg class="w-5 h-5 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dt class="text-sm font-medium text-gray-500 truncate">Neutras</dt>
+                <dd class="mt-1 text-3xl font-semibold text-gray-600"><%=@percentage_neutrals%>%</dd>
+              </div>
+            </div>
           </div>
-        </dl>
+        </div>
       </div>
-    </div>
-    <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
-      <div class="chart-container">
-        <!-- Gráfico 3 -->
-        <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
-          <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Notas por Sentimiento</h2>
-          <div class='outside'
+    </section>
+    <!-- Sentiment Trend Charts -->
+    <section class="mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">Tendencias de Sentimiento</h2>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Sentiment Chart 1: Entry Quantities -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-medium text-gray-900">Notas por Sentimiento</h3>
+            <div class="flex items-center space-x-2 text-sm text-gray-500">
+              <div class="flex items-center">
+                <div class="w-3 h-3 bg-green-500 rounded-full mr-1"></div>
+                <span>Positivo</span>
+              </div>
+              <div class="flex items-center">
+                <div class="w-3 h-3 bg-gray-400 rounded-full mr-1"></div>
+                <span>Neutro</span>
+              </div>
+              <div class="flex items-center">
+                <div class="w-3 h-3 bg-red-500 rounded-full mr-1"></div>
+                <span>Negativo</span>
+              </div>
+            </div>
+          </div>
+          <div class='chart-container'
             data-controller='topics'
             data-topics-id-value='entryPolarityQuantitiesChart'
             data-topics-url-value='<%= entries_data_topics_path %>'
             data-topics-topic-id-value='<%= @topic.id %>'>
-            <%= line_chart @chart_entries_sentiments.count('*').sort_by { |key, _value| key }.to_h, xtitle: 'Fecha', ytitle: 'Cant. Notas', label: 'Notas', thousands: '.', 
-                  stacked: false, curve: false, colors: ['red', 'lightgrey', 'lightgreen'], id: 'entryPolarityQuantitiesChart', library: {
+            <%= area_chart @chart_entries_sentiments.count('*').sort_by { |key, _value| key }.to_h, xtitle: 'Fecha', ytitle: 'Cant. Notas', label: 'Notas', thousands: '.', 
+                  stacked: true, curve: false, colors: ['#EF4444', '#9CA3AF', '#10B981'], id: 'entryPolarityQuantitiesChart', library: {
                   plotOptions: {
                     series: {
                       name: 'Polarity',
-                      dataLabels: { enabled: true }
+                      dataLabels: { enabled: false }
                     }
                   } } %>
             <%= render partial: 'home/modal', locals: { graph_id: 'entryPolarityQuantitiesChart', controller_name: 'topics' } %>
           </div>
         </div>
-        <!-- Gráfico 4 -->
-        <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg">
-          <h2 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Interacciones por Sentimiento</h2>
-          <div class='outside'
+        <!-- Sentiment Chart 2: Interactions -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-medium text-gray-900">Interacciones por Sentimiento</h3>
+            <div class="flex items-center space-x-2 text-sm text-gray-500">
+              <div class="flex items-center">
+                <div class="w-3 h-3 bg-green-500 rounded-full mr-1"></div>
+                <span>Positivo</span>
+              </div>
+              <div class="flex items-center">
+                <div class="w-3 h-3 bg-gray-400 rounded-full mr-1"></div>
+                <span>Neutro</span>
+              </div>
+              <div class="flex items-center">
+                <div class="w-3 h-3 bg-red-500 rounded-full mr-1"></div>
+                <span>Negativo</span>
+              </div>
+            </div>
+          </div>
+          <div class='chart-container'
             data-controller='topics'
             data-topics-id-value='entryPolarityInteractionsChart'
             data-topics-url-value='<%= entries_data_topics_path %>'
             data-topics-topic-id-value='<%= @topic.id %>'>
-            <%= line_chart @chart_entries_sentiments.sum('total_count').sort_by { |key, _value| key }.to_h, xtitle: 'Fecha', ytitle: 'Cant. Interacciones', label: 'Interacciones', 
-                  thousands: '.', stacked: false, curve: false, colors: ['red', 'lightgrey', 'lightgreen'], id: 'entryPolarityInteractionsChart', library: {
+            <%= area_chart @chart_entries_sentiments.sum('total_count').sort_by { |key, _value| key }.to_h, xtitle: 'Fecha', ytitle: 'Cant. Interacciones', label: 'Interacciones', 
+                  thousands: '.', stacked: true, curve: false, colors: ['#EF4444', '#9CA3AF', '#10B981'], id: 'entryPolarityInteractionsChart', library: {
                   plotOptions: {
                     series: {
                       name: 'Polarity',
@@ -160,152 +303,286 @@
           </div>
         </div>
       </div>
-    </div>
-    <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
-      <div class="chart-container">
-        <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
-          <h3 class="mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Notas por Sentimiento</h3>
+    </section>
+    <!-- Sentiment Distribution -->
+    <section class="mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">Distribución de Sentimiento</h2>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Distribución por Cantidad de Notas</h3>
           <% polarities_counts = @entries.where.not(polarity: nil).group(:polarity).count('*').sort_by { |key, _value| key }.to_h %>
           <% total_count = polarities_counts.values.sum.to_f %>
-          <% polarities_percentages = polarities_counts.transform_values { |count| (count / total_count * 100).round(0) } %>
-          <%= pie_chart polarities_percentages, colors: ["red", "lightgrey", 'lightgreen'], donut: true, suffix: "%" %>
+          <% if total_count > 0 %>
+            <% polarities_percentages = polarities_counts.transform_values { |count| (count / total_count * 100).round(0) } %>
+          <% else %>
+            <% polarities_percentages = {} %>
+          <% end %>
+          <%= pie_chart polarities_percentages, colors: ["#EF4444", "#9CA3AF", '#10B981'], donut: true, suffix: "%" %>
         </div>
-        <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
-          <h3 class="mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Interacciones por Sentimiento</h3>
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Distribución por Interacciones</h3>
           <% polarities_counts = @entries.where.not(polarity: nil).group(:polarity).sum('total_count').sort_by { |key, _value| key }.to_h %>
           <% total_count = polarities_counts.values.sum.to_f %>
-          <% polarities_percentages = polarities_counts.transform_values { |count| (count / total_count * 100).round(0) } %>
-          <%= pie_chart polarities_percentages, colors: ["red", "lightgrey", 'lightgreen'], donut: true, suffix: "%" %>
+          <% if total_count > 0 %>
+            <% polarities_percentages = polarities_counts.transform_values { |count| (count / total_count * 100).round(0) } %>
+          <% else %>
+            <% polarities_percentages = {} %>
+          <% end %>
+          <%= pie_chart polarities_percentages, colors: ["#EF4444", "#9CA3AF", '#10B981'], donut: true, suffix: "%" %>
         </div>
       </div>
-    </div>
-    <div class="m-2">
-      <p class="mt-6 text-xl leading-8">El tópico <b><%=@topic.name%></b> en los ultimos <b><%=DAYS_RANGE%> días</b> cuenta con un total de <b><%=number_with_delimiter(@total_entries, delimiter: ".")%></b> notas y genero un total de <b><%=number_with_delimiter(@total_interactions, delimiter: '.')%></b> interacciones, lo que nos da un promedio de <b><%=number_with_delimiter(@promedio, delimiter: '.')%></b> interacciones por nota.</p>
-      <p>En contexto las <%=@top_entries.count%> notas con más interacciones en general, en el mismo periodo tuvieron <b><%=@top_entries.pluck(:total_count).join(', ')%></b> interacciones y las notas del topico <b><%=@most_interactions.take(5).pluck(:total_count).join(', ')%></b> interaciones </p>
-      <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8  lg:px-8">
-        <h2 class="text-2xl font-bold tracking-tight text-gray-900">Análisis del Tópico</h2>
-        <p><%=@report.report_text.gsub("\n", "<br>").html_safe if @report && @report.report_text%></p>
-        <br>
-        <p>Generado: <b><%=@report&.created_at%></b></p>
-        <%=link_to "Ver más", topic_history_path(@topic), class: 'rounded bg-white px-2 py-1 text-xs font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50'%>
+    </section>
+    <!-- Topic Impact Section -->
+    <section class="mb-8">
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">Impacto del Tópico</h2>
+        <!-- Improved Statistics Cards -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <!-- News Count Statistics -->
+          <div class="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-lg p-6 border border-blue-200">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-semibold text-blue-900">📰 Cantidad de Notas</h3>
+              <div class="text-xs text-blue-600 bg-blue-200 px-2 py-1 rounded-full">
+                Últimos <%=DAYS_RANGE%> días
+              </div>
+            </div>
+            <div class="grid grid-cols-3 gap-4">
+              <div class="text-center">
+                <div class="text-sm text-blue-800 font-medium">
+                  <span class="text-2xl font-bold text-blue-600"><%=number_with_delimiter(@entries.size, delimiter: ".")%></span>
+                  Este Tópico • <%=@topic_percentage%>% del total
+                </div>
+              </div>
+              <div class="text-center">
+                <div class="text-sm text-gray-700 font-medium">
+                  <span class="text-2xl font-bold text-gray-600"><%=number_with_delimiter(@all_entries_size, delimiter: ".")%></span>
+                  Otros Tópicos • <%=@all_percentage%>% del total
+                </div>
+              </div>
+              <div class="text-center">
+                <div class="text-sm text-green-800 font-medium">
+                  <span class="text-2xl font-bold text-green-600"><%=number_with_delimiter(@all_entries_size + @entries.size, delimiter: ".")%></span>
+                  Total General • 100% cobertura
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Interactions Count Statistics -->
+          <div class="bg-gradient-to-br from-amber-50 to-orange-100 rounded-lg p-6 border border-amber-200">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-semibold text-amber-900">💬 Cantidad de Interacciones</h3>
+              <div class="text-xs text-amber-600 bg-amber-200 px-2 py-1 rounded-full">
+                Engagement Total
+              </div>
+            </div>
+            <div class="grid grid-cols-3 gap-4">
+              <div class="text-center">
+                <div class="text-sm text-amber-800 font-medium">
+                  <span class="text-2xl font-bold text-amber-600"><%=number_with_delimiter(@entries.sum(:total_count), delimiter: ".")%></span>
+                  Este Tópico • <%=@topic_interactions_percentage%>% del total
+                </div>
+              </div>
+              <div class="text-center">
+                <div class="text-sm text-gray-700 font-medium">
+                  <span class="text-2xl font-bold text-gray-600"><%=number_with_delimiter(@all_entries_interactions, delimiter: ".")%></span>
+                  Otros Tópicos • <%=@all_intereactions_percentage%>% del total
+                </div>
+              </div>
+              <div class="text-center">
+                <div class="text-sm text-green-800 font-medium">
+                  <span class="text-2xl font-bold text-green-600"><%=number_with_delimiter(@all_entries_interactions + @entries.sum(:total_count), delimiter: ".")%></span>
+                  Total General • Todas las interacciones
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Performance Metrics -->
+        <div class="bg-gray-50 rounded-lg p-4 mb-6">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+            <div class="bg-white rounded-lg p-4 shadow-sm">
+              <div class="text-2xl font-bold text-indigo-600"><%=number_with_delimiter(@promedio, delimiter: '.')%></div>
+              <div class="text-sm text-gray-600">Promedio Interacciones/Nota</div>
+            </div>
+            <div class="bg-white rounded-lg p-4 shadow-sm">
+              <div class="text-2xl font-bold text-purple-600"><%=((@entries.sum(:total_count).to_f / (@all_entries_interactions + @entries.sum(:total_count)) * 100).round(1))%>%</div>
+              <div class="text-sm text-gray-600">Share of Voice (Interacciones)</div>
+            </div>
+            <div class="bg-white rounded-lg p-4 shadow-sm">
+              <div class="text-2xl font-bold text-pink-600"><%=((@entries.size.to_f / (@all_entries_size + @entries.size) * 100).round(1))%>%</div>
+              <div class="text-sm text-gray-600">Share of Voice (Volumen)</div>
+            </div>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Cantidad de Notas</h3>
+            <%= pie_chart({"Topico" => @topic_percentage, "Otras" => @all_percentage}, donut: true, label: "Notas", colors: ["green", "grey"], suffix: "%") %>
+          </div>
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Cantidad de Interacciones</h3>
+            <%= pie_chart({"Topico" => @topic_interactions_percentage, "Otras" => @all_intereactions_percentage}, donut: true, label: "Interacciones", colors: ["yellow", "grey"], suffix: "%") %>
+          </div>
+        </div>
       </div>
-    </div>
-    <hr>
-    <%= render partial: 'site/sites', locals: { sites: @entries.group("sites.id").count('*').sort_by { |site, count| -count }.take(12), title: 'Los medios que mas han mencionado' } %>
-    <hr>
-    <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
-      <div class="chart-container">
-        <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
-          <h3 class="mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Notas por medio</h3>
+    </section>
+    <!-- Executive Summary -->
+    <section class="mb-8">
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">Resumen Ejecutivo</h2>
+        <div class="prose prose-lg max-w-none">
+          <p class="text-gray-700 leading-relaxed mb-4">
+            El tópico <span class="font-semibold text-gray-900"><%=@topic.name%></span> en los últimos 
+            <span class="font-semibold text-blue-600"><%=DAYS_RANGE%> días</span> cuenta con un total de 
+            <span class="font-semibold text-gray-900"><%=number_with_delimiter(@total_entries, delimiter: ".")%> notas</span>
+            y generó un total de <span class="font-semibold text-gray-900"><%=number_with_delimiter(@total_interactions, delimiter: '.')%> interacciones</span>, 
+            lo que nos da un promedio de <span class="font-semibold text-green-600"><%=number_with_delimiter(@promedio, delimiter: '.')%> interacciones por nota</span>.
+          </p>
+          <p class="text-gray-700 leading-relaxed">
+            En contexto, las <%=@top_entries.count%> notas con más interacciones en general tuvieron 
+            <span class="font-medium text-gray-900"><%=@top_entries.pluck(:total_count).join(', ')%></span> interacciones, 
+            mientras que las notas del tópico alcanzaron <span class="font-medium text-gray-900"><%=@most_interactions.take(5).pluck(:total_count).join(', ')%></span> interacciones.
+          </p>
+        </div>
+      </div>
+    </section>
+    <!-- AI Analysis Report -->
+    <% if @report && @report.report_text %>
+      <section class="mb-8">
+        <div class="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-lg border border-blue-200 p-6">
+          <div class="flex items-center mb-4">
+            <div class="flex-shrink-0">
+              <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M9.504 1.132a1 1 0 01.992 0l1.75 1a1 1 0 11-.992 1.736L10 3.152l-1.254.716a1 1 0 11-.992-1.736l1.75-1zM5.618 4.504a1 1 0 01-.372 1.364L5.016 6l.23.132a1 1 0 11-.992 1.736L3 7.17V8a1 1 0 01-2 0V6a.996.996 0 01.52-.878l1.734-.99a1 1 0 011.364.372zm8.764 0a1 1 0 011.364-.372l1.734.99A.996.996 0 0118 6v2a1 1 0 11-2 0v-.83l-1.254.698a1 1 0 11-.992-1.736L14.984 6l-.23-.132a1 1 0 01-.372-1.364zm-7 4a1 1 0 011.364-.372L10 8.848l1.254-.716a1 1 0 11.992 1.736L11 10.58V12a1 1 0 11-2 0v-1.42l-1.246-.712a1 1 0 01-.372-1.364zM3 11a1 1 0 011 1v1.42l1.246.712a1 1 0 11-.992 1.736L3 15.17V16a1 1 0 01-2 0v-2c0-.35.18-.676.504-.868L3 12.382V12a1 1 0 011-1zm14 0a1 1 0 011 1v.382l1.496.85c.324.192.504.518.504.868v2a1 1 0 11-2 0v-.83l-1.254.698a1 1 0 11-.992-1.736L17 13.42V12a1 1 0 011-1zm-9.618 5.504a1 1 0 011.364-.372l.254.145V16a1 1 0 112 0v.277l.254-.145a1 1 0 11.992 1.736l-1.735.992a.995.995 0 01-1.022 0l-1.735-.992a1 1 0 01-.372-1.364z" clip-rule="evenodd" />
+                </svg>
+              </div>
+            </div>
+            <div class="ml-4">
+              <h2 class="text-xl font-bold text-gray-900">Análisis Inteligente del Tópico</h2>
+              <p class="text-sm text-gray-600">Generado automáticamente por IA</p>
+            </div>
+          </div>
+          <div class="prose prose-gray max-w-none">
+            <div class="text-gray-700 leading-relaxed">
+              <%=@report.report_text.gsub("\n", "<br>").html_safe%>
+            </div>
+          </div>
+          <div class="flex items-center justify-between mt-6 pt-4 border-t border-blue-200">
+            <p class="text-sm text-gray-600">
+              <span class="font-medium">Generado:</span> <%=@report.created_at.strftime("%d/%m/%Y a las %H:%M")%>
+            </p>
+            <%=link_to topic_history_path(@topic), class: 'inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors' do %>
+              <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2h-3a1 1 0 01-1-1v-6a1 1 0 00-1-1H9a1 1 0 00-1 1v6a1 1 0 01-1 1H4a1 1 0 110-2V4zm3 1h2v2H7V5zm2 4H7v2h2V9zm2-4h2v2h-2V5zm2 4h-2v2h2V9z" clip-rule="evenodd" />
+              </svg>
+              Ver Historial de Reportes
+            <% end %>
+          </div>
+        </div>
+      </section>
+    <% end %>
+    <!-- Related Tags Analysis Section -->
+    <section class="mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">Análisis de Tags Relacionados</h2>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Cantidad de Notas por Tag Relacionados</h3>
+          <%= pie_chart @tags_count, donut: true %>
+        </div>
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Cantidad de Interacciones por Tag Relacionados</h3>
+          <%= pie_chart @tags_interactions, donut: true %>
+        </div>
+      </div>
+    </section>
+    <!-- Top Media Sources Section -->
+    <section class="mb-8">
+      <%= render partial: 'site/sites', locals: { sites: @entries.group("sites.id").count('*').sort_by { |site, count| -count }.take(12), title: 'Los medios que mas han mencionado' } %>
+    </section>
+    <!-- Media Distribution Analysis Section -->
+    <section class="mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">Distribución por Medios</h2>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Cantidad de Notas por medio</h3>
           <%= pie_chart @entries.group("sites.name").count('*'), donut: true %>
         </div>
-        <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
-          <h3 class="mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Interacciones por medio</h3>
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Cantidad de Interacciones por medio</h3>
           <%= pie_chart @entries.group("sites.name").sum(:total_count), donut: true %>
         </div>
       </div>
-    </div>
-    <hr>
-    <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
-      <%= render partial: 'entry/entries_table', locals: { entries: @entries, title: "Últimas Noticias sobre #{@topic.name}" } %>
-    </div>
-    <div class="overflow-hidden bg-white shadow sm:rounded-lg">
-      <h2 class="text-2xl mx-5 my-5 font-bold tracking-tight text-gray-900">Nube de palabras de notas</h2>
-      <div class="mt-20 mb-20 px-30 py-10 sm:p-6">
-        <%min_max = find_max_and_min_occurrences(@word_occurrences)%>
-        <ul class="cloud">
-          <%@word_occurrences.shuffle { |a, b| a[1] <=> b[1] }.each do |word, value|%>
-            <li style='color: <%=word_color(@positive_words, @negative_words, word)%>' data-weight="<%=normalize_to_scale(value, min_max[:max], min_max[:min])%>"><%=word%></li>
-          <%end%>
-        </ul>
+    </section>
+    <!-- Latest News Section -->
+    <section class="mb-8">
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <%= render partial: 'entry/entries_table', locals: { entries: @entries, title: "Últimas Noticias sobre #{@topic.name}" } %>
       </div>
-    </div>
-    <br>
-    <% if @comments_word_occurrences.any? %>
-      <div class="overflow-hidden bg-white shadow sm:rounded-lg">
-        <h2 class="text-2xl mx-5 my-5 font-bold tracking-tight text-gray-900">Nube de palabras de comentarios</h2>
-        <div class="mt-20 mb-20 px-30 py-10 sm:p-6">
-          <%min_max = find_max_and_min_occurrences(@comments_word_occurrences)%>
+    </section>
+    <!-- Word Cloud Section -->
+    <section class="mb-8">
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">Nube de palabras de notas</h2>
+        <div class="mt-6 mb-6 px-4 py-6">
+          <%min_max = find_max_and_min_occurrences(@word_occurrences)%>
           <ul class="cloud">
-            <%@comments_word_occurrences.shuffle { |a, b| a[1] <=> b[1] }.each do |word, value|%>
+            <%@word_occurrences.shuffle { |a, b| a[1] <=> b[1] }.each do |word, value|%>
               <li style='color: <%=word_color(@positive_words, @negative_words, word)%>' data-weight="<%=normalize_to_scale(value, min_max[:max], min_max[:min])%>"><%=word%></li>
             <%end%>
           </ul>
         </div>
       </div>
-    <% end %>
-    <hr>
-    <div class="mx-auto py-8">
-      <h2 class="text-2xl font-bold tracking-tight text-gray-900">Impacto del Tópico</h2>
-      <h3>Cantidad de Notas del Topico: <%=number_with_delimiter(@entries.size, delimiter: ".")%>, demás notas: <%=number_with_delimiter(@all_entries_size, delimiter: ".")%>, total de notas: <%=number_with_delimiter(@all_entries_size + @entries.size, delimiter: ".")%></h3>
-      <h3>Cantidad de Interacciones del Topico: <%=number_with_delimiter(@entries.sum(:total_count), delimiter: ".")%>, demás notas: <%=number_with_delimiter(@all_entries_interactions, delimiter: ".")%>, total de interacciones: <%=number_with_delimiter(@all_entries_interactions + @entries.sum(:total_count), delimiter: ".")%></h3>
-      <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
-        <div class="chart-container">
-          <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
-            <h3 class="mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Notas</h2>
-            <%= pie_chart({"Topico" => @topic_percentage, "Otras" => @all_percentage}, donut: true, label: "Notas", colors: ["green", "grey"], suffix: "%") %>
-          </div>
-          <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
-            <h3 class="mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Interacciones</h2>
-            <%= pie_chart({"Topico" => @topic_interactions_percentage, "Otras" => @all_intereactions_percentage}, donut: true, label: "Interacciones", colors: ["yellow", "grey"], suffix: "%") %>
+    </section>
+    <% if @comments_word_occurrences.any? %>
+      <!-- Comments Word Cloud Section -->
+      <section class="mb-8">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h2 class="text-2xl font-bold text-gray-900 mb-6">Nube de palabras de comentarios</h2>
+          <div class="mt-6 mb-6 px-4 py-6">
+            <%min_max = find_max_and_min_occurrences(@comments_word_occurrences)%>
+            <ul class="cloud">
+              <%@comments_word_occurrences.shuffle { |a, b| a[1] <=> b[1] }.each do |word, value|%>
+                <li style='color: <%=word_color(@positive_words, @negative_words, word)%>' data-weight="<%=normalize_to_scale(value, min_max[:max], min_max[:min])%>"><%=word%></li>
+              <%end%>
+            </ul>
           </div>
         </div>
+      </section>
+    <% end %>
+    <!-- Word Analysis Section -->
+    <section class="mb-8">
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">Análisis de Palabras en Notas</h2>
+        <%= render partial: "tag/tag_pill_array", collection: @word_occurrences, cached: true %>
+        <p class="text-sm text-gray-500 mt-4">*Cantidad de veces que aparecen las palabras en las notas</p>
       </div>
-    </div>
-    <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8  lg:px-8">
-      <h2  class="text-2xl font-bold tracking-tight text-gray-900">Análisis de Palabras en Notas:</h2>
-      <%= render partial: "tag/tag_pill_array", collection: @word_occurrences, cached: true %>
-      <p><small class="text-muted px-1">*Cantidad de veces que aparecen las palabras en las notas</small></p>
-    </div>
-    <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8  lg:px-8">
-      <h2  class="text-2xl font-bold tracking-tight text-gray-900">Análisis de Bigramas en Notas:</h2>
-      <%= render partial: "tag/tag_pill_array", collection: @bigram_occurrences, cached: true %>
-      <p><small class="text-muted px-1">*Cantidad de veces que aparecen bigramas en las notas</small></p>
-    </div>
+    </section>
+    <!-- Bigram Analysis Section -->
+    <section class="mb-8">
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">Análisis de Bigramas en Notas</h2>
+        <%= render partial: "tag/tag_pill_array", collection: @bigram_occurrences, cached: true %>
+        <p class="text-sm text-gray-500 mt-4">*Cantidad de veces que aparecen bigramas en las notas</p>
+      </div>
+    </section>
     <% if @comments.any? %>
-      <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8  lg:px-8">
-        <h2  class="text-2xl font-bold tracking-tight text-gray-900">Análisis de Palabras en Commentarios:</h2>
-        <%= render partial: "tag/tag_pill_array", collection: @comments_word_occurrences, cached: true %>
-        <p><small class="text-muted px-1">*Cantidad de veces que aparecen las palabras en los comentarios</small></p>
-        <%=link_to 'Ver comentarios', topic_comments_path(@topic), class: 'rounded bg-white px-2 py-1 text-xs font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50' %>
-      </div>
+      <!-- Comments Analysis Section -->
+      <section class="mb-8">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h2 class="text-2xl font-bold text-gray-900 mb-6">Análisis de Palabras en Comentarios</h2>
+          <%= render partial: "tag/tag_pill_array", collection: @comments_word_occurrences, cached: true %>
+          <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
+            <p class="text-sm text-gray-500">*Cantidad de veces que aparecen las palabras en los comentarios</p>
+            <%=link_to 'Ver comentarios', topic_comments_path(@topic), class: 'inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500' %>
+          </div>
+        </div>
+      </section>
     <% end %>
-    <%# <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8  lg:px-8"> %>
-    <%# <h2  class="text-2xl font-bold tracking-tight text-gray-900">Análisis de Bigramas en Comentarios:</h2> %>
-    <%#= render partial: "tag/tag_pill_array", collection: @comments_bigram_occurrences, cached: true %>
-    <%# <p><small class="text-muted px-1">*Cantidad de veces que aparecen bigramas en los comentarios</small></p> %>
-    <%#=link_to 'Ver comentarios', topic_comments_path(@topic), class: 'rounded bg-white px-2 py-1 text-xs font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50' %>
-    <%# </div> %>
-    <hr>
-    <%= render partial: 'entry/entries', locals: { last_entries: @most_interactions, title: 'Top Notas Interacciones del Tópico' } %>
-    <hr>
-    <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
-      <div class="chart-container">
-        <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
-          <h3 class="mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Notas por Tag Relacionados</h3>
-          <%= pie_chart @tags_count, donut: true %>
-        </div>
-        <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
-          <h3 class="mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Interacciones por Tag Relacionados</h3>
-          <%= pie_chart @tags_interactions, donut: true %>
-        </div>
-      </div>
-    </div>
-    <% if @tags.any? %>
-      <hr>
-      <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8 no-print">
-        <h2 class="text-2xl font-bold tracking-tight text-gray-900">Aparicion de Etiquetas:</h2>
-        <%= render partial: "tag/tag_pill", collection: @tags, cached: true %>
-        <p><small class="text-muted px-1">*Cantidad de veces que aparecen las etiquetas en las notas</small></p>
-      </div>
-      <hr>
-      <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8 no-print">
-        <h2 class="text-2xl font-bold tracking-tight text-gray-900">Interacciones de Etiquetas:</h2>
-        <%= render partial: "tag/tag_pill_interactions", collection: @tags.to_a.sort_by(&:interactions).reverse, cached: true %>
-        <p><small class="text-muted px-1">*Interacciones en las notas</small></p>
-      </div>
-    <%end%>
-    <hr>
+    <!-- Top Interactions Section -->
+    <section class="mb-8">
+      <%= render partial: 'entry/entries', locals: { last_entries: @most_interactions, title: 'Top Notas Interacciones del Tópico' } %>
+    </section>
   </div>
 </main>
 <style>
