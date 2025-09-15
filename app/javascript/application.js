@@ -4,8 +4,8 @@ import "controllers"
 import "chartkick"
 // import "Chart.bundle"
 
-import Highcharts from "highcharts"
-window.Highcharts = Highcharts
+// Highcharts is loaded globally from CDN in layout
+// No need to import it as a module
 
 document.addEventListener("turbo:load", function () {
   // Toggle para el menú de usuario (Cerrar Sesión)
