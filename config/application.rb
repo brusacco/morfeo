@@ -2,9 +2,6 @@
 
 require_relative 'boot'
 
-# Fix for Ruby 3.1+ compatibility with ActiveSupport Logger
-require 'logger'
-
 require 'rails/all'
 
 # require_relative '../lib/extensions/acts_as_taggable_on/tag'
