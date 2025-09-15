@@ -7,12 +7,12 @@ import "chartkick"
 import Highcharts from "highcharts"
 window.Highcharts = Highcharts
 
-document.addEventListener("turbo:load", function() {
+document.addEventListener("turbo:load", function () {
   // Toggle para el menú de usuario (Cerrar Sesión)
   var userMenuButton = document.getElementById('user-menu-button');
   var userMenu = document.getElementById('user-menu');
 
-  userMenuButton.addEventListener('click', function(event) {
+  userMenuButton.addEventListener('click', function (event) {
     userMenu.classList.toggle('hidden');
     event.stopPropagation();
   });
@@ -21,13 +21,13 @@ document.addEventListener("turbo:load", function() {
   var topicsMenuButton = document.getElementById('topics-menu-button');
   var topicsMenu = document.getElementById('topics-menu');
 
-  topicsMenuButton.addEventListener('click', function(event) {
+  topicsMenuButton.addEventListener('click', function (event) {
     topicsMenu.classList.toggle('hidden');
     event.stopPropagation();
   });
 
   // Ocultar menús cuando se hace clic fuera de ellos
-  document.addEventListener('click', function() {
+  document.addEventListener('click', function () {
     if (!userMenu.classList.contains('hidden')) {
       userMenu.classList.add('hidden');
     }
@@ -37,7 +37,7 @@ document.addEventListener("turbo:load", function() {
   });
 
   // Prevenir cierre de menús al hacer clic dentro de ellos
-  topicsMenu.addEventListener('click', function(event) {
+  topicsMenu.addEventListener('click', function (event) {
     event.stopPropagation();
   });
 });

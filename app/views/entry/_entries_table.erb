@@ -1,71 +1,358 @@
+<!-- Load jQuery and DataTables -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-<link rel="stylesheet" href="//cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" crossorigin="anonymous">
-<script src="//cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<h2 class="text-2xl font-bold tracking-tight text-gray-900"><%=title%></h2>
-<table id="entradas" class="min-w-full divide-y divide-gray-300">
-  <thead>
-    <tr>
-      <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Fecha</th>
-      <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Imagen</th>
-      <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Nota</th>
-      <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Etiquetas</th>
-      <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Medio</th>
-      <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Reactions</th>
-      <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Comments</th>
-      <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Shares</th>
-      <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Total</th>
-    </tr>
-  </thead>
-  <tbody class="bg-white">
-    <% entries.each do |entry| %>
-      <tr class="even:bg-gray-50">
-        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500" data-sort="<%= entry.published_at.strftime("%Y%m%d%H%M%s") %>"><%=entry.published_at.strftime("%d/%m/%Y")%></td>
-        <td class="px-3 py-4 text-sm text-gray-500">
-          <%= image_tag entry.clean_image, size: "200x200", loading: 'lazy', onerror: "this.onerror=null;this.src='#{asset_path('default-entry.svg')}';" %>
-        </td>
-        <td class="px-3 py-4 text-gray-500"><%=link_to entry.title, entry.url, target: '_blank'%> <i class="fa-solid fa-link"></i></td>
-        <td class="px-3 py-4 text-xs text-gray-500"><%=entry.tag_list%></td>
-        <td class="whitespace-nowrap px-3 py-4 text-xs text-gray-500"><%=link_to entry.site.name, site_path(entry.site)%></td>
-        <td class="whitespace-nowrap px-3 py-4 text-lg text-gray-500"><%=entry.reaction_count%></td>
-        <td class="whitespace-nowrap px-3 py-4 text-lg text-gray-500"><%=entry.comment_count%></td>
-        <td class="whitespace-nowrap px-3 py-4 text-lg text-gray-500"><%=entry.share_count%></td>
-        <td class="whitespace-nowrap px-3 py-4 text-lg text-gray-500"><%=entry.total_count%></td>
-      </tr>
-    <% end %>
-  </tbody>
-</table>
-<script>
-  function initializeDataTable() {
-    // Destroy existing DataTable if it exists
-    if ($.fn.DataTable.isDataTable('#entradas')) {
-      $('#entradas').DataTable().destroy();
-    }
-
-    // Initialize new DataTable
-    $('#entradas').DataTable({
-      order: [[0, 'desc']],
-      language: {
-        url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json',
-      },
-      pageLength: 25,
-      lengthChange: false
-    });
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<!-- Override default DataTables CSS -->
+<style>
+  .dataTables_wrapper .dataTables_paginate .paginate_button {
+    color: inherit !important;
+    border: none !important;
+    background: none !important;
   }
+  .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background: none !important;
+  }
+  .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+    color: inherit !important;
+  }
+</style>
+<div class="mb-8">
+  <h2 class="text-2xl font-bold tracking-tight text-gray-900 mb-6"><%=title%></h2>
+  <div class="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-lg overflow-hidden">
+    <div class="p-6">
+      <table id="entradas_<%= SecureRandom.hex(4) %>" class="entries-datatable min-w-full divide-y divide-gray-300 display cell-border" style="width:100%">
+        <thead class="bg-gray-50">
+          <tr>
+            <th scope="col" class="relative px-3 py-3.5 text-left text-sm font-semibold text-gray-900 pr-8">Fecha</th>
+            <th scope="col" class="px-3 py-3.5 text-center text-sm font-semibold text-gray-900">Imagen</th>
+            <th scope="col" class="relative px-3 py-3.5 text-left text-sm font-semibold text-gray-900 pr-8">Nota</th>
+            <th scope="col" class="relative px-3 py-3.5 text-left text-sm font-semibold text-gray-900 pr-8">Etiquetas</th>
+            <th scope="col" class="relative px-3 py-3.5 text-left text-sm font-semibold text-gray-900 pr-8">Medio</th>
+            <th scope="col" class="relative px-3 py-3.5 text-center text-sm font-semibold text-gray-900 pr-8">
+              <i class="fa-solid fa-thumbs-up text-blue-600 mr-1"></i>Reactions
+            </th>
+            <th scope="col" class="relative px-3 py-3.5 text-center text-sm font-semibold text-gray-900 pr-8">
+              <i class="fa-solid fa-comments text-green-600 mr-1"></i>Comments
+            </th>
+            <th scope="col" class="relative px-3 py-3.5 text-center text-sm font-semibold text-gray-900 pr-8">
+              <i class="fa-solid fa-share text-purple-600 mr-1"></i>Shares
+            </th>
+            <th scope="col" class="relative px-3 py-3.5 text-center text-sm font-semibold text-gray-900 pr-8">
+              <i class="fa-solid fa-chart-line text-indigo-600 mr-1"></i>Total
+            </th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <% entries.each do |entry| %>
+            <tr class="hover:bg-gray-50 transition-colors duration-150">
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-900 font-medium" data-sort="<%= entry.published_at.strftime("%Y%m%d%H%M%s") %>">
+                <time datetime="<%= entry.published_at.iso8601 %>">
+                  <%=entry.published_at.strftime("%d/%m/%Y")%>
+                </time>
+                <div class="text-xs text-gray-500 mt-1">
+                  <%=entry.published_at.strftime("%H:%M")%>
+                </div>
+              </td>
+              <td class="px-3 py-4 text-sm text-gray-500 text-center">
+                <div class="flex justify-center">
+                  <%= image_tag entry.clean_image, 
+                class: "h-16 w-16 object-cover rounded-lg shadow-sm border border-gray-200", 
+                loading: 'lazy', 
+                onerror: "this.onerror=null;this.src='#{asset_path('default-entry.svg')}';" %>
+                </div>
+              </td>
+              <td class="px-3 py-4 text-sm text-gray-900">
+                <div class="max-w-xs">
+                  <%= link_to entry.title, entry.url, 
+                target: '_blank',
+                class: "text-indigo-600 hover:text-indigo-900 font-medium line-clamp-2 block" %>
+                  <i class="fa-solid fa-external-link text-xs text-gray-400 ml-1"></i>
+                </div>
+              </td>
+              <td class="px-3 py-4 text-xs">
+                <div class="flex flex-wrap gap-1">
+                  <% entry.tag_list.first(3).each do |tag| %>
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                      <%= tag %>
+                    </span>
+                  <% end %>
+                  <% if entry.tag_list.count > 3 %>
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
+                      +<%= entry.tag_list.count - 3 %>
+                    </span>
+                  <% end %>
+                </div>
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm">
+                <%= link_to entry.site.name, site_path(entry.site), 
+              class: "text-gray-900 hover:text-indigo-600 font-medium" %>
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-center">
+                <span class="text-lg font-semibold text-blue-600"><%=number_with_delimiter(entry.reaction_count)%></span>
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-center">
+                <span class="text-lg font-semibold text-green-600"><%=number_with_delimiter(entry.comment_count)%></span>
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-center">
+                <span class="text-lg font-semibold text-purple-600"><%=number_with_delimiter(entry.share_count)%></span>
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-center">
+                <span class="text-xl font-bold text-indigo-600"><%=number_with_delimiter(entry.total_count)%></span>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+  (function() {
+    // Custom function to style pagination
+    function stylePagination() {
+      setTimeout(() => {
+        // Style pagination container
+        $('.dataTables_paginate').css({
+          'display': 'flex',
+          'justify-content': 'flex-end',
+          'margin-top': '1rem'
+        });
 
-  // Handle both initial load and Turbo navigation
-  $(document).ready(function() {
-    initializeDataTable();
-  });
+        // Create pagination wrapper if it doesn't exist
+        if (!$('.dataTables_paginate .pagination').length) {
+          $('.dataTables_paginate').wrapInner('<div class="pagination inline-flex shadow-sm"></div>');
+        }
 
-  // Handle Turbo navigation (Rails 7 with Turbo)
-  document.addEventListener('turbo:load', function() {
-    initializeDataTable();
-  });
+        // Style pagination buttons
+        $('.dataTables_paginate .paginate_button').each(function(index) {
+          const $btn = $(this);
+          const isFirst = index === 0;
+          const isLast = index === $('.dataTables_paginate .paginate_button').length - 1;
+          const isCurrent = $btn.hasClass('current');
+          const isDisabled = $btn.hasClass('disabled');
 
-  // Clean up DataTable before Turbo navigates away
-  document.addEventListener('turbo:before-cache', function() {
-    if ($.fn.DataTable.isDataTable('#entradas')) {
-      $('#entradas').DataTable().destroy();
+          // Base styles for all buttons
+          $btn.css({
+            'position': 'relative',
+            'display': 'inline-flex',
+            'align-items': 'center',
+            'padding': '0.5rem 0.75rem',
+            'font-size': '0.875rem',
+            'font-weight': '500',
+            'border': '1px solid',
+            'text-decoration': 'none',
+            'transition': 'all 0.15s ease-in-out',
+            'margin-left': isFirst ? '0' : '-1px'
+          });
+
+          // State-specific styles
+          if (isCurrent) {
+            $btn.css({
+              'z-index': '10',
+              'background-color': '#4f46e5',
+              'border-color': '#4f46e5',
+              'color': '#ffffff'
+            });
+          } else if (isDisabled) {
+            $btn.css({
+              'color': '#d1d5db',
+              'background-color': '#f9fafb',
+              'border-color': '#d1d5db',
+              'cursor': 'not-allowed'
+            });
+          } else {
+            $btn.css({
+              'color': '#6b7280',
+              'background-color': '#ffffff',
+              'border-color': '#d1d5db',
+              'cursor': 'pointer'
+            });
+
+            // Hover effects for active buttons
+            $btn.hover(
+              function() {
+                $(this).css({
+                  'background-color': '#f9fafb',
+                  'color': '#374151',
+                  'border-color': '#9ca3af'
+                });
+              },
+              function() {
+                $(this).css({
+                  'background-color': '#ffffff',
+                  'color': '#6b7280',
+                  'border-color': '#d1d5db'
+                });
+              }
+            );
+          }
+
+          // Border radius for first and last buttons
+          if (isFirst) {
+            $btn.css({
+              'border-top-left-radius': '0.375rem',
+              'border-bottom-left-radius': '0.375rem'
+            });
+          }
+          if (isLast) {
+            $btn.css({
+              'border-top-right-radius': '0.375rem',
+              'border-bottom-right-radius': '0.375rem'
+            });
+          }
+        });
+
+        // Style info text
+        $('.dataTables_info').css({
+          'color': '#374151',
+          'font-size': '0.875rem',
+          'margin-top': '0.5rem'
+        });
+
+      }, 100);
     }
-  });
+
+    function initializeEntriesDataTable() {
+      // Find all entries datatables on this page
+      $('.entries-datatable').each(function() {
+        const table = $(this);
+
+        // Destroy existing DataTable if it exists
+        if ($.fn.DataTable.isDataTable(table)) {
+          table.DataTable().destroy();
+        }
+
+        // Initialize new DataTable
+        table.DataTable({
+          order: [[0, 'desc']],
+          language: {
+            search: 'Buscar:',
+            lengthMenu: 'Mostrar _MENU_ entradas',
+            info: 'Mostrando _START_ a _END_ de _TOTAL_ entradas',
+            infoEmpty: 'Mostrando 0 a 0 de 0 entradas',
+            infoFiltered: '(filtrado de _MAX_ entradas totales)',
+            paginate: {
+              first: 'Primero',
+              last: 'Último',
+              next: 'Siguiente',
+              previous: 'Anterior'
+            },
+            emptyTable: 'No hay datos disponibles en la tabla'
+          },
+          pageLength: 25,
+          lengthChange: true,
+          lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Todos"]],
+          responsive: true,
+          dom: '<"flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4"lf>rt<"flex flex-col sm:flex-row sm:items-center sm:justify-between mt-4"ip>',
+          columnDefs: [
+            {
+              targets: [1], // Image column
+              orderable: false,
+              searchable: false,
+              className: 'text-center'
+            },
+            {
+              targets: [2], // Title column
+              className: 'max-w-xs truncate'
+            },
+            {
+              targets: [3], // Tags column
+              className: 'text-xs'
+            },
+            {
+              targets: [5, 6, 7, 8], // Numeric columns
+              className: 'text-center font-semibold'
+            }
+          ],
+          processing: true,
+          loadingRecords: 'Cargando...',
+          processing: 'Procesando...',
+          initComplete: function() {
+            // Style form controls with CSS
+            $('.dataTables_wrapper .dataTables_length select, .dataTables_wrapper .dataTables_filter input').css({
+              'display': 'block',
+              'border-radius': '0.375rem',
+              'border': '1px solid #d1d5db',
+              'box-shadow': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+              'padding': '0.5rem 0.75rem',
+              'font-size': '0.875rem',
+              'line-height': '1.25rem'
+            });
+
+            // Focus styles for inputs
+            $('.dataTables_wrapper .dataTables_filter input').focus(function() {
+              $(this).css({
+                'border-color': '#4f46e5',
+                'box-shadow': '0 0 0 3px rgba(79, 70, 229, 0.1)'
+              });
+            }).blur(function() {
+              $(this).css({
+                'border-color': '#d1d5db',
+                'box-shadow': '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+              });
+            });
+
+            // Add search placeholder
+            $('.dataTables_filter input').attr('placeholder', 'Buscar en todas las columnas...');
+
+            // Style the controls containers
+            $('.dataTables_wrapper .dataTables_length').css({
+              'display': 'flex',
+              'align-items': 'center',
+              'gap': '0.5rem',
+              'margin-bottom': '1rem'
+            });
+
+            $('.dataTables_wrapper .dataTables_filter').css({
+              'display': 'flex',
+              'align-items': 'center',
+              'gap': '0.5rem',
+              'margin-bottom': '1rem'
+            });
+
+            // Style labels
+            $('.dataTables_wrapper .dataTables_length label, .dataTables_wrapper .dataTables_filter label').css({
+              'color': '#374151',
+              'font-size': '0.875rem',
+              'font-weight': '500',
+              'display': 'flex',
+              'align-items': 'center',
+              'gap': '0.5rem'
+            });
+
+            // Style pagination
+            stylePagination();
+
+            console.log('DataTable initialized successfully');
+          },
+          drawCallback: function() {
+            // Re-apply pagination styles on each redraw
+            stylePagination();
+          }
+        });
+      });
+    }
+
+    // Initialize when DOM is ready
+    $(document).ready(function() {
+      if (typeof $.fn.DataTable !== 'undefined') {
+        initializeEntriesDataTable();
+      }
+    });
+
+    // Handle Turbo navigation (Rails 7 with Turbo)
+    document.addEventListener('turbo:load', function() {
+      if (typeof $ !== 'undefined' && typeof $.fn.DataTable !== 'undefined') {
+        initializeEntriesDataTable();
+      }
+    });
+
+    // Clean up DataTable before Turbo navigates away
+    document.addEventListener('turbo:before-cache', function() {
+      $('.entries-datatable').each(function() {
+        if ($.fn.DataTable.isDataTable(this)) {
+          $(this).DataTable().destroy();
+        }
+      });
+    });
+  })();
 </script>
