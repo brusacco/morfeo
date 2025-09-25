@@ -16,7 +16,7 @@ task tagger: :environment do
   rescue StandardError => e
     puts e.message
     sleep 1
-    retry
+    next
   end
 end
 
