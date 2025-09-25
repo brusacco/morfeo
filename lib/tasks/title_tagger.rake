@@ -16,6 +16,6 @@ task title_tagger: :environment do
   rescue StandardError => e
     puts e.message
     puts '---------------------------------------------------'
-    retry
+    next
   end
 end
