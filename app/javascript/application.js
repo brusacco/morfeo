@@ -21,23 +21,42 @@ document.addEventListener("turbo:load", function () {
   var topicsMenuButton = document.getElementById('topics-menu-button');
   var topicsMenu = document.getElementById('topics-menu');
 
-  topicsMenuButton.addEventListener('click', function (event) {
-    topicsMenu.classList.toggle('hidden');
-    event.stopPropagation();
-  });
+  if (topicsMenuButton && topicsMenu) {
+    topicsMenuButton.addEventListener('click', function (event) {
+      topicsMenu.classList.toggle('hidden');
+      event.stopPropagation();
+    });
+
+    topicsMenu.addEventListener('click', function (event) {
+      event.stopPropagation();
+    });
+  }
+
+  // Toggle para el menú de tópicos de Facebook
+  var facebookTopicsMenuButton = document.getElementById('facebook-topics-menu-button');
+  var facebookTopicsMenu = document.getElementById('facebook-topics-menu');
+
+  if (facebookTopicsMenuButton && facebookTopicsMenu) {
+    facebookTopicsMenuButton.addEventListener('click', function (event) {
+      facebookTopicsMenu.classList.toggle('hidden');
+      event.stopPropagation();
+    });
+
+    facebookTopicsMenu.addEventListener('click', function (event) {
+      event.stopPropagation();
+    });
+  }
 
   // Ocultar menús cuando se hace clic fuera de ellos
   document.addEventListener('click', function () {
-    if (!userMenu.classList.contains('hidden')) {
+    if (userMenu && !userMenu.classList.contains('hidden')) {
       userMenu.classList.add('hidden');
     }
-    if (!topicsMenu.classList.contains('hidden')) {
+    if (topicsMenu && !topicsMenu.classList.contains('hidden')) {
       topicsMenu.classList.add('hidden');
     }
-  });
-
-  // Prevenir cierre de menús al hacer clic dentro de ellos
-  topicsMenu.addEventListener('click', function (event) {
-    event.stopPropagation();
+    if (facebookTopicsMenu && !facebookTopicsMenu.classList.contains('hidden')) {
+      facebookTopicsMenu.classList.add('hidden');
+    }
   });
 });

@@ -1,0 +1,137 @@
+<header class="bg-white shadow-sm border-b border-gray-200">
+  <div class="mx-auto px-4 py-6 sm:px-6 lg:px-8">
+    <div class="md:flex md:items-center md:justify-between">
+      <div class="flex-1 min-w-0">
+        <h1 class="text-3xl font-bold text-gray-900 tracking-tight"><%= @topic.name %> · Facebook</h1>
+        <p class="mt-1 text-sm text-gray-600">Interacciones de fanpages - Últimos <%= DAYS_RANGE %> días</p>
+      </div>
+      <div class="mt-4 flex space-x-3 md:mt-0 md:ml-4">
+        <%= link_to entries_data_facebook_topics_path(topic_id: @topic.id, date: Date.current), class: 'inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors' do %>
+          <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M2 5a2 2 0 012-2h1.5a.5.5 0 01.4.2l1.6 2.4H17a1 1 0 011 1v7.5A1.5 1.5 0 0116.5 15H5a3 3 0 01-3-3V5z" />
+          </svg>
+          Ver publicaciones de hoy
+        <% end %>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="bg-gray-50 min-h-screen">
+  <div class="mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-8">
+    <!-- KPI cards -->
+    <section>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div class="text-sm font-medium text-gray-500 uppercase tracking-wide">Publicaciones</div>
+          <div class="mt-2 text-3xl font-bold text-gray-900"><%= number_with_delimiter(@total_posts) %></div>
+          <p class="mt-1 text-sm text-gray-500">Publicaciones tagged con este tópico en los últimos <%= DAYS_RANGE %> días.</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div class="text-sm font-medium text-gray-500 uppercase tracking-wide">Interacciones totales</div>
+          <div class="mt-2 text-3xl font-bold text-indigo-600"><%= number_with_delimiter(@total_interactions) %></div>
+          <p class="mt-1 text-sm text-gray-500">Likes + Comentarios + Compartidos.</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div class="text-sm font-medium text-gray-500 uppercase tracking-wide">Promedio por publicación</div>
+          <div class="mt-2 text-3xl font-bold text-green-600"><%= number_with_delimiter(@average_interactions) %></div>
+          <p class="mt-1 text-sm text-gray-500">Interacciones promedio por publicación.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Charts -->
+    <section>
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">Evolución temporal</h2>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-medium text-gray-900">Publicaciones por día</h3>
+            <span class="text-sm text-gray-500">Últimos <%= DAYS_RANGE %> días</span>
+          </div>
+          <div class="w-full overflow-hidden"
+               data-controller="topics"
+               data-topics-id-value="facebookPostsChart"
+               data-topics-url-value="<%= entries_data_facebook_topics_path %>"
+               data-topics-topic-id-value="<%= @topic.id %>"
+               data-topics-title-value="false">
+            <%= column_chart @chart_posts, xtitle: 'Fecha', ytitle: 'Publicaciones', label: 'Publicaciones',
+                  id: 'facebookPostsChart', adapter: 'highcharts', library: { plotOptions: { series: { dataLabels: { enabled: true } } } },
+                  colors: ['#3B82F6'], thousands: '.' %>
+            <%= render 'home/modal', graph_id: 'facebookPostsChart', controller_name: 'topics' %>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-medium text-gray-900">Interacciones por día</h3>
+            <span class="text-sm text-gray-500">Total diario</span>
+          </div>
+          <div class="w-full overflow-hidden"
+               data-controller="topics"
+               data-topics-id-value="facebookInteractionsChart"
+               data-topics-url-value="<%= entries_data_facebook_topics_path %>"
+               data-topics-topic-id-value="<%= @topic.id %>"
+               data-topics-title-value="false">
+            <%= column_chart @chart_interactions, xtitle: 'Fecha', ytitle: 'Interacciones', label: 'Interacciones',
+                  id: 'facebookInteractionsChart', adapter: 'highcharts', library: { plotOptions: { series: { dataLabels: { enabled: true } } } },
+                  colors: ['#10B981'], thousands: '.' %>
+            <%= render 'home/modal', graph_id: 'facebookInteractionsChart', controller_name: 'topics' %>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tag insights -->
+    <section>
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">Etiquetas relacionadas</h2>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Cantidad de publicaciones por etiqueta</h3>
+          <%= pie_chart @tag_counts.map { |tag| [tag.name, tag.count] }.to_h, donut: true, suffix: '%', colors: ['#6366F1', '#8B5CF6', '#EC4899', '#14B8A6', '#F59E0B'] %>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Interacciones por etiqueta</h3>
+          <%= pie_chart @tag_interactions, donut: true, suffix: '%', colors: ['#2563EB', '#7C3AED', '#D97706', '#0EA5E9', '#EF4444'] %>
+        </div>
+      </div>
+    </section>
+
+    <!-- Word clouds -->
+    <section class="space-y-6">
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Palabras más frecuentes</h3>
+        <%= render partial: 'tag/tag_pill_array', collection: @word_occurrences %>
+      </div>
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Bigramas más frecuentes</h3>
+        <%= render partial: 'tag/tag_pill_array', collection: @bigram_occurrences %>
+      </div>
+    </section>
+
+    <!-- Pages insights -->
+    <section>
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">Fanpages destacadas</h2>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Publicaciones por fanpage</h3>
+          <%= pie_chart @pages_count, donut: true, colors: ['#2563EB', '#F97316', '#10B981', '#F59E0B', '#EC4899'] %>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Interacciones por fanpage</h3>
+          <%= pie_chart @pages_interactions, donut: true, colors: ['#0EA5E9', '#6366F1', '#22C55E', '#D97706', '#EF4444'] %>
+        </div>
+      </div>
+    </section>
+
+    <!-- Top posts -->
+    <section>
+      <%= render partial: 'facebook_topic/posts_table', locals: { entries: @top_posts, title: 'Publicaciones con más interacciones' } %>
+    </section>
+
+    <!-- All posts -->
+    <section>
+      <%= render partial: 'facebook_topic/posts_table', locals: { entries: @entries, title: "Todas las publicaciones etiquetadas con #{@topic.name}" } %>
+    </section>
+  </div>
+</main>

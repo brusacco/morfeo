@@ -51,8 +51,14 @@ class ApplicationController < ActionController::Base
   private
 
   def user_topics
-    return unless user_signed_in?
+    relation =
+      if user_signed_in?
+        current_user.topics.where(status: true)
+      else
+        Topic.active
+      end
 
-    @topicos = current_user.topics.where(status: true)
+    @topicos = relation
+    @facebook_topics = relation
   end
 end

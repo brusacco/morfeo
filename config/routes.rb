@@ -23,6 +23,10 @@ Rails.application.routes.draw do
   get '/topic/:id/history', to: 'topic#history', as: 'topic_history'
   get '/topic/:id/comments', to: 'topic#comments', as: 'topic_comments'
 
+  resources :facebook_topics, only: [:show], controller: 'facebook_topic' do
+    get :entries_data, on: :collection
+  end
+
   resources :topics do
     get 'entries_data', to: 'topic#entries_data', on: :collection
   end
