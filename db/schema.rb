@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_06_18_183424) do
+ActiveRecord::Schema[7.0].define(version: 2025_10_10_190502) do
   create_table "active_admin_comments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "namespace"
     t.text "body"
@@ -104,6 +104,40 @@ ActiveRecord::Schema[7.0].define(version: 2025_06_18_183424) do
     t.index ["published_date"], name: "index_entries_on_published_date"
     t.index ["site_id"], name: "index_entries_on_site_id"
     t.index ["url"], name: "index_entries_on_url", unique: true
+  end
+
+  create_table "facebook_entries", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "page_id", null: false
+    t.string "facebook_post_id", null: false
+    t.datetime "posted_at", null: false
+    t.datetime "fetched_at"
+    t.text "message"
+    t.string "permalink_url"
+    t.string "attachment_type"
+    t.string "attachment_title"
+    t.text "attachment_description"
+    t.string "attachment_url"
+    t.string "attachment_target_url"
+    t.text "attachment_media_src"
+    t.integer "attachment_media_width"
+    t.integer "attachment_media_height"
+    t.json "attachments_raw"
+    t.integer "reactions_like_count", default: 0, null: false
+    t.integer "reactions_love_count", default: 0, null: false
+    t.integer "reactions_wow_count", default: 0, null: false
+    t.integer "reactions_haha_count", default: 0, null: false
+    t.integer "reactions_sad_count", default: 0, null: false
+    t.integer "reactions_angry_count", default: 0, null: false
+    t.integer "reactions_thankful_count", default: 0, null: false
+    t.integer "reactions_total_count", default: 0, null: false
+    t.integer "comments_count", default: 0, null: false
+    t.integer "share_count", default: 0, null: false
+    t.json "payload"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["facebook_post_id"], name: "index_facebook_entries_on_facebook_post_id", unique: true
+    t.index ["page_id", "posted_at"], name: "index_facebook_entries_on_page_id_and_posted_at"
+    t.index ["page_id"], name: "index_facebook_entries_on_page_id"
   end
 
   create_table "newspaper_texts", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -291,6 +325,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_06_18_183424) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "facebook_entries", "pages"
   add_foreign_key "newspaper_texts", "newspapers"
   add_foreign_key "newspapers", "sites"
   add_foreign_key "reports", "topics"

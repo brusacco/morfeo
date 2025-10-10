@@ -3,47 +3,35 @@
 namespace :facebook do
   desc 'Facebook crawler'
   task fanpage_crawler: :environment do
-    pages = Page.all
-    # pages = Page.where(id: 8)
-    pages.each do |page|
-      puts "Process Fanpage: #{page.name}, page: 1"
-      response = FacebookServices::FanpageCrawler.call(page.uid)
-      next if !response.success? || response.data.nil? || response.data[:next].nil?
+    Page.find_each do |page|
+      cursor = nil
+      iteration = 1
 
-      posts = response.data[:posts]
-      posts.each do |k, v|
-        entry = Entry.find_by(url: v)
-        if entry
-          entry.update!(uid: k)
-          puts "Found: #{v}"
-        else
-          puts "Not found: #{v}"
-          res = WebExtractorServices::UrlCrawler.call(v, page.site, k)
-          puts res
+      loop do
+        label = cursor.present? ? "cursor: #{cursor}" : "page: #{iteration}"
+        puts "Process Fanpage: #{page.name}, #{label}"
+
+        response = FacebookServices::FanpageCrawler.call(page.uid, cursor)
+        unless response.success?
+          puts "  -> Error crawling #{page.name}: #{response.error}"
+          break
         end
-      rescue StandardError
-        next
-      end
+        data = response.data || {}
+        entries = Array(data[:entries]).compact
 
-      next if response.data[:next].nil?
-
-      puts "Process Fanpage: #{page.name}, page: 2"
-      response = FacebookServices::FanpageCrawler.call(page.uid, response.data[:next])
-      next if !response.success? || response.data.nil? || response.data[:next].nil?
-
-      posts = response.data[:posts]
-      posts.each do |k, v|
-        entry = Entry.find_by(url: v)
-        if entry
-          entry.update!(uid: k)
-          puts "Found: #{v}"
+        if entries.empty?
+          puts "  -> No entries returned for #{page.name}"
         else
-          puts "Not found: #{v}"
-          res = WebExtractorServices::UrlCrawler.call(v, page.site, k)
-          puts res
+          entries.each do |facebook_entry|
+            puts "  -> Stored Facebook post #{facebook_entry.facebook_post_id} (posted at #{facebook_entry.posted_at})"
+          end
         end
-      rescue StandardError
-        next
+
+        cursor = data[:next]
+        break if cursor.blank?
+        break if iteration >= 2
+
+        iteration += 1
       end
     end
   end

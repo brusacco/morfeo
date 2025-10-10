@@ -2,6 +2,7 @@
 
 class Page < ApplicationRecord
   belongs_to :site
+  has_many :facebook_entries, dependent: :destroy
   validates :uid, presence: true
   validates :uid, uniqueness: true
 
