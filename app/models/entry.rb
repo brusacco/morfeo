@@ -11,7 +11,7 @@ class Entry < ApplicationRecord
   alias_attribute :notas_Repetidas, :repeated
 
   attribute :repeateds, :integer
-  enum repeateds: { 'No': 0, 'Si': 1, 'Limpiado': 2 }
+  enum :repeateds, { No: 0, Si: 1, Limpiado: 2 }
 
   scope :a_day_ago, -> { where(published_at: 1.day.ago..) }
   scope :a_week_ago, -> { where(published_at: 1.week.ago..) }
@@ -23,7 +23,7 @@ class Entry < ApplicationRecord
   scope :enabled, -> { where(enabled: true) }
   scope :disabled, -> { where(enabled: false) }
 
-  enum polarity: { neutral: 0, positive: 1, negative: 2 }
+  enum :polarity, { neutral: 0, positive: 1, negative: 2 }
 
   before_save :set_published_date
 

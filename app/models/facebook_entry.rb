@@ -2,6 +2,7 @@
 
 class FacebookEntry < ApplicationRecord
   belongs_to :page
+  acts_as_taggable_on :tags
 
   validates :facebook_post_id, presence: true, uniqueness: true
   validates :page, presence: true
