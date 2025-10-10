@@ -16,6 +16,7 @@ ActiveAdmin.register FacebookEntry do
     column :facebook_post_id
     column :page
     column :posted_at
+    column :attachment_type
     column :message do |entry|
       truncate(entry.message, length: 120)
     end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_10_10_190502) do
+ActiveRecord::Schema[7.0].define(version: 2025_10_10_201056) do
   create_table "active_admin_comments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "namespace"
     t.text "body"
@@ -114,7 +114,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_10_10_190502) do
     t.text "message"
     t.string "permalink_url"
     t.string "attachment_type"
-    t.string "attachment_title"
+    t.text "attachment_title"
     t.text "attachment_description"
     t.string "attachment_url"
     t.string "attachment_target_url"

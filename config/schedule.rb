@@ -19,7 +19,7 @@ end
 every 3.hours do
   rake 'crawler_deep'
   rake 'title_tagger'
-  # rake 'facebook:fanpage_crawler'
+  rake 'facebook:fanpage_crawler'
   # rake 'facebook:comment_crawler'
 end
 
