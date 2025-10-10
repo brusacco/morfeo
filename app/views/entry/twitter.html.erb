@@ -10,11 +10,11 @@
   <div class="row">
     <div class="col">
     <h3>Notas por medio</h3>
-      <%= pie_chart @entries.group("sites.name").count, donut: true %>
+      <%= pie_chart @entries_for_grouping.group("sites.name").count, donut: true %>
     </div>
     <div class="col">
       <h3>Interacciones por medio</h3>    
-      <%= pie_chart @entries.group("sites.name").sum(:total_count), donut: true %>
+      <%= pie_chart @entries_for_grouping.group("sites.name").sum(:total_count), donut: true %>
     </div>
   </div>
 </div>

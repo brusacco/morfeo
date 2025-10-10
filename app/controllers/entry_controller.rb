@@ -10,6 +10,8 @@ class EntryController < ApplicationController
 
   def popular
     @entries = Entry.enabled.joins(:site).where(total_count: 1..).a_day_ago.order(total_count: :desc).limit(50)
+    # Separate query for grouping operations to avoid MySQL strict mode issues
+    @entries_for_grouping = Entry.enabled.joins(:site).where(total_count: 1..).a_day_ago
     @tags = @entries.tag_counts_on(:tags).order('count desc')
 
     # Cosas nuevas
@@ -40,6 +42,8 @@ class EntryController < ApplicationController
 
   def twitter
     @entries = Entry.enabled.joins(:site).a_day_ago.where.not(image_url: nil).order(tw_total: :desc)
+    # Separate query for grouping operations to avoid MySQL strict mode issues
+    @entries_for_grouping = Entry.enabled.joins(:site).a_day_ago.where.not(image_url: nil)
     @tags = @entries.tag_counts_on(:tags).order('count desc')
 
     # Sets counters and values
@@ -63,6 +67,8 @@ class EntryController < ApplicationController
 
   def commented
     @entries = Entry.enabled.joins(:site).a_day_ago.where.not(image_url: nil).order(comment_count: :desc).limit(50)
+    # Separate query for grouping operations to avoid MySQL strict mode issues
+    @entries_for_grouping = Entry.enabled.joins(:site).a_day_ago.where.not(image_url: nil)
 
     @tags = @entries.tag_counts_on(:tags).order('count desc')
 
