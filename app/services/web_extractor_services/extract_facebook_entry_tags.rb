@@ -30,7 +30,7 @@ module WebExtractorServices
       tags_scope.find_each do |tag|
         tags_found << tag.name if tag_match?(content, tag.name)
 
-        next unless tag.variations.present?
+        next if tag.variations.blank?
 
         tag.variations.split(',').each do |variation|
           tags_found << tag.name if tag_match?(content, variation)
