@@ -1,3 +1,8 @@
+https
+http
+com
+facebook
+whatsapp
 abc
 a
 actualmente

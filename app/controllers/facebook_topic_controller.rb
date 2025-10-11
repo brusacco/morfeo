@@ -22,6 +22,9 @@ class FacebookTopicController < ApplicationController
 
     @tag_counts = @entries.tag_counts_on(:tags).order('count desc').limit(20)
 
+    @positive_words = @topic.positive_words.split(',') if @topic.positive_words.present?
+    @negative_words = @topic.negative_words.split(',') if @topic.negative_words.present?
+
     tag_interaction_totals = Hash.new(0)
     @entries.includes(:tags).each do |entry|
       entry.tags.each do |tag|

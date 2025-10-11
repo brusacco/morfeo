@@ -1,10 +1,12 @@
+<% table_id = "facebook_posts_#{SecureRandom.hex(4)}" %>
+
 <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
   <div class="p-6 border-b border-gray-100 flex items-center justify-between">
     <h3 class="text-lg font-semibold text-gray-900"><%= title %></h3>
     <p class="text-sm text-gray-500"><%= number_with_delimiter(entries.size) %> publicaciones</p>
   </div>
   <div class="overflow-x-auto">
-    <table class="min-w-full divide-y divide-gray-200">
+    <table id="<%= table_id %>" class="facebook-posts-datatable min-w-full divide-y divide-gray-200 display cell-border" style="width:100%">
       <thead class="bg-gray-50">
         <tr>
           <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Publicado</th>
@@ -19,16 +21,16 @@
       <tbody class="bg-white divide-y divide-gray-200">
         <% entries.each do |entry| %>
           <tr class="hover:bg-indigo-50 transition-colors">
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-sort="<%= entry.posted_at.strftime('%Y%m%d%H%M%S') %>">
               <div><%= entry.posted_at.strftime('%d/%m/%Y') %></div>
               <div class="text-xs text-gray-400"><%= entry.posted_at.strftime('%H:%M') %></div>
             </td>
-            <td class="px-6 py-4 text-sm text-gray-900">
-              <div class="space-y-1">
+            <td class="px-6 py-4 text-sm text-gray-900 align-top">
+              <div class="space-y-1 max-w-xl">
                 <% if entry.permalink_url.present? %>
-                  <%= link_to entry.message.to_s.truncate(140), entry.permalink_url, target: '_blank', rel: 'noopener', class: 'font-medium text-indigo-600 hover:text-indigo-800' %>
+                  <%= link_to entry.message.to_s.truncate(140), entry.permalink_url, target: '_blank', rel: 'noopener', class: 'font-medium text-indigo-600 hover:text-indigo-800 block' %>
                 <% else %>
-                  <span class="font-medium text-gray-800"><%= entry.message.to_s.truncate(140) %></span>
+                  <span class="font-medium text-gray-800 block"><%= entry.message.to_s.truncate(140) %></span>
                 <% end %>
                 <% if entry.tag_list.any? %>
                   <div class="flex flex-wrap gap-1">
@@ -46,7 +48,7 @@
                 <% end %>
               </div>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 align-top">
               <div class="font-medium text-gray-900"><%= entry.page.name %></div>
               <% if entry.page.site.present? %>
                 <div class="text-xs text-gray-500"><%= entry.page.site.name %></div>
@@ -62,3 +64,247 @@
     </table>
   </div>
 </div>
+
+<script type="text/javascript">
+  (function() {
+    if (window._facebookPostsDataTableInitialized) { return; }
+    window._facebookPostsDataTableInitialized = true;
+
+    function styleControls(wrapper) {
+      const controls = wrapper.find('.dataTables_length select, .dataTables_filter input');
+      controls.css({
+        'display': 'block',
+        'border-radius': '0.375rem',
+        'border': '1px solid #d1d5db',
+        'box-shadow': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+        'padding': '0.5rem 0.75rem',
+        'font-size': '0.875rem',
+        'line-height': '1.25rem'
+      });
+
+      const searchInput = wrapper.find('.dataTables_filter input');
+      searchInput.attr('placeholder', 'Buscar en todas las columnas...');
+      searchInput.off('focus.facebookPosts blur.facebookPosts')
+        .on('focus.facebookPosts', function() {
+          $(this).css({
+            'border-color': '#4f46e5',
+            'box-shadow': '0 0 0 3px rgba(79, 70, 229, 0.1)'
+          });
+        })
+        .on('blur.facebookPosts', function() {
+          $(this).css({
+            'border-color': '#d1d5db',
+            'box-shadow': '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+          });
+        });
+
+      wrapper.find('.dataTables_length').css({
+        'display': 'flex',
+        'align-items': 'center',
+        'gap': '0.5rem',
+        'margin-bottom': '1rem'
+      });
+
+      wrapper.find('.dataTables_filter').css({
+        'display': 'flex',
+        'align-items': 'center',
+        'gap': '0.5rem',
+        'margin-bottom': '1rem'
+      });
+
+      wrapper.find('.dataTables_length label, .dataTables_filter label').css({
+        'color': '#374151',
+        'font-size': '0.875rem',
+        'font-weight': '500',
+        'display': 'flex',
+        'align-items': 'center',
+        'gap': '0.5rem'
+      });
+
+      wrapper.find('.dataTables_info').css({
+        'color': '#374151',
+        'font-size': '0.875rem',
+        'margin-top': '0.5rem'
+      });
+    }
+
+    function stylePagination(wrapper) {
+      setTimeout(function() {
+        const paginates = wrapper.find('.dataTables_paginate');
+        if (!paginates.length) { return; }
+
+        paginates.each(function() {
+          const $paginate = $(this);
+
+          $paginate.css({
+            'display': 'flex',
+            'justify-content': 'flex-end',
+            'margin-top': '1rem'
+          });
+
+          if (!$paginate.children('.pagination').length) {
+            $paginate.wrapInner('<div class="pagination inline-flex shadow-sm"></div>');
+          }
+
+          const buttons = $paginate.find('.paginate_button');
+          const lastIndex = buttons.length - 1;
+
+          buttons.each(function(index) {
+            const $btn = $(this);
+            const isFirst = index === 0;
+            const isLast = index === lastIndex;
+            const isCurrent = $btn.hasClass('current');
+            const isDisabled = $btn.hasClass('disabled');
+
+            $btn.css({
+              'position': 'relative',
+              'display': 'inline-flex',
+              'align-items': 'center',
+              'padding': '0.5rem 0.75rem',
+              'font-size': '0.875rem',
+              'font-weight': '500',
+              'border': '1px solid',
+              'text-decoration': 'none',
+              'transition': 'all 0.15s ease-in-out',
+              'margin-left': isFirst ? '0' : '-1px'
+            });
+
+            if (isCurrent) {
+              $btn.css({
+                'z-index': '10',
+                'background-color': '#4f46e5',
+                'border-color': '#4f46e5',
+                'color': '#ffffff'
+              });
+              $btn.off('mouseenter.facebookPosts mouseleave.facebookPosts');
+            } else if (isDisabled) {
+              $btn.css({
+                'color': '#d1d5db',
+                'background-color': '#f9fafb',
+                'border-color': '#d1d5db',
+                'cursor': 'not-allowed'
+              });
+              $btn.off('mouseenter.facebookPosts mouseleave.facebookPosts');
+            } else {
+              $btn.css({
+                'color': '#6b7280',
+                'background-color': '#ffffff',
+                'border-color': '#d1d5db',
+                'cursor': 'pointer'
+              });
+
+              $btn.off('mouseenter.facebookPosts mouseleave.facebookPosts');
+              $btn.on('mouseenter.facebookPosts', function() {
+                $(this).css({
+                  'background-color': '#f9fafb',
+                  'color': '#374151',
+                  'border-color': '#9ca3af'
+                });
+              });
+              $btn.on('mouseleave.facebookPosts', function() {
+                $(this).css({
+                  'background-color': '#ffffff',
+                  'color': '#6b7280',
+                  'border-color': '#d1d5db'
+                });
+              });
+            }
+
+            if (isFirst) {
+              $btn.css({
+                'border-top-left-radius': '0.375rem',
+                'border-bottom-left-radius': '0.375rem'
+              });
+            }
+
+            if (isLast) {
+              $btn.css({
+                'border-top-right-radius': '0.375rem',
+                'border-bottom-right-radius': '0.375rem'
+              });
+            }
+          });
+        });
+      }, 50);
+    }
+
+    function initializeFacebookDataTables() {
+      $('.facebook-posts-datatable').each(function() {
+        const table = $(this);
+
+        if ($.fn.DataTable.isDataTable(table)) {
+          table.DataTable().destroy();
+        }
+
+        table.DataTable({
+          order: [[0, 'desc']],
+          language: {
+            search: 'Buscar:',
+            lengthMenu: 'Mostrar _MENU_ entradas',
+            info: 'Mostrando _START_ a _END_ de _TOTAL_ publicaciones',
+            infoEmpty: 'Mostrando 0 a 0 de 0 publicaciones',
+            infoFiltered: '(filtrado de _MAX_ publicaciones totales)',
+            paginate: {
+              first: 'Primero',
+              last: 'Último',
+              next: 'Siguiente',
+              previous: 'Anterior'
+            },
+            emptyTable: 'No hay datos disponibles en la tabla'
+          },
+          pageLength: 25,
+          lengthChange: true,
+          lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'Todos']],
+          responsive: true,
+          dom: '<"flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4"lf>rt<"flex flex-col sm:flex-row sm:items-center sm:justify-between mt-4"ip>',
+          columnDefs: [
+            {
+              targets: [1],
+              className: 'max-w-xl',
+              orderable: false
+            },
+            {
+              targets: [3, 4, 5, 6],
+              className: 'text-center font-semibold whitespace-nowrap'
+            }
+          ],
+          initComplete: function() {
+            const wrapper = table.closest('.dataTables_wrapper');
+            styleControls(wrapper);
+            stylePagination(wrapper);
+            console.log('Facebook DataTable initialized successfully');
+          },
+          drawCallback: function() {
+            const wrapper = table.closest('.dataTables_wrapper');
+            stylePagination(wrapper);
+          }
+        });
+      });
+    }
+
+    function runInitialization() {
+      if (typeof $ === 'undefined' || typeof $.fn.DataTable === 'undefined') {
+        return;
+      }
+      initializeFacebookDataTables();
+    }
+
+    if (typeof $ !== 'undefined') {
+      $(document).ready(function() {
+        runInitialization();
+      });
+    }
+
+    document.addEventListener('turbo:load', function() {
+      runInitialization();
+    });
+
+    document.addEventListener('turbo:before-cache', function() {
+      $('.facebook-posts-datatable').each(function() {
+        if ($.fn.DataTable.isDataTable(this)) {
+          $(this).DataTable().destroy();
+        }
+      });
+    });
+  })();
+</script>

@@ -9,7 +9,9 @@
     <%= stylesheet_link_tag "tailwind", "inter-font", "data-turbo-track": "reload" %>
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= yield :extra_stylesheets if content_for?(:extra_stylesheets) %>
     <%= javascript_importmap_tags %>
+    <%= yield :extra_javascripts if content_for?(:extra_javascripts) %>
     <script src="https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js" integrity="sha384-GNFwBvfVxBkLMJpYMOABq3c+d3KnQxudP/mGPkzpZSTYykLBNsZEnG2D9G/X/+7D" crossorigin="anonymous" async></script>
   </head>
   <body class="h-full">
