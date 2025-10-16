@@ -129,7 +129,7 @@ class Topic < ApplicationRecord
   private
 
   def remove_words_spaces
-    self.positive_words = positive_words.gsub(' ', '')
-    self.negative_words = negative_words.gsub(' ', '')
+    self.positive_words = positive_words.to_s.delete(' ')
+    self.negative_words = negative_words.to_s.delete(' ')
   end
 end
