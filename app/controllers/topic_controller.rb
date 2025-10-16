@@ -64,7 +64,12 @@ class TopicController < ApplicationController
 
     @tag_list = @topic.tags.map(&:name)
     @entries = @topic.list_entries
-    entries_sum = @entries.sum(:total_count)
+
+    # Precompute aggregates to avoid multiple SQL queries
+    @entries_count = @entries.size
+    @entries_total_sum = @entries.sum(:total_count)
+    @entries_polarity_counts = @entries.where.not(polarity: nil).group(:polarity).count
+    @entries_polarity_sums = @entries.where.not(polarity: nil).group(:polarity).sum(:total_count)
 
     @chart_entries = @entries.group_by_day(:published_at)
     @chart_entries_sentiments = @entries.where.not(polarity: nil).group(:polarity).group_by_day(:published_at)
@@ -81,8 +86,8 @@ class TopicController < ApplicationController
     # @analytics = @topic.analytics_topic_entries
 
     @top_entries = Entry.enabled.normal_range.joins(:site).order(total_count: :desc).limit(5)
-    @total_entries = @entries.size
-    @total_interactions = entries_sum
+    @total_entries = @entries_count
+    @total_interactions = @entries_total_sum
 
     # Calcular numeros de totales de la semana
     # @all_entries = @topic.analytics_entries(@entries.ids)
@@ -109,16 +114,16 @@ class TopicController < ApplicationController
     @negatives = polarity_counts['negative'] || 0
 
     if @entries.any?
-      @percentage_positives = (Float(@positives) / @entries.size * 100).round(0)
-      @percentage_negatives = (Float(@negatives) / @entries.size * 100).round(0)
-      @percentage_neutrals = (Float(@neutrals) / @entries.size * 100).round(0)
+      @percentage_positives = (Float(@positives) / @entries_count * 100).round(0)
+      @percentage_negatives = (Float(@negatives) / @entries_count * 100).round(0)
+      @percentage_neutrals = (Float(@neutrals) / @entries_count * 100).round(0)
 
-      total_count = @entries.size + @all_entries_size
-      @topic_percentage = (Float(@entries.size) / total_count * 100).round(0)
+      total_count = @entries_count + @all_entries_size
+      @topic_percentage = (Float(@entries_count) / total_count * 100).round(0)
       @all_percentage = (Float(@all_entries_size) / total_count * 100).round(0)
 
-      total_count = entries_sum + @all_entries_interactions
-      @topic_interactions_percentage = (Float(entries_sum) / total_count * 100).round(1)
+      total_count = @entries_total_sum + @all_entries_interactions
+      @topic_interactions_percentage = (Float(@entries_total_sum) / total_count * 100).round(1)
       @all_intereactions_percentage = (Float(@all_entries_interactions) / total_count * 100).round(1)
     end
 
@@ -182,6 +187,12 @@ class TopicController < ApplicationController
     @tag_list = @topic.tags.map(&:name)
     @entries = @topic.list_entries
 
+    # Precompute aggregates to avoid multiple SQL queries
+    @entries_count = @entries.size
+    @entries_total_sum = @entries.sum(:total_count)
+    @entries_polarity_counts = @entries.where.not(polarity: nil).group(:polarity).count
+    @entries_polarity_sums = @entries.where.not(polarity: nil).group(:polarity).sum(:total_count)
+
     @chart_entries = @entries.group_by_day(:published_at)
     @chart_entries_sentiments = @entries.where.not(polarity: nil).group(:polarity).group_by_day(:published_at)
 
@@ -195,8 +206,8 @@ class TopicController < ApplicationController
     @title_chart_entries_sums = @title_chart_entries.sum(:total_count)
 
     @top_entries = Entry.enabled.normal_range.joins(:site).order(total_count: :desc).limit(5)
-    @total_entries = @entries.size
-    @total_interactions = @entries.sum(:total_count)
+    @total_entries = @entries_count
+    @total_interactions = @entries_total_sum
 
     @all_entries_size = Entry.enabled.normal_range.where.not(id: @entries.ids).count
     @all_entries_interactions = Entry.enabled.normal_range.where.not(id: @entries.ids).sum(:total_count)
@@ -217,16 +228,16 @@ class TopicController < ApplicationController
     @negatives = polarity_counts['negative'] || 0
 
     if @entries.any?
-      @percentage_positives = (Float(@positives) / @entries.size * 100).round(0)
-      @percentage_negatives = (Float(@negatives) / @entries.size * 100).round(0)
-      @percentage_neutrals = (Float(@neutrals) / @entries.size * 100).round(0)
+      @percentage_positives = (Float(@positives) / @entries_count * 100).round(0)
+      @percentage_negatives = (Float(@negatives) / @entries_count * 100).round(0)
+      @percentage_neutrals = (Float(@neutrals) / @entries_count * 100).round(0)
 
-      total_count = @entries.size + @all_entries_size
-      @topic_percentage = (Float(@entries.size) / total_count * 100).round(0)
+      total_count = @entries_count + @all_entries_size
+      @topic_percentage = (Float(@entries_count) / total_count * 100).round(0)
       @all_percentage = (Float(@all_entries_size) / total_count * 100).round(0)
 
-      total_count = @entries.sum(:total_count) + @all_entries_interactions
-      @topic_interactions_percentage = (Float(@entries.sum(&:total_count)) / total_count * 100).round(1)
+      total_count = @entries_total_sum + @all_entries_interactions
+      @topic_interactions_percentage = (Float(@entries_total_sum) / total_count * 100).round(1)
       @all_intereactions_percentage = (Float(@all_entries_interactions) / total_count * 100).round(1)
     end
 
