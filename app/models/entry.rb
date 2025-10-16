@@ -13,6 +13,47 @@ class Entry < ApplicationRecord
   attribute :repeateds, :integer
   enum :repeateds, { No: 0, Si: 1, Limpiado: 2 }
 
+  # Pre-compiled regex and bad words set for performance
+  NGRAM_REGEX = /\b([a-zø-ÿ]{3,})\s([a-zø-ÿ]{3,})\b/i
+  BAD_WORDS = Set.new(
+    %w[
+      noticias
+      internacional
+      radio
+      noticiero
+      desde
+      sos
+      es
+      pero
+      del
+      de
+      desde
+      donde
+      el
+      los
+      las
+      la
+      abc
+      una
+      un
+      no
+      mas
+      por
+      como
+      que
+      con
+      para
+      las
+      fue
+      más
+      se
+      su
+      sus
+      en
+      al
+    ] + STOP_WORDS
+  ).freeze
+
   scope :a_day_ago, -> { where(published_at: 1.day.ago..) }
   scope :a_week_ago, -> { where(published_at: 1.week.ago..) }
   scope :a_month_ago, -> { where(published_at: 1.month.ago..) }
@@ -237,47 +278,47 @@ class Entry < ApplicationRecord
 
   def ngrams(n = 2)
     # regex = /([A-ZÀ-Ö][a-zø-ÿ]{3,})\s([A-ZÀ-Ö][a-zø-ÿ]{3,})/
-    regex = /([a-zø-ÿ]{3,})\s([a-zø-ÿ]{3,})/
-    bad_words = %w[Noticias Internacional Radio Noticiero Desde]
-    bad_words += %w[
-      sos
-      es
-      pero
-      del
-      de
-      desde
-      donde
-      el
-      los
-      las
-      la
-      abc
-      una
-      un
-      no
-      mas
-      por
-      como
-      que
-      con
-      para
-      las
-      fue
-      más
-      se
-      su
-      sus
-      en
-      al
-    ]
-    bad_words += STOP_WORDS
+    # regex = /([a-zø-ÿ]{3,})\s([a-zø-ÿ]{3,})/
+    # bad_words = %w[Noticias Internacional Radio Noticiero Desde]
+    # bad_words += %w[
+    #   sos
+    #   es
+    #   pero
+    #   del
+    #   de
+    #   desde
+    #   donde
+    #   el
+    #   los
+    #   las
+    #   la
+    #   abc
+    #   una
+    #   un
+    #   no
+    #   mas
+    #   por
+    #   como
+    #   que
+    #   con
+    #   para
+    #   las
+    #   fue
+    #   más
+    #   se
+    #   su
+    #   sus
+    #   en
+    #   al
+    # ]
+    # bad_words += STOP_WORDS
 
     ngrams = []
     words = clean_text(title).split + clean_text(description).split + clean_text(content).split
 
     words.each_cons(n).each do |ngram|
       tag = ngram.join(' ')
-      ngrams << tag if tag.match(regex) && !contains_substring?(tag, bad_words)
+      ngrams << tag if tag.match(NGRAM_REGEX) && !contains_substring?(tag)
     end
 
     ngrams.uniq
@@ -297,13 +338,8 @@ class Entry < ApplicationRecord
     self.published_date = published_at.to_date if published_at.present?
   end
 
-  def contains_substring?(string, substrings)
-    # substrings.any? { |substring| string.scan(substring).any? }
-    # substrings.any? { |substring| string.scan(/\b#{substrings}\b/).any? }
-    substrings.each do |substring|
-      return true if string.match(/\b#{substring}\b/)
-    end
-    false
+  def contains_substring?(string)
+    BAD_WORDS.any? { |word| string.include?(word) }
   end
 
   # For TopicStatDaily
