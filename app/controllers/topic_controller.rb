@@ -180,8 +180,11 @@ class TopicController < ApplicationController
     @tags.each { |n| @tags_count[n.name] = n.count }
 
     # Precompute top sites for partial to avoid query in view
-    @site_top_counts = @entries.group('sites.id').count.sort_by { |_, count| -count }
-                               .take(12)
+    @site_top_counts = @entries.joins(:site)
+                               .group('sites.id')
+                               .order(Arel.sql('COUNT(*) DESC'))
+                               .limit(12)
+                               .count
   end
 
   def comments
@@ -314,8 +317,11 @@ class TopicController < ApplicationController
     @tags.each { |n| @tags_count[n.name] = n.count }
 
     # Precompute top sites for partial to avoid query in view
-    @site_top_counts = @entries.group('sites.id').count.sort_by { |_, count| -count }
-                               .take(12)
+    @site_top_counts = @entries.joins(:site)
+                               .group('sites.id')
+                               .order(Arel.sql('COUNT(*) DESC'))
+                               .limit(12)
+                               .count
 
     # Render with specific layout for PDF
     render layout: false
