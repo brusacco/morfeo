@@ -498,7 +498,7 @@
     </section>
     <!-- Top Media Sources Section -->
     <section class="mb-8">
-      <%= render partial: 'site/sites', locals: { sites: @entries.group("sites.id").count('*').sort_by { |site, count| -count }.take(12), title: 'Los medios que mas han mencionado' } %>
+      <%= render partial: 'site/sites', locals: { sites: @site_top_counts, title: 'Los medios que mas han mencionado' } %>
     </section>
     <!-- Media Distribution Analysis Section -->
     <section class="mb-8">

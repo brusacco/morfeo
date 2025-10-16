@@ -161,6 +161,10 @@ class TopicController < ApplicationController
 
     @tags_count = {}
     @tags.each { |n| @tags_count[n.name] = n.count }
+
+    # Precompute top sites for partial to avoid query in view
+    @site_top_counts = @entries.group('sites.id').count.sort_by { |_, count| -count }
+                               .take(12)
   end
 
   def comments
@@ -275,6 +279,10 @@ class TopicController < ApplicationController
 
     @tags_count = {}
     @tags.each { |n| @tags_count[n.name] = n.count }
+
+    # Precompute top sites for partial to avoid query in view
+    @site_top_counts = @entries.group('sites.id').count.sort_by { |_, count| -count }
+                               .take(12)
 
     # Render with specific layout for PDF
     render layout: false
