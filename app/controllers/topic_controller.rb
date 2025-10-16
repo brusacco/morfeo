@@ -72,6 +72,12 @@ class TopicController < ApplicationController
     @title_entries = @topic.title_list_entries
     @title_chart_entries = @title_entries.reorder(nil).group_by_day(:published_at)
 
+    # Precompute chart data to avoid multiple SQL queries per chart
+    @chart_entries_counts = @chart_entries.count
+    @chart_entries_sums = @chart_entries.sum(:total_count)
+    @title_chart_entries_counts = @title_chart_entries.count
+    @title_chart_entries_sums = @title_chart_entries.sum(:total_count)
+
     # @analytics = @topic.analytics_topic_entries
 
     @top_entries = Entry.enabled.normal_range.joins(:site).order(total_count: :desc).limit(5)
@@ -181,6 +187,12 @@ class TopicController < ApplicationController
 
     @title_entries = @topic.title_list_entries
     @title_chart_entries = @title_entries.reorder(nil).group_by_day(:published_at)
+
+    # Precompute chart data to avoid multiple SQL queries per chart
+    @chart_entries_counts = @chart_entries.count
+    @chart_entries_sums = @chart_entries.sum(:total_count)
+    @title_chart_entries_counts = @title_chart_entries.count
+    @title_chart_entries_sums = @title_chart_entries.sum(:total_count)
 
     @top_entries = Entry.enabled.normal_range.joins(:site).order(total_count: :desc).limit(5)
     @total_entries = @entries.size

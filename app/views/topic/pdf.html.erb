@@ -393,7 +393,7 @@
             <div class="pdf-chart-card">
               <h3 class="pdf-chart-title">Notas por Día</h3>
               <div class="pdf-chart-canvas">
-                <%= column_chart @chart_entries.count('*'), xtitle: "Fecha", ytitle: "Cant. Notas", label: "Cant. Notas", thousands: ".", curve: false, 
+                <%= column_chart @chart_entries_counts, xtitle: "Fecha", ytitle: "Cant. Notas", label: "Cant. Notas", thousands: ".", curve: false, 
                       colors: ['blue'], height: "200px", library: {
                       plotOptions: {
                         series: {
@@ -409,7 +409,7 @@
             <div class="pdf-chart-card">
               <h3 class="pdf-chart-title">Interacciones por Día</h3>
               <div class="pdf-chart-canvas">
-                <%= column_chart @chart_entries.sum(:total_count), xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones", thousands: ".", curve: false, 
+                <%= column_chart @chart_entries_sums, xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones", thousands: ".", curve: false, 
                       colors: ['green'], height: "200px", library: {
                       plotOptions: {
                         series: {
