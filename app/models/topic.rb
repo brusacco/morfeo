@@ -78,13 +78,7 @@ class Topic < ApplicationRecord
 
   def title_list_entries
     tag_list = tag_names
-    result = Entry.search(
-      where: {
-        published_at: default_date_range,
-        title_tags: { in: tag_list }
-      },
-      fields: ['id']
-    )
+    result = Entry.search(where: { published_at: default_date_range, title_tags: { in: tag_list } }, fields: ['id'])
     Entry.where(id: result.map(&:id)).enabled.order(published_at: :desc).joins(:site)
   end
 
