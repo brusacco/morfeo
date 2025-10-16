@@ -30,6 +30,10 @@ class TagController < ApplicationController
     @top_entries = Entry.enabled.normal_range.joins(:site).order(total_count: :desc).limit(5)
     @most_interactions = @entries.sort_by(&:total_count).reverse.take(12)
 
+    # Precompute pluck values to avoid SQL queries in views
+    @top_entries_counts = @top_entries.pluck(:total_count)
+    @most_interactions_counts = @most_interactions.take(5).pluck(:total_count)
+
     if @total_entries.zero?
       @promedio = 0
     else

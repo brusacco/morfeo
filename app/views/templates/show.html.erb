@@ -6,19 +6,17 @@
       <% if @template.start_date.present? && @template.end_date.present? %>
         <%= @template.start_date.strftime('%d/%m/%Y') %> - <%= @template.end_date.strftime('%d/%m/%Y') %>
       <% elsif @template.start_date.present? && !@template.end_date.present? %>
-        <%= @template.start_date.strftime('%d/%m/%Y') %> - <%= Date.today.strftime('%d/%m/%Y') %> 
+        <%= @template.start_date.strftime('%d/%m/%Y') %> - <%= Date.today.strftime('%d/%m/%Y') %>
       <% else %>
         <%= DAYS_RANGE.days.ago.strftime('%d/%m/%Y') %> - <%= Date.today.strftime('%d/%m/%Y') %>
       <% end %>
     </p>
   </div>
-
   <!-- Resumen -->
   <div class="mb-2">
     <h2 class="text-lg font-semibold text-gray-700 mb-2">Resumen</h2>
     <p class="bg-gray-100 text-md p-4 rounded overflow-auto text-gray-800 print:bg-white"><%= @template.sumary %></p>
   </div>
-
   <!-- Grafico 1 -->
   <div class="mx-auto w-full max-w-3xl bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
     <h2 class="text-lg font-semibold text-gray-700 mb-2">Notas x DIA</h2>
@@ -36,7 +34,6 @@
           } 
         } %>
   </div>
-
   <!-- Grafico 2 -->
   <div class="mt-2 mx-auto w-full max-w-3xl bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
     <h2 class="text-lg font-semibold text-gray-700 mb-2">Interacciones x DIA</h2>
@@ -49,9 +46,7 @@
             }
           } %>
   </div>
-
   <div class="page-break-after"></div>
-
   <!-- Top entries -->
   <div class="mt-6">
     <h2 class="text-xl font-bold text-gray-700 mb-6 text-center">Noticias destacadas</h2>
@@ -81,9 +76,7 @@
       </table>
     </div>
   </div>
-
   <div class="page-break-after"></div>
-
   <!-- Analisis de sentimientos -->
   <div class="mt-6">
     <h2 class="text-xl font-bold text-gray-700 text-center">Análisis de Sentimientos</h2>
@@ -94,19 +87,16 @@
           <dt class="truncate text-sm font-medium text-gray-500">Total Noticias</dt>
           <dd class="text-2xl font-semibold tracking-tight text-gray-900"><%= @entries.size %></dd>
         </div>
-
         <!-- Total Positivas -->
         <div class="overflow-hidden rounded-lg bg-white px-2 py-2 shadow sm:p-4">
           <dt class="truncate text-sm font-medium text-gray-500">Total Positivas</dt>
           <dd class="text-2xl font-semibold tracking-tight text-gray-900"><%= @percentage_positives %>%</dd>
         </div>
-
         <!-- Total Negativas -->
         <div class="overflow-hidden rounded-lg bg-white px-2 py-2 shadow sm:p-4">
           <dt class="truncate text-sm font-medium text-gray-500">Total Negativas</dt>
           <dd class="text-2xl font-semibold tracking-tight text-gray-900"><%= @percentage_negatives %>%</dd>
         </div>
-
         <!-- Total Neutras -->
         <div class="overflow-hidden rounded-lg bg-white px-2 py-2 shadow sm:p-4">
           <dt class="truncate text-sm font-medium text-gray-500">Total Neutras</dt>
@@ -115,22 +105,20 @@
       </dl>
     </div>
   </div>
-
   <!-- Texto analisis de sentimientos -->
   <div class="mb-3">
     <p class="bg-gray-100 text-md p-4 rounded overflow-auto text-gray-800 print:bg-white">
       El tópico <b><%= @template.topic.name %></b> en este periodo 
-      cuenta con un total de <b><%= number_with_delimiter(@total_entries, delimiter: '.') %></b> 
+      cuenta con un total de <b><%= number_with_delimiter(@total_entries, delimiter: '.') %></b>
       notas y generó un total de <b><%= number_with_delimiter(@total_interactions, delimiter: '.') %></b> interacciones, 
       lo que nos da un promedio de <b><%= number_with_delimiter(@promedio, delimiter: '.') %></b> interacciones por nota.
     </p>
     <p class="bg-gray-100 text-md p-4 rounded overflow-auto text-gray-800 print:bg-white">
       En contexto las <%= @top_entries.count %> notas más destacadas en <b>general</b>, en el mismo periodo tuvieron 
-      <b><%= @top_entries.pluck(:total_count).join(', ') %></b> interacciones respectivamente.
+      <b><%= @top_entries_counts.join(', ') %></b> interacciones respectivamente.
       <i>Las notas más destacadas del tópico están en la tabla más arriba.</i>
     </p>
   </div>
-
   <!-- Grafico de Sentimientos 01 -->
   <div class="mx-auto w-full max-w-3xl bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
     <h2 class="text-lg font-semibold text-gray-700 mb-2">Notas x Sentimiento</h2>
@@ -156,7 +144,6 @@
             }
           } %>
   </div>
-
   <!-- Grafico de Sentimientos 01 -->
   <div class="mt-3 mx-auto w-full max-w-3xl bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
     <h2 class="text-lg font-semibold text-gray-700 mb-2">Interacciones x Sentimiento</h2>
@@ -180,9 +167,7 @@
             }
           } %>
   </div>
-
   <div class="page-break-after"></div>
-
   <!-- Medios - Texto analisis -->
   <div class="mb-2 mt-4">
     <h2 class="text-xl font-bold text-gray-700 mb-2 text-center">Repercusiones por Medios</h2>
@@ -194,7 +179,6 @@
       seguido por <b><%= @top_sites_interactions[1][0] %></b> y <b><%= @top_sites_interactions[2][0] %></b>.
     </p>
   </div>
-
   <!-- Medios - Grafico 01 -->
   <div class="mx-auto w-full max-w-3xl bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
     <h2 class="text-lg font-semibold text-gray-700 mb-2">Notas x Medio</h2>
@@ -220,7 +204,6 @@
             } %>
     </div>
   </div>
-
   <!-- Medios - Grafico 02 -->
   <div class="mt-2 mx-auto w-full max-w-3xl bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
     <h2 class="text-lg font-semibold text-gray-700 mb-2">Interacciones x Medio</h2>
@@ -245,9 +228,7 @@
             } %>
     </div>
   </div>
-
   <div class="page-break-after"></div>
-
   <!-- Impacto del Tópico - Tabla -->
   <div class="mt-6 mb-2">
     <h2 class="text-xl font-bold text-gray-700 mb-2 text-center">Impacto del Tópico</h2>
@@ -282,7 +263,6 @@
       </table>
     </div>
   </div>
-
   <!-- Impacto del Topico - Grafico 01 -->
   <div class="mx-auto w-full max-w-3xl bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
     <h2 class="text-lg font-semibold text-gray-700 mb-2">Cantidad de Notas</h2>
@@ -308,7 +288,6 @@
             }) %>
     </div>
   </div>
-
   <!-- Impacto del Topico - Grafico 02 -->
   <div class="mt-2 mx-auto w-full max-w-3xl bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
     <h2 class="text-lg font-semibold text-gray-700 mb-2">Cantidad de Notas</h2>
@@ -334,9 +313,7 @@
             }) %>
     </div>
   </div>
-
   <div class="page-break-after"></div>
-
   <!-- Top entries on title -->
   <div class="mb-6 mt-6">
     <h2 class="text-xl font-bold text-gray-700 mb-4 text-center">Noticias destacadas con presencia del Tópico en titulares</h2>
@@ -366,13 +343,10 @@
       </table>
     </div>
   </div>
-
   <div class="page-break-after"></div>
-
   <!-- Tendencias -->
   <div class="mt-6">
     <h2 class="text-xl font-bold text-gray-700 mb-4 text-center">Tendencias en Tópicos últimas 24 horas</h2>
-
     <div class="mx-auto w-full max-w-3xl bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
       <h2 class="text-lg font-semibold text-gray-700 mb-2">Cantidad de Notas</h2>
       <div id="chart-9">
@@ -386,7 +360,6 @@
             } } %>
       </div>
     </div>
-
     <div class="mt-2 mx-auto w-full max-w-3xl bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
       <h2 class="text-lg font-semibold text-gray-700 mb-2">Cantidad de Interacciones</h2>
       <div id="chart-10">
@@ -401,9 +374,7 @@
       </div>
     </div>
   </div>
-
   <div class="page-break-after"></div>
-
   <!-- AI Reports -->
   <div class="mt-6">
     <h2 class="text-xl font-bold text-gray-700 mb-4 text-center">Análisis general del Tópico durante este periodo</h2>
@@ -424,7 +395,6 @@
           <% end %>
         </tbody>
       </table>
-    </div>    
+    </div>
   </div>
-
 </div>

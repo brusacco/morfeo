@@ -440,8 +440,8 @@
           </p>
           <p class="text-gray-700 leading-relaxed">
             En contexto, las <%=@top_entries.count%> notas con más interacciones en general tuvieron 
-            <span class="font-medium text-gray-900"><%=@top_entries.pluck(:total_count).join(', ')%></span> interacciones, 
-            mientras que las notas del tópico alcanzaron <span class="font-medium text-gray-900"><%=@most_interactions.take(5).pluck(:total_count).join(', ')%></span> interacciones.
+            <span class="font-medium text-gray-900"><%=@top_entries_counts.join(', ')%></span> interacciones, 
+            mientras que las notas del tópico alcanzaron <span class="font-medium text-gray-900"><%=@most_interactions_counts.join(', ')%></span> interacciones.
           </p>
         </div>
       </div>

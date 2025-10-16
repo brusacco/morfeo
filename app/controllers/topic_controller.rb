@@ -129,6 +129,10 @@ class TopicController < ApplicationController
 
     @most_interactions = @entries.order(total_count: :desc).limit(12)
 
+    # Precompute pluck values to avoid SQL queries in views
+    @top_entries_counts = @top_entries.pluck(:total_count)
+    @most_interactions_counts = @most_interactions.limit(5).pluck(:total_count)
+
     if @total_entries.zero?
       @promedio = 0
     else
@@ -242,6 +246,10 @@ class TopicController < ApplicationController
     end
 
     @most_interactions = @entries.order(total_count: :desc).limit(12)
+
+    # Precompute pluck values to avoid SQL queries in views
+    @top_entries_counts = @top_entries.pluck(:total_count)
+    @most_interactions_counts = @most_interactions.limit(5).pluck(:total_count)
 
     if @total_entries.zero?
       @promedio = 0
