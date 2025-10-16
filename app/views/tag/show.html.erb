@@ -96,19 +96,13 @@
           <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow w-full">
             <h3 class="text-lg font-medium text-gray-900 mb-4">Cantidad de Notas por Sentimiento</h3>
             <div class='w-full overflow-hidden'>
-              <% polarities_counts = @entries.where.not(polarity: nil).group(:polarity).count('*').sort_by { |key, _value| key }.to_h %>
-              <% total_count = polarities_counts.values.sum.to_f %>
-              <% polarities_percentages = polarities_counts.transform_values { |count| (count / total_count * 100).round(0) } %>
-              <%= pie_chart polarities_percentages, colors: ["#EF4444", "#9CA3AF", '#10B981'], donut: true, suffix: "%" %>
+              <%= pie_chart polarity_percentages(@entries.where.not(polarity: nil).group(:polarity).count('*').sort_by { |key, _value| key }.to_h), colors: ["#EF4444", "#9CA3AF", '#10B981'], donut: true, suffix: "%" %>
             </div>
           </div>
           <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow w-full">
             <h3 class="text-lg font-medium text-gray-900 mb-4">Cantidad de Interacciones por Sentimiento</h3>
             <div class='w-full overflow-hidden'>
-              <% polarities_counts = @entries.where.not(polarity: nil).group(:polarity).sum('total_count').sort_by { |key, _value| key }.to_h %>
-              <% total_count = polarities_counts.values.sum.to_f %>
-              <% polarities_percentages = polarities_counts.transform_values { |count| (count / total_count * 100).round(0) } %>
-              <%= pie_chart polarities_percentages, colors: ["#EF4444", "#9CA3AF", '#10B981'], donut: true, suffix: "%" %>
+              <%= pie_chart polarity_percentages(@entries.where.not(polarity: nil).group(:polarity).sum('total_count').sort_by { |key, _value| key }.to_h), colors: ["#EF4444", "#9CA3AF", '#10B981'], donut: true, suffix: "%" %>
             </div>
           </div>
         </div>

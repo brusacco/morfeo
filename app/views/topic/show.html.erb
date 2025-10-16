@@ -310,25 +310,11 @@
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
           <h3 class="text-lg font-medium text-gray-900 mb-4">Distribución por Cantidad de Notas</h3>
-          <% polarities_counts = @entries_polarity_counts.sort_by { |key, _value| key }.to_h %>
-          <% total_count = polarities_counts.values.sum.to_f %>
-          <% if total_count > 0 %>
-            <% polarities_percentages = polarities_counts.transform_values { |count| (count / total_count * 100).round(0) } %>
-          <% else %>
-            <% polarities_percentages = {} %>
-          <% end %>
-          <%= pie_chart polarities_percentages, colors: ["#EF4444", "#9CA3AF", '#10B981'], donut: true, suffix: "%" %>
+          <%= pie_chart polarity_percentages(@entries_polarity_counts.sort_by { |key, _value| key }.to_h), colors: ["#EF4444", "#9CA3AF", '#10B981'], donut: true, suffix: "%" %>
         </div>
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
           <h3 class="text-lg font-medium text-gray-900 mb-4">Distribución por Interacciones</h3>
-          <% polarities_counts = @entries_polarity_sums.sort_by { |key, _value| key }.to_h %>
-          <% total_count = polarities_counts.values.sum.to_f %>
-          <% if total_count > 0 %>
-            <% polarities_percentages = polarities_counts.transform_values { |count| (count / total_count * 100).round(0) } %>
-          <% else %>
-            <% polarities_percentages = {} %>
-          <% end %>
-          <%= pie_chart polarities_percentages, colors: ["#EF4444", "#9CA3AF", '#10B981'], donut: true, suffix: "%" %>
+          <%= pie_chart polarity_percentages(@entries_polarity_sums.sort_by { |key, _value| key }.to_h), colors: ["#EF4444", "#9CA3AF", '#10B981'], donut: true, suffix: "%" %>
         </div>
       </div>
     </section>
@@ -405,11 +391,11 @@
               <div class="text-sm text-gray-600">Promedio Interacciones/Nota</div>
             </div>
             <div class="bg-white rounded-lg p-4 shadow-sm">
-              <div class="text-2xl font-bold text-purple-600"><%=((@entries_total_sum.to_f / (@all_entries_interactions + @entries_total_sum) * 100).round(1))%>%</div>
+              <div class="text-2xl font-bold text-purple-600"><%=share_of_voice_percentage(@entries_total_sum, @all_entries_interactions)%>%</div>
               <div class="text-sm text-gray-600">Share of Voice (Interacciones)</div>
             </div>
             <div class="bg-white rounded-lg p-4 shadow-sm">
-              <div class="text-2xl font-bold text-pink-600"><%=((@entries.size.to_f / (@all_entries_size + @entries.size) * 100).round(1))%>%</div>
+              <div class="text-2xl font-bold text-pink-600"><%=share_of_voice_percentage(@entries.size, @all_entries_size)%>%</div>
               <div class="text-sm text-gray-600">Share of Voice (Volumen)</div>
             </div>
           </div>
