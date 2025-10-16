@@ -355,13 +355,13 @@
               </div>
               <div class="text-center">
                 <div class="text-sm text-gray-700 font-medium">
-                  <span class="text-2xl font-bold text-gray-600"><%=number_with_delimiter(@all_entries_size, delimiter: ".")%></span>
+                  <span class="text-2xl font-bold text-gray-600"><%=number_with_delimiter(@all_entries_size - @entries.size, delimiter: ".")%></span>
                   Otros Tópicos • <%=@all_percentage%>% del total
                 </div>
               </div>
               <div class="text-center">
                 <div class="text-sm text-green-800 font-medium">
-                  <span class="text-2xl font-bold text-green-600"><%=number_with_delimiter(@all_entries_size + @entries.size, delimiter: ".")%></span>
+                  <span class="text-2xl font-bold text-green-600"><%=number_with_delimiter(@all_entries_size, delimiter: ".")%></span>
                   Total General • 100% cobertura
                 </div>
               </div>
@@ -384,13 +384,13 @@
               </div>
               <div class="text-center">
                 <div class="text-sm text-gray-700 font-medium">
-                  <span class="text-2xl font-bold text-gray-600"><%=number_with_delimiter(@all_entries_interactions, delimiter: ".")%></span>
+                  <span class="text-2xl font-bold text-gray-600"><%=number_with_delimiter(@all_entries_interactions - @entries.sum(:total_count), delimiter: ".")%></span>
                   Otros Tópicos • <%=@all_intereactions_percentage%>% del total
                 </div>
               </div>
               <div class="text-center">
                 <div class="text-sm text-green-800 font-medium">
-                  <span class="text-2xl font-bold text-green-600"><%=number_with_delimiter(@all_entries_interactions + @entries.sum(:total_count), delimiter: ".")%></span>
+                  <span class="text-2xl font-bold text-green-600"><%=number_with_delimiter(@all_entries_interactions, delimiter: ".")%></span>
                   Total General • Todas las interacciones
                 </div>
               </div>
