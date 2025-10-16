@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_10_10_201056) do
+ActiveRecord::Schema[7.0].define(version: 2025_10_16_024900) do
   create_table "active_admin_comments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "namespace"
     t.text "body"
@@ -101,8 +101,13 @@ ActiveRecord::Schema[7.0].define(version: 2025_10_10_201056) do
     t.integer "delta", default: 0
     t.integer "repeated", default: 0, null: false
     t.string "category"
+    t.index ["enabled", "published_at"], name: "index_entries_on_enabled_and_published_at"
+    t.index ["enabled"], name: "index_entries_on_enabled"
+    t.index ["polarity"], name: "index_entries_on_polarity"
+    t.index ["published_at"], name: "index_entries_on_published_at"
     t.index ["published_date"], name: "index_entries_on_published_date"
     t.index ["site_id"], name: "index_entries_on_site_id"
+    t.index ["total_count"], name: "index_entries_on_total_count"
     t.index ["url"], name: "index_entries_on_url", unique: true
   end
 
@@ -212,6 +217,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_10_10_201056) do
     t.string "tenant", limit: 128
     t.index ["context"], name: "index_taggings_on_context"
     t.index ["tag_id", "taggable_id", "taggable_type", "context", "tagger_id", "tagger_type"], name: "taggings_idx", unique: true
+    t.index ["tag_id", "taggable_type"], name: "index_taggings_on_tag_id_and_taggable_type"
     t.index ["tag_id"], name: "index_taggings_on_tag_id"
     t.index ["taggable_id", "taggable_type", "context"], name: "taggings_taggable_context_idx"
     t.index ["taggable_id", "taggable_type", "tagger_id", "context"], name: "taggings_idy"
@@ -260,6 +266,10 @@ ActiveRecord::Schema[7.0].define(version: 2025_10_10_201056) do
     t.bigint "topic_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["entry_interaction"], name: "index_title_topic_stat_dailies_on_entry_interaction"
+    t.index ["entry_quantity"], name: "index_title_topic_stat_dailies_on_entry_quantity"
+    t.index ["topic_date"], name: "index_title_topic_stat_dailies_on_topic_date"
+    t.index ["topic_id", "topic_date"], name: "index_title_topic_stat_dailies_on_topic_id_and_topic_date"
     t.index ["topic_id"], name: "index_title_topic_stat_dailies_on_topic_id"
   end
 
@@ -277,7 +287,11 @@ ActiveRecord::Schema[7.0].define(version: 2025_10_10_201056) do
     t.integer "positive_interaction"
     t.integer "negative_interaction"
     t.integer "neutral_interaction"
+    t.index ["entry_count"], name: "index_topic_stat_dailies_on_entry_count"
+    t.index ["topic_date"], name: "index_topic_stat_dailies_on_topic_date"
+    t.index ["topic_id", "topic_date"], name: "index_topic_stat_dailies_on_topic_id_and_topic_date"
     t.index ["topic_id"], name: "index_topic_stat_dailies_on_topic_id"
+    t.index ["total_count"], name: "index_topic_stat_dailies_on_total_count"
   end
 
   create_table "topics", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -287,6 +301,8 @@ ActiveRecord::Schema[7.0].define(version: 2025_10_10_201056) do
     t.text "positive_words"
     t.text "negative_words"
     t.boolean "status", default: true
+    t.index ["name"], name: "index_topics_on_name"
+    t.index ["status"], name: "index_topics_on_status"
   end
 
   create_table "user_topics", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|

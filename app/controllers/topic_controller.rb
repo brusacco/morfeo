@@ -64,6 +64,8 @@ class TopicController < ApplicationController
 
     @tag_list = @topic.tags.map(&:name)
     @entries = @topic.list_entries
+    entries_sum = @entries.sum(:total_count)
+
     @chart_entries = @entries.group_by_day(:published_at)
     @chart_entries_sentiments = @entries.where.not(polarity: nil).group(:polarity).group_by_day(:published_at)
 
@@ -74,12 +76,12 @@ class TopicController < ApplicationController
 
     @top_entries = Entry.enabled.normal_range.joins(:site).order(total_count: :desc).limit(5)
     @total_entries = @entries.size
-    @total_interactions = @entries.sum(:total_count)
+    @total_interactions = entries_sum
 
     # Calcular numeros de totales de la semana
     # @all_entries = @topic.analytics_entries(@entries.ids)
-    @all_entries_size = Entry.enabled.normal_range.where.not(id: @entries.ids).count
-    @all_entries_interactions = Entry.enabled.normal_range.where.not(id: @entries.ids).sum(:total_count)
+    @all_entries_size = @topic.all_list_entries.count
+    @all_entries_interactions = @topic.all_list_entries.sum(:total_count)
 
     # Cosas nuevas
     @word_occurrences = @entries.word_occurrences
@@ -107,8 +109,8 @@ class TopicController < ApplicationController
       @topic_percentage = (Float(@entries.size) / total_count * 100).round(0)
       @all_percentage = (Float(@all_entries_size) / total_count * 100).round(0)
 
-      total_count = @entries.sum(:total_count) + @all_entries_interactions
-      @topic_interactions_percentage = (Float(@entries.sum(:total_count)) / total_count * 100).round(1)
+      total_count = entries_sum + @all_entries_interactions
+      @topic_interactions_percentage = (Float(entries_sum) / total_count * 100).round(1)
       @all_intereactions_percentage = (Float(@all_entries_interactions) / total_count * 100).round(1)
     end
 
@@ -175,7 +177,7 @@ class TopicController < ApplicationController
     @total_interactions = @entries.sum(:total_count)
 
     @all_entries_size = Entry.enabled.normal_range.where.not(id: @entries.ids).count
-    @all_entries_interactions = @entries.sum(:total_count)
+    @all_entries_interactions = Entry.enabled.normal_range.where.not(id: @entries.ids).sum(:total_count)
 
     @word_occurrences = @entries.word_occurrences
     @bigram_occurrences = @entries.bigram_occurrences
