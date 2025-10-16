@@ -108,12 +108,11 @@ class TopicController < ApplicationController
       @all_percentage = (Float(@all_entries_size) / total_count * 100).round(0)
 
       total_count = @entries.sum(:total_count) + @all_entries_interactions
-      @topic_interactions_percentage = (Float(@entries.sum(&:total_count)) / total_count * 100).round(1)
+      @topic_interactions_percentage = (Float(@entries.sum(:total_count)) / total_count * 100).round(1)
       @all_intereactions_percentage = (Float(@all_entries_interactions) / total_count * 100).round(1)
     end
 
-    @most_interactions = @entries.sort_by { |e| -e.total_count }
-                                 .take(12)
+    @most_interactions = @entries.order(total_count: :desc).limit(12)
 
     if @total_entries.zero?
       @promedio = 0
@@ -121,7 +120,7 @@ class TopicController < ApplicationController
       @promedio = @total_interactions / @total_entries
     end
 
-    @tags = @entries.tag_counts_on(:tags).order('count desc').limit(20)
+    @tags = @entries.tag_counts_on(:tags).order(count: :desc).limit(20)
 
     @tags_interactions = Entry.joins(:tags)
                               .where(id: @entries.select(:id), tags: { id: @tags.map(&:id) })
@@ -154,7 +153,7 @@ class TopicController < ApplicationController
   end
 
   def pdf
-    @topic = Topic.find(params[:id])
+    @topic = Topic.includes(:tags, :users).find(params[:id])
 
     unless @topic.users.exists?(current_user.id) && @topic.status == true
       return redirect_to root_path,
@@ -163,7 +162,8 @@ class TopicController < ApplicationController
 
     # Reuse the same data preparation logic as show action
     @tag_list = @topic.tags.map(&:name)
-    @entries = @topic.list_entries
+    @entries = @topic.list_entries.includes(:tags, :site)
+
     @chart_entries = @entries.group_by_day(:published_at)
     @chart_entries_sentiments = @entries.where.not(polarity: nil).group(:polarity).group_by_day(:published_at)
 
@@ -175,7 +175,7 @@ class TopicController < ApplicationController
     @total_interactions = @entries.sum(:total_count)
 
     @all_entries_size = Entry.enabled.normal_range.where.not(id: @entries.ids).count
-    @all_entries_interactions = Entry.enabled.normal_range.where.not(id: @entries.ids).sum(:total_count)
+    @all_entries_interactions = @entries.sum(:total_count)
 
     @word_occurrences = @entries.word_occurrences
     @bigram_occurrences = @entries.bigram_occurrences
@@ -206,8 +206,7 @@ class TopicController < ApplicationController
       @all_intereactions_percentage = (Float(@all_entries_interactions) / total_count * 100).round(1)
     end
 
-    @most_interactions = @entries.sort_by { |e| -e.total_count }
-                                 .take(12)
+    @most_interactions = @entries.order(total_count: :desc).limit(12)
 
     if @total_entries.zero?
       @promedio = 0
@@ -215,7 +214,7 @@ class TopicController < ApplicationController
       @promedio = @total_interactions / @total_entries
     end
 
-    @tags = @entries.tag_counts_on(:tags).order('count desc').limit(20)
+    @tags = @entries.tag_counts_on(:tags).order(count: :desc).limit(20)
 
     @tags_interactions = Entry.joins(:tags)
                               .where(id: @entries.select(:id), tags: { id: @tags.map(&:id) })
