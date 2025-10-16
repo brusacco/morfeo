@@ -1,12 +1,10 @@
 <% content_for :extra_stylesheets do %>
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 <% end %>
-
 <% content_for :extra_javascripts do %>
   <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <% end %>
-
 <header class="bg-white shadow-sm border-b border-gray-200">
   <div class="mx-auto px-4 py-6 sm:px-6 lg:px-8">
     <div class="md:flex md:items-center md:justify-between">
@@ -25,7 +23,6 @@
     </div>
   </div>
 </header>
-
 <main class="bg-gray-50 min-h-screen">
   <div class="mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-8">
     <!-- KPI cards -->
@@ -48,7 +45,6 @@
         </div>
       </div>
     </section>
-
     <!-- Charts -->
     <section>
       <h2 class="text-2xl font-bold text-gray-900 mb-6">Evolución temporal</h2>
@@ -70,7 +66,6 @@
             <%= render 'home/modal', graph_id: 'facebookPostsChart', controller_name: 'topics' %>
           </div>
         </div>
-
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-lg font-medium text-gray-900">Interacciones por día</h3>
@@ -90,7 +85,6 @@
         </div>
       </div>
     </section>
-
     <!-- Tag insights -->
     <section>
       <h2 class="text-2xl font-bold text-gray-900 mb-6">Etiquetas relacionadas</h2>
@@ -105,7 +99,6 @@
         </div>
       </div>
     </section>
-
     <% if @word_occurrences.any? %>
       <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <h2 class="text-2xl font-bold text-gray-900 mb-6">Nube de palabras de publicaciones</h2>
@@ -118,7 +111,6 @@
         </div>
       </section>
     <% end %>
-
     <!-- Word clouds -->
     <section class="space-y-6">
       <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -130,7 +122,6 @@
         <%= render partial: 'tag/tag_pill_array', collection: @bigram_occurrences %>
       </div>
     </section>
-
     <!-- Pages insights -->
     <section>
       <h2 class="text-2xl font-bold text-gray-900 mb-6">Fanpages destacadas</h2>
@@ -145,12 +136,10 @@
         </div>
       </div>
     </section>
-
     <!-- Top posts -->
     <section>
       <%= render partial: 'facebook_topic/posts_table', locals: { entries: @top_posts, title: 'Publicaciones con más interacciones' } %>
     </section>
-
     <!-- All posts -->
     <section>
       <%= render partial: 'facebook_topic/posts_table', locals: { entries: @entries, title: "Todas las publicaciones etiquetadas con #{@topic.name}" } %>

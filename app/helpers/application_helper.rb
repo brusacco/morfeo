@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 module ApplicationHelper
-  def active_link_to(name = nil, options = nil, html_options = {}, &block)
+  def active_link_to(name = nil, options = nil, html_options = {}, &)
     active_class = html_options[:active] || 'active aria-current="page"'
     html_options.delete(:active)
     html_options[:class] = "#{html_options[:class]} #{active_class}" if current_page?(options)
-    link_to(name, options, html_options, &block)
+    link_to(name, options, html_options, &)
   end
 
   def clean_title(title)
@@ -62,7 +62,8 @@ module ApplicationHelper
 
     min_max = find_max_and_min_occurrences(word_occurrences)
 
-    word_occurrences.shuffle { |a, b| a[1] <=> b[1] }.map do |word, value|
+    word_occurrences.shuffle { |a, b| a[1] <=> b[1] }
+                    .map do |word, value|
       {
         word: word,
         color: word_color(positive_words, negative_words, word),
