@@ -110,13 +110,9 @@
       <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <h2 class="text-2xl font-bold text-gray-900 mb-6">Nube de palabras de publicaciones</h2>
         <div class="mt-6 mb-6 px-4 py-6">
-          <% min_max = find_max_and_min_occurrences(@word_occurrences) %>
           <ul class="cloud">
-            <% @word_occurrences.shuffle { |a, b| a[1] <=> b[1] }.each do |word, value| %>
-              <li style='color: <%= word_color(@positive_words, @negative_words, word) %>'
-                  data-weight="<%= normalize_to_scale(value, min_max[:max], min_max[:min]) %>">
-                <%= word %>
-              </li>
+            <% prepare_word_cloud_data(@word_occurrences, @positive_words, @negative_words).each do |word_data| %>
+              <li style='color: <%= word_data[:color] %>' data-weight="<%= word_data[:weight] %>"><%= word_data[:word] %></li>
             <% end %>
           </ul>
         </div>
