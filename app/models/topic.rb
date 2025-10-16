@@ -20,6 +20,10 @@ class Topic < ApplicationRecord
     @tag_names ||= tags.map(&:name)
   end
 
+  def default_date_range
+    { gte: DAYS_RANGE.days.ago.beginning_of_day, lte: Date.today.end_of_day }
+  end
+
   def report_entries(start_date, end_date)
     tag_list = tag_names
     result = Entry.search(
@@ -48,7 +52,7 @@ class Topic < ApplicationRecord
     tag_list = tag_names
     result = Entry.search(
       where: {
-        published_at: { gte: DAYS_RANGE.days.ago.beginning_of_day, lte: Date.today.end_of_day },
+        published_at: default_date_range,
         tags: { in: tag_list }
       },
       order: { published_at: :desc },
@@ -62,7 +66,7 @@ class Topic < ApplicationRecord
   def all_list_entries
     result = Entry.search(
       where: {
-        published_at: { gte: DAYS_RANGE.days.ago.beginning_of_day, lte: Date.today.end_of_day }
+        published_at: default_date_range
       },
       order: { published_at: :desc },
       fields: ['id'], # Only return the ids to reduce payload
@@ -76,7 +80,7 @@ class Topic < ApplicationRecord
     tag_list = tag_names
     result = Entry.search(
       where: {
-        published_at: { gte: DAYS_RANGE.days.ago.beginning_of_day, lte: Date.today.end_of_day },
+        published_at: default_date_range,
         title_tags: { in: tag_list }
       },
       fields: ['id']
@@ -114,7 +118,7 @@ class Topic < ApplicationRecord
   def analytics_entries(ids)
     result = Entry.search(
       where: {
-        published_at: { gte: DAYS_RANGE.days.ago.beginning_of_day, lte: Date.today.end_of_day },
+        published_at: default_date_range,
         id: { not: ids }
       },
       order: { published_at: :desc },
