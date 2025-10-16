@@ -99,8 +99,14 @@ class TopicController < ApplicationController
     @all_entries_interactions = @topic.all_list_entries.sum(:total_count)
 
     # Cosas nuevas
-    @word_occurrences = @entries.word_occurrences
-    @bigram_occurrences = @entries.bigram_occurrences
+    @word_occurrences =
+      Rails.cache.fetch("topic_#{@topic.id}_word_occurrences", expires_in: 1.hour) do
+        @entries.word_occurrences
+      end
+    @bigram_occurrences =
+      Rails.cache.fetch("topic_#{@topic.id}_bigram_occurrences", expires_in: 1.hour) do
+        @entries.bigram_occurrences
+      end
     @report = @topic.reports.last
 
     # @comments = Comment.where(entry_id: @entries.select(:id))
@@ -228,8 +234,14 @@ class TopicController < ApplicationController
     @all_entries_size = Entry.enabled.normal_range.where.not(id: @entries.ids).count
     @all_entries_interactions = Entry.enabled.normal_range.where.not(id: @entries.ids).sum(:total_count)
 
-    @word_occurrences = @entries.word_occurrences
-    @bigram_occurrences = @entries.bigram_occurrences
+    @word_occurrences =
+      Rails.cache.fetch("topic_#{@topic.id}_word_occurrences", expires_in: 1.hour) do
+        @entries.word_occurrences
+      end
+    @bigram_occurrences =
+      Rails.cache.fetch("topic_#{@topic.id}_bigram_occurrences", expires_in: 1.hour) do
+        @entries.bigram_occurrences
+      end
     @report = @topic.reports.last
 
     # @comments = Comment.where(entry_id: @entries.select(:id))
