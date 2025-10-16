@@ -72,8 +72,14 @@ class TopicController < ApplicationController
     @entries_polarity_sums = @entries.where.not(polarity: nil).group(:polarity).sum(:total_count)
 
     # Precompute site group queries to avoid duplicate group-by operations
-    @site_counts = @entries.group('sites.name').count('*')
-    @site_sums = @entries.group('sites.name').sum(:total_count)
+    @site_counts =
+      Rails.cache.fetch("topic_#{@topic.id}_site_counts", expires_in: 1.hour) do
+        @entries.group('sites.name').count('*')
+      end
+    @site_sums =
+      Rails.cache.fetch("topic_#{@topic.id}_site_sums", expires_in: 1.hour) do
+        @entries.group('sites.name').sum(:total_count)
+      end
 
     @chart_entries = @entries.group_by_day(:published_at)
     @chart_entries_sentiments = @entries.where.not(polarity: nil).group(:polarity).group_by_day(:published_at)
@@ -217,8 +223,14 @@ class TopicController < ApplicationController
     @entries_polarity_sums = @entries.where.not(polarity: nil).group(:polarity).sum(:total_count)
 
     # Precompute site group queries to avoid duplicate group-by operations
-    @site_counts = @entries.group('sites.name').count('*')
-    @site_sums = @entries.group('sites.name').sum(:total_count)
+    @site_counts =
+      Rails.cache.fetch("topic_#{@topic.id}_site_counts", expires_in: 1.hour) do
+        @entries.group('sites.name').count('*')
+      end
+    @site_sums =
+      Rails.cache.fetch("topic_#{@topic.id}_site_sums", expires_in: 1.hour) do
+        @entries.group('sites.name').sum(:total_count)
+      end
 
     @chart_entries = @entries.group_by_day(:published_at)
     @chart_entries_sentiments = @entries.where.not(polarity: nil).group(:polarity).group_by_day(:published_at)
