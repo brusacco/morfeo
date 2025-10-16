@@ -25,8 +25,8 @@ class EntryController < ApplicationController
     @tags_interactions = Entry.joins(:tags)
                               .where(id: @entries.select(:id), tags: { id: @tags.map(&:id) })
                               .group('tags.name')
+                              .order(Arel.sql('SUM(total_count) DESC'))
                               .sum(:total_count)
-                              .sort_by { |_k, v| -v }
 
     @tags_count = {}
     @tags.each { |n| @tags_count[n.name] = n.count }
@@ -34,15 +34,14 @@ class EntryController < ApplicationController
 
   def twitter
     @entries = Entry.enabled.joins(:site).a_day_ago.where.not(image_url: nil).order(tw_total: :desc)
-    # Separate query for grouping operations to avoid MySQL strict mode issues
     @entries_for_grouping = Entry.enabled.joins(:site).a_day_ago.where.not(image_url: nil)
     @tags = @entries.tag_counts_on(:tags).order(count: :desc)
 
     @tags_interactions = Entry.joins(:tags)
                               .where(id: @entries.select(:id), tags: { id: @tags.map(&:id) })
                               .group('tags.name')
+                              .order(Arel.sql('SUM(tw_total) DESC'))
                               .sum(:tw_total)
-                              .sort_by { |_k, v| -v }
 
     @tags_count = {}
     @tags.each { |n| @tags_count[n.name] = n.count }
@@ -60,8 +59,8 @@ class EntryController < ApplicationController
         Entry.joins(:tags)
              .where(id: @entries.select(:id), tags: { id: @tags.map(&:id) })
              .group('tags.name')
+             .order(Arel.sql('SUM(total_count) DESC'))
              .sum(:total_count)
-             .sort_by { |_k, v| -v }
       end
 
     @tags_count = {}

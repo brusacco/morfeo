@@ -135,8 +135,8 @@ class HomeController < ApplicationController
     @tags_interactions = Entry.joins(:tags)
                               .where(id: @entries.select(:id), tags: { id: @tags.map(&:id) })
                               .group('tags.name')
+                              .order(Arel.sql('SUM(total_count) DESC'))
                               .sum(:total_count)
-                              .sort_by { |_k, v| -v }
 
     @tags_count = {}
     @tags.each { |n| @tags_count[n.name] = n.count }
