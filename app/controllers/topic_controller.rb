@@ -68,8 +68,22 @@ class TopicController < ApplicationController
     # Precompute aggregates to avoid multiple SQL queries
     @entries_count = @entries.size
     @entries_total_sum = @entries.sum(:total_count)
-    @entries_polarity_counts = @entries.where.not(polarity: nil).group(:polarity).count
-    @entries_polarity_sums = @entries.where.not(polarity: nil).group(:polarity).sum(:total_count)
+
+    # Combine polarity aggregations into a single query
+    @entries_polarity_data = @entries
+                             .where.not(polarity: nil)
+                             .group(:polarity)
+                             .pluck(
+                               :polarity,
+                               Arel.sql('COUNT(*)'),
+                               Arel.sql('SUM(entries.total_count)')
+                             )
+                             .map { |p, c, s| [p, { count: c, sum: s }] }
+                             .to_h
+
+    # Extract counts and sums from the combined data
+    @entries_polarity_counts = @entries_polarity_data.transform_values { |v| v[:count] }
+    @entries_polarity_sums = @entries_polarity_data.transform_values { |v| v[:sum] }
 
     # Precompute site group queries to avoid duplicate group-by operations
     @site_counts =
@@ -218,8 +232,22 @@ class TopicController < ApplicationController
     # Precompute aggregates to avoid multiple SQL queries
     @entries_count = @entries.size
     @entries_total_sum = @entries.sum(:total_count)
-    @entries_polarity_counts = @entries.where.not(polarity: nil).group(:polarity).count
-    @entries_polarity_sums = @entries.where.not(polarity: nil).group(:polarity).sum(:total_count)
+
+    # Combine polarity aggregations into a single query
+    @entries_polarity_data = @entries
+                             .where.not(polarity: nil)
+                             .group(:polarity)
+                             .pluck(
+                               :polarity,
+                               Arel.sql('COUNT(*)'),
+                               Arel.sql('SUM(entries.total_count)')
+                             )
+                             .map { |p, c, s| [p, { count: c, sum: s }] }
+                             .to_h
+
+    # Extract counts and sums from the combined data
+    @entries_polarity_counts = @entries_polarity_data.transform_values { |v| v[:count] }
+    @entries_polarity_sums = @entries_polarity_data.transform_values { |v| v[:sum] }
 
     # Precompute site group queries to avoid duplicate group-by operations
     @site_counts =
@@ -306,7 +334,7 @@ class TopicController < ApplicationController
     @tags_interactions = Entry.joins(:tags)
                               .where(id: @entries.select(:id), tags: { id: @tags.map(&:id) })
                               .group('tags.name')
-                              .order('SUM(total_count) DESC')
+                              .order('SUM(entries.total_count) DESC')
                               .sum(:total_count)
 
     @tags_count = {}
