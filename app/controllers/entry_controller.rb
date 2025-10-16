@@ -55,13 +55,14 @@ class EntryController < ApplicationController
 
     @tags = @entries.tag_counts_on(:tags).order(count: :desc)
 
-    @tags_interactions = Rails.cache.fetch('tags_interactions_commented', expires_in: 1.hour) do
-      Entry.joins(:tags)
-           .where(id: @entries.select(:id), tags: { id: @tags.map(&:id) })
-           .group('tags.name')
-           .sum(:total_count)
-           .sort_by { |_k, v| -v }
-    end
+    @tags_interactions =
+      Rails.cache.fetch('tags_interactions_commented', expires_in: 1.hour) do
+        Entry.joins(:tags)
+             .where(id: @entries.select(:id), tags: { id: @tags.map(&:id) })
+             .group('tags.name')
+             .sum(:total_count)
+             .sort_by { |_k, v| -v }
+      end
 
     @tags_count = {}
     @tags.each { |n| @tags_count[n.name] = n.count }
