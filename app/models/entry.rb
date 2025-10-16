@@ -181,7 +181,8 @@ class Entry < ApplicationRecord
   end
 
   def belongs_to_any_topic?
-    Topic.all.any? { |topic| (topic.tag_ids & tag_ids).any? }
+    Tagging.joins('INNER JOIN tags_topics ON taggings.tag_id = tags_topics.tag_id')
+           .exists?(taggable_id: id, taggable_type: 'Entry', context: 'tags')
   end
 
   def clean_image
