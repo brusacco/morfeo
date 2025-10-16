@@ -22,19 +22,11 @@ class EntryController < ApplicationController
     @comments_word_occurrences = @comments.word_occurrences
     # @comments_bigram_occurrences = @comments.bigram_occurrences
 
-    @tags_interactions = {}
-    @tags.each do |tag|
-      @entries.each do |entry|
-        tag.interactions ||= 0
-        tag.interactions += entry.total_count if entry.tag_list.include?(tag.name)
-
-        @tags_interactions[tag.name] ||= 0
-        @tags_interactions[tag.name] += entry.total_count if entry.tag_list.include?(tag.name)
-      end
-    end
-
-    @tags_interactions = @tags_interactions.sort_by { |_k, v| v }
-    @tags_interactions.reverse
+    @tags_interactions = Entry.joins(:tags)
+                              .where(id: @entries.select(:id), tags: { id: @tags.map(&:id) })
+                              .group('tags.name')
+                              .sum(:total_count)
+                              .sort_by { |_k, v| -v }
 
     @tags_count = {}
     @tags.each { |n| @tags_count[n.name] = n.count }
@@ -46,20 +38,11 @@ class EntryController < ApplicationController
     @entries_for_grouping = Entry.enabled.joins(:site).a_day_ago.where.not(image_url: nil)
     @tags = @entries.tag_counts_on(:tags).order(count: :desc)
 
-    # Sets counters and values
-    @tags_interactions = {}
-    @tags.each do |tag|
-      @entries.each do |entry|
-        tag.interactions ||= 0
-        tag.interactions += entry.tw_total if entry.tag_list.include?(tag.name)
-
-        @tags_interactions[tag.name] ||= 0
-        @tags_interactions[tag.name] += entry.tw_total if entry.tag_list.include?(tag.name)
-      end
-    end
-
-    @tags_interactions = @tags_interactions.sort_by { |_k, v| v }
-    @tags_interactions.reverse
+    @tags_interactions = Entry.joins(:tags)
+                              .where(id: @entries.select(:id), tags: { id: @tags.map(&:id) })
+                              .group('tags.name')
+                              .sum(:tw_total)
+                              .sort_by { |_k, v| -v }
 
     @tags_count = {}
     @tags.each { |n| @tags_count[n.name] = n.count }
@@ -72,30 +55,13 @@ class EntryController < ApplicationController
 
     @tags = @entries.tag_counts_on(:tags).order(count: :desc)
 
-    # Sets counters and values
-    @tags_interactions = Rails.cache.read('tags_interactions_commented')
-
-    # Cosas nuevas
-    @word_occurrences = @entries.word_occurrences
-    # @bigram_occurrences = @entries.bigram_occurrences
-
-    # Cache tags interactions
-    if @tags_interactions.nil?
-      @tags_interactions = {}
-      @tags.each do |tag|
-        @entries.each do |entry|
-          tag.interactions ||= 0
-          tag.interactions += entry.total_count if entry.tag_list.include?(tag.name)
-
-          @tags_interactions[tag.name] ||= 0
-          @tags_interactions[tag.name] += entry.total_count if entry.tag_list.include?(tag.name)
-        end
-      end
-      Rails.cache.write('tags_interactions_commented', @tags_interactions, expires_in: 1.hour)
+    @tags_interactions = Rails.cache.fetch('tags_interactions_commented', expires_in: 1.hour) do
+      Entry.joins(:tags)
+           .where(id: @entries.select(:id), tags: { id: @tags.map(&:id) })
+           .group('tags.name')
+           .sum(:total_count)
+           .sort_by { |_k, v| -v }
     end
-
-    @tags_interactions = @tags_interactions.sort_by { |_k, v| v }
-    @tags_interactions.reverse
 
     @tags_count = {}
     @tags.each { |n| @tags_count[n.name] = n.count }

@@ -28,7 +28,7 @@ class TagController < ApplicationController
     @percentage_neutrals = (@neutrals.to_f / @entries.size * 100).round(0) if @neutrals > 0
 
     @top_entries = Entry.enabled.normal_range.joins(:site).order(total_count: :desc).limit(5)
-    @most_interactions = @entries.sort_by(&:total_count).reverse.take(12)
+    @most_interactions = @entries.order(total_count: :desc).limit(12)
 
     # Precompute pluck values to avoid SQL queries in views
     @top_entries_counts = @top_entries.pluck(:total_count)
@@ -67,21 +67,11 @@ class TagController < ApplicationController
     @entries = Entry.enabled.normal_range.joins(:site).tagged_with(@tag.name).has_image.order(published_at: :desc)
     @tags = @entries.tag_counts_on(:tags).order('count desc').limit(20)
 
-    @tags_interactions = {}
-    @tags.each do |tag|
-      @entries.each do |entry|
-        next unless entry.tag_list.include?(tag.name)
-
-        tag.interactions ||= 0
-        tag.interactions += entry.total_count
-
-        @tags_interactions[tag.name] ||= 0
-        @tags_interactions[tag.name] += entry.total_count
-      end
-    end
-
-    @tags_interactions = @tags_interactions.sort_by { |_k, v| v }
-                                           .reverse
+    @tags_interactions = Entry.joins(:tags)
+                              .where(id: @entries.select(:id), tags: { id: @tags.map(&:id) })
+                              .group('tags.name')
+                              .sum(:total_count)
+                              .sort_by { |_k, v| -v }
 
     @tags_count = {}
     @tags.each { |n| @tags_count[n.name] = n.count }
