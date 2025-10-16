@@ -99,8 +99,9 @@ class TopicController < ApplicationController
 
     # Calcular numeros de totales de la semana
     # @all_entries = @topic.analytics_entries(@entries.ids)
-    @all_entries_size = @topic.all_list_entries.count
-    @all_entries_interactions = @topic.all_list_entries.sum(:total_count)
+    all_entries = @topic.all_list_entries
+    @all_entries_size = all_entries.size
+    @all_entries_interactions = all_entries.sum(:total_count)
 
     # Cosas nuevas
     @word_occurrences =
@@ -145,7 +146,7 @@ class TopicController < ApplicationController
 
     # Precompute pluck values to avoid SQL queries in views
     @top_entries_counts = @top_entries.pluck(:total_count)
-    @most_interactions_counts = @most_interactions.limit(5).pluck(:total_count)
+    @most_interactions_counts = @most_interactions.pluck(:total_count).take(5)
 
     if @total_entries.zero?
       @promedio = 0
