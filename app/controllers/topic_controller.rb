@@ -102,14 +102,14 @@ class TopicController < ApplicationController
     @title_chart_entries = @title_entries.reorder(nil).group_by_day(:published_at)
 
     # Precompute chart data to avoid multiple SQL queries per chart
-    @chart_entries_counts = @chart_entries.count
+    @chart_entries_counts = @chart_entries.size
     @chart_entries_sums = @chart_entries.sum(:total_count)
-    @title_chart_entries_counts = @title_chart_entries.count
+    @title_chart_entries_counts = @title_chart_entries.size
     @title_chart_entries_sums = @title_chart_entries.sum(:total_count)
 
     # Precompute sentiment chart data
-    @chart_entries_sentiments_counts = @chart_entries_sentiments.count('*')
-    @chart_entries_sentiments_sums = @chart_entries_sentiments.sum('total_count')
+    @chart_entries_sentiments_counts = @chart_entries_sentiments.size
+    @chart_entries_sentiments_sums = @chart_entries_sentiments.sum(:total_count)
 
     # @analytics = @topic.analytics_topic_entries
 
@@ -193,7 +193,7 @@ class TopicController < ApplicationController
     @tags.each { |n| @tags_count[n.name] = n.count }
 
     # Precompute top sites for partial to avoid query in view
-    @site_top_counts = @entries.joins(:site).group('sites.id').order(Arel.sql('COUNT(*) DESC')).limit(12).count
+    @site_top_counts = @entries.group('site_id').order(Arel.sql('COUNT(*) DESC')).limit(12).count
   end
 
   def comments
@@ -265,14 +265,14 @@ class TopicController < ApplicationController
     @title_chart_entries = @title_entries.reorder(nil).group_by_day(:published_at)
 
     # Precompute chart data to avoid multiple SQL queries per chart
-    @chart_entries_counts = @chart_entries.count
+    @chart_entries_counts = @chart_entries.size
     @chart_entries_sums = @chart_entries.sum(:total_count)
-    @title_chart_entries_counts = @title_chart_entries.count
+    @title_chart_entries_counts = @title_chart_entries.size
     @title_chart_entries_sums = @title_chart_entries.sum(:total_count)
 
     # Precompute sentiment chart data
-    @chart_entries_sentiments_counts = @chart_entries_sentiments.count('*')
-    @chart_entries_sentiments_sums = @chart_entries_sentiments.sum('total_count')
+    @chart_entries_sentiments_counts = @chart_entries_sentiments.size
+    @chart_entries_sentiments_sums = @chart_entries_sentiments.sum(:total_count)
 
     @top_entries = Entry.enabled.normal_range.joins(:site).order(total_count: :desc).limit(5)
     @total_entries = @entries_count
