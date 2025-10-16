@@ -50,25 +50,75 @@
       <!-- Sentiment Analysis Section -->
       <section class="mb-8">
         <h2 class="text-2xl font-bold text-gray-900 mb-6">Análisis de Sentimiento</h2>
-        <div>
-          <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-4">
-            <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
-              <dt class="truncate text-sm font-medium text-gray-500">Total Noticias</dt>
-              <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900"><%=@entries.size%></dd>
+        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <div class="bg-white overflow-hidden rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+            <div class="p-6">
+              <div class="flex items-center">
+                <div class="flex-shrink-0">
+                  <div class="w-8 h-8 bg-blue-100 rounded-md flex items-center justify-center">
+                    <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
+                    </svg>
+                  </div>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                  <dt class="text-sm font-medium text-gray-500 truncate">Total Noticias</dt>
+                  <dd class="mt-1 text-3xl font-semibold text-gray-900"><%=number_with_delimiter(@entries.size, delimiter: ".")%></dd>
+                </div>
+              </div>
             </div>
-            <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
-              <dt class="truncate text-sm font-medium text-gray-500">Total Positivas</dt>
-              <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900"><%=@percentage_positives%>%</dd>
+          </div>
+          <div class="bg-white overflow-hidden rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+            <div class="p-6">
+              <div class="flex items-center">
+                <div class="flex-shrink-0">
+                  <div class="w-8 h-8 bg-green-100 rounded-md flex items-center justify-center">
+                    <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                    </svg>
+                  </div>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                  <dt class="text-sm font-medium text-gray-500 truncate">Positivas</dt>
+                  <dd class="mt-1 text-3xl font-semibold text-green-600"><%=@percentage_positives%>%</dd>
+                </div>
+              </div>
             </div>
-            <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
-              <dt class="truncate text-sm font-medium text-gray-500">Total Negativas</dt>
-              <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900"><%=@percentage_negatives%>%</dd>
+          </div>
+          <div class="bg-white overflow-hidden rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+            <div class="p-6">
+              <div class="flex items-center">
+                <div class="flex-shrink-0">
+                  <div class="w-8 h-8 bg-red-100 rounded-md flex items-center justify-center">
+                    <svg class="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                    </svg>
+                  </div>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                  <dt class="text-sm font-medium text-gray-500 truncate">Negativas</dt>
+                  <dd class="mt-1 text-3xl font-semibold text-red-600"><%=@percentage_negatives%>%</dd>
+                </div>
+              </div>
             </div>
-            <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
-              <dt class="truncate text-sm font-medium text-gray-500">Total Neutras</dt>
-              <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900"><%=@percentage_neutrals%>%</dd>
+          </div>
+          <div class="bg-white overflow-hidden rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+            <div class="p-6">
+              <div class="flex items-center">
+                <div class="flex-shrink-0">
+                  <div class="w-8 h-8 bg-gray-100 rounded-md flex items-center justify-center">
+                    <svg class="w-5 h-5 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" />
+                    </svg>
+                  </div>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                  <dt class="text-sm font-medium text-gray-500 truncate">Neutras</dt>
+                  <dd class="mt-1 text-3xl font-semibold text-gray-600"><%=@percentage_neutrals%>%</dd>
+                </div>
+              </div>
             </div>
-          </dl>
+          </div>
         </div>
       </section>
       <!-- Sentiment Trends Section -->
