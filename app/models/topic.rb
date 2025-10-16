@@ -16,8 +16,12 @@ class Topic < ApplicationRecord
 
   scope :active, -> { where(status: true) }
 
+  def tag_names
+    @tag_names ||= tags.map(&:name)
+  end
+
   def report_entries(start_date, end_date)
-    tag_list = tags.map(&:name)
+    tag_list = tag_names
     result = Entry.search(
       where: {
         published_at: { gte: start_date.beginning_of_day, lte: end_date.end_of_day },
@@ -29,7 +33,7 @@ class Topic < ApplicationRecord
   end
 
   def report_title_entries(start_date, end_date)
-    tag_list = tags.map(&:name)
+    tag_list = tag_names
     result = Entry.search(
       where: {
         published_at: { gte: start_date.beginning_of_day, lte: end_date.end_of_day },
@@ -41,7 +45,7 @@ class Topic < ApplicationRecord
   end
 
   def list_entries
-    tag_list = tags.map(&:name)
+    tag_list = tag_names
     result = Entry.search(
       where: {
         published_at: { gte: DAYS_RANGE.days.ago.beginning_of_day, lte: Date.today.end_of_day },
@@ -69,7 +73,7 @@ class Topic < ApplicationRecord
   end
 
   def title_list_entries
-    tag_list = tags.map(&:name)
+    tag_list = tag_names
     result = Entry.search(
       where: {
         published_at: { gte: DAYS_RANGE.days.ago.beginning_of_day, lte: Date.today.end_of_day },
@@ -81,7 +85,7 @@ class Topic < ApplicationRecord
   end
 
   def chart_entries(date)
-    tag_list = tags.map(&:name)
+    tag_list = tag_names
     result = Entry.search(
       where: {
         published_at: { gte: date.beginning_of_day, lte: date.end_of_day },
@@ -95,7 +99,7 @@ class Topic < ApplicationRecord
   end
 
   def title_chart_entries(date)
-    tag_list = tags.map(&:name)
+    tag_list = tag_names
     result = Entry.search(
       where: {
         published_at: { gte: date.beginning_of_day, lte: date.end_of_day },
@@ -120,7 +124,7 @@ class Topic < ApplicationRecord
   end
 
   def analytics_topic_entries
-    tag_list = tags.map(&:name)
+    tag_list = tag_names
     Entry.enabled.normal_range.tagged_with(tag_list, any: true).order(total_count: :desc).limit(20)
   end
 
