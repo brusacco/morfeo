@@ -565,7 +565,7 @@
     <% end %>
     <!-- Top Interactions Section -->
     <section class="mb-8">
-      <%= render partial: 'entry/entries', locals: { last_entries: @most_interactions, title: 'Top Notas Interacciones del Tópico' } %>
+      <%= render partial: 'entry/entries', locals: { last_entries: @most_interactions.includes(:tags, :site), title: 'Top Notas Interacciones del Tópico' } %>
     </section>
   </div>
 </main>

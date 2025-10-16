@@ -148,7 +148,7 @@ class TopicController < ApplicationController
     @positives = polarity_counts['positive'] || 0
     @negatives = polarity_counts['negative'] || 0
 
-    if @entries.any?
+    if @entries_count > 0
       @percentage_positives = (Float(@positives) / @entries_count * 100).round(0)
       @percentage_negatives = (Float(@negatives) / @entries_count * 100).round(0)
       @percentage_neutrals = (Float(@neutrals) / @entries_count * 100).round(0)
@@ -303,7 +303,7 @@ class TopicController < ApplicationController
     @positives = polarity_counts['positive'] || 0
     @negatives = polarity_counts['negative'] || 0
 
-    if @entries.any?
+    if @entries_count > 0
       @percentage_positives = (Float(@positives) / @entries_count * 100).round(0)
       @percentage_negatives = (Float(@negatives) / @entries_count * 100).round(0)
       @percentage_neutrals = (Float(@neutrals) / @entries_count * 100).round(0)
