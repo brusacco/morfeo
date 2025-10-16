@@ -123,7 +123,7 @@ class TopicController < ApplicationController
     @positive_words = @topic.positive_words.split(',') if @topic.positive_words.present?
     @negative_words = @topic.negative_words.split(',') if @topic.negative_words.present?
 
-    polarity_counts = @entries.group(:polarity).count
+    polarity_counts = @entries_polarity_counts
     @neutrals = polarity_counts['neutral'] || 0
     @positives = polarity_counts['positive'] || 0
     @negatives = polarity_counts['negative'] || 0
@@ -259,7 +259,7 @@ class TopicController < ApplicationController
     @positive_words = @topic.positive_words.split(',') if @topic.positive_words.present?
     @negative_words = @topic.negative_words.split(',') if @topic.negative_words.present?
 
-    polarity_counts = @entries.group(:polarity).count
+    polarity_counts = @entries_polarity_counts
     @neutrals = polarity_counts['neutral'] || 0
     @positives = polarity_counts['positive'] || 0
     @negatives = polarity_counts['negative'] || 0
