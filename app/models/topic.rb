@@ -48,9 +48,11 @@ class Topic < ApplicationRecord
         tags: { in: tag_list }
       },
       order: { published_at: :desc },
-      fields: ['id'] # Only return the ids to reduce payload
+      fields: ['id'], # Only return the ids to reduce payload
+      load: false # Don't load the ActiveRecord objects yet (we'll do it in the next step)
     )
-    Entry.where(id: result.map(&:id)).joins(:site)
+    entry_ids = result.map(&:id)
+    Entry.where(id: entry_ids).joins(:site)
   end
 
   def title_list_entries
