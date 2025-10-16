@@ -71,4 +71,8 @@ module ApplicationHelper
       }
     end
   end
+
+  def safe_percentage(numerator, denominator)
+    denominator.positive? ? (Float(numerator) / denominator * 100).round(0) : 0
+  end
 end

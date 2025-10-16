@@ -23,16 +23,16 @@ class TagController < ApplicationController
     @positives = polarity_counts['positive'] || 0
     @negatives = polarity_counts['negative'] || 0
 
-    @percentage_positives = (@positives.to_f / @entries.size * 100).round(0) if @positives > 0
-    @percentage_negatives = (@negatives.to_f / @entries.size * 100).round(0) if @negatives > 0
-    @percentage_neutrals = (@neutrals.to_f / @entries.size * 100).round(0) if @neutrals > 0
+    @percentage_positives = safe_percentage(@positives, @entries.size)
+    @percentage_negatives = safe_percentage(@negatives, @entries.size)
+    @percentage_neutrals = safe_percentage(@neutrals, @entries.size)
 
     @top_entries = Entry.enabled.normal_range.joins(:site).order(total_count: :desc).limit(5)
     @most_interactions = @entries.order(total_count: :desc).limit(12)
 
     # Precompute pluck values to avoid SQL queries in views
     @top_entries_counts = @top_entries.pluck(:total_count)
-    @most_interactions_counts = @most_interactions.take(5).pluck(:total_count)
+    @most_interactions_counts = @most_interactions.limit(5).pluck(:total_count)
 
     if @total_entries.zero?
       @promedio = 0
@@ -82,5 +82,11 @@ class TagController < ApplicationController
   def search
     query = params[:query].strip
     @tags = Tag.where('name LIKE?', "%#{query}%")
+  end
+
+  private
+
+  def safe_percentage(numerator, denominator)
+    denominator.positive? ? (Float(numerator) / denominator * 100).round(0) : 0
   end
 end
