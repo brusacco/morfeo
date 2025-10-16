@@ -118,7 +118,6 @@ class TopicController < ApplicationController
     @total_interactions = @entries_total_sum
 
     # Calcular numeros de totales de la semana
-    # @all_entries = @topic.analytics_entries(@entries.ids)
     all_entries = @topic.all_list_entries
     @all_entries_size = all_entries.size
     @all_entries_interactions = all_entries.sum(:total_count)

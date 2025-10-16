@@ -98,7 +98,7 @@ class Topic < ApplicationRecord
           tags: { in: tag_list }
         },
         fields: [:id],
-        misspellings: false
+        load: false # Don't load the ActiveRecord objects yet (we'll do it in the next step)
       )
       Entry.where(id: result.map(&:id)).enabled.order(total_count: :desc).joins(:site)
       # Entry.where(id: result.map(&:id), total_count: 1..Float::INFINITY).enabled.order(total_count: :desc).joins(:site)
@@ -115,25 +115,9 @@ class Topic < ApplicationRecord
           title_tags: { in: tag_list }
         },
         fields: [:id],
-        misspellings: false
+        load: false # Don't load the ActiveRecord objects yet (we'll do it in the next step)
       )
       Entry.where(id: result.map(&:id)).enabled.order(total_count: :desc).joins(:site)
-    end
-  end
-
-  def analytics_entries(ids)
-    ids_hash = Digest::MD5.hexdigest(ids.sort.join(','))
-    cache_key = "topic_#{id}_analytics_entries_#{ids_hash}"
-    Rails.cache.fetch(cache_key, expires_in: 30.minutes) do
-      result = Entry.search(
-        where: {
-          published_at: default_date_range,
-          id: { not: ids }
-        },
-        order: { published_at: :desc },
-        load: false
-      )
-      Entry.enabled.where(id: result.map(&:id)).joins(:site)
     end
   end
 
