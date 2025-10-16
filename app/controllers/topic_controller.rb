@@ -124,13 +124,21 @@ class TopicController < ApplicationController
       @promedio = @total_interactions / @total_entries
     end
 
-    @tags = @entries.tag_counts_on(:tags).order(count: :desc).limit(20)
+    @tags = Tag.joins(:taggings)
+               .where(taggings: {
+                        taggable_type: Entry.base_class.name,
+                        context: 'tags',
+                        taggable_id: @entries.select(:id)
+                      })
+               .group('tags.id', 'tags.name')
+               .order(Arel.sql('COUNT(DISTINCT taggings.taggable_id) DESC'))
+               .limit(20)
+               .select('tags.id, tags.name, COUNT(DISTINCT taggings.taggable_id) AS count')
 
     @tags_interactions = Entry.joins(:tags)
                               .where(id: @entries.select(:id), tags: { id: @tags.map(&:id) })
                               .group('tags.name')
                               .sum(:total_count)
-                              .sort_by { |_k, v| -v }
 
     @tags_count = {}
     @tags.each { |n| @tags_count[n.name] = n.count }
@@ -223,8 +231,8 @@ class TopicController < ApplicationController
     @tags_interactions = Entry.joins(:tags)
                               .where(id: @entries.select(:id), tags: { id: @tags.map(&:id) })
                               .group('tags.name')
+                              .order('SUM(total_count) DESC')
                               .sum(:total_count)
-                              .sort_by { |_k, v| -v }
 
     @tags_count = {}
     @tags.each { |n| @tags_count[n.name] = n.count }
