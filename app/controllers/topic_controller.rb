@@ -88,9 +88,11 @@ class TopicController < ApplicationController
     @bigram_occurrences = @entries.bigram_occurrences
     @report = @topic.reports.last
 
-    @comments = Comment.where(entry_id: @entries.select(:id))
-    @comments_word_occurrences = @comments.word_occurrences
+    # @comments = Comment.where(entry_id: @entries.select(:id))
+    # @comments_word_occurrences = @comments.word_occurrences
     # @comments_bigram_occurrences = @comments.bigram_occurrences
+    @comments = []
+    @comments_word_occurrences = []
 
     @positive_words = @topic.positive_words.split(',') if @topic.positive_words.present?
     @negative_words = @topic.negative_words.split(',') if @topic.negative_words.present?
@@ -164,7 +166,7 @@ class TopicController < ApplicationController
 
     # Reuse the same data preparation logic as show action
     @tag_list = @topic.tags.map(&:name)
-    @entries = @topic.list_entries.includes(:tags, :site)
+    @entries = @topic.list_entries
 
     @chart_entries = @entries.group_by_day(:published_at)
     @chart_entries_sentiments = @entries.where.not(polarity: nil).group(:polarity).group_by_day(:published_at)
@@ -183,8 +185,8 @@ class TopicController < ApplicationController
     @bigram_occurrences = @entries.bigram_occurrences
     @report = @topic.reports.last
 
-    @comments = Comment.where(entry_id: @entries.select(:id))
-    @comments_word_occurrences = @comments.word_occurrences
+    # @comments = Comment.where(entry_id: @entries.select(:id))
+    # @comments_word_occurrences = @comments.word_occurrences
 
     @positive_words = @topic.positive_words.split(',') if @topic.positive_words.present?
     @negative_words = @topic.negative_words.split(',') if @topic.negative_words.present?
