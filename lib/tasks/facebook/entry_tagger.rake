@@ -18,12 +18,17 @@ namespace :facebook do
         next
       end
 
+      # Remove "Facebook" and "WhatsApp" tags if present
+      result.data.delete('Facebook')
+      result.data.delete('WhatsApp')
+
       facebook_entry.tag_list = result.data
       facebook_entry.save!
-      facebook_entry.touch
+      # facebook_entry.touch
 
       puts facebook_entry.facebook_post_id
       puts facebook_entry.tag_list
+      puts facebook_entry.posted_at
       puts '---------------------------------------------------'
     rescue StandardError => e
       puts "Unexpected error tagging #{facebook_entry.facebook_post_id}: #{e.message}"
