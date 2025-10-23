@@ -6,10 +6,10 @@ namespace :facebook do
     scope = FacebookEntry.where(posted_at: 3.months.ago..Time.current)
 
     scope.find_each do |facebook_entry|
-      if facebook_entry.tags.any?
-        puts "Skipping #{facebook_entry.facebook_post_id}: already tagged"
-        next
-      end
+      # if facebook_entry.tags.any?
+      #   puts "Skipping #{facebook_entry.facebook_post_id}: already tagged"
+      #   next
+      # end
 
       result = WebExtractorServices::ExtractFacebookEntryTags.call(facebook_entry.id)
 
