@@ -2,17 +2,17 @@
 
 desc 'Tagger'
 task tagger: :environment do
-  Entry.enabled.where(published_at: 3.months.ago..Time.current).find_each do |entry|
+  Entry.enabled.where(published_at: 1.month.ago..Time.current).find_each do |entry|
     result = WebExtractorServices::ExtractTags.call(entry.id)
     next unless result.success?
 
     entry.tag_list = result.data
     puts entry.url
     puts entry.tag_list
+    puts entry.published_at
     puts '---------------------------------------------------'
 
     entry.save!
-    entry.touch
   rescue StandardError => e
     puts e.message
     sleep 1
@@ -21,7 +21,7 @@ task tagger: :environment do
 end
 
 task retagger: :environment do
-  Entry.enabled.where(published_at: 3.months.ago..Time.current).find_each do |entry|
+  Entry.enabled.where(published_at: 1.month.ago..Time.current).find_each do |entry|
     next if entry.tags.any?
 
     result = WebExtractorServices::ExtractTags.call(entry.id)
@@ -30,10 +30,10 @@ task retagger: :environment do
     entry.tag_list = result.data
     puts entry.url
     puts entry.tag_list
+    puts entry.published_at
     puts '---------------------------------------------------'
 
     entry.save!
-    entry.touch
   rescue StandardError => e
     puts e.message
     sleep 1
