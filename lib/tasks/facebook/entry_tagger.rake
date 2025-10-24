@@ -3,7 +3,7 @@
 namespace :facebook do
   desc 'Tag Facebook entries using existing Tag vocabulary'
   task entry_tagger: :environment do
-    scope = FacebookEntry.where(posted_at: 3.months.ago..Time.current).order(posted_at: :desc)
+    scope = FacebookEntry.where(posted_at: 7.days.ago..Time.current).order(posted_at: :desc)
 
     scope.find_each do |facebook_entry|
       # if facebook_entry.tags.any?

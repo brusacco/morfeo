@@ -18,13 +18,14 @@ end
 
 every 3.hours do
   rake 'crawler_deep'
-  rake 'title_tagger'
   rake 'facebook:fanpage_crawler'
   # rake 'facebook:comment_crawler'
 end
 
 every 4.hours do
   rake 'repeated_notes'
+  rake 'title_tagger'
+  rake 'facebook:entry_tagger'
 end
 
 every 6.hours do
