@@ -12,7 +12,6 @@ task title_tagger: :environment do
     puts '---------------------------------------------------'
 
     entry.save!
-    entry.touch
   rescue StandardError => e
     puts e.message
     puts '---------------------------------------------------'
