@@ -2,7 +2,7 @@
 
 desc 'Tagger'
 task tagger: :environment do
-  Entry.enabled.where(published_at: 1.month.ago..Time.current).find_each do |entry|
+  Entry.enabled.where(published_at: 7.days.ago..Time.current).find_each do |entry|
     result = WebExtractorServices::ExtractTags.call(entry.id)
     next unless result.success?
 
