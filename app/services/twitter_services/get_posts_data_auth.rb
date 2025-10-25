@@ -32,7 +32,7 @@ module TwitterServices
 
     base_uri 'https://twitter.com/i/api'
 
-    def initialize(user_id, max_requests: 1)
+    def initialize(user_id, max_requests: 2)
       @user_id = user_id
       @max_requests = max_requests # Number of paginated requests (each returns ~20 tweets)
       @bearer_token = ENV['TWITTER_BEARER_TOKEN'] || 'AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs=1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA'
