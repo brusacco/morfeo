@@ -79,7 +79,7 @@ module TwitterServices
         break if cursor.nil? || request_count >= @max_requests
 
         # Random delay between 1-10 seconds to avoid rate limiting
-        delay = rand(1..10)
+        delay = rand(5..15)
         sleep(delay)
       end
 
