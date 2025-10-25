@@ -8,15 +8,28 @@ module TwitterServices
 
     def call
       profile = TwitterProfile.find_by!(uid: @profile_uid)
-      response = TwitterServices::GetPostsData.call(@profile_uid)
+      
+      # Use authenticated API if credentials are available, otherwise fall back to guest token
+      response = if ENV['TWITTER_AUTH_TOKEN'].present? && ENV['TWITTER_CT0_TOKEN'].present?
+                   TwitterServices::GetPostsDataAuth.call(@profile_uid)
+                 else
+                   TwitterServices::GetPostsData.call(@profile_uid)
+                 end
 
       return handle_error(response.error) unless response.success?
 
-      data = response.data
-      tweets = extract_tweets(data)
+      # Handle both single response (guest API) and array of responses (authenticated API with pagination)
+      data_array = response.data.is_a?(Array) ? response.data : [response.data]
+      all_tweets = []
+
+      # Extract tweets from each paginated response
+      data_array.each do |data|
+        tweets = extract_tweets(data)
+        all_tweets.concat(tweets)
+      end
 
       saved_posts =
-        tweets.filter_map do |tweet_data|
+        all_tweets.filter_map do |tweet_data|
           persist_post(profile, tweet_data)
         end
 
