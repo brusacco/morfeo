@@ -8,13 +8,14 @@ module TwitterServices
 
     def call
       profile = TwitterProfile.find_by!(uid: @profile_uid)
-      
+
       # Use authenticated API if credentials are available, otherwise fall back to guest token
-      response = if ENV['TWITTER_AUTH_TOKEN'].present? && ENV['TWITTER_CT0_TOKEN'].present?
-                   TwitterServices::GetPostsDataAuth.call(@profile_uid)
-                 else
-                   TwitterServices::GetPostsData.call(@profile_uid)
-                 end
+      response =
+        if ENV['TWITTER_AUTH_TOKEN'].present? && ENV['TWITTER_CT0_TOKEN'].present?
+          TwitterServices::GetPostsDataAuth.call(@profile_uid)
+        else
+          TwitterServices::GetPostsData.call(@profile_uid)
+        end
 
       return handle_error(response.error) unless response.success?
 

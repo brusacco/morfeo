@@ -36,8 +36,8 @@ module TwitterServices
       @user_id = user_id
       @max_requests = max_requests # Number of paginated requests (each returns ~20 tweets)
       @bearer_token = ENV['TWITTER_BEARER_TOKEN'] || 'AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs=1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA'
-      @auth_token = ENV['TWITTER_AUTH_TOKEN']
-      @ct0_token = ENV['TWITTER_CT0_TOKEN']
+      @auth_token = ENV.fetch('TWITTER_AUTH_TOKEN', nil)
+      @ct0_token = ENV.fetch('TWITTER_CT0_TOKEN', nil)
     end
 
     def call
@@ -62,9 +62,10 @@ module TwitterServices
         )
 
         data = JSON.parse(response.body)
-        
+
         unless response.success?
-          error_message = data['errors']&.map { |e| e['message'] }&.join(', ') || 'Unknown error'
+          error_message = data['errors']&.map { |e| e['message'] }
+&.join(', ') || 'Unknown error'
           return handle_error("API Error: #{error_message}")
         end
 
@@ -73,10 +74,10 @@ module TwitterServices
 
         # Extract cursor for next page
         cursor = extract_cursor(data)
-        
+
         # Stop if no more pages or reached max requests
         break if cursor.nil? || request_count >= @max_requests
-        
+
         # Small delay to avoid rate limiting
         sleep(0.5)
       end
@@ -111,7 +112,7 @@ module TwitterServices
         withVoice: true,
         withV2Timeline: true
       }
-      
+
       vars[:cursor] = cursor if cursor.present?
       vars
     end
@@ -120,16 +121,16 @@ module TwitterServices
       # Navigate through the response to find the bottom cursor
       # Try the newer timeline_v2 structure first
       instructions = data.dig('data', 'user', 'result', 'timeline_v2', 'timeline', 'instructions')
-      
+
       # Fall back to older timeline structure
       instructions ||= data.dig('data', 'user', 'result', 'timeline', 'timeline', 'instructions')
-      
-      return nil unless instructions
+
+      return unless instructions
 
       instructions.each do |instruction|
         # If we hit a terminate instruction, there are no more pages
         return nil if instruction['type'] == 'TimelineTerminateTimeline'
-        
+
         next unless instruction['type'] == 'TimelineAddEntries'
 
         entries = instruction['entries']
