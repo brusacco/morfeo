@@ -14,7 +14,7 @@ module TwitterServices
         if ENV['TWITTER_AUTH_TOKEN'].present? && ENV['TWITTER_CT0_TOKEN'].present?
           TwitterServices::GetPostsDataAuth.call(@profile_uid)
         else
-          TwitterServices::GetPostsData.call(@profile_uid)
+          # TwitterServices::GetPostsData.call(@profile_uid)
         end
 
       return handle_error(response.error) unless response.success?
