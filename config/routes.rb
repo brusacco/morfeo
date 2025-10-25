@@ -25,6 +25,7 @@ Rails.application.routes.draw do
 
   resources :facebook_topics, only: [:show], controller: 'facebook_topic' do
     get :entries_data, on: :collection
+    get :pdf, on: :member
   end
 
   resources :topics do
