@@ -24,6 +24,10 @@ document.addEventListener("turbo:load", function () {
   if (topicsMenuButton && topicsMenu) {
     topicsMenuButton.addEventListener('click', function (event) {
       topicsMenu.classList.toggle('hidden');
+      // Cerrar el menú de Facebook si está abierto
+      if (facebookTopicsMenu && !facebookTopicsMenu.classList.contains('hidden')) {
+        facebookTopicsMenu.classList.add('hidden');
+      }
       event.stopPropagation();
     });
 
@@ -39,6 +43,10 @@ document.addEventListener("turbo:load", function () {
   if (facebookTopicsMenuButton && facebookTopicsMenu) {
     facebookTopicsMenuButton.addEventListener('click', function (event) {
       facebookTopicsMenu.classList.toggle('hidden');
+      // Cerrar el menú de tópicos si está abierto
+      if (topicsMenu && !topicsMenu.classList.contains('hidden')) {
+        topicsMenu.classList.add('hidden');
+      }
       event.stopPropagation();
     });
 
