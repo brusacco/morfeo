@@ -134,6 +134,7 @@ Morfeo is a Rails 7 news monitoring system that crawls websites, extracts articl
 - **Web Console** for in-browser debugging
 - **Capybara** + **Selenium WebDriver** for integration testing
 - **Rubocop** + **Rubocop Rails** for code quality
+- **dotenv-rails** for loading environment variables from .env file
 
 ### API & Data Formats
 
@@ -174,9 +175,10 @@ end
   - `UpdateStats` - Updates engagement statistics for Entry URLs via Facebook Graph API
 - `TwitterServices::*` - Twitter API integration for profile and post data
   - `GetProfileData` - Fetches raw Twitter profile information
-  - `GetPostsData` - Retrieves user tweets via Twitter GraphQL API (fetches up to 100 tweets per request)
+  - `GetPostsData` - Retrieves user tweets via Twitter GraphQL API (guest token, fetches up to 100 tweets, may return cached/old data)
+  - `GetPostsDataAuth` - **Authenticated API** using session cookies (auth_token, ct0), fetches fresh real-time tweets with pagination (up to 500 tweets across 5 requests)
   - `UpdateProfile` - Extracts and formats profile data for database storage
-  - `ProcessPosts` - Extracts and persists tweets from Twitter API responses
+  - `ProcessPosts` - Extracts and persists tweets from Twitter API responses, automatically uses authenticated API when ENV credentials are present, falls back to guest token
   - `ExtractTags` - Auto-tags tweets using Tag vocabulary with text matching
 - `WebExtractorServices::*` - Content parsing and tag extraction
   - `ExtractFacebookEntryTags` - Tags Facebook entries using existing Tag vocabulary with text matching
@@ -250,8 +252,34 @@ rake twitter:post_tagger      # Tag Twitter posts using Tag vocabulary
 
 - **OpenAI**: GPT-3.5-turbo for sentiment analysis and report generation
 - **Facebook Graph API**: Fetches post engagement metrics and comments
-- **Twitter GraphQL API**: Fetches profile data and user tweets (via unofficial endpoint with bearer token)
+- **Twitter GraphQL API**: Two approaches for fetching tweets
+  - **Guest Token API** (`GetPostsData`): Unofficial endpoint, returns cached/old data (up to 100 tweets)
+  - **Authenticated API** (`GetPostsDataAuth`): Uses session cookies, returns fresh real-time tweets with pagination (up to 500 tweets)
 - **Elasticsearch**: Full-text search with Spanish-language considerations
+
+### Twitter Authentication & Configuration
+
+**Environment Variables** (configured in `.env` file):
+
+- `TWITTER_AUTH_TOKEN` - Session auth_token cookie from logged-in Twitter account
+- `TWITTER_CT0_TOKEN` - CSRF token (ct0 cookie) from logged-in session
+- `TWITTER_BEARER_TOKEN` - Bearer token for API requests (optional, uses default)
+
+**How to Get Twitter Cookies:**
+
+1. Open Twitter (https://twitter.com) in browser while logged in
+2. Open DevTools (F12) → Application/Storage → Cookies → twitter.com
+3. Copy values for `auth_token` and `ct0`
+4. Add to `.env` file
+
+**Important Notes:**
+
+- Authenticated API fetches **real-time tweets** (much more recent than guest token)
+- Session cookies expire periodically and must be refreshed manually
+- ProcessPosts service automatically uses authenticated API when credentials are present
+- Falls back to guest token API if no credentials found
+- Pagination fetches up to 5 pages (~500 tweets total) with 0.5s delay between requests
+- See `.env.example` for configuration template
 
 ### File Processing
 

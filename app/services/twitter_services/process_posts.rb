@@ -22,19 +22,35 @@ module TwitterServices
       # Handle both single response (guest API) and array of responses (authenticated API with pagination)
       data_array = response.data.is_a?(Array) ? response.data : [response.data]
       all_tweets = []
+      all_saved_posts = []
+      stop_early = false
 
       # Extract tweets from each paginated response
-      data_array.each do |data|
+      data_array.each_with_index do |data, page_index|
         tweets = extract_tweets(data)
-        all_tweets.concat(tweets)
-      end
+        page_saved = []
 
-      saved_posts =
-        all_tweets.filter_map do |tweet_data|
-          persist_post(profile, tweet_data)
+        tweets.each do |tweet_data|
+          saved_post = persist_post(profile, tweet_data)
+          page_saved << saved_post if saved_post
         end
 
-      handle_success({ posts: saved_posts, count: saved_posts.count })
+        all_tweets.concat(tweets)
+        all_saved_posts.concat(page_saved)
+
+        # Stop early if we're on page 2+ and found mostly duplicates (< 10% new tweets)
+        next unless page_index > 0 && tweets.any?
+
+        new_tweets_ratio = Float(page_saved.count) / tweets.count
+        next unless new_tweets_ratio < 0.1
+
+        Rails.logger.info("[TwitterServices::ProcessPosts] Stopping pagination early for #{profile.username}: only #{page_saved.count}/#{tweets.count} new tweets on page #{page_index + 1}")
+        stop_early = true
+        break
+      end
+
+      message = stop_early ? 'Stopped early (found mostly duplicates)' : 'Completed all pages'
+      handle_success({ posts: all_saved_posts, count: all_saved_posts.count, message: message })
     rescue StandardError => e
       handle_error(e.message)
     end
@@ -65,6 +81,9 @@ module TwitterServices
       return unless tweet_id
 
       twitter_post = TwitterPost.find_or_initialize_by(tweet_id: tweet_id)
+
+      # Return nil if this tweet already exists (not a new record)
+      return unless twitter_post.new_record?
 
       legacy = tweet_data['legacy'] || {}
       views = tweet_data.dig('views', 'count')
