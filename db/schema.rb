@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_10_16_024900) do
+ActiveRecord::Schema[7.0].define(version: 2025_10_25_114600) do
   create_table "active_admin_comments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "namespace"
     t.text "body"
@@ -140,6 +140,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_10_16_024900) do
     t.json "payload"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "views_count", default: 0, null: false
     t.index ["facebook_post_id"], name: "index_facebook_entries_on_facebook_post_id", unique: true
     t.index ["page_id", "posted_at"], name: "index_facebook_entries_on_page_id_and_posted_at"
     t.index ["page_id"], name: "index_facebook_entries_on_page_id"

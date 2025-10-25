@@ -8,6 +8,8 @@ class FacebookEntry < ApplicationRecord
   validates :page, presence: true
   validates :posted_at, presence: true
 
+  before_save :calculate_views_count
+
   scope :recent, -> { order(posted_at: :desc) }
   scope :for_page,
         lambda { |page_uid|
@@ -41,6 +43,10 @@ class FacebookEntry < ApplicationRecord
   def self.total_interactions(scope = all)
     relation = scope.except(:includes).reorder(nil)
     relation.sum(:reactions_total_count) + relation.sum(:comments_count) + relation.sum(:share_count)
+  end
+
+  def self.total_views(scope = all)
+    scope.except(:includes).reorder(nil).sum(:views_count)
   end
 
   def self.word_occurrences(scope = all, limit = 100)
@@ -83,5 +89,22 @@ class FacebookEntry < ApplicationRecord
 
   def bigrams
     words.each_cons(2).map { |pair| pair.join(' ') }
+  end
+
+  # Estimated views calculation based on engagement metrics
+  # Formula: (likes * 15) + (comments * 40) + (shares * 80) + (followers * 0.04)
+  def estimated_views
+    likes = reactions_like_count || 0
+    comments = comments_count || 0
+    shares = share_count || 0
+    followers = page&.followers || 0
+
+    (likes * 15) + (comments * 40) + (shares * 80) + (followers * 0.04)
+  end
+
+  private
+
+  def calculate_views_count
+    self.views_count = estimated_views.round
   end
 end
