@@ -13,6 +13,7 @@ class FacebookTopicController < ApplicationController
 
     @total_posts = @entries.size
     @total_interactions = FacebookEntry.total_interactions(@entries)
+    @total_views = FacebookEntry.total_views(@entries)
     @average_interactions = @total_posts.zero? ? 0 : (Float(@total_interactions) / @total_posts).round(1)
 
     @top_posts = @entries.sort_by(&:total_interactions).reverse.first(12)
@@ -57,6 +58,7 @@ class FacebookTopicController < ApplicationController
 
     @total_posts = @entries.size
     @total_interactions = FacebookEntry.total_interactions(@entries)
+    @total_views = FacebookEntry.total_views(@entries)
     @average_interactions = @total_posts.zero? ? 0 : (Float(@total_interactions) / @total_posts).round(1)
 
     @top_posts = @entries.sort_by(&:total_interactions).reverse.first(10)

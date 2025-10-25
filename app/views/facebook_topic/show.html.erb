@@ -27,7 +27,7 @@
   <div class="mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-8">
     <!-- KPI cards -->
     <section>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div class="text-sm font-medium text-gray-500 uppercase tracking-wide">Publicaciones</div>
           <div class="mt-2 text-3xl font-bold text-gray-900"><%= number_with_delimiter(@total_posts) %></div>
@@ -37,6 +37,11 @@
           <div class="text-sm font-medium text-gray-500 uppercase tracking-wide">Interacciones totales</div>
           <div class="mt-2 text-3xl font-bold text-indigo-600"><%= number_with_delimiter(@total_interactions) %></div>
           <p class="mt-1 text-sm text-gray-500">Likes + Comentarios + Compartidos.</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div class="text-sm font-medium text-gray-500 uppercase tracking-wide">Vistas estimadas</div>
+          <div class="mt-2 text-3xl font-bold text-purple-600"><%= number_with_delimiter(@total_views) %></div>
+          <p class="mt-1 text-sm text-gray-500">Estimación de vistas totales basada en engagement.</p>
         </div>
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div class="text-sm font-medium text-gray-500 uppercase tracking-wide">Promedio por publicación</div>
