@@ -1,0 +1,6 @@
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+  <h2 class="text-2xl font-bold tracking-tight text-gray-900 mb-6"><%= title %></h2>
+  <div class="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
+    <%= render partial: 'facebook_topic/facebook_entry', collection: facebook_entries, as: :facebook_entry %>
+  </div>
+</div>

@@ -141,13 +141,13 @@
         </div>
       </div>
     </section>
-    <!-- Top posts -->
-    <section>
-      <%= render partial: 'facebook_topic/posts_table', locals: { entries: @top_posts, title: 'Publicaciones con más interacciones' } %>
-    </section>
     <!-- All posts -->
     <section>
       <%= render partial: 'facebook_topic/posts_table', locals: { entries: @entries, title: "Todas las publicaciones etiquetadas con #{@topic.name}" } %>
+    </section>
+    <!-- Top posts cards -->
+    <section>
+      <%= render partial: 'facebook_topic/facebook_entries', locals: { facebook_entries: @top_posts, title: 'Publicaciones con más interacciones' } %>
     </section>
   </div>
 </main>

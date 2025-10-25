@@ -80,9 +80,7 @@
               </td>
               <td class="whitespace-nowrap px-3 py-4 text-sm">
                 <div class="font-medium text-gray-900"><%= entry.page.name %></div>
-                <% if entry.page.site.present? %>
-                  <div class="text-xs text-gray-500"><%= entry.page.site.name %></div>
-                <% end %>
+                <div class="text-xs text-gray-500">@<%= entry.page.username %></div>
               </td>
               <td class="whitespace-nowrap px-3 py-4 text-center">
                 <span class="text-lg font-semibold text-blue-600"><%= number_with_delimiter(entry.reactions_total_count) %></span>

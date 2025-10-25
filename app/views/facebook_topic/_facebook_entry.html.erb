@@ -1,0 +1,86 @@
+<div class="group relative rounded-lg border border-gray-200 bg-white hover:shadow-lg transition-shadow duration-200">
+  <div class="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-t-lg bg-gray-50">
+    <% if facebook_entry.attachment_media_src.present? %>
+      <%= image_tag facebook_entry.attachment_media_src, 
+        loading: 'lazy', 
+        onerror: "this.onerror=null;this.src='#{asset_path('default-entry.svg')}';", 
+        class: 'h-full w-full object-cover object-center group-hover:opacity-90 transition-opacity' %>
+    <% else %>
+      <div class="h-full w-full flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50">
+        <i class="fa-brands fa-facebook text-6xl text-indigo-300"></i>
+      </div>
+    <% end %>
+  </div>
+  <div class="p-4">
+    <div class="mb-3">
+      <% if facebook_entry.permalink_url.present? %>
+        <%= link_to facebook_entry.permalink_url, target: '_blank', class: 'text-sm font-medium text-gray-900 hover:text-indigo-600 line-clamp-3 block' do %>
+          <%= facebook_entry.message.to_s.truncate(120) %>
+          <i class="fa-solid fa-external-link text-xs text-gray-400 ml-1"></i>
+        <% end %>
+      <% else %>
+        <p class="text-sm text-gray-900 line-clamp-3"><%= facebook_entry.message.to_s.truncate(120) %></p>
+      <% end %>
+    </div>
+    <div class="space-y-2">
+      <div class="flex items-center text-xs text-gray-600">
+        <i class="fa-solid fa-building mr-1.5 text-gray-400"></i>
+        <span class="font-medium"><%= facebook_entry.page.name %></span>
+      </div>
+      <div class="flex items-center justify-between text-xs text-gray-500">
+        <div class="flex items-center">
+          <i class="fa-regular fa-calendar mr-1.5"></i>
+          <%= facebook_entry.posted_at.strftime('%d/%m/%Y %H:%M') %>
+        </div>
+      </div>
+      <% if facebook_entry.tag_list.any? %>
+        <div class="flex flex-wrap gap-1 pt-2 border-t border-gray-100">
+          <% facebook_entry.tag_list.first(2).each do |tag| %>
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">
+              <%= tag %>
+            </span>
+          <% end %>
+          <% if facebook_entry.tag_list.size > 2 %>
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-500">
+              +<%= facebook_entry.tag_list.size - 2 %>
+            </span>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+    <div class="mt-4 pt-3 border-t border-gray-200">
+      <div class="grid grid-cols-5 gap-2 text-center">
+        <div>
+          <div class="text-xs text-gray-500 mb-1">
+            <i class="fa-solid fa-thumbs-up text-blue-600"></i>
+          </div>
+          <div class="text-sm font-semibold text-blue-600"><%= number_with_delimiter(facebook_entry.reactions_total_count) %></div>
+        </div>
+        <div>
+          <div class="text-xs text-gray-500 mb-1">
+            <i class="fa-solid fa-comment text-green-600"></i>
+          </div>
+          <div class="text-sm font-semibold text-green-600"><%= number_with_delimiter(facebook_entry.comments_count) %></div>
+        </div>
+        <div>
+          <div class="text-xs text-gray-500 mb-1">
+            <i class="fa-solid fa-share text-purple-600"></i>
+          </div>
+          <div class="text-sm font-semibold text-purple-600"><%= number_with_delimiter(facebook_entry.share_count) %></div>
+        </div>
+        <div>
+          <div class="text-xs text-gray-500 mb-1">
+            <i class="fa-solid fa-eye text-amber-600"></i>
+          </div>
+          <div class="text-sm font-semibold text-amber-600"><%= number_with_delimiter(facebook_entry.views_count) %></div>
+        </div>
+        <div>
+          <div class="text-xs text-gray-500 mb-1">
+            <i class="fa-solid fa-chart-line text-indigo-600"></i>
+          </div>
+          <div class="text-sm font-bold text-indigo-600"><%= number_with_delimiter(facebook_entry.total_interactions) %></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

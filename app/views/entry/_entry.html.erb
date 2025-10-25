@@ -1,35 +1,70 @@
-<div class="group relative rounded-md">
-  <div class="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-md bg-gray-200 lg:aspect-none group-hover:opacity-75 lg:h-80">
-    <div style="left: 10px; position: absolute; top: 10px">
-      <span class='inline-flex items-center rounded-md border-2 border-black bg-blue-100 px-2 py-2 text-s font-medium text-blue-700'>
-        <div class="text-muted px-1"><i class="fa-brands fa-square-facebook"></i> <%=entry.total_count%></div>
-      </span>
-      <span class='inline-flex items-center rounded-md border-2 border-black bg-blue-100 px-2 py-2 text-s font-medium text-blue-700'>
-        <div class="text-muted px-1"><i class="fa-solid fa-comment"></i> <%=entry.comment_count%></div>
-      </span>
-      <span class='inline-flex items-center rounded-md border-2 border-black bg-blue-100 px-2 py-2 text-s font-medium text-blue-700'>
-        <div class="text-muted px-1"><i class="fa-solid fa-share"></i> <%=entry.share_count%></div>
-      </span>
-    </div>
-    <%= image_tag entry.clean_image, size: "150x150", loading: 'lazy', onerror: "this.onerror=null;this.src='#{asset_path('default-entry.svg', size: 150)}';", class: 'h-full w-full object-cover object-center lg:h-full lg:w-full' %>
+<div class="group relative rounded-lg border border-gray-200 bg-white hover:shadow-lg transition-shadow duration-200">
+  <div class="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-t-lg bg-gray-50">
+    <%= image_tag entry.clean_image, 
+      loading: 'lazy', 
+      onerror: "this.onerror=null;this.src='#{asset_path('default-entry.svg')}';", 
+      class: 'h-full w-full object-cover object-center group-hover:opacity-90 transition-opacity' %>
   </div>
-  <div class="mt-4 flex justify-between">
-    <div>
-      <h3 class="text-sm text-gray-700">
-        <%=entry.title%>
-      </h3>
-      <h3 class="px-1 text-sm">
-        <i class="fa-regular fa-newspaper"></i> <%=link_to entry.site.name, entry.site%>
-      </h3>
-      <hr>
-      <p class="card-text">
-        <small class="text-muted px-1"><%= icon('fa-regular', 'calendar')%>
-          <%=entry.published_at.strftime('%d-%m-%Y')%>
-        </small>
-        <small class="text-muted px-1"><i class="fa-solid fa-link"></i>
-          <%= link_to entry.id, entry.url, target: :blank %>
-        </small>
-      </p>
+  <div class="p-4">
+    <div class="mb-3">
+      <%= link_to entry.url, target: '_blank', class: 'text-sm font-medium text-gray-900 hover:text-indigo-600 line-clamp-3 block' do %>
+        <%= entry.title %>
+        <i class="fa-solid fa-external-link text-xs text-gray-400 ml-1"></i>
+      <% end %>
+    </div>
+    <div class="space-y-2">
+      <div class="flex items-center text-xs text-gray-600">
+        <i class="fa-regular fa-newspaper mr-1.5 text-gray-400"></i>
+        <%= link_to entry.site.name, entry.site, class: 'font-medium hover:text-indigo-600' %>
+      </div>
+      <div class="flex items-center justify-between text-xs text-gray-500">
+        <div class="flex items-center">
+          <i class="fa-regular fa-calendar mr-1.5"></i>
+          <%= entry.published_at.strftime('%d/%m/%Y %H:%M') %>
+        </div>
+      </div>
+      <% if entry.tag_list.any? %>
+        <div class="flex flex-wrap gap-1 pt-2 border-t border-gray-100">
+          <% entry.tag_list.first(2).each do |tag| %>
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">
+              <%= tag %>
+            </span>
+          <% end %>
+          <% if entry.tag_list.size > 2 %>
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-500">
+              +<%= entry.tag_list.size - 2 %>
+            </span>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+    <div class="mt-4 pt-3 border-t border-gray-200">
+      <div class="grid grid-cols-4 gap-2 text-center">
+        <div>
+          <div class="text-xs text-gray-500 mb-1">
+            <i class="fa-solid fa-thumbs-up text-blue-600"></i>
+          </div>
+          <div class="text-sm font-semibold text-blue-600"><%= number_with_delimiter(entry.reaction_count) %></div>
+        </div>
+        <div>
+          <div class="text-xs text-gray-500 mb-1">
+            <i class="fa-solid fa-comment text-green-600"></i>
+          </div>
+          <div class="text-sm font-semibold text-green-600"><%= number_with_delimiter(entry.comment_count) %></div>
+        </div>
+        <div>
+          <div class="text-xs text-gray-500 mb-1">
+            <i class="fa-solid fa-share text-purple-600"></i>
+          </div>
+          <div class="text-sm font-semibold text-purple-600"><%= number_with_delimiter(entry.share_count) %></div>
+        </div>
+        <div>
+          <div class="text-xs text-gray-500 mb-1">
+            <i class="fa-solid fa-chart-line text-indigo-600"></i>
+          </div>
+          <div class="text-sm font-bold text-indigo-600"><%= number_with_delimiter(entry.total_count) %></div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
