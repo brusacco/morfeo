@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 ActiveAdmin.register Page do
-  menu parent: 'Settings', label: 'Pages'
+  menu parent: 'Settings', label: 'Facebook Profiles'
   permit_params :uid, :name, :username, :picture, :followers, :category, :description, :website, :site_id
 
   filter :uid, as: :string

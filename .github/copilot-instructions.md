@@ -11,6 +11,15 @@ Morfeo is a Rails 7 news monitoring system that crawls websites, extracts articl
   - Sentiment: `polarity` enum (0: neutral, 1: positive, 2: negative)
   - Content filtering: `repeated` status, `enabled` flag, `category` classification
   - Unique constraint on `url`, belongs to `site`
+- **FacebookEntry**: Facebook posts from tracked Pages with comprehensive engagement metrics
+  - Belongs to `page`, has tagging via `acts-as-taggable-on`
+  - Post data: `facebook_post_id` (unique), `posted_at`, `message`, `permalink_url`
+  - Attachment data: `attachment_type`, `attachment_title`, `attachment_description`, `attachment_url`, `attachment_target_url`, `attachment_media_src`, dimensions
+  - Reaction metrics: Individual counts for like, love, wow, haha, sad, angry, thankful, plus `reactions_total_count`
+  - Engagement: `comments_count`, `share_count`, `views_count` (calculated)
+  - Views estimation formula: `(likes * 15) + (comments * 40) + (shares * 80) + (followers * 0.04)`
+  - Scopes: `recent`, `for_page`, `within_range`, `for_tags`, `for_topic`
+  - Analytics methods: `grouped_counts`, `grouped_interactions`, `total_interactions`, `total_views`, `word_occurrences`, `bigram_occurrences`
 - **Site**: News websites being monitored with crawling configuration
   - Filters: `filter` (inclusion), `negative_filter` (exclusion), `content_filter` (CSS selector)
   - Status: `status` (enabled/disabled), `is_js` (requires Selenium), `entries_count` cache
@@ -27,13 +36,36 @@ Morfeo is a Rails 7 news monitoring system that crawls websites, extracts articl
   - `TitleTopicStatDaily`: Same metrics but for title-tag analysis
   - `Comments`: Facebook comments with `uid`, `message`, linked to entries
   - `Pages`: Facebook page metadata with follower counts and descriptions
+- **TwitterProfile**: Twitter account tracking with profile data and metrics
+  - Fields: `uid` (Twitter User ID), `username`, `name`, `picture`, `followers`, `description`, `verified`
+  - Belongs to `site` (optional), validates uid presence and uniqueness
+  - Auto-updates profile data via `TwitterServices::UpdateProfile` after creation
+  - Syncs profile picture to associated site
+  - Has many `twitter_posts` (tweets from this profile)
+- **TwitterPost**: Individual tweets from tracked Twitter profiles with engagement metrics
+  - Belongs to `twitter_profile`, has tagging via `acts-as-taggable-on`
+  - Post data: `tweet_id` (unique), `posted_at`, `text`, `permalink_url`, `lang`, `source`
+  - Engagement metrics: `favorite_count`, `retweet_count`, `reply_count`, `quote_count`, `views_count`, `bookmark_count`
+  - Tweet types: `is_retweet`, `is_quote` flags
+  - Payload: Full JSON response from Twitter API stored in `payload` field
+  - Scopes: `recent`, `for_profile`, `within_range`, `for_tags`, `for_topic`
+  - Analytics methods: `grouped_counts`, `total_interactions`, `word_occurrences`, `bigram_occurrences`
+  - Helper methods: `words`, `bigrams`, `tweet_url`, `site` (through profile)
 
 ### Key Data Flow
 
 1. **Crawling**: Anemone-based web crawler (`lib/tasks/crawler.rake`) visits sites hourly
 2. **Extraction**: Services in `app/services/web_extractor_services/` parse content, dates, tags
 3. **Analysis**: OpenAI integration for sentiment analysis and report generation
-4. **Social Data**: Facebook Graph API integration for engagement metrics
+4. **Social Data**:
+   - Facebook Graph API integration for engagement metrics via `FacebookServices::FanpageCrawler`
+   - Fetches posts with full reaction breakdowns (like, love, wow, haha, sad, angry, thankful)
+   - Calculates estimated views based on engagement formula
+   - Stores posts as `FacebookEntry` records with comprehensive metadata
+   - Twitter GraphQL API integration for profile and tweet data
+   - Fetches tweets with engagement metrics via `TwitterServices::GetPostsData`
+   - Processes and stores tweets as `TwitterPost` records
+   - Auto-tags tweets using Tag vocabulary via `TwitterServices::ExtractTags`
 
 ## Technology Stack & Dependencies
 
@@ -136,7 +168,18 @@ end
 
 - `AiServices::OpenAiQuery` - ChatGPT integration for sentiment & reports
 - `FacebookServices::*` - Social media data extraction
+  - `UpdatePage` - Fetches Facebook page metadata (name, username, followers, category, description, picture)
+  - `FanpageCrawler` - Crawls Facebook posts from Pages with full engagement metrics
+  - `CommentCrawler` - Fetches comments from specific Facebook posts
+  - `UpdateStats` - Updates engagement statistics for Entry URLs via Facebook Graph API
+- `TwitterServices::*` - Twitter API integration for profile and post data
+  - `GetProfileData` - Fetches raw Twitter profile information
+  - `GetPostsData` - Retrieves user tweets via Twitter GraphQL API (fetches up to 100 tweets per request)
+  - `UpdateProfile` - Extracts and formats profile data for database storage
+  - `ProcessPosts` - Extracts and persists tweets from Twitter API responses
+  - `ExtractTags` - Auto-tags tweets using Tag vocabulary with text matching
 - `WebExtractorServices::*` - Content parsing and tag extraction
+  - `ExtractFacebookEntryTags` - Tags Facebook entries using existing Tag vocabulary with text matching
 
 ## Critical Development Workflows
 
@@ -153,7 +196,13 @@ docker-compose up          # Start Elasticsearch + Redis dependencies
 rake crawler              # Main web crawler (hourly)
 rake headless_crawler     # Selenium-based crawler for JS sites
 rake ai:generate_ai_reports # AI-powered topic summaries
-rake facebook:fanpage_crawler # Social media data collection
+rake facebook:fanpage_crawler # Crawl Facebook posts from tracked Pages
+rake facebook:entry_tagger    # Tag Facebook entries using Tag vocabulary
+rake facebook:update_fanpages # Update Facebook Page metadata (followers, etc.)
+rake facebook:comment_crawler # Fetch comments from Facebook posts
+rake twitter:update_profiles  # Update Twitter profile stats
+rake twitter:profile_crawler  # Crawl tweets from tracked profiles
+rake twitter:post_tagger      # Tag Twitter posts using Tag vocabulary
 ```
 
 ### Search & Analytics
@@ -173,6 +222,7 @@ rake facebook:fanpage_crawler # Social media data collection
 - **User management**: Separate `users` (frontend) and `admin_users` (ActiveAdmin) with different access levels
 - **Content versioning**: PaperTrail integration via `versions` table for audit trails
 - **Facebook integration**: `pages` table stores fanpage metadata, `comments` stores social interactions
+- **Twitter integration**: `twitter_profiles` table tracks Twitter accounts with profile data (`uid`, `username`, `name`, `picture`, `followers`, `description`, `verified`), `twitter_posts` table stores individual tweets with full engagement metrics (`tweet_id`, `posted_at`, `text`, `favorite_count`, `retweet_count`, `reply_count`, `quote_count`, `views_count`, `bookmark_count`, `is_retweet`, `is_quote`, `payload`)
 - **Newspaper archival**: `newspapers` and `newspaper_texts` for daily content snapshots
 - Spanish locale (`config.i18n.default_locale = :es`)
 
@@ -200,6 +250,7 @@ rake facebook:fanpage_crawler # Social media data collection
 
 - **OpenAI**: GPT-3.5-turbo for sentiment analysis and report generation
 - **Facebook Graph API**: Fetches post engagement metrics and comments
+- **Twitter GraphQL API**: Fetches profile data and user tweets (via unofficial endpoint with bearer token)
 - **Elasticsearch**: Full-text search with Spanish-language considerations
 
 ### File Processing

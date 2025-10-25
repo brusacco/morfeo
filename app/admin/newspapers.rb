@@ -1,5 +1,5 @@
 ActiveAdmin.register Newspaper do
-  menu parent: 'Settings', label: 'Newspapers'
+  menu parent: 'Entries Listing', label: 'Portadas'
   filter :date, label: 'Fecha'
   filter :site_id, label: 'Medio', as: :select, collection: Site.all.map { |u| [u.name, u.id] }, include_blank: true
 

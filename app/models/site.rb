@@ -8,6 +8,7 @@ class Site < ApplicationRecord
 
   has_many :entries, dependent: :destroy
   has_one :page, dependent: :destroy
+  has_many :twitter_profiles, dependent: :destroy
 
   scope :enabled, -> { where(status: true) }
   scope :disabled, -> { where(status: false) }

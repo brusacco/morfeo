@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_10_25_114600) do
+ActiveRecord::Schema[7.0].define(version: 2025_10_25_160054) do
   create_table "active_admin_comments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "namespace"
     t.text "body"
@@ -306,6 +306,46 @@ ActiveRecord::Schema[7.0].define(version: 2025_10_25_114600) do
     t.index ["status"], name: "index_topics_on_status"
   end
 
+  create_table "twitter_posts", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "twitter_profile_id", null: false
+    t.string "tweet_id", null: false
+    t.datetime "posted_at", null: false
+    t.datetime "fetched_at"
+    t.text "text"
+    t.string "permalink_url"
+    t.integer "quote_count", default: 0, null: false
+    t.integer "reply_count", default: 0, null: false
+    t.integer "retweet_count", default: 0, null: false
+    t.integer "favorite_count", default: 0, null: false
+    t.integer "views_count", default: 0, null: false
+    t.integer "bookmark_count", default: 0, null: false
+    t.string "lang"
+    t.string "source"
+    t.boolean "is_retweet", default: false
+    t.boolean "is_quote", default: false
+    t.json "payload"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tweet_id"], name: "index_twitter_posts_on_tweet_id", unique: true
+    t.index ["twitter_profile_id", "posted_at"], name: "index_twitter_posts_on_twitter_profile_id_and_posted_at"
+    t.index ["twitter_profile_id"], name: "index_twitter_posts_on_twitter_profile_id"
+  end
+
+  create_table "twitter_profiles", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.string "uid"
+    t.string "name"
+    t.string "username"
+    t.text "picture"
+    t.integer "followers", default: 0
+    t.text "description"
+    t.boolean "verified", default: false
+    t.bigint "site_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["site_id"], name: "index_twitter_profiles_on_site_id"
+    t.index ["uid"], name: "index_twitter_profiles_on_uid", unique: true
+  end
+
   create_table "user_topics", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.bigint "topic_id", null: false
@@ -351,6 +391,8 @@ ActiveRecord::Schema[7.0].define(version: 2025_10_25_114600) do
   add_foreign_key "templates", "topics"
   add_foreign_key "title_topic_stat_dailies", "topics"
   add_foreign_key "topic_stat_dailies", "topics"
+  add_foreign_key "twitter_posts", "twitter_profiles"
+  add_foreign_key "twitter_profiles", "sites"
   add_foreign_key "user_topics", "topics"
   add_foreign_key "user_topics", "users"
 end

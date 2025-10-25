@@ -60,9 +60,10 @@ module TwitterServices
       {
         userId: @user_id,
         count: 100,
-        includePromotedContent: true,
+        includePromotedContent: false,
         withQuickPromoteEligibilityTweetFields: true,
-        withVoice: true
+        withVoice: true,
+        withV2Timeline: true
       }
     end
 
