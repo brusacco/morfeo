@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 ActiveAdmin.register Entry do
+  menu parent: 'Entries Listing', label: 'Digital Entries'
   config.sort_order = 'published_at_desc'
   permit_params :url, :title, :enabled, :repeated
 
@@ -8,12 +9,12 @@ ActiveAdmin.register Entry do
 
   scoped_collection_action :scoped_collection_update,
                            title: 'Actualizaciones Rapidas',
-                           form: -> do
+                           form: lambda {
                                    {
                                      notas_Repetidas: [['Hecho. Quitar del listado', 2], ['No es nota repetida', 0]],
                                      habilitar_Deshabilitar_Notas: [['Habilitar', true], ['Deshabilitar', false]]
                                    }
-                                 end
+                                 }
 
   filter :site, collection: proc { Site.order(:name) }
   filter :url

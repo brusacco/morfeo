@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 ActiveAdmin.register AdminUser do
+  menu parent: 'Users Admin', label: 'Admin Users'
   permit_params :email, :password, :password_confirmation
 
   index do

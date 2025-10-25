@@ -1,5 +1,8 @@
+# frozen_string_literal: true
+
 ActiveAdmin.register User do
   # filters
+  menu parent: 'Users Admin', label: 'Users'
   scope 'Todos', :all, default: :true
 
   filter :name, label: 'Nombre'
@@ -9,14 +12,14 @@ ActiveAdmin.register User do
   # CRUD
   permit_params :name, :email, :status, :password, :password_confirmation, topic_ids: []
   form html: { enctype: 'multipart/form-data', multipart: true } do |f|
-    if !f.object.new_record?
+    unless f.object.new_record?
       panel 'Usuario' do
-        "<h2>#{f.object.name.to_s}</h2>".html_safe
+        "<h2>#{f.object.name}</h2>".html_safe
       end
     end
     columns do
       column do
-        f.inputs "Actualizar datos de Usuario", :multipart => true do
+        f.inputs 'Actualizar datos de Usuario', multipart: true do
           f.input :name, label: 'Nombre'
           f.input :email, label: 'Email'
           f.input :password, label: 'Contreseña'
@@ -24,11 +27,11 @@ ActiveAdmin.register User do
         end
       end
       column do
-        f.inputs "Lista de Topicos", multipart: :true do
+        f.inputs 'Lista de Topicos', multipart: :true do
           f.input :topics,
                   label: 'Asiganar a:',
                   as: :check_boxes,
-                  :collection => Topic.all.collect { |topic|
+                  collection: Topic.all.collect { |topic|
                     [topic.name, topic.id]
                   }
         end
@@ -47,7 +50,7 @@ ActiveAdmin.register User do
     end
     column :email
 
-    column "Tópico(s) asignado(s)" do |user|
+    column 'Tópico(s) asignado(s)' do |user|
       user.topics.map { |topic| link_to topic.name, admin_topic_path(topic) }
           .join('<br />').html_safe
     end

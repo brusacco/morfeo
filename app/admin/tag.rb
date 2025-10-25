@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 ActiveAdmin.register Tag do
+  menu parent: 'Topics Setup', label: 'Setup Tags'
   permit_params :name, :variations, topic_ids: []
 
   #------------------------------------------------------------------

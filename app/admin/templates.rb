@@ -1,8 +1,9 @@
 ActiveAdmin.register Template do
+  menu parent: 'Settings', label: 'Templates'
   permit_params :topic_id, :title, :sumary, :start_date, :end_date, :admin_user_id
   actions :all, except: :destroy
 
-  action_item :reporte, only: [:show, :edit] do
+  action_item :reporte, only: %i[show edit] do
     link_to 'Reporte PDF', template_path(start_date: template.start_date, end_date: template.end_date), target: :blank
   end
 

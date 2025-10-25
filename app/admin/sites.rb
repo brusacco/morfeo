@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 ActiveAdmin.register Site do
+  menu parent: 'Settings', label: 'Sites'
   permit_params :name, :url, :filter, :content_filter, :negative_filter, :page, :status, :is_js
 
   filter :name

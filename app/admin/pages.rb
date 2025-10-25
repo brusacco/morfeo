@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 ActiveAdmin.register Page do
+  menu parent: 'Settings', label: 'Pages'
   permit_params :uid, :name, :username, :picture, :followers, :category, :description, :website, :site_id
 
   filter :uid, as: :string
@@ -29,9 +30,9 @@ ActiveAdmin.register Page do
   end
 
   form do |f|
-    if !f.object.new_record?
+    unless f.object.new_record?
       panel 'Page' do
-        "<h2>#{f.object.name.to_s}</h2>".html_safe
+        "<h2>#{f.object.name}</h2>".html_safe
       end
     end
     f.inputs 'Page' do

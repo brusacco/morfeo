@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 ActiveAdmin.register FacebookEntry do
+  menu parent: 'Entries Listing', label: 'Facebook Entries'
   includes :page
 
   actions :all, except: %i[new edit destroy]
