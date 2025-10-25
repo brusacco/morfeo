@@ -50,31 +50,31 @@
     </div>
     <div class="mt-4 pt-3 border-t border-gray-200">
       <div class="grid grid-cols-5 gap-2 text-center">
-        <div>
+        <div title="Reacciones totales">
           <div class="text-xs text-gray-500 mb-1">
             <i class="fa-solid fa-thumbs-up text-blue-600"></i>
           </div>
           <div class="text-sm font-semibold text-blue-600"><%= number_with_delimiter(facebook_entry.reactions_total_count) %></div>
         </div>
-        <div>
+        <div title="Comentarios">
           <div class="text-xs text-gray-500 mb-1">
             <i class="fa-solid fa-comment text-green-600"></i>
           </div>
           <div class="text-sm font-semibold text-green-600"><%= number_with_delimiter(facebook_entry.comments_count) %></div>
         </div>
-        <div>
+        <div title="Compartidos">
           <div class="text-xs text-gray-500 mb-1">
             <i class="fa-solid fa-share text-purple-600"></i>
           </div>
           <div class="text-sm font-semibold text-purple-600"><%= number_with_delimiter(facebook_entry.share_count) %></div>
         </div>
-        <div>
+        <div title="Vistas estimadas">
           <div class="text-xs text-gray-500 mb-1">
             <i class="fa-solid fa-eye text-amber-600"></i>
           </div>
           <div class="text-sm font-semibold text-amber-600"><%= number_with_delimiter(facebook_entry.views_count) %></div>
         </div>
-        <div>
+        <div title="Total de interacciones">
           <div class="text-xs text-gray-500 mb-1">
             <i class="fa-solid fa-chart-line text-indigo-600"></i>
           </div>
