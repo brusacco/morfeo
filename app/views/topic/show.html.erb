@@ -534,7 +534,7 @@
     <!-- Latest News Section -->
     <section class="mb-8">
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <%= render partial: 'entry/entries_table', locals: { entries: @entries, title: "Últimas Noticias sobre #{@topic.name}" } %>
+        <%= render partial: 'entry/entries_table', locals: { entries: @entries, title: "Todas las publicaciones etiquetadas con #{@topic.name}" } %>
       </div>
     </section>
     <!-- Word Cloud Section -->
@@ -596,7 +596,7 @@
     <% end %>
     <!-- Top Interactions Section -->
     <section class="mb-8">
-      <%= render partial: 'entry/entries', locals: { last_entries: @most_interactions.includes(:tags, :site), title: 'Top Notas Interacciones del Tópico' } %>
+      <%= render partial: 'entry/entries', locals: { last_entries: @most_interactions.includes(:tags, :site), title: 'Publicaciones con más interacciones' } %>
     </section>
   </div>
 </main>
