@@ -74,7 +74,7 @@ module TwitterServices
           end
 
           Rails.logger.warn("[TwitterServices::GetPostsDataAuth] Timeout (attempt #{retry_count}/#{max_retries}), retrying...")
-          sleep(3)
+          sleep(retry_count * 5)
           retry
         end
 
