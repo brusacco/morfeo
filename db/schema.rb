@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_10_25_160054) do
+ActiveRecord::Schema[7.0].define(version: 2025_10_26_030342) do
   create_table "active_admin_comments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "namespace"
     t.text "body"
@@ -326,6 +326,8 @@ ActiveRecord::Schema[7.0].define(version: 2025_10_25_160054) do
     t.json "payload"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "entry_id"
+    t.index ["entry_id"], name: "index_twitter_posts_on_entry_id"
     t.index ["tweet_id"], name: "index_twitter_posts_on_tweet_id", unique: true
     t.index ["twitter_profile_id", "posted_at"], name: "index_twitter_posts_on_twitter_profile_id_and_posted_at"
     t.index ["twitter_profile_id"], name: "index_twitter_posts_on_twitter_profile_id"
@@ -391,6 +393,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_10_25_160054) do
   add_foreign_key "templates", "topics"
   add_foreign_key "title_topic_stat_dailies", "topics"
   add_foreign_key "topic_stat_dailies", "topics"
+  add_foreign_key "twitter_posts", "entries"
   add_foreign_key "twitter_posts", "twitter_profiles"
   add_foreign_key "twitter_profiles", "sites"
   add_foreign_key "user_topics", "topics"

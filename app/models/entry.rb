@@ -6,6 +6,7 @@ class Entry < ApplicationRecord
   validates :url, uniqueness: true
   belongs_to :site, touch: true
   has_many :comments, dependent: :destroy
+  has_one :twitter_post, dependent: :nullify
 
   alias_attribute :habilitar_Deshabilitar_Notas, :enabled
   alias_attribute :notas_Repetidas, :repeated

@@ -12,6 +12,7 @@ ActiveAdmin.register TwitterPost do
   filter :lang
   filter :is_retweet
   filter :is_quote
+  filter :entry_id, label: 'Linked to Entry'
   filter :created_at
 
   index do
@@ -21,6 +22,13 @@ ActiveAdmin.register TwitterPost do
     column :twitter_profile
     column :posted_at
     column :lang
+    column 'Linked' do |post|
+      if post.entry_id.present?
+        status_tag('Yes', class: 'ok')
+      else
+        status_tag('No', class: 'warning')
+      end
+    end
     column :tags
     column :text do |post|
       truncate(post.text, length: 120)
@@ -38,6 +46,13 @@ ActiveAdmin.register TwitterPost do
     attributes_table do
       row :tweet_id
       row :twitter_profile
+      row :entry do |post|
+        if post.entry
+          link_to post.entry.title, admin_entry_path(post.entry)
+        else
+          status_tag('Not Linked', class: 'warning')
+        end
+      end
       row :posted_at
       row :fetched_at
       row :permalink_url do |post|

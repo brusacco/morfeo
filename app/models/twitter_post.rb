@@ -2,6 +2,7 @@
 
 class TwitterPost < ApplicationRecord
   belongs_to :twitter_profile
+  belongs_to :entry, optional: true
   acts_as_taggable_on :tags
 
   validates :tweet_id, presence: true, uniqueness: true
@@ -83,5 +84,48 @@ class TwitterPost < ApplicationRecord
     return unless twitter_profile&.username && tweet_id
 
     "https://twitter.com/#{twitter_profile.username}/status/#{tweet_id}"
+  end
+
+  def site
+    twitter_profile&.site
+  end
+
+  # Extract external URLs from the tweet (news articles, etc.)
+  def external_urls
+    return [] unless payload
+
+    entities = payload.dig('legacy', 'entities')
+    return [] unless entities
+
+    urls = entities['urls'] || []
+    urls.map { |url_obj| url_obj['expanded_url'] }
+        .compact
+  end
+
+  # Get the first external URL (most common case for news tweets)
+  def primary_url
+    external_urls.first
+  end
+
+  # Check if tweet has external URLs
+  def has_external_url?
+    external_urls.any?
+  end
+
+  # Try to find a matching Entry based on the primary URL
+  def find_matching_entry
+    return unless has_external_url?
+
+    Entry.find_by(url: primary_url)
+  end
+
+  # Link this tweet to an Entry if a match is found
+  def link_to_entry!
+    return false unless has_external_url?
+
+    matching_entry = find_matching_entry
+    return false unless matching_entry
+
+    update(entry: matching_entry)
   end
 end
