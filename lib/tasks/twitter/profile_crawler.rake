@@ -9,7 +9,7 @@ namespace :twitter do
       puts "  Latest tweet in DB: #{profile.twitter_posts.order(posted_at: :desc).first&.posted_at || 'None'}"
 
       # Retry logic for rate limits
-      max_retries = 2
+      max_retries = 3
       retry_count = 0
       response = nil
 
@@ -20,8 +20,8 @@ namespace :twitter do
         if !response.success? && (response.error.to_s.include?('Rate') || response.error.to_s.include?('429'))
           retry_count += 1
           if retry_count <= max_retries
-            puts "  -> Rate limit hit, waiting 5 seconds before retry (attempt #{retry_count}/#{max_retries})..."
-            sleep(5)
+            puts "  -> Rate limit hit, waiting #{retry_count * 5} seconds before retry (attempt #{retry_count}/#{max_retries})..."
+            sleep(retry_count * 5)
             next
           else
             puts "  -> Max retries reached, skipping #{profile.username}"
@@ -62,7 +62,7 @@ namespace :twitter do
       puts '---------------------------------------------------'
 
       # Sleep between profiles to avoid rate limiting
-      sleep(rand(3..8))
+      sleep(rand(10..20))
     end
   end
 end
