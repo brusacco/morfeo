@@ -1,9 +1,3 @@
-<nav aria-label="breadcrumb">
-  <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="/">Home</a></li>
-    <li class="breadcrumb-item">Resumen Semanal</li>
-  </ol>
-</nav>
 <% 
   Date.today.to_date.downto(1.week.ago.to_date) do |date| 
   entries = Entry.where(published_date: date.to_date).order(total_count: :desc).limit(12)

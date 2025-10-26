@@ -23,7 +23,7 @@ class EntryController < ApplicationController
     # @comments_bigram_occurrences = @comments.bigram_occurrences
 
     @tags_interactions = Entry.joins(:tags)
-                              .where(id: @entries.select(:id), tags: { id: @tags.map(&:id) })
+                              .where(id: @entries.pluck(:id), tags: { id: @tags.map(&:id) })
                               .group('tags.name')
                               .order(Arel.sql('SUM(total_count) DESC'))
                               .sum(:total_count)
@@ -38,7 +38,7 @@ class EntryController < ApplicationController
     @tags = @entries.tag_counts_on(:tags).order(count: :desc)
 
     @tags_interactions = Entry.joins(:tags)
-                              .where(id: @entries.select(:id), tags: { id: @tags.map(&:id) })
+                              .where(id: @entries.pluck(:id), tags: { id: @tags.map(&:id) })
                               .group('tags.name')
                               .order(Arel.sql('SUM(tw_total) DESC'))
                               .sum(:tw_total)
@@ -57,7 +57,7 @@ class EntryController < ApplicationController
     @tags_interactions =
       Rails.cache.fetch('tags_interactions_commented', expires_in: 1.hour) do
         Entry.joins(:tags)
-             .where(id: @entries.select(:id), tags: { id: @tags.map(&:id) })
+             .where(id: @entries.pluck(:id), tags: { id: @tags.map(&:id) })
              .group('tags.name')
              .order(Arel.sql('SUM(total_count) DESC'))
              .sum(:total_count)
