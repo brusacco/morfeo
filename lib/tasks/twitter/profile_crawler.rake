@@ -60,6 +60,9 @@ namespace :twitter do
         end
       end
       puts '---------------------------------------------------'
+
+      # Sleep between profiles to avoid rate limiting
+      sleep(rand(3..8))
     end
   end
 end
