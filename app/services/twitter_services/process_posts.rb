@@ -31,7 +31,7 @@ module TwitterServices
       data_array.each_with_index do |data, page_index|
         Rails.logger.info("[TwitterServices::ProcessPosts] Crawling page #{page_index + 1} for #{profile.username}")
         puts "  -> Crawling page #{page_index + 1}..."
-        
+
         tweets = extract_tweets(data)
         page_saved = []
 

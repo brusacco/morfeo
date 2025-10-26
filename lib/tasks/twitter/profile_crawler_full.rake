@@ -3,10 +3,10 @@
 namespace :twitter do
   desc 'Twitter Profile Posts Crawler - Full Crawl (fetches all pages without stopping on duplicates)'
   task profile_crawler_full: :environment do
-    puts "Starting FULL Twitter Profile Crawler"
-    puts "This will fetch all available pages regardless of duplicates"
-    puts "AND update engagement metrics for existing tweets"
-    puts "---------------------------------------------------"
+    puts 'Starting FULL Twitter Profile Crawler'
+    puts 'This will fetch all available pages regardless of duplicates'
+    puts 'AND update engagement metrics for existing tweets'
+    puts '---------------------------------------------------'
 
     TwitterProfile.find_each do |profile|
       puts "Processing Twitter Profile: #{profile.name || profile.username} (@#{profile.username})"
