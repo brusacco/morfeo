@@ -53,7 +53,8 @@ class TwitterPost < ApplicationRecord
     scope.find_each do |post|
       post.words.each { |word| occurrences[word] += 1 }
     end
-    occurrences.sort_by { |_, count| -count }
+    occurrences.select { |_word, count| count > 1 }
+               .sort_by { |_, count| -count }
                .first(limit)
   end
 
@@ -62,7 +63,8 @@ class TwitterPost < ApplicationRecord
     scope.find_each do |post|
       post.bigrams.each { |bigram| occurrences[bigram] += 1 if bigram.present? }
     end
-    occurrences.sort_by { |_, count| -count }
+    occurrences.select { |_bigram, count| count > 1 }
+               .sort_by { |_, count| -count }
                .first(limit)
   end
 
@@ -72,12 +74,19 @@ class TwitterPost < ApplicationRecord
 
   def words
     tokens = text.to_s.downcase.scan(/[[:alpha:]]+/)
-    stop_words = defined?(STOP_WORDS) ? STOP_WORDS : []
-    tokens.reject { |word| word.length <= 1 || stop_words.include?(word) }
+    tokens.reject { |word| word.length <= 2 || STOP_WORDS.include?(word) }
   end
 
   def bigrams
-    words.each_cons(2).map { |pair| pair.join(' ') }
+    words_array = words
+    words_array.each_cons(2).map do |word1, word2|
+      bigram = "#{word1} #{word2}"
+      # Filter out bigrams where either word is a stop word or too short
+      next if STOP_WORDS.include?(word1) || STOP_WORDS.include?(word2)
+      next if word1.length <= 2 || word2.length <= 2
+
+      bigram
+    end.compact
   end
 
   def tweet_url

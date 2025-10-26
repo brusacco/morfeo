@@ -55,6 +55,7 @@ Morfeo is a Rails 7 news monitoring system that crawls websites, extracts articl
     - Converts `=>` to `:` before JSON parsing to avoid eval() security risks
   - URL extraction: `external_urls` returns array of expanded URLs from tweet entities
   - Linking: `find_matching_entry`, `link_to_entry!` methods for Entry cross-referencing
+  - **Tag Inheritance**: When linked to an Entry, automatically inherits all Entry tags during tagging process
   - Scopes: `recent`, `for_profile`, `within_range`, `for_tags`, `for_topic`
   - Analytics methods: `grouped_counts`, `total_interactions`, `word_occurrences`, `bigram_occurrences`
   - Helper methods: `words`, `bigrams`, `tweet_url`, `site` (through profile), `primary_url`, `has_external_url?`
@@ -186,7 +187,7 @@ end
   - `GetPostsDataAuth` - **Authenticated API** using session cookies (auth_token, ct0), fetches fresh real-time tweets with pagination (up to 500 tweets across 5 requests)
   - `UpdateProfile` - Extracts and formats profile data for database storage
   - `ProcessPosts` - Extracts and persists tweets from Twitter API responses, automatically uses authenticated API when ENV credentials are present, falls back to guest token
-  - `ExtractTags` - Auto-tags tweets using Tag vocabulary with text matching
+  - `ExtractTags` - Auto-tags tweets using Tag vocabulary with text matching, **includes entry tag inheritance** (see below)
   - `LinkToEntries` - Batch service to link TwitterPosts to Entries by matching external URLs
 - `WebExtractorServices::*` - Content parsing and tag extraction
   - `ExtractFacebookEntryTags` - Tags Facebook entries using existing Tag vocabulary with text matching
@@ -244,6 +245,45 @@ The system can automatically link tweets to news articles they reference:
 - ~70% of tweets contain external URLs
 - ~10% of tweets with URLs match existing Entry records
 - Matching considers URL variations (with/without www, query params, etc.)
+
+### Twitter Tag Inheritance from Entries
+
+The tagging system automatically inherits tags from linked Entry records, ensuring consistency between tweets and the news articles they reference:
+
+**How It Works:**
+
+1. **Text Matching**: `TwitterServices::ExtractTags` first searches for tags in the tweet's text using the Tag vocabulary
+2. **Entry Tag Inheritance**: If the tweet has an `entry_id` (linked to a news article), it also pulls all tags from that Entry
+3. **Tag Merging**: Both tag sources (text matching + entry tags) are combined and deduplicated
+4. **Application**: The final unique tag list is applied to the TwitterPost
+
+**Implementation Details:**
+
+```ruby
+# In TwitterServices::ExtractTags#call
+if twitter_post.entry.present?
+  entry_tags = twitter_post.entry.tag_list
+  tags_found.concat(entry_tags) if entry_tags.any?
+end
+```
+
+**Benefits:**
+
+- **Better Topic Coverage**: Tweets linking to news articles automatically inherit comprehensive article tagging
+- **Cross-Platform Consistency**: Tweets and their referenced articles share the same tags for better analytics
+- **Reduced Manual Tagging**: Leverages existing Entry tags instead of relying solely on tweet text matching
+- **Improved Analytics**: Topic dashboards get more accurate data when tweets inherit proper tags
+
+**Workflow:**
+
+1. `rake twitter:link_to_entries` - Links tweets to entries by URL matching
+2. `rake twitter:post_tagger` - Tags tweets (includes entry tag inheritance if linked)
+3. Result: Linked tweets have tags from both text analysis and their referenced articles
+
+**Performance Optimization:**
+
+- Rake task uses `.includes(:entry)` to prevent N+1 queries when checking for linked entries
+- Enhanced logging shows which tweets benefit from entry tag inheritance
 
 ## Project-Specific Conventions
 
