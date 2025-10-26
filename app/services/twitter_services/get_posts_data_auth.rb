@@ -69,19 +69,20 @@ module TwitterServices
             end
         rescue Net::ReadTimeout, Net::OpenTimeout => e
           retry_count += 1
-          if retry_count <= max_retries
-            Rails.logger.warn("[TwitterServices::GetPostsDataAuth] Timeout (attempt #{retry_count}/#{max_retries}), retrying...")
-            sleep(3)
-            retry
-          else
+          unless retry_count <= max_retries
             return handle_error("Request timeout after #{max_retries} retries: #{e.message}")
           end
+
+          Rails.logger.warn("[TwitterServices::GetPostsDataAuth] Timeout (attempt #{retry_count}/#{max_retries}), retrying...")
+          sleep(3)
+          retry
         end
 
         data = JSON.parse(response.body)
 
         unless response.success?
-          error_message = data['errors']&.map { |err| err['message'] }&.join(', ') || 'Unknown error'
+          error_message = data['errors']&.map { |err| err['message'] }
+&.join(', ') || 'Unknown error'
           return handle_error("API Error: #{error_message}")
         end
 
@@ -139,11 +140,7 @@ module TwitterServices
 
       # Pass auth headers directly - scrape.do will forward them to Twitter
       # Increase timeout to 90 seconds for proxy requests (they take longer)
-      HTTParty.get(
-        proxy_url,
-        timeout: 90,
-        headers: auth_headers
-      )
+      HTTParty.get(proxy_url, timeout: 90, headers: auth_headers)
     end
 
     def auth_headers
