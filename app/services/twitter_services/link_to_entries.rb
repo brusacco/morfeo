@@ -21,9 +21,20 @@ module TwitterServices
       linked_count = 0
       processed_count = 0
       skipped_count = 0
+      debug_count = 0
 
       @scope.find_each do |twitter_post|
         processed_count += 1
+
+        # Debug first 3 tweets to see what's happening
+        if debug_count < 3
+          Rails.logger.info("[TwitterServices::LinkToEntries] DEBUG Tweet #{twitter_post.tweet_id}")
+          Rails.logger.info("  Payload class: #{twitter_post.payload.class}")
+          Rails.logger.info("  Payload present: #{twitter_post.payload.present?}")
+          Rails.logger.info("  Has external URL: #{twitter_post.has_external_url?}")
+          Rails.logger.info("  External URLs: #{twitter_post.external_urls.inspect}")
+          debug_count += 1
+        end
 
         # Skip tweets without external URLs
         unless twitter_post.has_external_url?
