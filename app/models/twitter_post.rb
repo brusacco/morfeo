@@ -98,26 +98,28 @@ class TwitterPost < ApplicationRecord
     # - Hash (already parsed)
     # - JSON string (proper JSON with colons)
     # - Ruby inspected string (with hash rockets =>)
-    parsed_payload = case payload
-                     when Hash
-                       payload
-                     when String
-                       if payload.include?('=>')
-                         # Ruby inspected hash string - eval it safely
-                         eval(payload) # rubocop:disable Security/Eval
-                       else
-                         # JSON string
-                         JSON.parse(payload)
-                       end
-                     else
-                       return []
-                     end
+    parsed_payload =
+      case payload
+      when Hash
+        payload
+      when String
+        if payload.include?('=>')
+          # Ruby inspected hash string - eval it safely
+          eval(payload)
+        else
+          # JSON string
+          JSON.parse(payload)
+        end
+      else
+        return []
+      end
 
     entities = parsed_payload.dig('legacy', 'entities')
     return [] unless entities
 
     urls = entities['urls'] || []
-    urls.map { |url_obj| url_obj['expanded_url'] }.compact
+    urls.map { |url_obj| url_obj['expanded_url'] }
+        .compact
   rescue StandardError => e
     Rails.logger.error("[TwitterPost#external_urls] Failed to parse payload for tweet #{tweet_id}: #{e.message}")
     []
