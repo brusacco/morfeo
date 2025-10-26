@@ -18,7 +18,9 @@ namespace :twitter do
 
       puts "Tweet #{twitter_post.tweet_id}"
       puts "Tags: #{result.data.join(', ')}"
-      puts "Linked to entry: #{twitter_post.entry.present? ? "Yes (#{twitter_post.entry.url})" : 'No'}" if twitter_post.entry.present?
+      if twitter_post.entry.present?
+        puts "Linked to entry: #{twitter_post.entry.present? ? "Yes (#{twitter_post.entry.url})" : 'No'}"
+      end
       puts "Posted: #{twitter_post.posted_at}"
       puts '---------------------------------------------------'
     rescue StandardError => e
