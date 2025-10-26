@@ -2,6 +2,7 @@
 
 require 'httparty'
 require 'json'
+require 'cgi'
 
 module TwitterServices
   # TwitterServices::GetPostsDataAuth
@@ -20,6 +21,7 @@ module TwitterServices
   # - TWITTER_AUTH_TOKEN: The auth_token cookie value from a logged-in session
   # - TWITTER_CT0_TOKEN: The ct0 (CSRF token) cookie value
   # - TWITTER_BEARER_TOKEN: The bearer token (can be the same as guest approach)
+  # - SCRAPE_DO_TOKEN: (Optional) Token for scrape.do proxy service
   #
   # Example usage:
   #   result = TwitterServices::GetPostsDataAuth.call('123456789')
@@ -32,9 +34,11 @@ module TwitterServices
 
     base_uri 'https://twitter.com/i/api'
 
-    def initialize(user_id, max_requests: 2)
+    def initialize(user_id, max_requests: 2, use_proxy: false)
       @user_id = user_id
       @max_requests = max_requests # Number of paginated requests (each returns ~20 tweets)
+      @use_proxy = use_proxy || ENV['USE_SCRAPE_DO_PROXY'] == 'true'
+      @scrape_do_token = ENV['SCRAPE_DO_TOKEN'] || 'ed138ed418924138923ced2b81e04d53'
       @bearer_token = ENV['TWITTER_BEARER_TOKEN'] || 'AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs=1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA'
       @auth_token = ENV.fetch('TWITTER_AUTH_TOKEN', nil)
       @ct0_token = ENV.fetch('TWITTER_CT0_TOKEN', nil)
@@ -51,15 +55,11 @@ module TwitterServices
       request_count = 0
 
       loop do
-        response = self.class.get(
-          '/graphql/E8Wq-_jFSaU7hxVcuOPR9g/UserTweets',
-          headers: auth_headers,
-          query: {
-            variables: variables(cursor).to_json,
-            features: features.to_json,
-            fieldToggles: { withArticlePlainText: false }.to_json
-          }
-        )
+        response = if @use_proxy
+                     make_proxy_request(cursor)
+                   else
+                     make_direct_request(cursor)
+                   end
 
         data = JSON.parse(response.body)
 
@@ -91,6 +91,42 @@ module TwitterServices
     end
 
     private
+
+    def make_direct_request(cursor)
+      self.class.get(
+        '/graphql/E8Wq-_jFSaU7hxVcuOPR9g/UserTweets',
+        headers: auth_headers,
+        query: {
+          variables: variables(cursor).to_json,
+          features: features.to_json,
+          fieldToggles: { withArticlePlainText: false }.to_json
+        }
+      )
+    end
+
+    def make_proxy_request(cursor)
+      # Build the full Twitter API URL
+      base_url = 'https://twitter.com/i/api/graphql/E8Wq-_jFSaU7hxVcuOPR9g/UserTweets'
+      params = {
+        variables: variables(cursor).to_json,
+        features: features.to_json,
+        fieldToggles: { withArticlePlainText: false }.to_json
+      }
+      
+      # Build URL with query parameters
+      query_string = URI.encode_www_form(params)
+      twitter_url = "#{base_url}?#{query_string}"
+      
+      # Scrape.do API Mode URL with customHeaders=true
+      proxy_url = "https://api.scrape.do/?token=#{@scrape_do_token}&url=#{CGI.escape(twitter_url)}&customHeaders=true"
+      
+      # Pass auth headers directly - scrape.do will forward them to Twitter
+      HTTParty.get(
+        proxy_url,
+        timeout: 30,
+        headers: auth_headers
+      )
+    end
 
     def auth_headers
       {
