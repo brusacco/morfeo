@@ -31,6 +31,12 @@ module TwitterServices
         end
       end
 
+      # If tweet is linked to an entry, add the entry's tags
+      if twitter_post.entry.present?
+        entry_tags = twitter_post.entry.tag_list
+        tags_found.concat(entry_tags) if entry_tags.any?
+      end
+
       if tags_found.empty?
         handle_error('No tags found')
       else

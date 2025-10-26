@@ -3,7 +3,7 @@
 namespace :twitter do
   desc 'Tag Twitter posts using existing Tag vocabulary'
   task post_tagger: :environment do
-    scope = TwitterPost.where(posted_at: 7.days.ago..Time.current).order(posted_at: :desc)
+    scope = TwitterPost.includes(:entry).where(posted_at: 7.days.ago..Time.current).order(posted_at: :desc)
 
     scope.find_each do |twitter_post|
       result = TwitterServices::ExtractTags.call(twitter_post.id)
@@ -18,6 +18,7 @@ namespace :twitter do
 
       puts "Tweet #{twitter_post.tweet_id}"
       puts "Tags: #{result.data.join(', ')}"
+      puts "Linked to entry: #{twitter_post.entry.present? ? "Yes (#{twitter_post.entry.url})" : 'No'}" if twitter_post.entry.present?
       puts "Posted: #{twitter_post.posted_at}"
       puts '---------------------------------------------------'
     rescue StandardError => e
