@@ -101,7 +101,8 @@ class TwitterPost < ApplicationRecord
     return [] unless entities
 
     urls = entities['urls'] || []
-    urls.map { |url_obj| url_obj['expanded_url'] }.compact
+    urls.map { |url_obj| url_obj['expanded_url'] }
+        .compact
   rescue JSON::ParserError => e
     Rails.logger.error("[TwitterPost#external_urls] Failed to parse payload for tweet #{tweet_id}: #{e.message}")
     []
