@@ -25,6 +25,7 @@ ActiveAdmin.register Site do
       link_to site.url, site.url, target: '_blank', rel: 'noopener'
     end
     column :page
+    column :twitter_profile
     column :entries_count
     column :filter
     column :negative_filter
