@@ -55,11 +55,12 @@ module TwitterServices
       request_count = 0
 
       loop do
-        response = if @use_proxy
-                     make_proxy_request(cursor)
-                   else
-                     make_direct_request(cursor)
-                   end
+        response =
+          if @use_proxy
+            make_proxy_request(cursor)
+          else
+            make_direct_request(cursor)
+          end
 
         data = JSON.parse(response.body)
 
@@ -112,20 +113,16 @@ module TwitterServices
         features: features.to_json,
         fieldToggles: { withArticlePlainText: false }.to_json
       }
-      
+
       # Build URL with query parameters
       query_string = URI.encode_www_form(params)
       twitter_url = "#{base_url}?#{query_string}"
-      
+
       # Scrape.do API Mode URL with customHeaders=true
       proxy_url = "https://api.scrape.do/?token=#{@scrape_do_token}&url=#{CGI.escape(twitter_url)}&customHeaders=true"
-      
+
       # Pass auth headers directly - scrape.do will forward them to Twitter
-      HTTParty.get(
-        proxy_url,
-        timeout: 30,
-        headers: auth_headers
-      )
+      HTTParty.get(proxy_url, timeout: 30, headers: auth_headers)
     end
 
     def auth_headers
