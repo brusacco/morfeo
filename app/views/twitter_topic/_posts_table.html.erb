@@ -1,0 +1,352 @@
+<!-- Override default DataTables CSS -->
+<style>
+  .dataTables_wrapper .dataTables_paginate .paginate_button {
+    color: inherit !important;
+    border: none !important;
+    background: none !important;
+  }
+  .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background: none !important;
+  }
+  .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+    color: inherit !important;
+  }
+</style>
+<% table_id = "twitter_posts_#{SecureRandom.hex(4)}" %>
+<div class="mb-8">
+  <h2 class="text-2xl font-bold tracking-tight text-gray-900 mb-6"><%= title %></h2>
+  <div class="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-lg overflow-hidden">
+    <div class="p-6">
+      <table id="<%= table_id %>" class="twitter-posts-datatable min-w-full divide-y divide-gray-300 display cell-border" style="width:100%">
+        <thead class="bg-gray-50">
+          <tr>
+            <th scope="col" class="relative px-3 py-3.5 text-left text-sm font-semibold text-gray-900 pr-8">Fecha</th>
+            <th scope="col" class="relative px-3 py-3.5 text-left text-sm font-semibold text-gray-900 pr-8">Tweet</th>
+            <th scope="col" class="relative px-3 py-3.5 text-left text-sm font-semibold text-gray-900 pr-8">Etiquetas</th>
+            <th scope="col" class="relative px-3 py-3.5 text-left text-sm font-semibold text-gray-900 pr-8">Perfil</th>
+            <th scope="col" class="relative px-3 py-3.5 text-center text-sm font-semibold text-gray-900 pr-8">
+              <i class="fa-solid fa-heart text-red-600 mr-1"></i>Me gusta
+            </th>
+            <th scope="col" class="relative px-3 py-3.5 text-center text-sm font-semibold text-gray-900 pr-8">
+              <i class="fa-solid fa-retweet text-green-600 mr-1"></i>Retweets
+            </th>
+            <th scope="col" class="relative px-3 py-3.5 text-center text-sm font-semibold text-gray-900 pr-8">
+              <i class="fa-solid fa-reply text-blue-600 mr-1"></i>Respuestas
+            </th>
+            <th scope="col" class="relative px-3 py-3.5 text-center text-sm font-semibold text-gray-900 pr-8">
+              <i class="fa-solid fa-eye text-amber-600 mr-1"></i>Vistas
+            </th>
+            <th scope="col" class="relative px-3 py-3.5 text-center text-sm font-semibold text-gray-900 pr-8">
+              <i class="fa-solid fa-chart-line text-sky-600 mr-1"></i>Total
+            </th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <% posts.each do |post| %>
+            <tr class="hover:bg-gray-50 transition-colors duration-150">
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-900 font-medium" data-sort="<%= post.posted_at.strftime('%Y%m%d%H%M%S') %>">
+                <time datetime="<%= post.posted_at.iso8601 %>">
+                  <%= post.posted_at.strftime('%d/%m/%Y') %>
+                </time>
+                <div class="text-xs text-gray-500 mt-1">
+                  <%= post.posted_at.strftime('%H:%M') %>
+                </div>
+              </td>
+              <td class="px-3 py-4 text-sm text-gray-900">
+                <div class="max-w-xs">
+                  <% if post.tweet_url.present? %>
+                    <%= link_to post.text.to_s.truncate(140), post.tweet_url, 
+                      target: '_blank',
+                      class: "text-sky-600 hover:text-sky-900 font-medium line-clamp-2 block" %>
+                    <i class="fa-solid fa-external-link text-xs text-gray-400 ml-1"></i>
+                  <% else %>
+                    <span class="font-medium text-gray-800 block"><%= post.text.to_s.truncate(140) %></span>
+                  <% end %>
+                </div>
+              </td>
+              <td class="px-3 py-4 text-xs">
+                <div class="flex flex-wrap gap-1">
+                  <% post.tag_list.first(3).each do |tag| %>
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                      <%= tag %>
+                    </span>
+                  <% end %>
+                  <% if post.tag_list.count > 3 %>
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
+                      +<%= post.tag_list.count - 3 %>
+                    </span>
+                  <% end %>
+                </div>
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm">
+                <div class="font-medium text-gray-900"><%= post.twitter_profile&.name || 'Desconocido' %></div>
+                <div class="text-xs text-gray-500">@<%= post.twitter_profile&.username || 'unknown' %></div>
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-center">
+                <span class="text-lg font-semibold text-red-600"><%= number_with_delimiter(post.favorite_count) %></span>
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-center">
+                <span class="text-lg font-semibold text-green-600"><%= number_with_delimiter(post.retweet_count) %></span>
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-center">
+                <span class="text-lg font-semibold text-blue-600"><%= number_with_delimiter(post.reply_count) %></span>
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-center">
+                <span class="text-lg font-semibold text-amber-600"><%= number_with_delimiter(post.views_count) %></span>
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-center">
+                <span class="text-xl font-bold text-sky-600"><%= number_with_delimiter(post.total_interactions) %></span>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+  (function() {
+    // Custom function to style pagination
+    function stylePagination() {
+      setTimeout(() => {
+        // Style pagination container
+        $('.dataTables_paginate').css({
+          'display': 'flex',
+          'justify-content': 'flex-end',
+          'margin-top': '1rem'
+        });
+
+        // Create pagination wrapper if it doesn't exist
+        if (!$('.dataTables_paginate .pagination').length) {
+          $('.dataTables_paginate').wrapInner('<div class="pagination inline-flex shadow-sm"></div>');
+        }
+
+        // Style pagination buttons
+        $('.dataTables_paginate .paginate_button').each(function(index) {
+          const $btn = $(this);
+          const isFirst = index === 0;
+          const isLast = index === $('.dataTables_paginate .paginate_button').length - 1;
+          const isCurrent = $btn.hasClass('current');
+          const isDisabled = $btn.hasClass('disabled');
+
+          // Base styles for all buttons
+          $btn.css({
+            'position': 'relative',
+            'display': 'inline-flex',
+            'align-items': 'center',
+            'padding': '0.5rem 0.75rem',
+            'font-size': '0.875rem',
+            'font-weight': '500',
+            'border': '1px solid',
+            'text-decoration': 'none',
+            'transition': 'all 0.15s ease-in-out',
+            'margin-left': isFirst ? '0' : '-1px'
+          });
+
+          // State-specific styles
+          if (isCurrent) {
+            $btn.css({
+              'z-index': '10',
+              'background-color': '#0ea5e9',
+              'border-color': '#0ea5e9',
+              'color': '#ffffff'
+            });
+          } else if (isDisabled) {
+            $btn.css({
+              'color': '#d1d5db',
+              'background-color': '#f9fafb',
+              'border-color': '#d1d5db',
+              'cursor': 'not-allowed'
+            });
+          } else {
+            $btn.css({
+              'color': '#6b7280',
+              'background-color': '#ffffff',
+              'border-color': '#d1d5db',
+              'cursor': 'pointer'
+            });
+
+            // Hover effects for active buttons
+            $btn.hover(
+              function() {
+                $(this).css({
+                  'background-color': '#f0f9ff',
+                  'color': '#0ea5e9',
+                  'border-color': '#0ea5e9'
+                });
+              },
+              function() {
+                $(this).css({
+                  'background-color': '#ffffff',
+                  'color': '#6b7280',
+                  'border-color': '#d1d5db'
+                });
+              }
+            );
+          }
+
+          // Border radius for first and last buttons
+          if (isFirst) {
+            $btn.css({
+              'border-top-left-radius': '0.375rem',
+              'border-bottom-left-radius': '0.375rem'
+            });
+          }
+          if (isLast) {
+            $btn.css({
+              'border-top-right-radius': '0.375rem',
+              'border-bottom-right-radius': '0.375rem'
+            });
+          }
+        });
+
+        // Style info text
+        $('.dataTables_info').css({
+          'color': '#374151',
+          'font-size': '0.875rem',
+          'margin-top': '0.5rem'
+        });
+
+      }, 100);
+    }
+
+    function initializeTwitterDataTables() {
+      // Find all twitter datatables on this page
+      $('.twitter-posts-datatable').each(function() {
+        const table = $(this);
+
+        // Destroy existing DataTable if it exists
+        if ($.fn.DataTable.isDataTable(table)) {
+          table.DataTable().destroy();
+        }
+
+        // Initialize new DataTable
+        table.DataTable({
+          order: [[0, 'desc']],
+          language: {
+            search: 'Buscar:',
+            lengthMenu: 'Mostrar _MENU_ entradas',
+            info: 'Mostrando _START_ a _END_ de _TOTAL_ tweets',
+            infoEmpty: 'Mostrando 0 a 0 de 0 tweets',
+            infoFiltered: '(filtrado de _MAX_ tweets totales)',
+            paginate: {
+              first: 'Primero',
+              last: 'Último',
+              next: 'Siguiente',
+              previous: 'Anterior'
+            },
+            emptyTable: 'No hay datos disponibles en la tabla'
+          },
+          pageLength: 25,
+          lengthChange: true,
+          lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Todos"]],
+          responsive: true,
+          dom: '<"flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4"lf>rt<"flex flex-col sm:flex-row sm:items-center sm:justify-between mt-4"ip>',
+          columnDefs: [
+            {
+              targets: [1], // Tweet text column
+              className: 'max-w-xs truncate'
+            },
+            {
+              targets: [2], // Tags column
+              className: 'text-xs',
+              orderable: false
+            },
+            {
+              targets: [4, 5, 6, 7, 8], // Numeric columns (favorites, retweets, replies, views, total)
+              className: 'text-center font-semibold'
+            }
+          ],
+          processing: true,
+          loadingRecords: 'Cargando...',
+          processing: 'Procesando...',
+          initComplete: function() {
+            // Style form controls with CSS
+            $('.dataTables_wrapper .dataTables_length select, .dataTables_wrapper .dataTables_filter input').css({
+              'display': 'block',
+              'border-radius': '0.375rem',
+              'border': '1px solid #d1d5db',
+              'box-shadow': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+              'padding': '0.5rem 0.75rem',
+              'font-size': '0.875rem',
+              'line-height': '1.25rem'
+            });
+
+            // Focus styles for inputs
+            $('.dataTables_wrapper .dataTables_filter input').focus(function() {
+              $(this).css({
+                'border-color': '#0ea5e9',
+                'box-shadow': '0 0 0 3px rgba(14, 165, 233, 0.1)'
+              });
+            }).blur(function() {
+              $(this).css({
+                'border-color': '#d1d5db',
+                'box-shadow': '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+              });
+            });
+
+            // Add search placeholder
+            $('.dataTables_filter input').attr('placeholder', 'Buscar en todas las columnas...');
+
+            // Style the controls containers
+            $('.dataTables_wrapper .dataTables_length').css({
+              'display': 'flex',
+              'align-items': 'center',
+              'gap': '0.5rem',
+              'margin-bottom': '1rem'
+            });
+
+            $('.dataTables_wrapper .dataTables_filter').css({
+              'display': 'flex',
+              'align-items': 'center',
+              'gap': '0.5rem',
+              'margin-bottom': '1rem'
+            });
+
+            // Style labels
+            $('.dataTables_wrapper .dataTables_length label, .dataTables_wrapper .dataTables_filter label').css({
+              'color': '#374151',
+              'font-size': '0.875rem',
+              'font-weight': '500',
+              'display': 'flex',
+              'align-items': 'center',
+              'gap': '0.5rem'
+            });
+
+            // Style pagination
+            stylePagination();
+
+            console.log('Twitter DataTable initialized successfully');
+          },
+          drawCallback: function() {
+            // Re-apply pagination styles on each redraw
+            stylePagination();
+          }
+        });
+      });
+    }
+
+    // Initialize when DOM is ready
+    $(document).ready(function() {
+      if (typeof $.fn.DataTable !== 'undefined') {
+        initializeTwitterDataTables();
+      }
+    });
+
+    // Handle Turbo navigation (Rails 7 with Turbo)
+    document.addEventListener('turbo:load', function() {
+      if (typeof $ !== 'undefined' && typeof $.fn.DataTable !== 'undefined') {
+        initializeTwitterDataTables();
+      }
+    });
+
+    // Clean up DataTable before Turbo navigates away
+    document.addEventListener('turbo:before-cache', function() {
+      $('.twitter-posts-datatable').each(function() {
+        if ($.fn.DataTable.isDataTable(this)) {
+          $(this).DataTable().destroy();
+        }
+      });
+    });
+  })();
+</script>

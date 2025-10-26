@@ -1,0 +1,58 @@
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mt-4">
+  <h3 class="text-lg font-semibold text-gray-900 mb-4">
+    Tweets para <%= topic_name %> - <%= entries_date.strftime('%d/%m/%Y') %>
+  </h3>
+  <% if posts.any? %>
+    <div class="space-y-4">
+      <% posts.first(10).each do |post| %>
+        <div class="border-b border-gray-200 pb-4 last:border-b-0">
+          <div class="flex items-start justify-between">
+            <div class="flex-1">
+              <% if post.tweet_url.present? %>
+                <%= link_to post.tweet_url, target: '_blank', class: 'text-sm font-medium text-sky-600 hover:text-sky-900' do %>
+                  <%= post.text.to_s.truncate(200) %>
+                  <i class="fa-solid fa-external-link text-xs text-gray-400 ml-1"></i>
+                <% end %>
+              <% else %>
+                <p class="text-sm text-gray-900"><%= post.text.to_s.truncate(200) %></p>
+              <% end %>
+              <div class="mt-2 flex items-center gap-4 text-xs text-gray-500">
+                <span>
+                  <i class="fa-solid fa-user mr-1"></i>
+                  @<%= post.twitter_profile&.username || 'unknown' %>
+                </span>
+                <span>
+                  <i class="fa-regular fa-clock mr-1"></i>
+                  <%= post.posted_at.strftime('%H:%M') %>
+                </span>
+              </div>
+            </div>
+            <div class="ml-4 flex flex-col items-end gap-1 text-xs">
+              <span class="text-red-600">
+                <i class="fa-solid fa-heart mr-1"></i>
+                <%= number_with_delimiter(post.favorite_count) %>
+              </span>
+              <span class="text-green-600">
+                <i class="fa-solid fa-retweet mr-1"></i>
+                <%= number_with_delimiter(post.retweet_count) %>
+              </span>
+              <span class="text-blue-600">
+                <i class="fa-solid fa-reply mr-1"></i>
+                <%= number_with_delimiter(post.reply_count) %>
+              </span>
+            </div>
+          </div>
+        </div>
+      <% end %>
+      <% if posts.count > 10 %>
+        <p class="text-sm text-gray-500 text-center pt-4">
+          Mostrando 10 de <%= posts.count %> tweets para este día
+        </p>
+      <% end %>
+    </div>
+  <% else %>
+    <p class="text-sm text-gray-500 text-center py-8">
+      No se encontraron tweets para esta fecha
+    </p>
+  <% end %>
+</div>

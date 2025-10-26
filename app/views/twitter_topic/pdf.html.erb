@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <title>Reporte Twitter: <%=@topic.name%> - Morfeo Analytics</title>
+    <!-- Chartkick for Charts -->
+    <script src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartkick@4.2.0/dist/chartkick.min.js"></script>
+    <style>
+      /* PDF Print Optimized Styles */
+      @page {
+        margin: 2cm;
+        size: A4;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Arial', 'Helvetica', sans-serif;
+        font-size: 11pt;
+        line-height: 1.4;
+        margin: 0;
+        padding: 0;
+        color: #1a1a1a;
+        background: white;
+      }
+
+      /* Typography */
+      h1 {
+        font-size: 20pt;
+        font-weight: bold;
+        margin: 0 0 12pt 0;
+        color: #0ea5e9;
+        border-bottom: 2pt solid #e5e7eb;
+        padding-bottom: 6pt;
+      }
+
+      h2 {
+        font-size: 16pt;
+        font-weight: bold;
+        margin: 16pt 0 8pt 0;
+        color: #1f2937;
+        page-break-after: avoid;
+      }
+
+      h3 {
+        font-size: 14pt;
+        font-weight: 600;
+        margin: 12pt 0 6pt 0;
+        color: #374151;
+        page-break-after: avoid;
+      }
+
+      p {
+        margin: 6pt 0;
+        text-align: justify;
+      }
+
+      /* Layout Structure */
+      .pdf-container {
+        width: 100%;
+        max-width: none;
+      }
+
+      .pdf-section {
+        margin-bottom: 20pt;
+        page-break-inside: avoid;
+      }
+
+      .pdf-section.break-before {
+        page-break-before: always;
+      }
+
+      .pdf-header {
+        text-align: center;
+        margin-bottom: 20pt;
+        padding-bottom: 12pt;
+        border-bottom: 1pt solid #e5e7eb;
+      }
+
+      /* Chart Containers */
+      .pdf-chart-row {
+        display: flex;
+        gap: 16pt;
+        margin-bottom: 16pt;
+        page-break-inside: avoid;
+      }
+
+      .pdf-chart-single {
+        width: 100%;
+        margin-bottom: 16pt;
+        page-break-inside: avoid;
+      }
+
+      .pdf-chart-half {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .pdf-chart-card {
+        background: white;
+        border: 1pt solid #e5e7eb;
+        border-radius: 6pt;
+        padding: 12pt;
+        box-shadow: 0 1pt 3pt rgba(0, 0, 0, 0.1);
+      }
+
+      .pdf-chart-title {
+        font-size: 12pt;
+        font-weight: 600;
+        color: #374151;
+        margin: 0 0 8pt 0;
+        text-align: center;
+      }
+
+      .pdf-chart-canvas {
+        width: 100% !important;
+        height: 200px !important;
+        max-height: 200px;
+      }
+
+      /* Chartkick specific styles */
+      .pdf-chart-canvas canvas {
+        width: 100% !important;
+        height: 200px !important;
+      }
+
+      /* Statistics Grid */
+      .pdf-stats-grid {
+        display: flex;
+        gap: 8pt;
+        margin-bottom: 16pt;
+        page-break-inside: avoid;
+      }
+
+      .pdf-stats-card {
+        flex: 1;
+        background: white;
+        border: 1pt solid #e5e7eb;
+        border-radius: 4pt;
+        padding: 8pt;
+        text-align: center;
+      }
+
+      .pdf-stats-label {
+        font-size: 9pt;
+        color: #6b7280;
+        margin-bottom: 4pt;
+      }
+
+      .pdf-stats-value {
+        font-size: 18pt;
+        font-weight: bold;
+        color: #1f2937;
+      }
+
+      /* Summary Text */
+      .pdf-summary {
+        background: #f0f9ff;
+        border-left: 4pt solid #0ea5e9;
+        padding: 12pt;
+        margin: 16pt 0;
+        page-break-inside: avoid;
+      }
+
+      .pdf-summary p {
+        margin: 0;
+        font-size: 10pt;
+        line-height: 1.5;
+      }
+
+      /* Media Sources */
+      .pdf-media-list {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8pt;
+        margin: 12pt 0;
+      }
+
+      .pdf-media-item {
+        background: white;
+        border: 1pt solid #e5e7eb;
+        border-radius: 4pt;
+        padding: 6pt;
+        font-size: 10pt;
+      }
+
+      .pdf-media-name {
+        font-weight: 600;
+        color: #374151;
+      }
+
+      .pdf-media-count {
+        color: #0ea5e9;
+        font-weight: bold;
+      }
+
+      /* Word Analysis */
+      .pdf-words {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4pt;
+        margin: 8pt 0;
+      }
+
+      .pdf-word {
+        background: #dbeafe;
+        color: #1e40af;
+        padding: 2pt 6pt;
+        border-radius: 2pt;
+        font-size: 9pt;
+        white-space: nowrap;
+      }
+
+      /* Post Items */
+      .pdf-post-item {
+        background: white;
+        border: 1pt solid #e5e7eb;
+        border-radius: 6pt;
+        padding: 12pt;
+        margin-bottom: 12pt;
+        page-break-inside: avoid;
+      }
+
+      .pdf-post-header {
+        display: flex;
+        align-items: center;
+        gap: 8pt;
+        margin-bottom: 8pt;
+        font-size: 9pt;
+        color: #6b7280;
+        border-bottom: 1pt solid #f3f4f6;
+        padding-bottom: 6pt;
+      }
+
+      .pdf-post-rank {
+        background: #0ea5e9;
+        color: white;
+        padding: 2pt 6pt;
+        border-radius: 4pt;
+        font-weight: bold;
+        font-size: 8pt;
+      }
+
+      .pdf-post-profile {
+        font-weight: 600;
+        color: #374151;
+      }
+
+      .pdf-post-date {
+        color: #6b7280;
+      }
+
+      .pdf-post-interactions {
+        margin-left: auto;
+        font-weight: bold;
+        color: #0ea5e9;
+      }
+
+      .pdf-post-text {
+        font-size: 11pt;
+        color: #1f2937;
+        margin: 6pt 0;
+        line-height: 1.4;
+      }
+
+      .pdf-post-metrics {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12pt;
+        margin-top: 8pt;
+        padding-top: 6pt;
+        border-top: 1pt solid #f3f4f6;
+        font-size: 9pt;
+      }
+
+      .pdf-metric {
+        color: #374151;
+      }
+
+      .pdf-metric strong {
+        color: #1f2937;
+      }
+
+      /* Page Breaks */
+      .page-break {
+        page-break-before: always;
+      }
+
+      .avoid-break {
+        page-break-inside: avoid;
+      }
+
+      /* Tag Cloud Styles */
+      .pdf-word-cloud {
+        padding: 20pt;
+        text-align: center;
+        background-color: #f0f9ff;
+        border-radius: 6pt;
+        margin: 12pt 0;
+      }
+
+      .pdf-cloud {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        line-height: 2.5;
+      }
+
+      .pdf-cloud li {
+        display: inline;
+        margin: 0 4pt;
+        font-weight: 600;
+        text-decoration: none;
+        border-radius: 3pt;
+        padding: 2pt 4pt;
+      }
+
+      /* Dynamic font sizes based on data-weight attribute */
+      .pdf-cloud li[data-weight="1"] { font-size: 9pt; }
+      .pdf-cloud li[data-weight="2"] { font-size: 11pt; }
+      .pdf-cloud li[data-weight="3"] { font-size: 13pt; }
+      .pdf-cloud li[data-weight="4"] { font-size: 15pt; }
+      .pdf-cloud li[data-weight="5"] { font-size: 17pt; }
+      .pdf-cloud li[data-weight="6"] { font-size: 19pt; }
+      .pdf-cloud li[data-weight="7"] { font-size: 21pt; }
+      .pdf-cloud li[data-weight="8"] { font-size: 23pt; }
+      .pdf-cloud li[data-weight="9"] { font-size: 25pt; }
+      .pdf-cloud li[data-weight="10"] { font-size: 27pt; }
+
+      /* Ensure good contrast for print */
+      .pdf-cloud li {
+        text-shadow: 1pt 1pt 2pt rgba(0,0,0,0.1);
+      }
+
+      /* Print Optimizations */
+      @media print {
+        body {
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="pdf-container">
+      <!-- Header -->
+      <div class="pdf-header">
+        <h1>Reporte Twitter: <%=@topic.name%></h1>
+        <p>Período: Últimos <%=DAYS_RANGE%> días | Generado: <%=Time.current.strftime("%d/%m/%Y %H:%M")%></p>
+      </div>
+      <!-- KPI Section -->
+      <div class="pdf-section">
+        <h2>Métricas Principales</h2>
+        <div class="pdf-stats-grid">
+          <div class="pdf-stats-card">
+            <div class="pdf-stats-label">Total Tweets</div>
+            <div class="pdf-stats-value"><%=number_with_delimiter(@total_posts, delimiter: ".")%></div>
+          </div>
+          <div class="pdf-stats-card">
+            <div class="pdf-stats-label">Total Interacciones</div>
+            <div class="pdf-stats-value"><%=number_with_delimiter(@total_interactions, delimiter: ".")%></div>
+          </div>
+          <div class="pdf-stats-card">
+            <div class="pdf-stats-label">Vistas Totales</div>
+            <div class="pdf-stats-value"><%=number_with_delimiter(@total_views, delimiter: ".")%></div>
+          </div>
+          <div class="pdf-stats-card">
+            <div class="pdf-stats-label">Promedio por Tweet</div>
+            <div class="pdf-stats-value"><%=number_with_delimiter(@average_interactions, delimiter: ".")%></div>
+          </div>
+        </div>
+      </div>
+      <!-- Main Charts Section -->
+      <div class="pdf-section">
+        <h2>Evolución Temporal</h2>
+        <!-- Row 1: Posts and Interactions Charts -->
+        <div class="pdf-chart-row">
+          <div class="pdf-chart-half">
+            <div class="pdf-chart-card">
+              <h3 class="pdf-chart-title">Tweets por Día</h3>
+              <div class="pdf-chart-canvas">
+                <%= column_chart @chart_posts, xtitle: "Fecha", ytitle: "Tweets", label: "Tweets", thousands: ".", curve: false, 
+                      colors: ['#0ea5e9'], height: "200px", library: {
+                      plotOptions: {
+                        series: {
+                          dataLabels: {
+                            enabled: true
+                          }
+                        }
+                      } } %>
+              </div>
+            </div>
+          </div>
+          <div class="pdf-chart-half">
+            <div class="pdf-chart-card">
+              <h3 class="pdf-chart-title">Interacciones por Día</h3>
+              <div class="pdf-chart-canvas">
+                <%= column_chart @chart_interactions, xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones", thousands: ".", curve: false, 
+                      colors: ['#10B981'], height: "200px", library: {
+                      plotOptions: {
+                        series: {
+                          dataLabels: {
+                            enabled: true
+                          }
+                        }
+                      } } %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Summary Section -->
+      <div class="pdf-section">
+        <div class="pdf-summary">
+          <p>El tópico <strong><%=@topic.name%></strong> en Twitter durante los últimos <strong><%=DAYS_RANGE%> días</strong> cuenta con un total de <strong><%=number_with_delimiter(@total_posts, delimiter: ".")%></strong> tweets y generó un total de <strong><%=number_with_delimiter(@total_interactions, delimiter: '.')%></strong> interacciones, lo que nos da un promedio de <strong><%=number_with_delimiter(@average_interactions, delimiter: '.')%></strong> interacciones por tweet.</p>
+        </div>
+      </div>
+      <!-- Tags Analysis Section -->
+      <div class="pdf-section">
+        <h2>Análisis de Etiquetas</h2>
+        <div class="pdf-chart-row">
+          <div class="pdf-chart-half">
+            <div class="pdf-chart-card">
+              <h3 class="pdf-chart-title">Tweets por Etiqueta</h3>
+              <div class="pdf-chart-canvas">
+                <% tag_counts_hash = @tag_counts.map { |tag| [tag.name, tag.count] }.to_h %>
+                <%= pie_chart tag_counts_hash, donut: true, height: "200px", colors: ['#0ea5e9', '#8B5CF6', '#EC4899', '#14B8A6', '#F59E0B'] %>
+              </div>
+            </div>
+          </div>
+          <div class="pdf-chart-half">
+            <div class="pdf-chart-card">
+              <h3 class="pdf-chart-title">Interacciones por Etiqueta</h3>
+              <div class="pdf-chart-canvas">
+                <%= pie_chart @tag_interactions, donut: true, height: "200px", colors: ['#0284c7', '#7C3AED', '#D97706', '#0EA5E9', '#EF4444'] %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Page Break for Profiles Analysis -->
+      <div class="pdf-section break-before">
+        <h2>Análisis de Perfiles de Twitter</h2>
+        <!-- Profiles Pie Charts -->
+        <div class="pdf-chart-row">
+          <div class="pdf-chart-half">
+            <div class="pdf-chart-card">
+              <h3 class="pdf-chart-title">Tweets por Perfil</h3>
+              <div class="pdf-chart-canvas">
+                <%= pie_chart @profiles_count, donut: true, height: "200px", colors: ['#0ea5e9', '#F97316', '#10B981', '#F59E0B', '#EC4899'] %>
+              </div>
+            </div>
+          </div>
+          <div class="pdf-chart-half">
+            <div class="pdf-chart-card">
+              <h3 class="pdf-chart-title">Interacciones por Perfil</h3>
+              <div class="pdf-chart-canvas">
+                <%= pie_chart @profiles_interactions, donut: true, height: "200px", colors: ['#0284c7', '#6366F1', '#22C55E', '#D97706', '#EF4444'] %>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Top Profiles List -->
+        <h3>Perfiles Destacados</h3>
+        <div class="pdf-media-list">
+          <% @profiles_count.take(12).each do |profile_name, count| %>
+            <div class="pdf-media-item">
+              <div class="pdf-media-name"><%=profile_name%></div>
+              <div class="pdf-media-count"><%=count%> tweets · <%=number_with_delimiter(@profiles_interactions[profile_name] || 0, delimiter: ".")%> interacciones</div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+      <!-- Words Analysis Section -->
+      <div class="pdf-section">
+        <h2>Análisis de Palabras</h2>
+        <h3>Palabras Más Frecuentes en Tweets</h3>
+        <div class="pdf-words">
+          <% @word_occurrences.take(50).each do |word, count| %>
+            <span class="pdf-word"><%=word%> (<%=count%>)</span>
+          <% end %>
+        </div>
+        <h3>Bigramas Más Frecuentes</h3>
+        <div class="pdf-words">
+          <% @bigram_occurrences.take(30).each do |bigram, count| %>
+            <span class="pdf-word"><%=bigram%> (<%=count%>)</span>
+          <% end %>
+        </div>
+      </div>
+      <!-- Top Posts Section -->
+      <div class="pdf-section break-before">
+        <h2>Top Tweets con Más Interacciones</h2>
+        <% @top_posts.each_with_index do |post, index| %>
+          <div class="pdf-post-item">
+            <div class="pdf-post-header">
+              <span class="pdf-post-rank">#<%=index + 1%></span>
+              <span class="pdf-post-profile">@<%=post.twitter_profile&.username || 'unknown'%></span>
+              <span class="pdf-post-date"><%=post.posted_at&.strftime("%d/%m/%Y")%></span>
+              <span class="pdf-post-interactions"><%=number_with_delimiter(post.total_interactions, delimiter: ".")%> interacciones</span>
+            </div>
+            <% if post.text.present? %>
+              <p class="pdf-post-text"><%=truncate(post.text, length: 300)%></p>
+            <% end %>
+            <div class="pdf-post-metrics">
+              <span class="pdf-metric">
+                <strong>❤️ Me gusta:</strong> <%=number_with_delimiter(post.favorite_count || 0, delimiter: ".")%>
+              </span>
+              <span class="pdf-metric">
+                <strong>🔁 Retweets:</strong> <%=number_with_delimiter(post.retweet_count || 0, delimiter: ".")%>
+              </span>
+              <span class="pdf-metric">
+                <strong>💬 Respuestas:</strong> <%=number_with_delimiter(post.reply_count || 0, delimiter: ".")%>
+              </span>
+              <span class="pdf-metric">
+                <strong>👁️ Vistas:</strong> <%=number_with_delimiter(post.views_count || 0, delimiter: ".")%>
+              </span>
+              <span class="pdf-metric">
+                <strong>📊 Total:</strong> <%=number_with_delimiter(post.total_interactions, delimiter: ".")%>
+              </span>
+            </div>
+          </div>
+        <% end %>
+      </div>
+      <!-- Word Cloud Section -->
+      <% if @word_occurrences&.any? %>
+        <div class="pdf-section break-before">
+          <h2>Nube de Palabras de Tweets</h2>
+          <div class="pdf-word-cloud">
+            <% min_max = find_max_and_min_occurrences(@word_occurrences) %>
+            <ul class="pdf-cloud">
+              <% @word_occurrences.shuffle { |a, b| a[1] <=> b[1] }.each do |word, value| %>
+                <li style='color: <%= word_color(@positive_words, @negative_words, word) %>' 
+                    data-weight="<%= normalize_to_scale(value, min_max[:max], min_max[:min]) %>">
+                  <%= word %>
+                </li>
+              <% end %>
+            </ul>
+          </div>
+        </div>
+      <% end %>
+    </div>
+    <!-- Auto-print after page loads -->
+    <script>
+      setTimeout(function() {
+        window.print();
+      }, 1000);
+    </script>
+  </body>
+</html>

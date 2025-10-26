@@ -10,12 +10,12 @@
     <div class="md:flex md:items-center md:justify-between">
       <div class="flex-1 min-w-0">
         <h1 class="text-3xl font-bold text-gray-900 tracking-tight">
-          <i class="fa-brands fa-facebook text-sky-500 mr-2"></i> <%= @topic.name %> · Facebook
+          <i class="fa-brands fa-twitter text-sky-500 mr-2"></i><%= @topic.name %> · Twitter
         </h1>
-        <p class="mt-1 text-sm text-gray-600">Interacciones de fanpages - Últimos <%= DAYS_RANGE %> días</p>
+        <p class="mt-1 text-sm text-gray-600">Análisis de tweets - Últimos <%= DAYS_RANGE %> días</p>
       </div>
       <div class="mt-4 flex space-x-3 md:mt-0 md:ml-4">
-        <%= link_to pdf_facebook_topic_path(@topic), target: '_blank', class: 'inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors' do %>
+        <%= link_to pdf_twitter_topic_path(@topic), target: '_blank', class: 'inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 transition-colors' do %>
           <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clip-rule="evenodd" />
           </svg>
@@ -31,24 +31,24 @@
     <section>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div class="text-sm font-medium text-gray-500 uppercase tracking-wide">Publicaciones</div>
+          <div class="text-sm font-medium text-gray-500 uppercase tracking-wide">Tweets</div>
           <div class="mt-2 text-3xl font-bold text-gray-900"><%= number_with_delimiter(@total_posts) %></div>
-          <p class="mt-1 text-sm text-gray-500">Publicaciones tagged con este tópico en los últimos <%= DAYS_RANGE %> días.</p>
+          <p class="mt-1 text-sm text-gray-500">Tweets etiquetados con este tópico en los últimos <%= DAYS_RANGE %> días.</p>
         </div>
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div class="text-sm font-medium text-gray-500 uppercase tracking-wide">Interacciones totales</div>
-          <div class="mt-2 text-3xl font-bold text-indigo-600"><%= number_with_delimiter(@total_interactions) %></div>
-          <p class="mt-1 text-sm text-gray-500">Likes + Comentarios + Compartidos.</p>
+          <div class="mt-2 text-3xl font-bold text-sky-600"><%= number_with_delimiter(@total_interactions) %></div>
+          <p class="mt-1 text-sm text-gray-500">Me gusta + Retweets + Respuestas.</p>
         </div>
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div class="text-sm font-medium text-gray-500 uppercase tracking-wide">Vistas estimadas</div>
+          <div class="text-sm font-medium text-gray-500 uppercase tracking-wide">Vistas totales</div>
           <div class="mt-2 text-3xl font-bold text-purple-600"><%= number_with_delimiter(@total_views) %></div>
-          <p class="mt-1 text-sm text-gray-500">Estimación de vistas totales basada en engagement.</p>
+          <p class="mt-1 text-sm text-gray-500">Total de visualizaciones de los tweets.</p>
         </div>
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div class="text-sm font-medium text-gray-500 uppercase tracking-wide">Promedio por publicación</div>
+          <div class="text-sm font-medium text-gray-500 uppercase tracking-wide">Promedio por tweet</div>
           <div class="mt-2 text-3xl font-bold text-green-600"><%= number_with_delimiter(@average_interactions) %></div>
-          <p class="mt-1 text-sm text-gray-500">Interacciones promedio por publicación.</p>
+          <p class="mt-1 text-sm text-gray-500">Interacciones promedio por tweet.</p>
         </div>
       </div>
     </section>
@@ -58,19 +58,19 @@
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-medium text-gray-900">Publicaciones por día</h3>
+            <h3 class="text-lg font-medium text-gray-900">Tweets por día</h3>
             <span class="text-sm text-gray-500">Últimos <%= DAYS_RANGE %> días</span>
           </div>
           <div class="w-full overflow-hidden"
                data-controller="topics"
-               data-topics-id-value="facebookPostsChart"
-               data-topics-url-value="<%= entries_data_facebook_topics_path %>"
+               data-topics-id-value="twitterPostsChart"
+               data-topics-url-value="<%= entries_data_twitter_topics_path %>"
                data-topics-topic-id-value="<%= @topic.id %>"
                data-topics-title-value="false">
-            <%= column_chart @chart_posts, xtitle: 'Fecha', ytitle: 'Publicaciones', label: 'Publicaciones',
-                  id: 'facebookPostsChart', adapter: 'highcharts', library: { plotOptions: { series: { dataLabels: { enabled: true } } } },
-                  colors: ['#3B82F6'], thousands: '.' %>
-            <%= render 'home/modal', graph_id: 'facebookPostsChart', controller_name: 'topics' %>
+            <%= column_chart @chart_posts, xtitle: 'Fecha', ytitle: 'Tweets', label: 'Tweets',
+                  id: 'twitterPostsChart', adapter: 'highcharts', library: { plotOptions: { series: { dataLabels: { enabled: true } } } },
+                  colors: ['#0ea5e9'], thousands: '.' %>
+            <%= render 'home/modal', graph_id: 'twitterPostsChart', controller_name: 'topics' %>
           </div>
         </div>
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
@@ -80,14 +80,14 @@
           </div>
           <div class="w-full overflow-hidden"
                data-controller="topics"
-               data-topics-id-value="facebookInteractionsChart"
-               data-topics-url-value="<%= entries_data_facebook_topics_path %>"
+               data-topics-id-value="twitterInteractionsChart"
+               data-topics-url-value="<%= entries_data_twitter_topics_path %>"
                data-topics-topic-id-value="<%= @topic.id %>"
                data-topics-title-value="false">
             <%= column_chart @chart_interactions, xtitle: 'Fecha', ytitle: 'Interacciones', label: 'Interacciones',
-                  id: 'facebookInteractionsChart', adapter: 'highcharts', library: { plotOptions: { series: { dataLabels: { enabled: true } } } },
+                  id: 'twitterInteractionsChart', adapter: 'highcharts', library: { plotOptions: { series: { dataLabels: { enabled: true } } } },
                   colors: ['#10B981'], thousands: '.' %>
-            <%= render 'home/modal', graph_id: 'facebookInteractionsChart', controller_name: 'topics' %>
+            <%= render 'home/modal', graph_id: 'twitterInteractionsChart', controller_name: 'topics' %>
           </div>
         </div>
       </div>
@@ -97,18 +97,18 @@
       <h2 class="text-2xl font-bold text-gray-900 mb-6">Etiquetas relacionadas</h2>
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Cantidad de publicaciones por etiqueta</h3>
-          <%= pie_chart @tag_counts.map { |tag| [tag.name, tag.count] }.to_h, donut: true, suffix: '%', colors: ['#6366F1', '#8B5CF6', '#EC4899', '#14B8A6', '#F59E0B'] %>
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Cantidad de tweets por etiqueta</h3>
+          <%= pie_chart @tag_counts.map { |tag| [tag.name, tag.count] }.to_h, donut: true, suffix: '%', colors: ['#0ea5e9', '#8B5CF6', '#EC4899', '#14B8A6', '#F59E0B'] %>
         </div>
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <h3 class="text-lg font-medium text-gray-900 mb-4">Interacciones por etiqueta</h3>
-          <%= pie_chart @tag_interactions, donut: true, suffix: '%', colors: ['#2563EB', '#7C3AED', '#D97706', '#0EA5E9', '#EF4444'] %>
+          <%= pie_chart @tag_interactions, donut: true, suffix: '%', colors: ['#0284c7', '#7C3AED', '#D97706', '#0EA5E9', '#EF4444'] %>
         </div>
       </div>
     </section>
     <% if @word_occurrences.any? %>
       <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h2 class="text-2xl font-bold text-gray-900 mb-6">Nube de palabras de publicaciones</h2>
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">Nube de palabras de tweets</h2>
         <div class="mt-6 mb-6 px-4 py-6">
           <ul class="cloud">
             <% prepare_word_cloud_data(@word_occurrences, @positive_words, @negative_words).each do |word_data| %>
@@ -129,27 +129,27 @@
         <%= render partial: 'tag/tag_pill_array', collection: @bigram_occurrences %>
       </div>
     </section>
-    <!-- Pages insights -->
+    <!-- Profile insights -->
     <section>
-      <h2 class="text-2xl font-bold text-gray-900 mb-6">Fanpages destacadas</h2>
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">Perfiles destacados</h2>
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Publicaciones por fanpage</h3>
-          <%= pie_chart @pages_count, donut: true, colors: ['#2563EB', '#F97316', '#10B981', '#F59E0B', '#EC4899'] %>
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Tweets por perfil</h3>
+          <%= pie_chart @profiles_count, donut: true, colors: ['#0ea5e9', '#F97316', '#10B981', '#F59E0B', '#EC4899'] %>
         </div>
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Interacciones por fanpage</h3>
-          <%= pie_chart @pages_interactions, donut: true, colors: ['#0EA5E9', '#6366F1', '#22C55E', '#D97706', '#EF4444'] %>
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Interacciones por perfil</h3>
+          <%= pie_chart @profiles_interactions, donut: true, colors: ['#0284c7', '#6366F1', '#22C55E', '#D97706', '#EF4444'] %>
         </div>
       </div>
     </section>
     <!-- All posts -->
     <section>
-      <%= render partial: 'facebook_topic/posts_table', locals: { entries: @entries, title: "Todas las publicaciones etiquetadas con #{@topic.name}" } %>
+      <%= render partial: 'twitter_topic/posts_table', locals: { posts: @posts, title: "Todos los tweets etiquetados con #{@topic.name}" } %>
     </section>
     <!-- Top posts cards -->
     <section>
-      <%= render partial: 'facebook_topic/facebook_entries', locals: { facebook_entries: @top_posts, title: 'Publicaciones con más interacciones' } %>
+      <%= render partial: 'twitter_topic/twitter_posts', locals: { twitter_posts: @top_posts, title: 'Tweets con más interacciones' } %>
     </section>
   </div>
 </main>

@@ -28,6 +28,11 @@ Rails.application.routes.draw do
     get :pdf, on: :member
   end
 
+  resources :twitter_topics, only: [:show], controller: 'twitter_topic' do
+    get :entries_data, on: :collection
+    get :pdf, on: :member
+  end
+
   resources :topics do
     get 'entries_data', to: 'topic#entries_data', on: :collection
   end

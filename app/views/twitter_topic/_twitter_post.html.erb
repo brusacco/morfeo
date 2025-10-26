@@ -1,0 +1,86 @@
+<div class="group relative rounded-lg border border-gray-200 bg-white hover:shadow-lg transition-shadow duration-200">
+  <div class="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-t-lg bg-gray-50">
+    <% if twitter_post.twitter_profile&.picture.present? %>
+      <%= image_tag twitter_post.twitter_profile.picture, 
+        loading: 'lazy', 
+        onerror: "this.onerror=null;this.src='#{asset_path('default-avatar.png')}';", 
+        class: 'h-full w-full object-cover object-center group-hover:opacity-90 transition-opacity' %>
+    <% else %>
+      <div class="h-full w-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-sky-50">
+        <i class="fa-brands fa-twitter text-6xl text-sky-400"></i>
+      </div>
+    <% end %>
+  </div>
+  <div class="p-4">
+    <div class="mb-3">
+      <% if twitter_post.tweet_url.present? %>
+        <%= link_to twitter_post.tweet_url, target: '_blank', class: 'text-sm font-medium text-gray-900 hover:text-blue-600 line-clamp-3 block' do %>
+          <%= twitter_post.text.to_s.truncate(120) %>
+          <i class="fa-solid fa-external-link text-xs text-gray-400 ml-1"></i>
+        <% end %>
+      <% else %>
+        <p class="text-sm text-gray-900 line-clamp-3"><%= twitter_post.text.to_s.truncate(120) %></p>
+      <% end %>
+    </div>
+    <div class="space-y-2">
+      <div class="flex items-center text-xs text-gray-600">
+        <i class="fa-solid fa-user mr-1.5 text-gray-400"></i>
+        <span class="font-medium">@<%= twitter_post.twitter_profile&.username || 'Unknown' %></span>
+      </div>
+      <div class="flex items-center justify-between text-xs text-gray-500">
+        <div class="flex items-center">
+          <i class="fa-regular fa-calendar mr-1.5"></i>
+          <%= twitter_post.posted_at.strftime('%d/%m/%Y %H:%M') %>
+        </div>
+      </div>
+      <% if twitter_post.tag_list.any? %>
+        <div class="flex flex-wrap gap-1 pt-2 border-t border-gray-100">
+          <% twitter_post.tag_list.first(2).each do |tag| %>
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">
+              <%= tag %>
+            </span>
+          <% end %>
+          <% if twitter_post.tag_list.size > 2 %>
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-500">
+              +<%= twitter_post.tag_list.size - 2 %>
+            </span>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+    <div class="mt-4 pt-3 border-t border-gray-200">
+      <div class="grid grid-cols-5 gap-2 text-center">
+        <div title="Me gusta">
+          <div class="text-xs text-gray-500 mb-1">
+            <i class="fa-solid fa-heart text-red-600"></i>
+          </div>
+          <div class="text-sm font-semibold text-red-600"><%= number_with_delimiter(twitter_post.favorite_count) %></div>
+        </div>
+        <div title="Retweets">
+          <div class="text-xs text-gray-500 mb-1">
+            <i class="fa-solid fa-retweet text-green-600"></i>
+          </div>
+          <div class="text-sm font-semibold text-green-600"><%= number_with_delimiter(twitter_post.retweet_count) %></div>
+        </div>
+        <div title="Respuestas">
+          <div class="text-xs text-gray-500 mb-1">
+            <i class="fa-solid fa-reply text-blue-600"></i>
+          </div>
+          <div class="text-sm font-semibold text-blue-600"><%= number_with_delimiter(twitter_post.reply_count) %></div>
+        </div>
+        <div title="Vistas">
+          <div class="text-xs text-gray-500 mb-1">
+            <i class="fa-solid fa-eye text-amber-600"></i>
+          </div>
+          <div class="text-sm font-semibold text-amber-600"><%= number_with_delimiter(twitter_post.views_count) %></div>
+        </div>
+        <div title="Total de interacciones">
+          <div class="text-xs text-gray-500 mb-1">
+            <i class="fa-solid fa-chart-line text-sky-600"></i>
+          </div>
+          <div class="text-sm font-bold text-sky-600"><%= number_with_delimiter(twitter_post.total_interactions) %></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -28,6 +28,10 @@ document.addEventListener("turbo:load", function () {
       if (facebookTopicsMenu && !facebookTopicsMenu.classList.contains('hidden')) {
         facebookTopicsMenu.classList.add('hidden');
       }
+      // Cerrar el menú de Twitter si está abierto
+      if (twitterTopicsMenu && !twitterTopicsMenu.classList.contains('hidden')) {
+        twitterTopicsMenu.classList.add('hidden');
+      }
       event.stopPropagation();
     });
 
@@ -47,10 +51,37 @@ document.addEventListener("turbo:load", function () {
       if (topicsMenu && !topicsMenu.classList.contains('hidden')) {
         topicsMenu.classList.add('hidden');
       }
+      // Cerrar el menú de Twitter si está abierto
+      if (twitterTopicsMenu && !twitterTopicsMenu.classList.contains('hidden')) {
+        twitterTopicsMenu.classList.add('hidden');
+      }
       event.stopPropagation();
     });
 
     facebookTopicsMenu.addEventListener('click', function (event) {
+      event.stopPropagation();
+    });
+  }
+
+  // Toggle para el menú de tópicos de Twitter
+  var twitterTopicsMenuButton = document.getElementById('twitter-topics-menu-button');
+  var twitterTopicsMenu = document.getElementById('twitter-topics-menu');
+
+  if (twitterTopicsMenuButton && twitterTopicsMenu) {
+    twitterTopicsMenuButton.addEventListener('click', function (event) {
+      twitterTopicsMenu.classList.toggle('hidden');
+      // Cerrar el menú de tópicos si está abierto
+      if (topicsMenu && !topicsMenu.classList.contains('hidden')) {
+        topicsMenu.classList.add('hidden');
+      }
+      // Cerrar el menú de Facebook si está abierto
+      if (facebookTopicsMenu && !facebookTopicsMenu.classList.contains('hidden')) {
+        facebookTopicsMenu.classList.add('hidden');
+      }
+      event.stopPropagation();
+    });
+
+    twitterTopicsMenu.addEventListener('click', function (event) {
       event.stopPropagation();
     });
   }
@@ -65,6 +96,9 @@ document.addEventListener("turbo:load", function () {
     }
     if (facebookTopicsMenu && !facebookTopicsMenu.classList.contains('hidden')) {
       facebookTopicsMenu.classList.add('hidden');
+    }
+    if (twitterTopicsMenu && !twitterTopicsMenu.classList.contains('hidden')) {
+      twitterTopicsMenu.classList.add('hidden');
     }
   });
 });
