@@ -34,7 +34,7 @@ module TwitterServices
 
     base_uri 'https://twitter.com/i/api'
 
-    def initialize(user_id, max_requests: 2, use_proxy: false)
+    def initialize(user_id, max_requests: 3, use_proxy: false)
       @user_id = user_id
       @max_requests = max_requests # Number of paginated requests (each returns ~20 tweets)
       @use_proxy = use_proxy || ENV['USE_SCRAPE_DO_PROXY'] == 'true'

@@ -1,8 +1,13 @@
 # frozen_string_literal: true
 
 namespace :twitter do
-  desc 'Twitter Profile Posts Crawler (stops early when finding mostly duplicates, updates metrics)'
-  task profile_crawler: :environment do
+  desc 'Twitter Profile Posts Crawler - Full Crawl (fetches all pages without stopping on duplicates)'
+  task profile_crawler_full: :environment do
+    puts "Starting FULL Twitter Profile Crawler"
+    puts "This will fetch all available pages regardless of duplicates"
+    puts "AND update engagement metrics for existing tweets"
+    puts "---------------------------------------------------"
+
     TwitterProfile.find_each do |profile|
       puts "Processing Twitter Profile: #{profile.name || profile.username} (@#{profile.username})"
       puts "  Current tweets in DB: #{profile.twitter_posts.count}"
@@ -14,8 +19,8 @@ namespace :twitter do
       response = nil
 
       loop do
-        # Stop on duplicates but update existing tweets with fresh metrics
-        response = TwitterServices::ProcessPosts.call(profile.uid, stop_on_duplicates: true, update_existing: true)
+        # Call with stop_on_duplicates: false and update_existing: true to fetch all pages and update metrics
+        response = TwitterServices::ProcessPosts.call(profile.uid, stop_on_duplicates: false, update_existing: true)
 
         # Check if error is rate limit related
         if !response.success? && (response.error.to_s.include?('Rate') || response.error.to_s.include?('429'))
@@ -40,22 +45,19 @@ namespace :twitter do
 
       data = response.data || {}
       posts = data[:posts] || []
-      message = data[:message]
 
       if posts.empty?
-        status = message == 'Stopped early (found mostly duplicates)' ? '(stopped early - duplicates)' : ''
-        puts "  -> No tweets to process for #{profile.username} #{status}"
+        puts "  -> No tweets found for #{profile.username}"
       else
-        processed_count = posts.count
+        new_count = posts.count
         total_count = profile.twitter_posts.count
         latest = profile.twitter_posts.order(posted_at: :desc).first
 
-        status_msg = message == 'Stopped early (found mostly duplicates)' ? ' (stopped early)' : ''
-        puts "  -> Processed #{processed_count} tweets for #{profile.username}#{status_msg}"
+        puts "  -> Processed #{new_count} tweets for #{profile.username} (full crawl with metrics update)"
         puts "  -> Total tweets now: #{total_count}"
         puts "  -> Latest tweet: #{latest.posted_at}" if latest
 
-        # Show the 5 most recent with engagement metrics
+        # Show the 5 most recent
         posts.sort_by(&:posted_at).reverse.first(5).each do |post|
           puts "    - Tweet #{post.tweet_id} (#{post.posted_at}) - ❤️ #{post.favorite_count} | 🔁 #{post.retweet_count} | 👁️ #{post.views_count}"
         end

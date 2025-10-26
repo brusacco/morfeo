@@ -2,8 +2,10 @@
 
 module TwitterServices
   class ProcessPosts < ApplicationService
-    def initialize(profile_uid)
+    def initialize(profile_uid, stop_on_duplicates: true, update_existing: false)
       @profile_uid = profile_uid
+      @stop_on_duplicates = stop_on_duplicates
+      @update_existing = update_existing
     end
 
     def call
@@ -27,11 +29,14 @@ module TwitterServices
 
       # Extract tweets from each paginated response
       data_array.each_with_index do |data, page_index|
+        Rails.logger.info("[TwitterServices::ProcessPosts] Crawling page #{page_index + 1} for #{profile.username}")
+        puts "  -> Crawling page #{page_index + 1}..."
+        
         tweets = extract_tweets(data)
         page_saved = []
 
         tweets.each do |tweet_data|
-          saved_post = persist_post(profile, tweet_data)
+          saved_post = persist_post(profile, tweet_data, @update_existing)
           page_saved << saved_post if saved_post
         end
 
@@ -39,7 +44,8 @@ module TwitterServices
         all_saved_posts.concat(page_saved)
 
         # Stop early if we're on page 2+ and found mostly duplicates (< 10% new tweets)
-        next unless page_index > 0 && tweets.any?
+        # Only applies if stop_on_duplicates is enabled
+        next unless @stop_on_duplicates && page_index > 0 && tweets.any?
 
         new_tweets_ratio = Float(page_saved.count) / tweets.count
         next unless new_tweets_ratio < 0.1
@@ -76,14 +82,14 @@ module TwitterServices
       tweets
     end
 
-    def persist_post(profile, tweet_data)
+    def persist_post(profile, tweet_data, update_existing = false)
       tweet_id = tweet_data['rest_id']
       return unless tweet_id
 
       twitter_post = TwitterPost.find_or_initialize_by(tweet_id: tweet_id)
 
-      # Return nil if this tweet already exists (not a new record)
-      return unless twitter_post.new_record?
+      # Return nil if this tweet already exists and we're not updating
+      return unless twitter_post.new_record? || update_existing
 
       legacy = tweet_data['legacy'] || {}
       views = tweet_data.dig('views', 'count')
