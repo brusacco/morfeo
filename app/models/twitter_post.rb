@@ -104,8 +104,9 @@ class TwitterPost < ApplicationRecord
         payload
       when String
         if payload.include?('=>')
-          # Ruby inspected hash string - eval it safely
-          eval(payload)
+          # Ruby inspected hash string - convert to proper JSON first
+          json_string = payload.gsub('=>', ':')
+          JSON.parse(json_string)
         else
           # JSON string
           JSON.parse(payload)

@@ -11,6 +11,7 @@ Morfeo is a Rails 7 news monitoring system that crawls websites, extracts articl
   - Sentiment: `polarity` enum (0: neutral, 1: positive, 2: negative)
   - Content filtering: `repeated` status, `enabled` flag, `category` classification
   - Unique constraint on `url`, belongs to `site`
+  - Has many `twitter_posts` for cross-referencing tweets that link to this article
 - **FacebookEntry**: Facebook posts from tracked Pages with comprehensive engagement metrics
   - Belongs to `page`, has tagging via `acts-as-taggable-on`
   - Post data: `facebook_post_id` (unique), `posted_at`, `message`, `permalink_url`
@@ -44,13 +45,19 @@ Morfeo is a Rails 7 news monitoring system that crawls websites, extracts articl
   - Has many `twitter_posts` (tweets from this profile)
 - **TwitterPost**: Individual tweets from tracked Twitter profiles with engagement metrics
   - Belongs to `twitter_profile`, has tagging via `acts-as-taggable-on`
+  - Belongs to `entry` (optional) for cross-referencing tweets with news articles
   - Post data: `tweet_id` (unique), `posted_at`, `text`, `permalink_url`, `lang`, `source`
   - Engagement metrics: `favorite_count`, `retweet_count`, `reply_count`, `quote_count`, `views_count`, `bookmark_count`
   - Tweet types: `is_retweet`, `is_quote` flags
-  - Payload: Full JSON response from Twitter API stored in `payload` field
+  - Payload: Full JSON response from Twitter API stored in `payload` field (json column type)
+    - **CRITICAL**: Production stores payloads as Ruby hash strings (`=>` syntax), not JSON (`:` syntax)
+    - `external_urls` method handles three formats: Hash objects, JSON strings, Ruby hash strings
+    - Converts `=>` to `:` before JSON parsing to avoid eval() security risks
+  - URL extraction: `external_urls` returns array of expanded URLs from tweet entities
+  - Linking: `find_matching_entry`, `link_to_entry!` methods for Entry cross-referencing
   - Scopes: `recent`, `for_profile`, `within_range`, `for_tags`, `for_topic`
   - Analytics methods: `grouped_counts`, `total_interactions`, `word_occurrences`, `bigram_occurrences`
-  - Helper methods: `words`, `bigrams`, `tweet_url`, `site` (through profile)
+  - Helper methods: `words`, `bigrams`, `tweet_url`, `site` (through profile), `primary_url`, `has_external_url?`
 
 ### Key Data Flow
 
@@ -180,6 +187,7 @@ end
   - `UpdateProfile` - Extracts and formats profile data for database storage
   - `ProcessPosts` - Extracts and persists tweets from Twitter API responses, automatically uses authenticated API when ENV credentials are present, falls back to guest token
   - `ExtractTags` - Auto-tags tweets using Tag vocabulary with text matching
+  - `LinkToEntries` - Batch service to link TwitterPosts to Entries by matching external URLs
 - `WebExtractorServices::*` - Content parsing and tag extraction
   - `ExtractFacebookEntryTags` - Tags Facebook entries using existing Tag vocabulary with text matching
 
@@ -205,6 +213,7 @@ rake facebook:comment_crawler # Fetch comments from Facebook posts
 rake twitter:update_profiles  # Update Twitter profile stats
 rake twitter:profile_crawler  # Crawl tweets from tracked profiles
 rake twitter:post_tagger      # Tag Twitter posts using Tag vocabulary
+rake twitter:link_to_entries  # Link tweets to news articles by matching URLs
 ```
 
 ### Search & Analytics
@@ -212,6 +221,29 @@ rake twitter:post_tagger      # Tag Twitter posts using Tag vocabulary
 - **Elasticsearch**: Uses Searchkick gem for full-text search on entries
 - **Charts**: Chartkick + Chart.js for analytics dashboards
 - **Admin**: ActiveAdmin interface for content management
+
+### Tweet-to-Entry Cross-Referencing
+
+The system can automatically link tweets to news articles they reference:
+
+1. **URL Extraction**: `TwitterPost#external_urls` extracts URLs from tweet payload entities
+2. **Matching Logic**: `TwitterServices::LinkToEntries` finds Entry records with matching URLs
+3. **URL Normalization**: Handles URL variations (with/without query params, www, trailing slashes)
+4. **Batch Processing**: `rake twitter:link_to_entries` processes all unlinked tweets
+5. **Admin UI**: ActiveAdmin shows "Linked" status and allows filtering by Entry
+
+**Key Methods:**
+
+- `TwitterPost#find_matching_entry` - Finds Entry with matching URL
+- `TwitterPost#link_to_entry!` - Creates association with Entry
+- `TwitterPost#primary_url` - Returns first external URL from tweet
+- `TwitterPost#has_external_url?` - Checks if tweet contains URLs
+
+**Expected Metrics:**
+
+- ~70% of tweets contain external URLs
+- ~10% of tweets with URLs match existing Entry records
+- Matching considers URL variations (with/without www, query params, etc.)
 
 ## Project-Specific Conventions
 
@@ -224,7 +256,9 @@ rake twitter:post_tagger      # Tag Twitter posts using Tag vocabulary
 - **User management**: Separate `users` (frontend) and `admin_users` (ActiveAdmin) with different access levels
 - **Content versioning**: PaperTrail integration via `versions` table for audit trails
 - **Facebook integration**: `pages` table stores fanpage metadata, `comments` stores social interactions
-- **Twitter integration**: `twitter_profiles` table tracks Twitter accounts with profile data (`uid`, `username`, `name`, `picture`, `followers`, `description`, `verified`), `twitter_posts` table stores individual tweets with full engagement metrics (`tweet_id`, `posted_at`, `text`, `favorite_count`, `retweet_count`, `reply_count`, `quote_count`, `views_count`, `bookmark_count`, `is_retweet`, `is_quote`, `payload`)
+- **Twitter integration**: `twitter_profiles` table tracks Twitter accounts with profile data (`uid`, `username`, `name`, `picture`, `followers`, `description`, `verified`), `twitter_posts` table stores individual tweets with full engagement metrics (`tweet_id`, `posted_at`, `text`, `favorite_count`, `retweet_count`, `reply_count`, `quote_count`, `views_count`, `bookmark_count`, `is_retweet`, `is_quote`, `payload`, `entry_id`)
+  - Cross-referencing: `entry_id` foreign key links tweets to news articles they reference
+  - Payload format varies by environment: Hash objects (local), Ruby hash strings with `=>` (production)
 - **Newspaper archival**: `newspapers` and `newspaper_texts` for daily content snapshots
 - Spanish locale (`config.i18n.default_locale = :es`)
 
@@ -280,6 +314,50 @@ rake twitter:post_tagger      # Tag Twitter posts using Tag vocabulary
 - Falls back to guest token API if no credentials found
 - Pagination fetches up to 5 pages (~500 tweets total) with 0.5s delay between requests
 - See `.env.example` for configuration template
+
+### TwitterPost Payload Parsing
+
+**Critical Implementation Detail**: Production and development environments store tweet payloads in different formats.
+
+**Format Differences:**
+
+- **Development**: Payloads stored as Ruby Hash objects (direct access with `payload['key']`)
+- **Production**: Payloads stored as String representation of Ruby hashes with `=>` syntax: `"{\"key\"=>\"value\"}"`
+- **Schema**: Database schema defines `payload` as `json` column type, but MySQL stores it as string
+
+**Parsing Implementation** (in `TwitterPost#external_urls`):
+
+```ruby
+parsed_payload =
+  case payload
+  when Hash
+    payload  # Local development format
+  when String
+    if payload.include?('=>')
+      # Production Ruby hash string format
+      # Convert => to : to make valid JSON
+      json_string = payload.gsub('=>', ':')
+      JSON.parse(json_string)
+    else
+      # Standard JSON string format
+      JSON.parse(payload)
+    end
+  end
+```
+
+**Why This Matters:**
+
+- URL extraction from tweets depends on parsing nested payload structure
+- Production was showing 0% URL extraction until this fix
+- Must avoid using `eval()` for security reasons - string replacement is safer
+- All methods accessing payload must handle both formats
+
+**Affected Methods:**
+
+- `external_urls` - Extracts URLs from tweet entities
+- `primary_url` - Returns first external URL
+- `has_external_url?` - Boolean check for URLs
+- Any future methods accessing `payload` data
 
 ### File Processing
 
