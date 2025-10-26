@@ -36,7 +36,7 @@ module TwitterServices
       else
         # Apply the tags to the twitter_post
         twitter_post.tag_list.add(tags_found.uniq)
-        twitter_post.save
+        twitter_post.save!
 
         handle_success(tags_found.uniq)
       end

@@ -298,13 +298,75 @@ The system can automatically link tweets to news articles they reference:
 - `TWITTER_AUTH_TOKEN` - Session auth_token cookie from logged-in Twitter account
 - `TWITTER_CT0_TOKEN` - CSRF token (ct0 cookie) from logged-in session
 - `TWITTER_BEARER_TOKEN` - Bearer token for API requests (optional, uses default)
+- `USE_SCRAPE_DO_PROXY` - Set to `true` to use scrape.do proxy service
+- `SCRAPE_DO_TOKEN` - API token for scrape.do proxy service
 
-**How to Get Twitter Cookies:**
+**How to Extract Twitter Authentication Tokens:**
 
-1. Open Twitter (https://twitter.com) in browser while logged in
-2. Open DevTools (F12) → Application/Storage → Cookies → twitter.com
-3. Copy values for `auth_token` and `ct0`
-4. Add to `.env` file
+These tokens are required for the authenticated Twitter API which fetches real-time tweets. They come from your browser's session cookies when logged into Twitter.
+
+**Step-by-Step Instructions:**
+
+1. **Log into Twitter**
+
+   - Open your web browser (Chrome, Firefox, Safari, etc.)
+   - Go to https://twitter.com
+   - Log in with your Twitter account credentials
+   - Make sure you're fully logged in and can see your timeline
+
+2. **Open Browser Developer Tools**
+
+   - **Chrome/Edge**: Press `F12` or `Cmd+Option+I` (Mac) / `Ctrl+Shift+I` (Windows/Linux)
+   - **Firefox**: Press `F12` or `Cmd+Option+I` (Mac) / `Ctrl+Shift+I` (Windows/Linux)
+   - **Safari**: Enable Developer menu in Preferences, then press `Cmd+Option+I`
+
+3. **Navigate to Cookies**
+
+   - Click on the **Application** tab (Chrome/Edge) or **Storage** tab (Firefox/Safari)
+   - In the left sidebar, expand **Cookies**
+   - Click on **https://twitter.com** (or **https://x.com**)
+
+4. **Find and Copy TWITTER_AUTH_TOKEN**
+
+   - In the cookies list, find the cookie named **`auth_token`**
+   - Click on it to view its details
+   - Copy the **Value** field (it's a long hexadecimal string, ~40 characters)
+   - Example format: `86608d5a44be442c17f10e79c860af1faa4cd9b6`
+   - Paste this value into your `.env` file: `TWITTER_AUTH_TOKEN=<your_value>`
+
+5. **Find and Copy TWITTER_CT0_TOKEN**
+
+   - In the same cookies list, find the cookie named **`ct0`**
+   - Click on it to view its details
+   - Copy the **Value** field (it's a very long hexadecimal string, ~160 characters)
+   - Example format: `7af2cd4ac37f2b3f8d80ce8c8fa8928b19eb73e45a8da530ed53168f4fbb1774...`
+   - Paste this value into your `.env` file: `TWITTER_CT0_TOKEN=<your_value>`
+
+6. **Verify Your Configuration**
+   - Your `.env` file should now have both tokens:
+   ```
+   TWITTER_AUTH_TOKEN=86608d5a44be442c17f10e79c860af1faa4cd9b6
+   TWITTER_CT0_TOKEN=7af2cd4ac37f2b3f8d80ce8c8fa8928b19eb73e45a8da530ed53168f4fbb1774...
+   ```
+   - Restart any running Rails processes to load the new environment variables
+
+**Token Lifecycle and Maintenance:**
+
+- **Expiration**: Session cookies typically expire after 30-90 days of inactivity
+- **Signs of Expiration**:
+  - API requests returning 401 Unauthorized errors
+  - `TwitterServices::GetPostsDataAuth` failing with authentication errors
+  - Rake tasks showing "Authentication failed" messages
+- **Refreshing Tokens**: When tokens expire, simply repeat the extraction process with a fresh Twitter login
+- **Security**: Never commit `.env` file to git - it's already in `.gitignore`
+- **Multiple Accounts**: You can switch accounts by extracting tokens from different Twitter login sessions
+
+**Troubleshooting:**
+
+- **Can't find cookies**: Make sure you're logged into Twitter first
+- **Empty cookie value**: The cookie might be HttpOnly - try copying from the Value column in the cookies table
+- **Still not working**: Clear your browser cache, log out and back into Twitter, then extract fresh tokens
+- **API errors**: Check that both `auth_token` AND `ct0` cookies are present and correctly copied
 
 **Important Notes:**
 
