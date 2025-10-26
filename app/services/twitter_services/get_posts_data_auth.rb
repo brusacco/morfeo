@@ -55,18 +55,33 @@ module TwitterServices
       request_count = 0
 
       loop do
-        response =
-          if @use_proxy
-            make_proxy_request(cursor)
+        # Retry logic for timeouts
+        max_retries = 2
+        retry_count = 0
+        response = nil
+
+        begin
+          response =
+            if @use_proxy
+              make_proxy_request(cursor)
+            else
+              make_direct_request(cursor)
+            end
+        rescue Net::ReadTimeout, Net::OpenTimeout => e
+          retry_count += 1
+          if retry_count <= max_retries
+            Rails.logger.warn("[TwitterServices::GetPostsDataAuth] Timeout (attempt #{retry_count}/#{max_retries}), retrying...")
+            sleep(3)
+            retry
           else
-            make_direct_request(cursor)
+            return handle_error("Request timeout after #{max_retries} retries: #{e.message}")
           end
+        end
 
         data = JSON.parse(response.body)
 
         unless response.success?
-          error_message = data['errors']&.map { |e| e['message'] }
-&.join(', ') || 'Unknown error'
+          error_message = data['errors']&.map { |err| err['message'] }&.join(', ') || 'Unknown error'
           return handle_error("API Error: #{error_message}")
         end
 
@@ -97,6 +112,7 @@ module TwitterServices
       self.class.get(
         '/graphql/E8Wq-_jFSaU7hxVcuOPR9g/UserTweets',
         headers: auth_headers,
+        timeout: 60, # 60 second timeout for direct requests
         query: {
           variables: variables(cursor).to_json,
           features: features.to_json,
@@ -122,7 +138,12 @@ module TwitterServices
       proxy_url = "https://api.scrape.do/?token=#{@scrape_do_token}&url=#{CGI.escape(twitter_url)}&customHeaders=true"
 
       # Pass auth headers directly - scrape.do will forward them to Twitter
-      HTTParty.get(proxy_url, timeout: 30, headers: auth_headers)
+      # Increase timeout to 90 seconds for proxy requests (they take longer)
+      HTTParty.get(
+        proxy_url,
+        timeout: 90,
+        headers: auth_headers
+      )
     end
 
     def auth_headers
