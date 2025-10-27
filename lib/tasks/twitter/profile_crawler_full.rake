@@ -65,7 +65,7 @@ namespace :twitter do
       puts '---------------------------------------------------'
 
       # Sleep between profiles to avoid rate limiting
-      sleep(rand(10..20))
+      sleep(rand(30..40))
     end
   end
 end

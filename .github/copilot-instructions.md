@@ -19,6 +19,10 @@ Morfeo is a Rails 7 news monitoring system that crawls websites, extracts articl
   - Reaction metrics: Individual counts for like, love, wow, haha, sad, angry, thankful, plus `reactions_total_count`
   - Engagement: `comments_count`, `share_count`, `views_count` (calculated)
   - Views estimation formula: `(likes * 15) + (comments * 40) + (shares * 80) + (followers * 0.04)`
+  - **Word Analysis**: `words` and `bigrams` methods filter content using STOP_WORDS
+    - Removes words with length <= 2 characters
+    - Filters both words in bigrams against STOP_WORDS
+    - Only returns occurrences that appear more than once
   - Scopes: `recent`, `for_page`, `within_range`, `for_tags`, `for_topic`
   - Analytics methods: `grouped_counts`, `grouped_interactions`, `total_interactions`, `total_views`, `word_occurrences`, `bigram_occurrences`
 - **Site**: News websites being monitored with crawling configuration
@@ -56,6 +60,10 @@ Morfeo is a Rails 7 news monitoring system that crawls websites, extracts articl
   - URL extraction: `external_urls` returns array of expanded URLs from tweet entities
   - Linking: `find_matching_entry`, `link_to_entry!` methods for Entry cross-referencing
   - **Tag Inheritance**: When linked to an Entry, automatically inherits all Entry tags during tagging process
+  - **Word Analysis**: `words` and `bigrams` methods filter content using STOP_WORDS
+    - Removes words with length <= 2 characters
+    - Filters both words in bigrams against STOP_WORDS
+    - Only returns occurrences that appear more than once
   - Scopes: `recent`, `for_profile`, `within_range`, `for_tags`, `for_topic`
   - Analytics methods: `grouped_counts`, `total_interactions`, `word_occurrences`, `bigram_occurrences`
   - Helper methods: `words`, `bigrams`, `tweet_url`, `site` (through profile), `primary_url`, `has_external_url?`
@@ -305,6 +313,12 @@ end
 ### Content Processing
 
 - **Stop Words**: `stop-words.txt` file filters common Spanish words
+  - Loaded globally via `config/initializers/stop_words.rb` as `STOP_WORDS` constant
+  - Applied to Entry, FacebookEntry, and TwitterPost models for word analysis
+  - **Word Filtering**: Removes words with length <= 2 characters and any word in STOP_WORDS list
+  - **Bigram Filtering**: Filters bigrams where either word is in STOP_WORDS or <= 2 characters
+  - **Occurrence Filtering**: Only shows words/bigrams that appear more than once (`count > 1`)
+  - Used in word clouds, frequency tables, and analytics dashboards
 - **N-grams**: Bigram/trigram extraction for trend analysis
 - **Polarity**: Enum values (neutral: 0, positive: 1, negative: 2)
 
