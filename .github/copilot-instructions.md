@@ -194,7 +194,13 @@ end
   - `GetPostsData` - Retrieves user tweets via Twitter GraphQL API (guest token, fetches up to 100 tweets, may return cached/old data)
   - `GetPostsDataAuth` - **Authenticated API** using session cookies (auth_token, ct0), fetches fresh real-time tweets with pagination (up to 500 tweets across 5 requests)
   - `UpdateProfile` - Extracts and formats profile data for database storage
-  - `ProcessPosts` - Extracts and persists tweets from Twitter API responses, automatically uses authenticated API when ENV credentials are present, falls back to guest token
+  - `ProcessPosts` - Extracts and persists tweets from Twitter API responses
+    - Automatically uses authenticated API when ENV credentials are present, falls back to guest token
+    - Parameters: `profile_uid`, `stop_on_duplicates: true/false`, `update_existing: true/false`
+    - `stop_on_duplicates: true` (default) - Stops pagination when existing tweet found (fast incremental updates)
+    - `stop_on_duplicates: false` - Fetches all available pages regardless of duplicates (full archive crawl)
+    - `update_existing: true` - Updates engagement metrics (favorites, retweets, views) for existing tweets
+    - `update_existing: false` (default) - Skips existing tweets without updating
   - `ExtractTags` - Auto-tags tweets using Tag vocabulary with text matching, **includes entry tag inheritance** (see below)
   - `LinkToEntries` - Batch service to link TwitterPosts to Entries by matching external URLs
 - `WebExtractorServices::*` - Content parsing and tag extraction
@@ -220,7 +226,8 @@ rake facebook:entry_tagger    # Tag Facebook entries using Tag vocabulary
 rake facebook:update_fanpages # Update Facebook Page metadata (followers, etc.)
 rake facebook:comment_crawler # Fetch comments from Facebook posts
 rake twitter:update_profiles  # Update Twitter profile stats
-rake twitter:profile_crawler  # Crawl tweets from tracked profiles
+rake twitter:profile_crawler  # Crawl tweets from tracked profiles (stops on duplicates)
+rake twitter:profile_crawler_full # Full crawl of all tweets, updates existing engagement metrics
 rake twitter:post_tagger      # Tag Twitter posts using Tag vocabulary
 rake twitter:link_to_entries  # Link tweets to news articles by matching URLs
 ```
@@ -292,6 +299,87 @@ end
 
 - Rake task uses `.includes(:entry)` to prevent N+1 queries when checking for linked entries
 - Enhanced logging shows which tweets benefit from entry tag inheritance
+
+### Twitter Profile Crawling Strategies
+
+The system provides two different crawling modes for Twitter profiles, each optimized for different use cases:
+
+#### Incremental Crawler (`rake twitter:profile_crawler`)
+
+**Purpose**: Fast, efficient daily updates for active profiles
+
+**Behavior**:
+
+- Uses `stop_on_duplicates: true` parameter
+- Stops pagination immediately when encountering an existing tweet
+- Does NOT update engagement metrics for existing tweets
+- Designed for frequent scheduled runs (hourly/daily)
+
+**Use Cases**:
+
+- Regular scheduled crawls to keep up with new tweets
+- Profiles that tweet frequently
+- Production scheduled tasks
+- Minimizing API rate limit usage
+
+**Performance**:
+
+- Fast execution (typically 1-2 API requests per profile)
+- Low API quota consumption
+- Minimal database operations
+
+#### Full Archive Crawler (`rake twitter:profile_crawler_full`)
+
+**Purpose**: Complete profile analysis and historical metric updates
+
+**Behavior**:
+
+- Uses `stop_on_duplicates: false` and `update_existing: true` parameters
+- Fetches all available pages (up to 500 tweets)
+- DOES update engagement metrics for existing tweets
+- Continues pagination regardless of duplicates
+
+**Use Cases**:
+
+- Initial profile setup and historical tweet import
+- Periodic engagement metric refreshes (weekly/monthly)
+- Analytics updates to track tweet performance over time
+- Backfilling missing tweets
+
+**Performance**:
+
+- Slower execution (up to 5 API requests per profile)
+- Higher API quota consumption
+- Significant database updates (updates existing records)
+
+**Includes Retry Logic**:
+
+- Up to 3 retries on rate limit errors (429)
+- Exponential backoff: 5s, 10s, 15s delays
+- Random sleep intervals (30-60s) between profiles
+
+#### Choosing the Right Crawler
+
+| Scenario                 | Recommended Task       | Frequency      |
+| ------------------------ | ---------------------- | -------------- |
+| Daily tweet monitoring   | `profile_crawler`      | Hourly/Daily   |
+| New profile added        | `profile_crawler_full` | Once           |
+| Weekly analytics refresh | `profile_crawler_full` | Weekly         |
+| Engagement tracking      | `profile_crawler_full` | Weekly/Monthly |
+| Backfill missing tweets  | `profile_crawler_full` | As needed      |
+
+**Example Usage**:
+
+```ruby
+# Fast incremental update (default behavior)
+TwitterServices::ProcessPosts.call(profile_uid)
+
+# Full crawl without metric updates
+TwitterServices::ProcessPosts.call(profile_uid, stop_on_duplicates: false)
+
+# Full crawl WITH metric updates (most comprehensive)
+TwitterServices::ProcessPosts.call(profile_uid, stop_on_duplicates: false, update_existing: true)
+```
 
 ## Project-Specific Conventions
 
