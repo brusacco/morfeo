@@ -40,6 +40,7 @@ namespace :twitter do
 
       unless response.success?
         puts "  -> Error crawling #{profile.username}: #{response.error}"
+        sleep(rand(30..60))
         next
       end
 
