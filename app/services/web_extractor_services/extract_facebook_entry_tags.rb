@@ -8,7 +8,7 @@ module WebExtractorServices
     end
 
     def call
-      facebook_entry = FacebookEntry.find(@facebook_entry_id)
+      facebook_entry = FacebookEntry.includes(:entry).find(@facebook_entry_id)
 
       content_sources = [
         facebook_entry.message,
@@ -35,6 +35,12 @@ module WebExtractorServices
         tag.variations.split(',').each do |variation|
           tags_found << tag.name if tag_match?(content, variation)
         end
+      end
+
+      # Inherit tags from linked Entry if present
+      if facebook_entry.entry.present?
+        entry_tags = facebook_entry.entry.tag_list
+        tags_found.concat(entry_tags) if entry_tags.any?
       end
 
       if tags_found.empty?

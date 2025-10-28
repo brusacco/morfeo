@@ -2,6 +2,7 @@
 
 class FacebookEntry < ApplicationRecord
   belongs_to :page
+  belongs_to :entry, optional: true
   acts_as_taggable_on :tags
 
   validates :facebook_post_id, presence: true, uniqueness: true
@@ -11,6 +12,9 @@ class FacebookEntry < ApplicationRecord
   before_save :calculate_views_count
 
   scope :recent, -> { order(posted_at: :desc) }
+  scope :linked, -> { where.not(entry_id: nil) }
+  scope :unlinked, -> { where(entry_id: nil) }
+  scope :with_url, -> { where.not(attachment_target_url: nil).or(where.not(attachment_url: nil)) }
   scope :for_page,
         lambda { |page_uid|
           joins(:page).where(pages: { uid: page_uid })
@@ -111,7 +115,94 @@ class FacebookEntry < ApplicationRecord
     (likes * 15) + (comments * 40) + (shares * 80) + (followers * 0.04)
   end
 
+  # Extract external URLs from the Facebook post (news articles, etc.)
+  # Uses attachment_target_url or attachment_url as primary URL sources
+  def external_urls
+    urls = []
+    urls << attachment_target_url if attachment_target_url.present?
+    urls << attachment_url if attachment_url.present? && attachment_url != attachment_target_url
+    urls.compact.uniq
+  end
+
+  # Get the first external URL (most common case for news posts)
+  def primary_url
+    attachment_target_url.presence || attachment_url.presence
+  end
+
+  # Check if post has external URLs
+  def has_external_url?
+    primary_url.present?
+  end
+
+  # Try to find a matching Entry based on the primary URL
+  def find_matching_entry
+    return unless has_external_url?
+
+    url = primary_url
+    normalized_urls = normalize_url(url)
+
+    # Try each normalized variation
+    normalized_urls.each do |normalized_url|
+      entry = Entry.find_by(url: normalized_url)
+      return entry if entry
+    end
+
+    nil
+  end
+
+  # Link this Facebook post to an Entry if a match is found
+  def link_to_entry!
+    return false unless has_external_url?
+
+    matching_entry = find_matching_entry
+    return false unless matching_entry
+
+    update(entry: matching_entry)
+  end
+
   private
+
+  # Normalize URL to try different variations for matching
+  def normalize_url(url)
+    return [] if url.blank?
+
+    variations = []
+
+    # 1. Exact URL
+    variations << url
+
+    # 2. Without query parameters or fragments
+    clean_url = url.split('?').first.split('#').first
+    variations << clean_url unless variations.include?(clean_url)
+
+    # 3. Without trailing slash
+    without_slash = clean_url.chomp('/')
+    variations << without_slash unless variations.include?(without_slash)
+
+    # 4. Protocol variations (http vs https)
+    # Many sites use both, Entry table might have different protocol than Facebook
+    [url, clean_url, without_slash].each do |variant|
+      if variant.start_with?('http://')
+        https_variant = variant.sub('http://', 'https://')
+        variations << https_variant unless variations.include?(https_variant)
+      elsif variant.start_with?('https://')
+        http_variant = variant.sub('https://', 'http://')
+        variations << http_variant unless variations.include?(http_variant)
+      end
+    end
+
+    # 5. WWW variations
+    if url.include?('www.')
+      variations << url.sub('www.', '')
+      variations << clean_url.sub('www.', '')
+    elsif url.match?(%r{\Ahttps?://(?!www\.)})
+      # Try adding www
+      with_www = url.sub(%r{(https?://)}i, '\1www.')
+      variations << with_www unless variations.include?(with_www)
+    end
+
+    variations.compact.uniq
+  end
 
   def calculate_views_count
     self.views_count = estimated_views.round

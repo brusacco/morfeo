@@ -20,13 +20,14 @@ every 3.hours do
   rake 'facebook:fanpage_crawler'
   rake 'twitter:profile_crawler_full'
   rake 'twitter:link_to_entries'
-  rake 'twitter:post_tagger'
+  rake 'facebook:link_to_entries'
   # rake 'facebook:comment_crawler'
 end
 
 every 4.hours do
   rake 'repeated_notes'
   rake 'title_tagger'
+  rake 'twitter:post_tagger'
   rake 'facebook:entry_tagger'
 end
 

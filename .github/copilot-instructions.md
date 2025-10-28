@@ -14,17 +14,23 @@ Morfeo is a Rails 7 news monitoring system that crawls websites, extracts articl
   - Has many `twitter_posts` for cross-referencing tweets that link to this article
 - **FacebookEntry**: Facebook posts from tracked Pages with comprehensive engagement metrics
   - Belongs to `page`, has tagging via `acts-as-taggable-on`
+  - **Belongs to `entry` (optional)** for cross-referencing Facebook posts with news articles
   - Post data: `facebook_post_id` (unique), `posted_at`, `message`, `permalink_url`
   - Attachment data: `attachment_type`, `attachment_title`, `attachment_description`, `attachment_url`, `attachment_target_url`, `attachment_media_src`, dimensions
   - Reaction metrics: Individual counts for like, love, wow, haha, sad, angry, thankful, plus `reactions_total_count`
   - Engagement: `comments_count`, `share_count`, `views_count` (calculated)
   - Views estimation formula: `(likes * 15) + (comments * 40) + (shares * 80) + (followers * 0.04)`
+  - **URL extraction**: `external_urls` returns array of URLs from `attachment_target_url` and `attachment_url`
+  - **Linking**: `find_matching_entry`, `link_to_entry!` methods for Entry cross-referencing
+  - **URL normalization**: `normalize_url` private method generates URL variations for matching (exact, without query params, without trailing slash, with/without www)
+  - **Tag Inheritance**: When linked to an Entry, automatically inherits all Entry tags during tagging process
   - **Word Analysis**: `words` and `bigrams` methods filter content using STOP_WORDS
     - Removes words with length <= 2 characters
     - Filters both words in bigrams against STOP_WORDS
     - Only returns occurrences that appear more than once
-  - Scopes: `recent`, `for_page`, `within_range`, `for_tags`, `for_topic`
+  - Scopes: `recent`, `linked`, `unlinked`, `with_url`, `for_page`, `within_range`, `for_tags`, `for_topic`
   - Analytics methods: `grouped_counts`, `grouped_interactions`, `total_interactions`, `total_views`, `word_occurrences`, `bigram_occurrences`
+  - Helper methods: `words`, `bigrams`, `primary_url`, `has_external_url?`, `external_urls`
 - **Site**: News websites being monitored with crawling configuration
   - Filters: `filter` (inclusion), `negative_filter` (exclusion), `content_filter` (CSS selector)
   - Status: `status` (enabled/disabled), `is_js` (requires Selenium), `entries_count` cache
@@ -189,6 +195,7 @@ end
   - `FanpageCrawler` - Crawls Facebook posts from Pages with full engagement metrics
   - `CommentCrawler` - Fetches comments from specific Facebook posts
   - `UpdateStats` - Updates engagement statistics for Entry URLs via Facebook Graph API
+  - `LinkToEntries` - Batch service to link FacebookEntries to Entries by matching external URLs
 - `TwitterServices::*` - Twitter API integration for profile and post data
   - `GetProfileData` - Fetches raw Twitter profile information
   - `GetPostsData` - Retrieves user tweets via Twitter GraphQL API (guest token, fetches up to 100 tweets, may return cached/old data)
@@ -222,13 +229,14 @@ rake crawler              # Main web crawler (hourly)
 rake headless_crawler     # Selenium-based crawler for JS sites
 rake ai:generate_ai_reports # AI-powered topic summaries
 rake facebook:fanpage_crawler # Crawl Facebook posts from tracked Pages
-rake facebook:entry_tagger    # Tag Facebook entries using Tag vocabulary
+rake facebook:entry_tagger    # Tag Facebook entries using Tag vocabulary (with entry tag inheritance)
+rake facebook:link_to_entries # Link Facebook posts to news articles by matching URLs
 rake facebook:update_fanpages # Update Facebook Page metadata (followers, etc.)
 rake facebook:comment_crawler # Fetch comments from Facebook posts
 rake twitter:update_profiles  # Update Twitter profile stats
 rake twitter:profile_crawler  # Crawl tweets from tracked profiles (stops on duplicates)
 rake twitter:profile_crawler_full # Full crawl of all tweets, updates existing engagement metrics
-rake twitter:post_tagger      # Tag Twitter posts using Tag vocabulary
+rake twitter:post_tagger      # Tag Twitter posts using Tag vocabulary (with entry tag inheritance)
 rake twitter:link_to_entries  # Link tweets to news articles by matching URLs
 ```
 
@@ -237,6 +245,35 @@ rake twitter:link_to_entries  # Link tweets to news articles by matching URLs
 - **Elasticsearch**: Uses Searchkick gem for full-text search on entries
 - **Charts**: Chartkick + Chart.js for analytics dashboards
 - **Admin**: ActiveAdmin interface for content management
+
+### Facebook Post-to-Entry Cross-Referencing
+
+The system can automatically link Facebook posts to news articles they reference:
+
+1. **URL Extraction**: `FacebookEntry#external_urls` extracts URLs from `attachment_target_url` and `attachment_url`
+2. **Matching Logic**: `FacebookServices::LinkToEntries` finds Entry records with matching URLs
+3. **URL Normalization**: `normalize_url` generates URL variations (exact, without query params, without trailing slash, with/without www)
+4. **Batch Processing**: `rake facebook:link_to_entries` processes all unlinked posts
+5. **Admin UI**: ActiveAdmin shows "Linked" status with green/red badges and allows filtering by Entry
+
+**Key Methods:**
+
+- `FacebookEntry#find_matching_entry` - Finds Entry with matching URL using normalized variations
+- `FacebookEntry#link_to_entry!` - Creates association with Entry
+- `FacebookEntry#primary_url` - Returns first external URL (`attachment_target_url` or `attachment_url`)
+- `FacebookEntry#has_external_url?` - Checks if post contains URLs
+- `FacebookEntry#normalize_url` - Private method generating URL variations for matching
+
+**Expected Metrics:**
+
+- ~99.8% of posts contain external URLs (via attachment fields)
+- ~16% of posts with URLs match existing Entry records
+- Matching considers URL variations (with/without www, query params, trailing slashes)
+
+**URL Priority:**
+
+1. `attachment_target_url` (preferred - already expanded by Facebook)
+2. `attachment_url` (fallback - may be Facebook redirect)
 
 ### Tweet-to-Entry Cross-Referencing
 
@@ -261,24 +298,45 @@ The system can automatically link tweets to news articles they reference:
 - ~10% of tweets with URLs match existing Entry records
 - Matching considers URL variations (with/without www, query params, etc.)
 
-### Twitter Tag Inheritance from Entries
+### Social Media Tag Inheritance from Entries
 
-The tagging system automatically inherits tags from linked Entry records, ensuring consistency between tweets and the news articles they reference:
+The tagging system automatically inherits tags from linked Entry records, ensuring consistency between social posts and the news articles they reference:
 
-**How It Works:**
+**Facebook Tag Inheritance:**
+
+1. **Text Matching**: `WebExtractorServices::ExtractFacebookEntryTags` searches for tags in the post's message, title, description using Tag vocabulary
+2. **Entry Tag Inheritance**: If the post has an `entry_id` (linked to a news article), it also pulls all tags from that Entry
+3. **Fallback Inheritance**: If text matching fails but post is linked to an Entry with tags, those tags are inherited anyway
+4. **Tag Merging**: Both tag sources (text matching + entry tags) are combined and deduplicated
+5. **Application**: The final unique tag list is applied to the FacebookEntry
+
+**Twitter Tag Inheritance:**
 
 1. **Text Matching**: `TwitterServices::ExtractTags` first searches for tags in the tweet's text using the Tag vocabulary
 2. **Entry Tag Inheritance**: If the tweet has an `entry_id` (linked to a news article), it also pulls all tags from that Entry
-3. **Tag Merging**: Both tag sources (text matching + entry tags) are combined and deduplicated
-4. **Application**: The final unique tag list is applied to the TwitterPost
+3. **Fallback Inheritance**: If text matching fails but tweet is linked to an Entry with tags, those tags are inherited anyway
+4. **Tag Merging**: Both tag sources (text matching + entry tags) are combined and deduplicated
+5. **Application**: The final unique tag list is applied to the TwitterPost
 
 **Implementation Details:**
 
 ```ruby
-# In TwitterServices::ExtractTags#call
-if twitter_post.entry.present?
-  entry_tags = twitter_post.entry.tag_list
+# In TwitterServices::ExtractTags#call and WebExtractorServices::ExtractFacebookEntryTags#call
+if social_post.entry.present?
+  entry_tags = social_post.entry.tag_list
   tags_found.concat(entry_tags) if entry_tags.any?
+end
+```
+
+**Rake Task Fallback Logic:**
+
+```ruby
+# In rake facebook:entry_tagger and rake twitter:post_tagger
+if !result.success? && social_post.entry.present? && social_post.entry.tag_list.any?
+  # Inherit tags from linked entry even if text matching failed
+  entry_tags = social_post.entry.tag_list.dup
+  social_post.tag_list = entry_tags
+  social_post.save!
 end
 ```
 

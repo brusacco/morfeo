@@ -2,7 +2,7 @@
 
 ActiveAdmin.register FacebookEntry do
   menu parent: 'Entries Listing', label: 'Facebook Entries'
-  includes :page
+  includes :page, :entry
 
   actions :all, except: %i[new edit destroy]
 
@@ -10,12 +10,30 @@ ActiveAdmin.register FacebookEntry do
   filter :page, collection: proc { Page.order(:name) }
   filter :posted_at
   filter :created_at
+  filter :entry_id, as: :select, collection: proc { Entry.order(published_at: :desc).limit(100) }
+
+  scope :all, default: true
+  scope :linked
+  scope :unlinked
+  scope :with_url
 
   index do
     selectable_column
     id_column
     column :facebook_post_id
     column :page
+    column :linked, sortable: :entry_id do |facebook_entry|
+      if facebook_entry.entry_id.present?
+        status_tag('Yes', class: 'ok')
+      else
+        status_tag('No', class: 'error')
+      end
+    end
+    column :entry do |facebook_entry|
+      if facebook_entry.entry.present?
+        link_to truncate(facebook_entry.entry.title, length: 40), admin_entry_path(facebook_entry.entry)
+      end
+    end
     column :posted_at
     column :attachment_type
     column :tags
@@ -35,6 +53,13 @@ ActiveAdmin.register FacebookEntry do
     attributes_table do
       row :facebook_post_id
       row :page
+      row :entry do |facebook_entry|
+        if facebook_entry.entry.present?
+          link_to facebook_entry.entry.title, admin_entry_path(facebook_entry.entry)
+        else
+          status_tag('Not Linked', class: 'error')
+        end
+      end
       row :posted_at
       row :fetched_at
       row :permalink_url do |entry|
