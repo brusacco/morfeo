@@ -113,7 +113,6 @@ class TopicController < ApplicationController
 
     # @analytics = @topic.analytics_topic_entries
 
-    @top_entries = Entry.enabled.normal_range.joins(:site).order(total_count: :desc).limit(5)
     @total_entries = @entries_count
     @total_interactions = @entries_total_sum
 
@@ -162,10 +161,6 @@ class TopicController < ApplicationController
     end
 
     @most_interactions = @entries.order(total_count: :desc).limit(12)
-
-    # Precompute pluck values to avoid SQL queries in views
-    @top_entries_counts = @top_entries.pluck(:total_count)
-    @most_interactions_counts = @most_interactions.pluck(:total_count).take(5)
 
     if @total_entries.zero?
       @promedio = 0
@@ -274,7 +269,6 @@ class TopicController < ApplicationController
     @chart_entries_sentiments_counts = @chart_entries_sentiments.size
     @chart_entries_sentiments_sums = @chart_entries_sentiments.sum(:total_count)
 
-    @top_entries = Entry.enabled.normal_range.joins(:site).order(total_count: :desc).limit(5)
     @total_entries = @entries_count
     @total_interactions = @entries_total_sum
 
@@ -317,10 +311,6 @@ class TopicController < ApplicationController
     end
 
     @most_interactions = @entries.order(total_count: :desc).limit(12)
-
-    # Precompute pluck values to avoid SQL queries in views
-    @top_entries_counts = @top_entries.pluck(:total_count)
-    @most_interactions_counts = @most_interactions.limit(5).pluck(:total_count)
 
     if @total_entries.zero?
       @promedio = 0

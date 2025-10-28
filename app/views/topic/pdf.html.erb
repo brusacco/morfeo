@@ -537,12 +537,6 @@
           </div>
         </div>
       </div>
-      <!-- Summary Section -->
-      <div class="pdf-section">
-        <div class="pdf-summary">
-          <p>El tópico <strong><%=@topic.name%></strong> en los últimos <strong><%=DAYS_RANGE%> días</strong> cuenta con un total de <strong><%=number_with_delimiter(@total_entries, delimiter: ".")%></strong> notas y generó un total de <strong><%=number_with_delimiter(@total_interactions, delimiter: '.')%></strong> interacciones, lo que nos da un promedio de <strong><%=number_with_delimiter(@promedio, delimiter: '.')%></strong> interacciones por nota.</p>
-        </div>
-      </div>
       <!-- AI Report Section -->
       <% if @report && @report.report_text %>
         <div class="pdf-section">

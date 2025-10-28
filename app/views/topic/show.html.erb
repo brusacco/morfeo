@@ -443,26 +443,6 @@
         </div>
       </div>
     </section>
-    <!-- Executive Summary -->
-    <section class="mb-8">
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h2 class="text-2xl font-bold text-gray-900 mb-6">Resumen Ejecutivo</h2>
-        <div class="prose prose-lg max-w-none">
-          <p class="text-gray-700 leading-relaxed mb-4">
-            El tópico <span class="font-semibold text-gray-900"><%=@topic.name%></span> en los últimos 
-            <span class="font-semibold text-blue-600"><%=DAYS_RANGE%> días</span> cuenta con un total de 
-            <span class="font-semibold text-gray-900"><%=number_with_delimiter(@total_entries, delimiter: ".")%> notas</span>
-            y generó un total de <span class="font-semibold text-gray-900"><%=number_with_delimiter(@total_interactions, delimiter: '.')%> interacciones</span>, 
-            lo que nos da un promedio de <span class="font-semibold text-green-600"><%=number_with_delimiter(@promedio, delimiter: '.')%> interacciones por nota</span>.
-          </p>
-          <p class="text-gray-700 leading-relaxed">
-            En contexto, las <%=@top_entries.count%> notas con más interacciones en general tuvieron 
-            <span class="font-medium text-gray-900"><%=@top_entries_counts.join(', ')%></span> interacciones, 
-            mientras que las notas del tópico alcanzaron <span class="font-medium text-gray-900"><%=@most_interactions_counts.join(', ')%></span> interacciones.
-          </p>
-        </div>
-      </div>
-    </section>
     <!-- AI Analysis Report -->
     <% if @report && @report.report_text %>
       <section class="mb-8">
