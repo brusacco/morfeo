@@ -17,8 +17,10 @@ every :hour do
 end
 
 every 3.hours do
-  rake 'crawler_deep'
   rake 'facebook:fanpage_crawler'
+  rake 'twitter:profile_crawler_full'
+  rake 'twitter:link_to_entries'
+  rake 'twitter:post_tagger'
   # rake 'facebook:comment_crawler'
 end
 
@@ -29,6 +31,7 @@ every 4.hours do
 end
 
 every 6.hours do
+  rake 'crawler_deep'
   rake 'ai:generate_ai_reports'
   rake 'ai:set_topic_polarity'
   rake 'facebook:update_fanpages'
