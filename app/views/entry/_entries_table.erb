@@ -21,7 +21,6 @@
         <thead class="bg-gray-50">
           <tr>
             <th scope="col" class="relative px-3 py-3.5 text-left text-sm font-semibold text-gray-900 pr-8">Fecha</th>
-            <th scope="col" class="px-3 py-3.5 text-center text-sm font-semibold text-gray-900">Imagen</th>
             <th scope="col" class="relative px-3 py-3.5 text-left text-sm font-semibold text-gray-900 pr-8">Nota</th>
             <th scope="col" class="relative px-3 py-3.5 text-left text-sm font-semibold text-gray-900 pr-8">Etiquetas</th>
             <th scope="col" class="relative px-3 py-3.5 text-left text-sm font-semibold text-gray-900 pr-8">Medio</th>
@@ -48,14 +47,6 @@
                 </time>
                 <div class="text-xs text-gray-500 mt-1">
                   <%= entry.published_at.strftime('%H:%M') %>
-                </div>
-              </td>
-              <td class="px-3 py-4 text-sm text-gray-500 text-center">
-                <div class="flex justify-center">
-                  <%= image_tag entry.clean_image, 
-                    class: "h-16 w-16 object-cover rounded-lg shadow-sm border border-gray-200", 
-                    loading: 'lazy', 
-                    onerror: "this.onerror=null;this.src='#{asset_path('default-entry.svg')}';" %>
                 </div>
               </td>
               <td class="px-3 py-4 text-sm text-gray-900">
@@ -242,22 +233,16 @@
           dom: '<"flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4"lf>rt<"flex flex-col sm:flex-row sm:items-center sm:justify-between mt-4"ip>',
           columnDefs: [
             {
-              targets: [1], // Image column
-              orderable: false,
-              searchable: false,
-              className: 'text-center'
-            },
-            {
-              targets: [2], // Title column
+              targets: [1], // Title column
               className: 'max-w-xs truncate'
             },
             {
-              targets: [3], // Tags column
+              targets: [2], // Tags column
               className: 'text-xs',
               orderable: false
             },
             {
-              targets: [5, 6, 7, 8], // Numeric columns (reactions, comments, shares, total)
+              targets: [4, 5, 6, 7], // Numeric columns (reactions, comments, shares, total)
               className: 'text-center font-semibold'
             }
           ],

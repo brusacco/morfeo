@@ -12,9 +12,7 @@ class TagController < ApplicationController
 
     @comments = Comment.where(entry_id: @entries.select(:id))
     @comments_word_occurrences = @comments.word_occurrences
-    # @comments_bigram_occurrences = @comments.bigram_occurrences
 
-    # Cosas nuevas
     @word_occurrences = @entries.word_occurrences
     @bigram_occurrences = @entries.bigram_occurrences
 
@@ -27,18 +25,14 @@ class TagController < ApplicationController
     @percentage_negatives = safe_percentage(@negatives, @entries.size)
     @percentage_neutrals = safe_percentage(@neutrals, @entries.size)
 
-    @top_entries = Entry.enabled.normal_range.joins(:site).order(total_count: :desc).limit(5)
+    @promedio = @total_entries.zero? ? 0 : @total_interactions / @total_entries
+
     @most_interactions = @entries.order(total_count: :desc).limit(12)
 
-    # Precompute pluck values to avoid SQL queries in views
-    @top_entries_counts = @top_entries.pluck(:total_count)
-    @most_interactions_counts = @most_interactions.limit(5).pluck(:total_count)
-
-    if @total_entries.zero?
-      @promedio = 0
-    else
-      @promedio = @total_interactions / @total_entries
-    end
+    @title_entries = @tag.title_list_entries
+    @title_chart_entries = @title_entries.group_by_day(:published_at)
+    @title_chart_entries_counts = @title_chart_entries.count
+    @title_chart_entries_sums = @title_chart_entries.sum(:total_count)
 
     @tags = @entries.tag_counts_on(:tags).order('count desc').limit(50)
 
