@@ -106,6 +106,8 @@ class TwitterPost < ApplicationRecord
     parsed_payload = parse_payload
     return [] unless parsed_payload
 
+    images = []
+
     # Try extended_entities first (contains all media including multiple images)
     # Fall back to entities.media if extended_entities is not available
     media_array = parsed_payload.dig('legacy', 'extended_entities', 'media') ||
@@ -113,9 +115,18 @@ class TwitterPost < ApplicationRecord
                   []
 
     # Filter for photos and extract their URLs
-    media_array.select { |m| m['type'] == 'photo' }
-                .map { |m| m['media_url_https'] || m['media_url'] }
-                .compact
+    photos = media_array.select { |m| m['type'] == 'photo' }
+                        .map { |m| m['media_url_https'] || m['media_url'] }
+                        .compact
+    images.concat(photos)
+
+    # If no photos found, check for link preview card images
+    if images.empty?
+      card_image = extract_card_image(parsed_payload)
+      images << card_image if card_image
+    end
+
+    images
   rescue StandardError => e
     Rails.logger.error("[TwitterPost#tweet_images] Failed to parse media for tweet #{tweet_id}: #{e.message}")
     []
@@ -129,6 +140,19 @@ class TwitterPost < ApplicationRecord
   # Check if tweet has images
   def has_images?
     tweet_images.any?
+  end
+
+  # Extract card image from link preview
+  def card_image
+    return unless payload
+
+    parsed_payload = parse_payload
+    return unless parsed_payload
+
+    extract_card_image(parsed_payload)
+  rescue StandardError => e
+    Rails.logger.error("[TwitterPost#card_image] Failed to parse card for tweet #{tweet_id}: #{e.message}")
+    nil
   end
 
   # Extract external URLs from the tweet (news articles, etc.)
@@ -195,5 +219,45 @@ class TwitterPost < ApplicationRecord
     else
       nil
     end
+  end
+
+  # Extract image from Twitter card (link preview)
+  def extract_card_image(parsed_payload)
+    # Check for card object in different possible locations
+    card = parsed_payload['card'] ||
+           parsed_payload.dig('legacy', 'card') ||
+           parsed_payload.dig('tweet_card', 'legacy')
+
+    return nil unless card
+
+    # Get binding_values which contains the card data
+    binding_values = card['binding_values'] || card.dig('legacy', 'binding_values')
+    return nil unless binding_values
+
+    # Try different image key patterns used by Twitter
+    image_keys = [
+      'photo_image_full_size_large',  # Large photo cards
+      'photo_image_full_size',        # Standard photo cards
+      'summary_photo_image_large',    # Summary cards with large image
+      'summary_photo_image',          # Summary cards with image
+      'thumbnail_image_large',        # Thumbnail large
+      'thumbnail_image',              # Thumbnail
+      'player_image_large',           # Player cards (videos)
+      'player_image'                  # Player cards
+    ]
+
+    # Search through binding_values array for image
+    image_keys.each do |key|
+      image_data = binding_values.find { |bv| bv['key'] == key }
+      next unless image_data
+
+      # Extract URL from the value structure
+      image_url = image_data.dig('value', 'image_value', 'url') ||
+                  image_data.dig('value', 'string_value')
+
+      return image_url if image_url&.start_with?('http')
+    end
+
+    nil
   end
 end
