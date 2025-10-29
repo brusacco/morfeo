@@ -99,30 +99,44 @@ class TwitterPost < ApplicationRecord
     twitter_profile&.site
   end
 
+  # Extract images from the tweet media
+  def tweet_images
+    return [] unless payload
+
+    parsed_payload = parse_payload
+    return [] unless parsed_payload
+
+    # Try extended_entities first (contains all media including multiple images)
+    # Fall back to entities.media if extended_entities is not available
+    media_array = parsed_payload.dig('legacy', 'extended_entities', 'media') ||
+                  parsed_payload.dig('legacy', 'entities', 'media') ||
+                  []
+
+    # Filter for photos and extract their URLs
+    media_array.select { |m| m['type'] == 'photo' }
+                .map { |m| m['media_url_https'] || m['media_url'] }
+                .compact
+  rescue StandardError => e
+    Rails.logger.error("[TwitterPost#tweet_images] Failed to parse media for tweet #{tweet_id}: #{e.message}")
+    []
+  end
+
+  # Get the first image from the tweet
+  def primary_image
+    tweet_images.first
+  end
+
+  # Check if tweet has images
+  def has_images?
+    tweet_images.any?
+  end
+
   # Extract external URLs from the tweet (news articles, etc.)
   def external_urls
     return [] unless payload
 
-    # Handle different payload formats:
-    # - Hash (already parsed)
-    # - JSON string (proper JSON with colons)
-    # - Ruby inspected string (with hash rockets =>)
-    parsed_payload =
-      case payload
-      when Hash
-        payload
-      when String
-        if payload.include?('=>')
-          # Ruby inspected hash string - convert to proper JSON first
-          json_string = payload.gsub('=>', ':')
-          JSON.parse(json_string)
-        else
-          # JSON string
-          JSON.parse(payload)
-        end
-      else
-        return []
-      end
+    parsed_payload = parse_payload
+    return [] unless parsed_payload
 
     entities = parsed_payload.dig('legacy', 'entities')
     return [] unless entities
@@ -160,5 +174,26 @@ class TwitterPost < ApplicationRecord
     return false unless matching_entry
 
     update(entry: matching_entry)
+  end
+
+  private
+
+  # Parse payload handling different formats
+  def parse_payload
+    case payload
+    when Hash
+      payload
+    when String
+      if payload.include?('=>')
+        # Ruby inspected hash string - convert to proper JSON first
+        json_string = payload.gsub('=>', ':')
+        JSON.parse(json_string)
+      else
+        # JSON string
+        JSON.parse(payload)
+      end
+    else
+      nil
+    end
   end
 end

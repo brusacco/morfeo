@@ -1,6 +1,11 @@
 <div class="group relative rounded-lg border border-gray-200 bg-white hover:shadow-lg transition-shadow duration-200">
   <div class="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-t-lg bg-gray-50">
-    <% if twitter_post.twitter_profile&.picture.present? %>
+    <% if twitter_post.has_images? %>
+      <%= image_tag twitter_post.primary_image, 
+        loading: 'lazy', 
+        onerror: "this.onerror=null;this.src='#{twitter_post.twitter_profile&.picture || asset_path('default-avatar.png')}';", 
+        class: 'h-full w-full object-cover object-center group-hover:opacity-90 transition-opacity' %>
+    <% elsif twitter_post.twitter_profile&.picture.present? %>
       <%= image_tag twitter_post.twitter_profile.picture, 
         loading: 'lazy', 
         onerror: "this.onerror=null;this.src='#{asset_path('default-avatar.png')}';", 
