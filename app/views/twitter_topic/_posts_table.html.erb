@@ -82,19 +82,19 @@
                 <div class="font-medium text-gray-900"><%= post.twitter_profile&.name || 'Desconocido' %></div>
                 <div class="text-xs text-gray-500">@<%= post.twitter_profile&.username || 'unknown' %></div>
               </td>
-              <td class="whitespace-nowrap px-3 py-4 text-center">
+              <td class="whitespace-nowrap px-3 py-4 text-center" data-sort="<%= post.favorite_count %>">
                 <span class="text-lg font-semibold text-red-600"><%= number_with_delimiter(post.favorite_count) %></span>
               </td>
-              <td class="whitespace-nowrap px-3 py-4 text-center">
+              <td class="whitespace-nowrap px-3 py-4 text-center" data-sort="<%= post.retweet_count %>">
                 <span class="text-lg font-semibold text-green-600"><%= number_with_delimiter(post.retweet_count) %></span>
               </td>
-              <td class="whitespace-nowrap px-3 py-4 text-center">
+              <td class="whitespace-nowrap px-3 py-4 text-center" data-sort="<%= post.reply_count %>">
                 <span class="text-lg font-semibold text-blue-600"><%= number_with_delimiter(post.reply_count) %></span>
               </td>
-              <td class="whitespace-nowrap px-3 py-4 text-center">
+              <td class="whitespace-nowrap px-3 py-4 text-center" data-sort="<%= post.views_count %>">
                 <span class="text-lg font-semibold text-amber-600"><%= number_with_delimiter(post.views_count) %></span>
               </td>
-              <td class="whitespace-nowrap px-3 py-4 text-center">
+              <td class="whitespace-nowrap px-3 py-4 text-center" data-sort="<%= post.total_interactions %>">
                 <span class="text-xl font-bold text-sky-600"><%= number_with_delimiter(post.total_interactions) %></span>
               </td>
             </tr>

@@ -82,19 +82,19 @@
                 <div class="font-medium text-gray-900"><%= entry.page.name %></div>
                 <div class="text-xs text-gray-500">@<%= entry.page.username %></div>
               </td>
-              <td class="whitespace-nowrap px-3 py-4 text-center">
+              <td class="whitespace-nowrap px-3 py-4 text-center" data-sort="<%= entry.reactions_total_count %>">
                 <span class="text-lg font-semibold text-blue-600"><%= number_with_delimiter(entry.reactions_total_count) %></span>
               </td>
-              <td class="whitespace-nowrap px-3 py-4 text-center">
+              <td class="whitespace-nowrap px-3 py-4 text-center" data-sort="<%= entry.comments_count %>">
                 <span class="text-lg font-semibold text-green-600"><%= number_with_delimiter(entry.comments_count) %></span>
               </td>
-              <td class="whitespace-nowrap px-3 py-4 text-center">
+              <td class="whitespace-nowrap px-3 py-4 text-center" data-sort="<%= entry.share_count %>">
                 <span class="text-lg font-semibold text-purple-600"><%= number_with_delimiter(entry.share_count) %></span>
               </td>
-              <td class="whitespace-nowrap px-3 py-4 text-center">
+              <td class="whitespace-nowrap px-3 py-4 text-center" data-sort="<%= entry.views_count %>">
                 <span class="text-lg font-semibold text-amber-600"><%= number_with_delimiter(entry.views_count) %></span>
               </td>
-              <td class="whitespace-nowrap px-3 py-4 text-center">
+              <td class="whitespace-nowrap px-3 py-4 text-center" data-sort="<%= entry.total_interactions %>">
                 <span class="text-xl font-bold text-indigo-600"><%= number_with_delimiter(entry.total_interactions) %></span>
               </td>
             </tr>
