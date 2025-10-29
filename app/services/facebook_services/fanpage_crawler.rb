@@ -70,10 +70,45 @@ module FacebookServices
       facebook_entry.reactions_total_count = reaction_counts.values.sum
 
       facebook_entry.save!
+
+      # Tag the entry immediately after saving
+      tag_entry(facebook_entry)
+
       facebook_entry
     rescue ActiveRecord::RecordInvalid => e
       Rails.logger.error("[FacebookServices::FanpageCrawler] Unable to persist post #{post['id']}: #{e.message}")
       nil
+    end
+
+    def tag_entry(facebook_entry)
+      result = WebExtractorServices::ExtractFacebookEntryTags.call(facebook_entry.id)
+
+      # If no tags found through text matching, try to inherit from linked entry
+      if !result.success? && facebook_entry.entry.present? && facebook_entry.entry.tag_list.any?
+        entry_tags = facebook_entry.entry.tag_list.dup
+        entry_tags.delete('Facebook')
+        entry_tags.delete('WhatsApp')
+
+        facebook_entry.tag_list = entry_tags
+        facebook_entry.save!
+        Rails.logger.info("[FacebookServices::FanpageCrawler] Tagged post #{facebook_entry.facebook_post_id} with inherited tags: #{entry_tags.join(', ')}")
+        return
+      end
+
+      if result.success?
+        tags = result.data.dup
+        tags.delete('Facebook')
+        tags.delete('WhatsApp')
+        
+        facebook_entry.tag_list = tags
+        facebook_entry.save!
+        Rails.logger.info("[FacebookServices::FanpageCrawler] Tagged post #{facebook_entry.facebook_post_id} with tags: #{tags.join(', ')}")
+      else
+        Rails.logger.debug("[FacebookServices::FanpageCrawler] No tags found for post #{facebook_entry.facebook_post_id}: #{result.error}")
+      end
+    rescue StandardError => e
+      # Log tagging errors but don't fail the crawl
+      Rails.logger.error("[FacebookServices::FanpageCrawler] Error tagging post #{facebook_entry.facebook_post_id}: #{e.message}")
     end
 
     def build_reaction_counts(post)

@@ -23,7 +23,8 @@ namespace :facebook do
           puts "  -> No entries returned for #{page.name}"
         else
           entries.each do |facebook_entry|
-            puts "  -> Stored Facebook post #{facebook_entry.facebook_post_id} (posted at #{facebook_entry.posted_at})"
+            tag_info = facebook_entry.tags.any? ? " [Tags: #{facebook_entry.tag_list.join(', ')}]" : " [No tags]"
+            puts "  -> Stored Facebook post #{facebook_entry.facebook_post_id} (posted at #{facebook_entry.posted_at})#{tag_info}"
           end
         end
 
