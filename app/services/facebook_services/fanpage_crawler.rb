@@ -70,14 +70,87 @@ module FacebookServices
       facebook_entry.reactions_total_count = reaction_counts.values.sum
 
       facebook_entry.save!
-
+      
+      # Link to Entry if matching URL is found
+      link_to_entry(facebook_entry)
+      
       # Tag the entry immediately after saving
       tag_entry(facebook_entry)
-
+      
       facebook_entry
     rescue ActiveRecord::RecordInvalid => e
       Rails.logger.error("[FacebookServices::FanpageCrawler] Unable to persist post #{post['id']}: #{e.message}")
       nil
+    end
+
+    def link_to_entry(facebook_entry)
+      # Skip if already linked or no URL
+      return if facebook_entry.entry_id.present?
+      return unless facebook_entry.has_external_url?
+
+      url = facebook_entry.primary_url
+      return if url.blank?
+
+      # Skip Facebook internal URLs
+      if url.include?('facebook.com/photo') || url.include?('facebook.com/watch') || url.include?('fb.watch')
+        Rails.logger.debug("[FacebookServices::FanpageCrawler] Skipping Facebook internal URL for post #{facebook_entry.facebook_post_id}")
+        return
+      end
+
+      # Try to find matching entry
+      entry = find_entry_by_url(url)
+      
+      if entry
+        facebook_entry.update(entry: entry)
+        Rails.logger.info("[FacebookServices::FanpageCrawler] Linked post #{facebook_entry.facebook_post_id} to entry #{entry.id} (#{entry.url})")
+      else
+        Rails.logger.debug("[FacebookServices::FanpageCrawler] No matching entry found for URL: #{url}")
+      end
+    rescue StandardError => e
+      # Log linking errors but don't fail the crawl
+      Rails.logger.error("[FacebookServices::FanpageCrawler] Error linking post #{facebook_entry.facebook_post_id}: #{e.message}")
+    end
+
+    def find_entry_by_url(url)
+      # Try different URL variations
+      variations = normalize_url(url)
+      
+      variations.each do |variation|
+        entry = Entry.find_by(url: variation)
+        return entry if entry
+      end
+      
+      nil
+    end
+
+    def normalize_url(url)
+      return [] if url.blank?
+
+      variations = []
+
+      # 1. Exact URL
+      variations << url
+
+      # 2. Without query parameters or fragments
+      clean_url = url.split('?').first.split('#').first
+      variations << clean_url unless variations.include?(clean_url)
+
+      # 3. Without trailing slash
+      without_slash = clean_url.chomp('/')
+      variations << without_slash unless variations.include?(without_slash)
+
+      # 4. Protocol variations (http vs https)
+      [url, clean_url, without_slash].each do |variant|
+        if variant.start_with?('http://')
+          https_variant = variant.sub('http://', 'https://')
+          variations << https_variant unless variations.include?(https_variant)
+        elsif variant.start_with?('https://')
+          http_variant = variant.sub('https://', 'http://')
+          variations << http_variant unless variations.include?(http_variant)
+        end
+      end
+
+      variations.compact.uniq
     end
 
     def tag_entry(facebook_entry)
@@ -88,7 +161,7 @@ module FacebookServices
         entry_tags = facebook_entry.entry.tag_list.dup
         entry_tags.delete('Facebook')
         entry_tags.delete('WhatsApp')
-
+        
         facebook_entry.tag_list = entry_tags
         facebook_entry.save!
         Rails.logger.info("[FacebookServices::FanpageCrawler] Tagged post #{facebook_entry.facebook_post_id} with inherited tags: #{entry_tags.join(', ')}")

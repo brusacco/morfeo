@@ -58,7 +58,8 @@ namespace :twitter do
         # Show the 5 most recent with engagement metrics
         posts.sort_by(&:posted_at).reverse.first(5).each do |post|
           tag_info = post.tags.any? ? " | 🏷️ #{post.tag_list.join(', ')}" : ""
-          puts "    - Tweet #{post.tweet_id} (#{post.posted_at}) - ❤️ #{post.favorite_count} | 🔁 #{post.retweet_count} | 👁️ #{post.views_count}#{tag_info}"
+          link_info = post.entry.present? ? " | 🔗 Entry #{post.entry_id}" : ""
+          puts "    - Tweet #{post.tweet_id} (#{post.posted_at}) - ❤️ #{post.favorite_count} | 🔁 #{post.retweet_count} | 👁️ #{post.views_count}#{link_info}#{tag_info}"
         end
       end
       puts '---------------------------------------------------'

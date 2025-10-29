@@ -24,7 +24,8 @@ namespace :facebook do
         else
           entries.each do |facebook_entry|
             tag_info = facebook_entry.tags.any? ? " [Tags: #{facebook_entry.tag_list.join(', ')}]" : " [No tags]"
-            puts "  -> Stored Facebook post #{facebook_entry.facebook_post_id} (posted at #{facebook_entry.posted_at})#{tag_info}"
+            link_info = facebook_entry.entry.present? ? " [Linked to Entry #{facebook_entry.entry_id}]" : ""
+            puts "  -> Stored Facebook post #{facebook_entry.facebook_post_id} (posted at #{facebook_entry.posted_at})#{link_info}#{tag_info}"
           end
         end
 

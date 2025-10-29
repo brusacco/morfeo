@@ -19,16 +19,12 @@ end
 every 3.hours do
   rake 'facebook:fanpage_crawler'
   rake 'twitter:profile_crawler_full'
-  rake 'twitter:link_to_entries'
-  rake 'facebook:link_to_entries'
   # rake 'facebook:comment_crawler'
 end
 
 every 4.hours do
   rake 'repeated_notes'
   rake 'title_tagger'
-  rake 'twitter:post_tagger'
-  rake 'facebook:entry_tagger'
 end
 
 every 6.hours do
@@ -37,3 +33,10 @@ every 6.hours do
   rake 'ai:set_topic_polarity'
   rake 'facebook:update_fanpages'
 end
+
+# every 12.hours do
+#   rake 'twitter:link_to_entries'
+#   rake 'facebook:link_to_entries'
+#   rake 'twitter:post_tagger'
+#   rake 'facebook:entry_tagger'
+# end

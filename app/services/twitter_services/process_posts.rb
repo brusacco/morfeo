@@ -123,6 +123,9 @@ module TwitterServices
 
       twitter_post.save!
       
+      # Link to Entry if matching URL is found
+      link_to_entry(twitter_post)
+      
       # Tag the tweet immediately after saving
       tag_post(twitter_post)
       
@@ -130,6 +133,35 @@ module TwitterServices
     rescue ActiveRecord::RecordInvalid => e
       Rails.logger.error("[TwitterServices::ProcessPosts] Unable to persist tweet #{tweet_id}: #{e.message}")
       nil
+    end
+
+    def link_to_entry(twitter_post)
+      # Skip if already linked or no URL
+      return if twitter_post.entry_id.present?
+      return unless twitter_post.has_external_url?
+
+      primary_url = twitter_post.primary_url
+      return unless primary_url
+
+      # Try exact match first
+      entry = Entry.find_by(url: primary_url)
+
+      # If no exact match, try without query parameters or fragments
+      unless entry
+        clean_url = primary_url.split('?').first.split('#').first
+        entry = Entry.find_by(url: clean_url)
+      end
+
+      # Link if found
+      if entry
+        twitter_post.update(entry: entry)
+        Rails.logger.info("[TwitterServices::ProcessPosts] Linked tweet #{twitter_post.tweet_id} to entry #{entry.id} (#{entry.url})")
+      else
+        Rails.logger.debug("[TwitterServices::ProcessPosts] No matching entry found for URL: #{primary_url}")
+      end
+    rescue StandardError => e
+      # Log linking errors but don't fail the crawl
+      Rails.logger.error("[TwitterServices::ProcessPosts] Error linking tweet #{twitter_post.tweet_id}: #{e.message}")
     end
 
     def tag_post(twitter_post)
