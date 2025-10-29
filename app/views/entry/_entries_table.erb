@@ -1,6 +1,3 @@
-<!-- Load jQuery and DataTables -->
-<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <!-- Override default DataTables CSS -->
 <style>
   .dataTables_wrapper .dataTables_paginate .paginate_button {
@@ -15,11 +12,12 @@
     color: inherit !important;
   }
 </style>
+<% table_id = "entries_#{SecureRandom.hex(4)}" %>
 <div class="mb-8">
-  <h2 class="text-2xl font-bold tracking-tight text-gray-900 mb-6"><%=title%></h2>
+  <h2 class="text-2xl font-bold tracking-tight text-gray-900 mb-6"><%= title %></h2>
   <div class="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-lg overflow-hidden">
     <div class="p-6">
-      <table id="entradas_<%= SecureRandom.hex(4) %>" class="entries-datatable min-w-full divide-y divide-gray-300 display cell-border" style="width:100%">
+      <table id="<%= table_id %>" class="entries-datatable min-w-full divide-y divide-gray-300 display cell-border" style="width:100%">
         <thead class="bg-gray-50">
           <tr>
             <th scope="col" class="relative px-3 py-3.5 text-left text-sm font-semibold text-gray-900 pr-8">Fecha</th>
@@ -28,13 +26,13 @@
             <th scope="col" class="relative px-3 py-3.5 text-left text-sm font-semibold text-gray-900 pr-8">Etiquetas</th>
             <th scope="col" class="relative px-3 py-3.5 text-left text-sm font-semibold text-gray-900 pr-8">Medio</th>
             <th scope="col" class="relative px-3 py-3.5 text-center text-sm font-semibold text-gray-900 pr-8">
-              <i class="fa-solid fa-thumbs-up text-blue-600 mr-1"></i>Reactions
+              <i class="fa-solid fa-thumbs-up text-blue-600 mr-1"></i>Reacciones
             </th>
             <th scope="col" class="relative px-3 py-3.5 text-center text-sm font-semibold text-gray-900 pr-8">
-              <i class="fa-solid fa-comments text-green-600 mr-1"></i>Comments
+              <i class="fa-solid fa-comments text-green-600 mr-1"></i>Comentarios
             </th>
             <th scope="col" class="relative px-3 py-3.5 text-center text-sm font-semibold text-gray-900 pr-8">
-              <i class="fa-solid fa-share text-purple-600 mr-1"></i>Shares
+              <i class="fa-solid fa-share text-purple-600 mr-1"></i>Compartidos
             </th>
             <th scope="col" class="relative px-3 py-3.5 text-center text-sm font-semibold text-gray-900 pr-8">
               <i class="fa-solid fa-chart-line text-indigo-600 mr-1"></i>Total
@@ -44,27 +42,27 @@
         <tbody class="bg-white divide-y divide-gray-200">
           <% entries.each do |entry| %>
             <tr class="hover:bg-gray-50 transition-colors duration-150">
-              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-900 font-medium" data-sort="<%= entry.published_at.strftime("%Y%m%d%H%M%s") %>">
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-900 font-medium" data-sort="<%= entry.published_at.strftime('%Y%m%d%H%M%S') %>">
                 <time datetime="<%= entry.published_at.iso8601 %>">
-                  <%=entry.published_at.strftime("%d/%m/%Y")%>
+                  <%= entry.published_at.strftime('%d/%m/%Y') %>
                 </time>
                 <div class="text-xs text-gray-500 mt-1">
-                  <%=entry.published_at.strftime("%H:%M")%>
+                  <%= entry.published_at.strftime('%H:%M') %>
                 </div>
               </td>
               <td class="px-3 py-4 text-sm text-gray-500 text-center">
                 <div class="flex justify-center">
                   <%= image_tag entry.clean_image, 
-                class: "h-16 w-16 object-cover rounded-lg shadow-sm border border-gray-200", 
-                loading: 'lazy', 
-                onerror: "this.onerror=null;this.src='#{asset_path('default-entry.svg')}';" %>
+                    class: "h-16 w-16 object-cover rounded-lg shadow-sm border border-gray-200", 
+                    loading: 'lazy', 
+                    onerror: "this.onerror=null;this.src='#{asset_path('default-entry.svg')}';" %>
                 </div>
               </td>
               <td class="px-3 py-4 text-sm text-gray-900">
                 <div class="max-w-xs">
                   <%= link_to entry.title, entry.url, 
-                target: '_blank',
-                class: "text-indigo-600 hover:text-indigo-900 font-medium line-clamp-2 block" %>
+                    target: '_blank',
+                    class: "text-indigo-600 hover:text-indigo-900 font-medium line-clamp-2 block" %>
                   <i class="fa-solid fa-external-link text-xs text-gray-400 ml-1"></i>
                 </div>
               </td>
@@ -83,20 +81,19 @@
                 </div>
               </td>
               <td class="whitespace-nowrap px-3 py-4 text-sm">
-                <%= link_to entry.site.name, site_path(entry.site), 
-              class: "text-gray-900 hover:text-indigo-600 font-medium" %>
+                <div class="font-medium text-gray-900"><%= entry.site.name %></div>
               </td>
               <td class="whitespace-nowrap px-3 py-4 text-center">
-                <span class="text-lg font-semibold text-blue-600"><%=number_with_delimiter(entry.reaction_count)%></span>
+                <span class="text-lg font-semibold text-blue-600"><%= number_with_delimiter(entry.reaction_count) %></span>
               </td>
               <td class="whitespace-nowrap px-3 py-4 text-center">
-                <span class="text-lg font-semibold text-green-600"><%=number_with_delimiter(entry.comment_count)%></span>
+                <span class="text-lg font-semibold text-green-600"><%= number_with_delimiter(entry.comment_count) %></span>
               </td>
               <td class="whitespace-nowrap px-3 py-4 text-center">
-                <span class="text-lg font-semibold text-purple-600"><%=number_with_delimiter(entry.share_count)%></span>
+                <span class="text-lg font-semibold text-purple-600"><%= number_with_delimiter(entry.share_count) %></span>
               </td>
               <td class="whitespace-nowrap px-3 py-4 text-center">
-                <span class="text-xl font-bold text-indigo-600"><%=number_with_delimiter(entry.total_count)%></span>
+                <span class="text-xl font-bold text-indigo-600"><%= number_with_delimiter(entry.total_count) %></span>
               </td>
             </tr>
           <% end %>
@@ -211,7 +208,7 @@
       }, 100);
     }
 
-    function initializeEntriesDataTable() {
+    function initializeEntriesDataTables() {
       // Find all entries datatables on this page
       $('.entries-datatable').each(function() {
         const table = $(this);
@@ -227,9 +224,9 @@
           language: {
             search: 'Buscar:',
             lengthMenu: 'Mostrar _MENU_ entradas',
-            info: 'Mostrando _START_ a _END_ de _TOTAL_ entradas',
-            infoEmpty: 'Mostrando 0 a 0 de 0 entradas',
-            infoFiltered: '(filtrado de _MAX_ entradas totales)',
+            info: 'Mostrando _START_ a _END_ de _TOTAL_ publicaciones',
+            infoEmpty: 'Mostrando 0 a 0 de 0 publicaciones',
+            infoFiltered: '(filtrado de _MAX_ publicaciones totales)',
             paginate: {
               first: 'Primero',
               last: 'Último',
@@ -256,10 +253,11 @@
             },
             {
               targets: [3], // Tags column
-              className: 'text-xs'
+              className: 'text-xs',
+              orderable: false
             },
             {
-              targets: [5, 6, 7, 8], // Numeric columns
+              targets: [5, 6, 7, 8], // Numeric columns (reactions, comments, shares, total)
               className: 'text-center font-semibold'
             }
           ],
@@ -322,7 +320,7 @@
             // Style pagination
             stylePagination();
 
-            console.log('DataTable initialized successfully');
+            console.log('Entries DataTable initialized successfully');
           },
           drawCallback: function() {
             // Re-apply pagination styles on each redraw
@@ -335,14 +333,14 @@
     // Initialize when DOM is ready
     $(document).ready(function() {
       if (typeof $.fn.DataTable !== 'undefined') {
-        initializeEntriesDataTable();
+        initializeEntriesDataTables();
       }
     });
 
     // Handle Turbo navigation (Rails 7 with Turbo)
     document.addEventListener('turbo:load', function() {
       if (typeof $ !== 'undefined' && typeof $.fn.DataTable !== 'undefined') {
-        initializeEntriesDataTable();
+        initializeEntriesDataTables();
       }
     });
 
