@@ -60,7 +60,8 @@ namespace :twitter do
 
         # Show the 5 most recent
         posts.sort_by(&:posted_at).reverse.first(5).each do |post|
-          puts "    - Tweet #{post.tweet_id} (#{post.posted_at}) - ❤️ #{post.favorite_count} | 🔁 #{post.retweet_count} | 👁️ #{post.views_count}"
+          tag_info = post.tags.any? ? " | 🏷️ #{post.tag_list.join(', ')}" : ""
+          puts "    - Tweet #{post.tweet_id} (#{post.posted_at}) - ❤️ #{post.favorite_count} | 🔁 #{post.retweet_count} | 👁️ #{post.views_count}#{tag_info}"
         end
       end
       puts '---------------------------------------------------'
