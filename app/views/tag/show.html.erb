@@ -30,11 +30,20 @@
       background: white;
       width: 100%;
     }
-    /* Lower z-index for chart containers */
+    /* Lower z-index for chart containers and all Highcharts elements */
     .chart-container, 
-    .highcharts-container {
-      position: relative;
-      z-index: 1;
+    .highcharts-container,
+    .highcharts-container *,
+    .highcharts-root,
+    svg[class*="highcharts"],
+    [data-controller="tags"],
+    div[class*="w-full"][class*="overflow-hidden"] {
+      z-index: 1 !important;
+    }
+    
+    /* Ensure chart parent cards don't interfere */
+    section .bg-white {
+      isolation: auto;
     }
   </style>
 <% end %>
@@ -220,8 +229,21 @@
               Últimos <%=DAYS_RANGE%> días
             </div>
           </div>
-          <div class='w-full overflow-hidden'>
-            <%= column_chart @entries.group_by_day(:published_at).count, xtitle: "Fecha", ytitle: "Cant. Notas", label: "Notas", colors: ['#3B82F6'], curve: false %>
+          <div class='w-full overflow-hidden'
+              data-controller='tags'
+              data-tags-id-value='entryQuantitiesChart'
+              data-tags-url-value='<%= entries_data_tags_path %>'
+              data-tags-tag-id-value='<%= @tag.id %>'>
+            <%= column_chart @entries.group_by_day(:published_at).count, xtitle: "Fecha", ytitle: "Cant. Notas", label: "Notas", thousands: ".", curve: false, 
+                    adapter: 'highcharts', id: 'entryQuantitiesChart', colors: ['#3B82F6'], library: {
+                    plotOptions: {
+                      series: {
+                        dataLabels: {
+                          enabled: true
+                        }
+                      }
+                    } } %>
+            <%= render 'home/modal', graph_id: 'entryQuantitiesChart', controller_name: 'tags' %>
           </div>
         </div>
         <!-- Chart Card 2: Interactions -->
@@ -235,8 +257,21 @@
               Total de interacciones
             </div>
           </div>
-          <div class='w-full overflow-hidden'>
-            <%= column_chart @entries.group_by_day(:published_at).sum(:total_count), xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones", colors: ['#10B981'], curve: false %>
+          <div class='w-full overflow-hidden'
+              data-controller='tags'
+              data-tags-id-value='entryInteractionsChart'
+              data-tags-url-value='<%= entries_data_tags_path %>'
+              data-tags-tag-id-value='<%= @tag.id %>'>
+            <%= column_chart @entries.group_by_day(:published_at).sum(:total_count), xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones", thousands: ".", curve: false, 
+                    adapter: 'highcharts', id: 'entryInteractionsChart', colors: ['#10B981'], library: {
+                    plotOptions: {
+                      series: {
+                        dataLabels: {
+                          enabled: true
+                        }
+                      }
+                    } } %>
+            <%= render partial: 'home/modal', locals: { graph_id: 'entryInteractionsChart', controller_name: 'tags' } %>
           </div>
         </div>
       </div>
@@ -256,8 +291,22 @@
               Solo títulos
             </div>
           </div>
-          <div class='w-full overflow-hidden'>
-            <%= column_chart @title_chart_entries_counts, xtitle: "Fecha", ytitle: "Cant. Notas en Titulo", label: "Cant. Notas en Titulo", thousands: ".", curve: false, colors: ['#8B5CF6'] %>
+          <div class='chart-container'
+            data-controller='tags'
+            data-tags-id-value='titleEntryQuantitiesChart'
+            data-tags-url-value='<%= entries_data_tags_path %>'
+            data-tags-tag-id-value='<%= @tag.id %>'
+            data-tags-title-value='true'>
+            <%= column_chart @title_chart_entries_counts, xtitle: "Fecha", ytitle: "Cant. Notas en Titulo", label: "Cant. Notas en Titulo", thousands: ".", curve: false, 
+                  adapter: 'highcharts', id: 'titleEntryQuantitiesChart', colors: ['#8B5CF6'], library: {
+                  plotOptions: {
+                    series: {
+                      dataLabels: {
+                        enabled: true
+                      }
+                    }
+                  } } %>
+            <%= render 'home/modal', graph_id: 'titleEntryQuantitiesChart', controller_name: 'tags' %>
           </div>
         </div>
         <!-- Title Chart 2: Interactions -->
@@ -271,8 +320,22 @@
               Interacciones en títulos
             </div>
           </div>
-          <div class='w-full overflow-hidden'>
-            <%= column_chart @title_chart_entries_sums, xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones en TITULO", thousands: ".", curve: false, colors: ['#F59E0B'] %>
+          <div class='chart-container'
+            data-controller='tags'
+            data-tags-id-value='titleEntryInteractionsChart'
+            data-tags-url-value='<%= entries_data_tags_path %>'
+            data-tags-tag-id-value='<%= @tag.id %>'
+            data-tags-title-value='true'>
+            <%= column_chart @title_chart_entries_sums, xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones en TITULO", thousands: ".", curve: false, 
+                  adapter: 'highcharts', id: 'titleEntryInteractionsChart', colors: ['#F59E0B'], library: {
+                  plotOptions: {
+                    series: {
+                      dataLabels: {
+                        enabled: true
+                      }
+                    }
+                  } } %>
+            <%= render 'home/modal', graph_id: 'titleEntryInteractionsChart', controller_name: 'tags' %>
           </div>
         </div>
       </div>

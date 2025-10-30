@@ -17,6 +17,10 @@ Rails.application.routes.draw do
   get '/tag/:id', to: 'tag#show', as: 'tag'
   get '/tag/:id/report', to: 'tag#report', as: 'report'
   get '/tag/:id/comments', to: 'tag#comments', as: 'tag_comments'
+  
+  resources :tags, only: [] do
+    get 'entries_data', to: 'tag#entries_data', on: :collection
+  end
 
   get '/topic/:id', to: 'topic#show', as: 'topic'
   get '/topic/:id/pdf', to: 'topic#pdf', as: 'topic_pdf'

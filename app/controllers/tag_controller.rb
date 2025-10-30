@@ -3,6 +3,55 @@
 class TagController < ApplicationController
   before_action :authenticate_user!
 
+  def entries_data
+    tag_id = params[:tag_id]
+    date_filter = params[:date]
+    polarity = params[:polarity]
+    title = params[:title]
+
+    date = Date.parse(date_filter) if date_filter.present?
+
+    tag = Tag.find_by(id: tag_id)
+    polarity = validate_polarity(polarity)
+
+    if tag
+      if title == 'true'
+        entries = tag.title_list_entries
+      else
+        entries = tag.list_entries
+      end
+
+      entries = entries.where(published_at: date.all_day) if date
+
+      entries = entries.where(polarity:) if polarity
+    end
+
+    case polarity
+    when 'neutral', '0'
+      polarityName = 'Neutral'
+    when 'positive', '1'
+      polarityName = 'Positiva'
+    when 'negative', '2'
+      polarityName = 'Negativa'
+    else
+      polarityName = 'Todas'
+    end
+
+    render partial: 'home/chart_entries',
+           locals: {
+             topic_entries: entries,
+             entries_date: date,
+             topic: tag.name,
+             polarity: polarityName
+           },
+           layout: false
+  end
+
+  def validate_polarity(polarity)
+    valid_polarities = %w[neutral positive negative 0 1 2]
+    valid_polarities.include?(polarity) ? polarity : nil
+  end
+
   def show
     @tag = Tag.find(params[:id])
     @entries = @tag.list_entries
