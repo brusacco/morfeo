@@ -34,6 +34,10 @@ class TagController < ApplicationController
     @title_chart_entries_counts = @title_chart_entries.count
     @title_chart_entries_sums = @title_chart_entries.sum(:total_count)
 
+    @site_top_counts = @entries.group('site_id').order(Arel.sql('COUNT(*) DESC')).limit(12).count
+    @site_counts = @entries.group('sites.name').count('*')
+    @site_sums = @entries.group('sites.name').sum(:total_count)
+
     @tags = @entries.tag_counts_on(:tags).order('count desc').limit(50)
 
     @tags_interactions = Entry.joins(:tags)

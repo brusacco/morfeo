@@ -41,6 +41,11 @@ class FacebookTopicController < ApplicationController
     @pages_interactions = pages_group.transform_values { |posts| posts.sum(&:total_interactions) }
                                      .sort_by { |_, value| -value }
                                      .to_h
+
+    # Site data for media analysis
+    @site_top_counts = @entries.joins(page: :site).reorder(nil).group('sites.id').order(Arel.sql('COUNT(*) DESC')).limit(12).count
+    @site_counts = @entries.joins(page: :site).reorder(nil).group('sites.name').count
+    @site_sums = @entries.joins(page: :site).reorder(nil).group('sites.name').sum(Arel.sql('facebook_entries.reactions_total_count + facebook_entries.comments_count + facebook_entries.share_count'))
   end
 
   def entries_data

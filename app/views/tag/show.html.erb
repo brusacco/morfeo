@@ -272,11 +272,22 @@
         </div>
       </div>
     </section>
-    <!-- Media Sites Section -->
+    <!-- Top Media Sources Section -->
     <section class="mb-8">
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h2 class="text-2xl font-bold text-gray-900 mb-6">Distribución por Medios</h2>
-        <%= render partial: 'site/sites', locals: { sites: @entries.group("sites.id").count('*').sort_by { |site, count| -count }.take(10), title: 'Los medios que más han mencionado' } %>
+      <%= render partial: 'site/sites', locals: { sites: @site_top_counts, title: 'Los medios que mas han mencionado' } %>
+    </section>
+    <!-- Media Distribution Analysis Section -->
+    <section class="mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">Distribución por Medios</h2>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Cantidad de Notas por medio</h3>
+          <%= pie_chart @site_counts, donut: true %>
+        </div>
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Cantidad de Interacciones por medio</h3>
+          <%= pie_chart @site_sums, donut: true %>
+        </div>
       </div>
     </section>
     <!-- Latest News Section -->
