@@ -50,7 +50,7 @@
           Hola, <%= current_user.email.split('@').first.capitalize %>
         </h1>
         <p class="mt-1 text-sm text-gray-600">
-          Tienes <%= pluralize(@topicos.count, 'tema') %> bajo monitoreo - Últimos <%=DAYS_RANGE%> días
+          Tienes <%= @topicos.count %> <%= @topicos.count == 1 ? 'tema' : 'temas' %> bajo monitoreo - Últimos <%=DAYS_RANGE%> días
         </p>
       </div>
       <div class="mt-4 flex space-x-3 md:mt-0 md:ml-4">
