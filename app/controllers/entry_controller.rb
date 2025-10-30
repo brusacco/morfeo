@@ -3,13 +3,24 @@
 class EntryController < ApplicationController
   before_action :authenticate_user!
 
-  caches_action :popular, expires_in: 1.hour
-  caches_action :commented, expires_in: 1.hour
-  caches_action :week, expires_in: 1.hour
-  def show; end
+  # Constants for limits and cache duration
+  POPULAR_ENTRIES_LIMIT = 50
+  COMMENTED_ENTRIES_LIMIT = 50
+  TAG_LIMIT = 20
+  SEARCH_LIMIT = 50
+  CACHE_DURATION = 1.hour
+
+  caches_action :popular, expires_in: CACHE_DURATION
+  caches_action :commented, expires_in: CACHE_DURATION
+  caches_action :week, expires_in: CACHE_DURATION
+  
+  def show
+    # Renders default template - no additional logic needed
+    # Template: app/views/entry/show.html.erb
+  end
 
   def popular
-    @entries = Entry.enabled.joins(:site).where(total_count: 1..).a_day_ago.order(total_count: :desc).limit(50)
+    @entries = Entry.enabled.joins(:site).where(total_count: 1..).a_day_ago.order(total_count: :desc).limit(POPULAR_ENTRIES_LIMIT)
     # Separate query for grouping operations to avoid MySQL strict mode issues
     @entries_for_grouping = Entry.enabled.joins(:site).where(total_count: 1..).a_day_ago
     
@@ -24,15 +35,17 @@ class EntryController < ApplicationController
     @word_occurrences = @entries.word_occurrences
     @bigram_occurrences = @entries.bigram_occurrences
 
-    @comments = Comment.where(entry_id: @entries.pluck(:id)).order(created_time: :desc)
+    @comments = Comment.where(entry_id: @entries.select(:id)).order(created_time: :desc)
     @comments_word_occurrences = @comments.word_occurrences
-    # @comments_bigram_occurrences = @comments.bigram_occurrences
 
-    @tags_interactions = Entry.joins(:tags)
-                              .where(id: @entries.pluck(:id), tags: { id: @tags.map(&:id) })
-                              .group('tags.name')
-                              .order(Arel.sql('SUM(total_count) DESC'))
-                              .sum(:total_count)
+    @tags_interactions =
+      Rails.cache.fetch("tags_interactions_popular_#{Date.current}", expires_in: CACHE_DURATION) do
+        Entry.joins(:tags)
+             .where(id: @entries.select(:id), tags: { id: @tags.map(&:id) })
+             .group('tags.name')
+             .order(Arel.sql('SUM(total_count) DESC'))
+             .sum(:total_count)
+      end
 
     @tags_count = {}
     @tags.each do |tag|
@@ -49,7 +62,7 @@ class EntryController < ApplicationController
     @tags = @entries.tag_counts_on(:tags).order(count: :desc)
 
     @tags_interactions = Entry.joins(:tags)
-                              .where(id: @entries.pluck(:id), tags: { id: @tags.map(&:id) })
+                              .where(id: @entries.select(:id), tags: { id: @tags.map(&:id) })
                               .group('tags.name')
                               .order(Arel.sql('SUM(tw_total) DESC'))
                               .sum(:tw_total)
@@ -59,7 +72,7 @@ class EntryController < ApplicationController
   end
 
   def commented
-    @entries = Entry.enabled.joins(:site).a_day_ago.where.not(image_url: nil).order(comment_count: :desc).limit(50)
+    @entries = Entry.enabled.joins(:site).a_day_ago.where.not(image_url: nil).order(comment_count: :desc).limit(COMMENTED_ENTRIES_LIMIT)
     # Separate query for grouping operations to avoid MySQL strict mode issues
     @entries_for_grouping = Entry.enabled.joins(:site).a_day_ago.where.not(image_url: nil)
 
@@ -75,9 +88,9 @@ class EntryController < ApplicationController
     @bigram_occurrences = @entries.bigram_occurrences
 
     @tags_interactions =
-      Rails.cache.fetch('tags_interactions_commented', expires_in: 1.hour) do
+      Rails.cache.fetch("tags_interactions_commented_#{Date.current}", expires_in: CACHE_DURATION) do
         Entry.joins(:tags)
-             .where(id: @entries.pluck(:id), tags: { id: @tags.map(&:id) })
+             .where(id: @entries.select(:id), tags: { id: @tags.map(&:id) })
              .group('tags.name')
              .order(Arel.sql('SUM(total_count) DESC'))
              .sum(:total_count)
@@ -106,6 +119,6 @@ class EntryController < ApplicationController
 
   def search
     tag = params[:query]
-    @entries = Entry.enabled.includes(:site).tagged_with(tag).order(published_at: :desc).limit(50)
+    @entries = Entry.enabled.includes(:site).tagged_with(tag).order(published_at: :desc).limit(SEARCH_LIMIT)
   end
 end
