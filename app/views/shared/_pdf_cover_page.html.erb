@@ -1,0 +1,56 @@
+<!-- Professional Cover Page for Executive PDF Reports -->
+<div class="pdf-cover-page">
+  <!-- Logo (placeholder - replace with actual logo path) -->
+  <% if defined?(logo_path) && logo_path.present? %>
+    <%= image_tag(logo_path, class: 'pdf-cover-logo', alt: 'Morfeo Analytics Logo') %>
+  <% else %>
+    <div class="pdf-cover-logo" style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); width: 120pt; height: 60pt; display: flex; align-items: center; justify-content: center; border-radius: 6pt;">
+      <span style="color: white; font-size: 18pt; font-weight: 700; font-family: var(--font-serif);">MORFEO</span>
+    </div>
+  <% end %>
+
+  <!-- Report Type & Title -->
+  <div style="margin-top: 48pt;">
+    <div class="pdf-cover-subtitle">
+      <%= report_type || 'Informe de Análisis de Medios' %>
+    </div>
+    <h1 class="pdf-cover-title">
+      <%= report_title %>
+    </h1>
+  </div>
+
+  <!-- Topic Name in Highlight Box -->
+  <div class="pdf-cover-topic">
+    Tópico: <%= topic_name %>
+  </div>
+
+  <!-- Report Metadata -->
+  <div class="pdf-cover-meta">
+    <div style="margin-bottom: 8pt;">
+      <strong>Período de Análisis:</strong><br>
+      <%= date_range %>
+    </div>
+    <div style="margin-bottom: 8pt;">
+      <strong>Generado:</strong> <%= generated_date %>
+    </div>
+    <% if defined?(prepared_for) && prepared_for.present? %>
+      <div style="margin-bottom: 8pt;">
+        <strong>Preparado para:</strong> <%= prepared_for %>
+      </div>
+    <% end %>
+    <% if defined?(prepared_by) && prepared_by.present? %>
+      <div>
+        <strong>Preparado por:</strong> <%= prepared_by %>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Confidentiality Notice -->
+  <div class="pdf-cover-confidential">
+    Documento Confidencial · Solo para uso interno
+  </div>
+</div>
+
+<!-- Page break after cover -->
+<div style="page-break-after: always;"></div>
+

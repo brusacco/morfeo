@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <title>Reporte: <%=@topic.name%> - Morfeo Analytics</title>
+    <!-- Chartkick for Charts -->
+    <script src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartkick@4.2.0/dist/chartkick.min.js"></script>
+    
+    <!-- Professional PDF Styles -->
+    <%= render 'shared/pdf_professional_styles' %>
+  </head>
+  <body>
+    <!-- COVER PAGE -->
+    <%= render 'shared/pdf_cover_page', 
+      report_type: 'Análisis de Medios Digitales',
+      report_title: 'Informe de Tendencias y Sentimientos',
+      topic_name: @topic.name,
+      date_range: format_date_range(DAYS_RANGE),
+      generated_date: Time.current.strftime("%d de %B de %Y, %H:%M")
+    %>
+
+    <!-- EXECUTIVE SUMMARY -->
+    <%
+      # Calculate executive metrics
+      total_entries = @entries.size
+      total_interactions = @total_interactions || @entries.sum(:total_count)
+      avg_interactions = @promedio || (total_entries.zero? ? 0 : (total_interactions / total_entries).round)
+      
+      positive_pct = @percentage_positives || 0
+      negative_pct = @percentage_negatives || 0
+      neutral_pct = @percentage_neutrals || 0
+      
+      # Prepare key metrics with professional formatting
+      key_metrics = [
+        {
+          icon: '📰',
+          label: 'Total Noticias',
+          value: number_with_delimiter(total_entries, delimiter: '.'),
+          color: '#1e40af'
+        },
+        {
+          icon: '💬',
+          label: 'Interacciones',
+          value: format_metric_number(total_interactions),
+          color: '#059669'
+        },
+        {
+          icon: '📊',
+          label: 'Promedio por Nota',
+          value: number_with_delimiter(avg_interactions, delimiter: '.'),
+          color: '#d97706'
+        },
+        {
+          icon: positive_pct >= negative_pct ? '😊' : (negative_pct > positive_pct ? '😟' : '😐'),
+          label: 'Sentimiento Dominante',
+          value: "#{positive_pct}% Positivo",
+          color: positive_pct >= negative_pct ? '#10b981' : (negative_pct > positive_pct ? '#ef4444' : '#6b7280')
+        }
+      ]
+      
+      # Prepare key findings with insights
+      sentiment_finding = if positive_pct > negative_pct
+        { icon: '✓', color: '#059669', text: "El sentimiento general es positivo con #{positive_pct}% de menciones favorables, superando al sentimiento negativo por #{(positive_pct - negative_pct).round}pp" }
+      elsif negative_pct > positive_pct
+        { icon: '⚠', color: '#dc2626', text: "Se detectó un sentimiento negativo dominante (#{negative_pct}%), requiere atención y monitoreo cercano" }
+      else
+        { icon: '→', color: '#6b7280', text: "El sentimiento es mayormente neutral (#{neutral_pct}%), indicando una percepción balanceada" }
+      end
+      
+      top_site = @entries.group("sites.name").count('*').max_by { |_k, v| v } rescue nil
+      top_entry = @most_interactions&.first
+      
+      key_findings = [sentiment_finding]
+      
+      key_findings << {
+        icon: '📈',
+        color: '#1e40af',
+        text: "Se registraron #{number_with_delimiter(total_entries, delimiter: '.')} menciones en los últimos #{DAYS_RANGE} días, generando #{format_metric_number(total_interactions)} interacciones totales"
+      }
+      
+      if top_site
+        site_percentage = ((top_site[1].to_f / total_entries) * 100).round(1)
+        key_findings << {
+          icon: '🏆',
+          color: '#d97706',
+          text: "El medio líder fue #{top_site[0]} con #{top_site[1]} publicaciones (#{site_percentage}% del total)"
+        }
+      end
+      
+      # Prepare actionable insights
+      insights = []
+      
+      if avg_interactions > 100
+        insights << "Alto nivel de engagement detectado: cada nota genera en promedio #{number_with_delimiter(avg_interactions, delimiter: '.')} interacciones, indicando fuerte resonancia con la audiencia"
+      elsif avg_interactions > 50
+        insights << "Nivel de engagement moderado con #{number_with_delimiter(avg_interactions, delimiter: '.')} interacciones promedio por nota"
+      else
+        insights << "Oportunidad de mejora: el engagement promedio es de #{number_with_delimiter(avg_interactions, delimiter: '.')} interacciones por nota"
+      end
+      
+      if @topic_percentage && @topic_percentage > 15
+        insights << "El tópico representa el #{@topic_percentage}% de todas las noticias en el período, indicando altísima relevancia mediática"
+      elsif @topic_percentage && @topic_percentage > 5
+        insights << "Relevancia significativa: el tópico representa el #{@topic_percentage}% del total de noticias analizadas"
+      end
+      
+      if @chart_entries_counts.present?
+        top_day = @chart_entries_counts.max_by { |_k, v| v }
+        if top_day && top_day[1] > 10
+          insights << "Pico de actividad el #{top_day[0].strftime('%d/%m/%Y')} con #{top_day[1]} menciones - considerar eventos o factores externos"
+        end
+      end
+      
+      if top_entry && top_entry.total_count > (avg_interactions * 5)
+        insights << "Contenido viral detectado: la nota más exitosa superó el promedio en #{((top_entry.total_count.to_f / avg_interactions) - 1).round}x con #{number_with_delimiter(top_entry.total_count, delimiter: '.')} interacciones"
+      end
+    %>
+
+    <%= render 'shared/pdf_executive_summary',
+      key_metrics: key_metrics,
+      key_findings: key_findings,
+      insights: insights.presence || ['No hay insights adicionales disponibles para este período']
+    %>
+
+    <!-- MAIN CONTENT -->
+    <div class="pdf-container">
+      
+      <!-- Main Charts Section -->
+      <div class="pdf-section">
+        <h2 class="section-header">Análisis Temporal de Menciones</h2>
+        <div class="pdf-chart-row">
+          <div class="pdf-chart-half">
+            <div class="pdf-chart-card">
+              <h3 class="pdf-chart-title">Notas por Día</h3>
+              <div class="pdf-chart-canvas">
+                <%= column_chart @chart_entries_counts, xtitle: "Fecha", ytitle: "Cant. Notas", label: "Cant. Notas", thousands: ".", curve: false, 
+                      colors: ['#1e40af'], height: "200px", library: {
+                      plotOptions: {
+                        series: {
+                          dataLabels: {
+                            enabled: true
+                          }
+                        }
+                      } } %>
+              </div>
+            </div>
+          </div>
+          <div class="pdf-chart-half">
+            <div class="pdf-chart-card">
+              <h3 class="pdf-chart-title">Interacciones por Día</h3>
+              <div class="pdf-chart-canvas">
+                <%= column_chart @chart_entries_sums, xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones", thousands: ".", curve: false, 
+                      colors: ['#059669'], height: "200px", library: {
+                      plotOptions: {
+                        series: {
+                          dataLabels: {
+                            enabled: true
+                          }
+                        }
+                      } } %>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Insights Box after charts -->
+        <div class="pdf-insights-box">
+          <div class="pdf-insights-title">Insights del Análisis Temporal</div>
+          <ul class="pdf-insights-list">
+            <% if @chart_entries_counts.values.any? { |v| v > @chart_entries_counts.values.sum / @chart_entries_counts.size * 1.5 } %>
+              <li>Se observan picos de actividad significativos en días específicos que superan el promedio diario</li>
+            <% end %>
+            <% avg_daily = @chart_entries_counts.values.sum.to_f / @chart_entries_counts.size %>
+            <li>Promedio diario de menciones: <%= avg_daily.round %> noticias por día en el período analizado</li>
+            <% if @chart_entries_sums.values.max > @chart_entries_sums.values.sum / @chart_entries_sums.size * 2 %>
+              <li>El día con mayor engagement duplicó el promedio, indicando contenido de alto impacto</li>
+            <% end %>
+          </ul>
+        </div>
+
+        <!-- Title Charts -->
+        <div class="pdf-chart-row" style="margin-top: 24pt;">
+          <div class="pdf-chart-half">
+            <div class="pdf-chart-card">
+              <h3 class="pdf-chart-title">Menciones en Títulos por Día</h3>
+              <div class="pdf-chart-canvas">
+                <%= column_chart @title_chart_entries_counts, xtitle: "Fecha", ytitle: "Cant. en Título", label: "Menciones en Título", thousands: ".", curve: false, 
+                      colors: ['#3b82f6'], height: "200px", library: {
+                      plotOptions: {
+                        series: {
+                          dataLabels: {
+                            enabled: true
+                          }
+                        }
+                      } } %>
+              </div>
+            </div>
+          </div>
+          <div class="pdf-chart-half">
+            <div class="pdf-chart-card">
+              <h3 class="pdf-chart-title">Interacciones en Títulos por Día</h3>
+              <div class="pdf-chart-canvas">
+                <%= column_chart @title_chart_entries_sums, xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones en Título", thousands: ".", curve: false, 
+                      colors: ['#10b981'], height: "200px", library: {
+                      plotOptions: {
+                        series: {
+                          dataLabels: {
+                            enabled: true
+                          }
+                        }
+                      } } %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sentiment Analysis Section -->
+      <div class="pdf-section">
+        <h2 class="section-header">Análisis de Sentimiento</h2>
+        
+        <!-- Sentiment Statistics Grid -->
+        <div class="pdf-metrics-grid">
+          <div class="pdf-metric-card">
+            <div class="pdf-metric-label">Total Noticias</div>
+            <div class="pdf-metric-value-container">
+              <span class="pdf-metric-value"><%=number_with_delimiter(@entries.size, delimiter: ".")%></span>
+            </div>
+          </div>
+          <div class="pdf-metric-card">
+            <div class="pdf-metric-label">Positivas</div>
+            <div class="pdf-metric-value-container">
+              <span class="pdf-metric-value" style="color: #10b981;"><%=@percentage_positives%>%</span>
+            </div>
+          </div>
+          <div class="pdf-metric-card">
+            <div class="pdf-metric-label">Negativas</div>
+            <div class="pdf-metric-value-container">
+              <span class="pdf-metric-value" style="color: #ef4444;"><%=@percentage_negatives%>%</span>
+            </div>
+          </div>
+          <div class="pdf-metric-card">
+            <div class="pdf-metric-label">Neutras</div>
+            <div class="pdf-metric-value-container">
+              <span class="pdf-metric-value" style="color: #6b7280;"><%=@percentage_neutrals%>%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sentiment Trend Charts -->
+        <div class="pdf-chart-row">
+          <div class="pdf-chart-half">
+            <div class="pdf-chart-card">
+              <h3 class="pdf-chart-title">Evolución de Sentimiento (Cantidad)</h3>
+              <div class="pdf-chart-canvas">
+                <%= column_chart @chart_entries_sentiments_counts, xtitle: 'Fecha', ytitle: 'Cant. Notas', thousands: '.', 
+                      stacked: true, colors: ['#ef4444', '#9ca3af', '#10b981'], height: "200px", library: {
+                      plotOptions: {
+                        series: {
+                          dataLabels: { enabled: false }
+                        }
+                      } } %>
+              </div>
+            </div>
+          </div>
+          <div class="pdf-chart-half">
+            <div class="pdf-chart-card">
+              <h3 class="pdf-chart-title">Evolución de Sentimiento (Interacciones)</h3>
+              <div class="pdf-chart-canvas">
+                <%= column_chart @chart_entries_sentiments_sums, xtitle: 'Fecha', ytitle: 'Interacciones', 
+                      thousands: '.', stacked: true, colors: ['#ef4444', '#9ca3af', '#10b981'], height: "200px", library: {
+                      plotOptions: {
+                        series: {
+                          dataLabels: { enabled: false }
+                        }
+                      } } %>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sentiment Distribution Pie Charts -->
+        <div class="pdf-chart-row">
+          <div class="pdf-chart-half">
+            <div class="pdf-chart-card">
+              <h3 class="pdf-chart-title">Distribución de Notas por Sentimiento</h3>
+              <div class="pdf-chart-canvas">
+                <% polarities_counts = @entries_polarity_counts.sort_by { |key, _value| key }.to_h %>
+                <% total_count = polarities_counts.values.sum.to_f %>
+                <% polarities_percentages = polarities_counts.transform_values { |count| (count / total_count * 100).round(1) } %>
+                <%= pie_chart polarities_percentages, colors: ["#ef4444", "#9ca3af", '#10b981'], donut: true, suffix: "%", height: "200px" %>
+              </div>
+            </div>
+          </div>
+          <div class="pdf-chart-half">
+            <div class="pdf-chart-card">
+              <h3 class="pdf-chart-title">Distribución de Interacciones por Sentimiento</h3>
+              <div class="pdf-chart-canvas">
+                <% polarities_sums = @entries_polarity_sums.sort_by { |key, _value| key }.to_h %>
+                <% total_sum = polarities_sums.values.sum.to_f %>
+                <% polarities_sum_percentages = polarities_sums.transform_values { |sum| (sum / total_sum * 100).round(1) } %>
+                <%= pie_chart polarities_sum_percentages, colors: ["#ef4444", "#9ca3af", '#10b981'], donut: true, suffix: "%", height: "200px" %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Report Section -->
+      <% if @report && @report.report_text %>
+        <div class="pdf-section">
+          <h2 class="section-header">Análisis Detallado del Tópico</h2>
+          <div class="pdf-report">
+            <p><%=@report.report_text.gsub("\n", "<br>").html_safe%></p>
+            <p style="margin-top: 12pt; font-size: 8pt; color: #6b7280; border-top: 1pt solid #dbeafe; padding-top: 8pt;">
+              <strong>Generado por IA:</strong> <%=@report.created_at.strftime("%d/%m/%Y a las %H:%M")%>
+            </p>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Page Break for Media Analysis -->
+      <div class="pdf-section break-before">
+        <h2 class="section-header">Distribución por Medios</h2>
+        
+        <!-- Media Pie Charts -->
+        <div class="pdf-chart-row">
+          <div class="pdf-chart-half">
+            <div class="pdf-chart-card">
+              <h3 class="pdf-chart-title">Notas por Medio</h3>
+              <div class="pdf-chart-canvas">
+                <%= pie_chart @entries.group("sites.name").count('*'), donut: true, height: "200px", colors: ['#1e40af', '#059669', '#d97706', '#7c3aed', '#0ea5e9', '#dc2626'] %>
+              </div>
+            </div>
+          </div>
+          <div class="pdf-chart-half">
+            <div class="pdf-chart-card">
+              <h3 class="pdf-chart-title">Interacciones por Medio</h3>
+              <div class="pdf-chart-canvas">
+                <%= pie_chart @entries.group("sites.name").sum(:total_count), donut: true, height: "200px", colors: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4', '#ef4444'] %>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Media Sources -->
+        <h3 style="margin-top: 24pt;">Medios que Más Han Mencionado</h3>
+        <div class="pdf-media-list">
+          <% @entries.group("sites.id").count('*').sort_by { |site, count| -count }.take(12).each do |site_id, count| %>
+            <% site = Site.find(site_id) rescue next %>
+            <div class="pdf-media-item">
+              <div class="pdf-media-name"><%=site.name%></div>
+              <div class="pdf-media-count"><%=count%> menciones</div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Topic Impact Section -->
+      <div class="pdf-section">
+        <h2 class="section-header">Impacto del Tópico</h2>
+        
+        <!-- Impact Statistics -->
+        <div class="pdf-metrics-grid">
+          <div class="pdf-metric-card">
+            <div class="pdf-metric-label">Notas del Tópico</div>
+            <div class="pdf-metric-value-container">
+              <span class="pdf-metric-value" style="color: #1e40af;"><%=number_with_delimiter(@entries.size, delimiter: ".")%></span>
+            </div>
+          </div>
+          <div class="pdf-metric-card">
+            <div class="pdf-metric-label">Otras Notas</div>
+            <div class="pdf-metric-value-container">
+              <span class="pdf-metric-value"><%=number_with_delimiter(@all_entries_size, delimiter: ".")%></span>
+            </div>
+          </div>
+          <div class="pdf-metric-card">
+            <div class="pdf-metric-label">Interacciones Tópico</div>
+            <div class="pdf-metric-value-container">
+              <span class="pdf-metric-value" style="color: #059669;"><%=format_metric_number(@entries.sum(:total_count))%></span>
+            </div>
+          </div>
+          <div class="pdf-metric-card">
+            <div class="pdf-metric-label">Otras Interacciones</div>
+            <div class="pdf-metric-value-container">
+              <span class="pdf-metric-value"><%=format_metric_number(@all_entries_interactions)%></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Impact Pie Charts -->
+        <div class="pdf-chart-row">
+          <div class="pdf-chart-half">
+            <div class="pdf-chart-card">
+              <h3 class="pdf-chart-title">Proporción de Notas</h3>
+              <div class="pdf-chart-canvas">
+                <%= pie_chart({"Tópico" => @topic_percentage, "Otras" => @all_percentage}, donut: true, label: "Notas", colors: ["#059669", "#d1d5db"], suffix: "%", height: "200px") %>
+              </div>
+            </div>
+          </div>
+          <div class="pdf-chart-half">
+            <div class="pdf-chart-card">
+              <h3 class="pdf-chart-title">Proporción de Interacciones</h3>
+              <div class="pdf-chart-canvas">
+                <%= pie_chart({"Tópico" => @topic_interactions_percentage, "Otras" => @all_intereactions_percentage}, donut: true, label: "Interacciones", colors: ["#d97706", "#d1d5db"], suffix: "%", height: "200px") %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tags Analysis Section -->
+      <div class="pdf-section">
+        <h2 class="section-header">Análisis de Tags Relacionados</h2>
+        <div class="pdf-chart-row">
+          <div class="pdf-chart-half">
+            <div class="pdf-chart-card">
+              <h3 class="pdf-chart-title">Notas por Tag</h3>
+              <div class="pdf-chart-canvas">
+                <%= pie_chart @tags_count, donut: true, height: "200px", colors: ['#1e40af', '#059669', '#d97706', '#7c3aed', '#0ea5e9', '#dc2626'] %>
+              </div>
+            </div>
+          </div>
+          <div class="pdf-chart-half">
+            <div class="pdf-chart-card">
+              <h3 class="pdf-chart-title">Interacciones por Tag</h3>
+              <div class="pdf-chart-canvas">
+                <%= pie_chart @tags_interactions, donut: true, height: "200px", colors: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4', '#ef4444'] %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Words Analysis Section -->
+      <div class="pdf-section">
+        <h2 class="section-header">Análisis de Palabras Clave</h2>
+        <h3 style="font-size: 12pt; margin-bottom: 12pt;">Palabras Más Frecuentes en Notas</h3>
+        <div class="pdf-words">
+          <% @word_occurrences.take(50).each do |word, count| %>
+            <span class="pdf-word"><%=word%> (<%=count%>)</span>
+          <% end %>
+        </div>
+        <h3 style="font-size: 12pt; margin: 24pt 0 12pt 0;">Bigramas Más Frecuentes</h3>
+        <div class="pdf-words">
+          <% @bigram_occurrences.take(30).each do |bigram, count| %>
+            <span class="pdf-word"><%=bigram%> (<%=count%>)</span>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Top News Section -->
+      <div class="pdf-section break-before">
+        <h2 class="section-header">Top Noticias con Más Interacciones</h2>
+        <% @most_interactions.take(10).each_with_index do |entry, index| %>
+          <div class="pdf-news-item">
+            <div class="pdf-news-header">
+              <span class="pdf-news-rank">#<%=index + 1%></span>
+              <span class="pdf-news-site"><%=entry.site.name%></span>
+              <span class="pdf-news-date"><%=entry.published_at.strftime("%d/%m/%Y")%></span>
+              <span class="pdf-news-interactions"><%=number_with_delimiter(entry.total_count, delimiter: ".")%> interacciones</span>
+            </div>
+            <h4 class="pdf-news-title"><%=truncate(entry.title, length: 120)%></h4>
+            <% if entry.content.present? %>
+              <p class="pdf-news-content"><%=truncate(strip_tags(entry.content), length: 200)%></p>
+            <% end %>
+            <div class="pdf-news-metrics">
+              <span class="pdf-metric">
+                <strong>Reacciones:</strong> <%=number_with_delimiter(entry.reaction_count || 0, delimiter: ".")%>
+              </span>
+              <span class="pdf-metric">
+                <strong>Comentarios:</strong> <%=number_with_delimiter(entry.comment_count || 0, delimiter: ".")%>
+              </span>
+              <span class="pdf-metric">
+                <strong>Compartidas:</strong> <%=number_with_delimiter(entry.share_count || 0, delimiter: ".")%>
+              </span>
+              <% if entry.polarity.present? %>
+                <span class="pdf-metric sentiment-<%=entry.polarity%>">
+                  <strong>Sentimiento:</strong>
+                  <% case entry.polarity %>
+                  <% when 'positive' %>
+                    Positivo
+                  <% when 'negative' %>
+                    Negativo
+                  <% else %>
+                    Neutral
+                  <% end %>
+                </span>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Tag Cloud Section -->
+      <% if @word_occurrences&.any? %>
+        <div class="pdf-section break-before">
+          <h2 class="section-header">Nube de Palabras de Notas</h2>
+          <div class="pdf-word-cloud">
+            <% min_max = find_max_and_min_occurrences(@word_occurrences) %>
+            <ul class="pdf-cloud">
+              <% @word_occurrences.take(100).shuffle { |a, b| a[1] <=> b[1] }.each do |word, value| %>
+                <li style='color: <%= word_color(@positive_words, @negative_words, word) %>' 
+                    data-weight="<%= normalize_to_scale(value, min_max[:max], min_max[:min]) %>">
+                  <%= word %>
+                </li>
+              <% end %>
+            </ul>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Comments Word Cloud (if available) -->
+      <% if @comments_word_occurrences&.any? %>
+        <div class="pdf-section break-before">
+          <h2 class="section-header">Nube de Palabras de Comentarios</h2>
+          <div class="pdf-word-cloud">
+            <% min_max = find_max_and_min_occurrences(@comments_word_occurrences) %>
+            <ul class="pdf-cloud">
+              <% @comments_word_occurrences.take(100).shuffle { |a, b| a[1] <=> b[1] }.each do |word, value| %>
+                <li style='color: <%= word_color(@positive_words, @negative_words, word) %>' 
+                    data-weight="<%= normalize_to_scale(value, min_max[:max], min_max[:min]) %>">
+                  <%= word %>
+                </li>
+              <% end %>
+            </ul>
+          </div>
+        </div>
+      <% end %>
+
+    </div>
+
+    <!-- Print trigger (removed auto-print, now manual) -->
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        console.log('Professional PDF Report loaded successfully');
+        console.log('Press Ctrl+P or Cmd+P to print');
+        
+        // Optional: Add keyboard shortcut hint
+        window.addEventListener('keydown', function(e) {
+          if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+            console.log('Printing...');
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
+

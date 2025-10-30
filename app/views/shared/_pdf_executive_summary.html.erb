@@ -1,0 +1,64 @@
+<!-- Executive Summary Section for PDF Reports -->
+<div class="pdf-executive-summary">
+  <h2 style="margin-top: 0; border-bottom: none;">Resumen Ejecutivo</h2>
+  
+  <div class="executive-summary-content">
+    <!-- Key Metrics at a Glance -->
+    <div class="pdf-metrics-grid" style="margin-bottom: 24pt;">
+      <% key_metrics.each do |metric| %>
+        <div class="pdf-metric-card">
+          <% if metric[:icon].present? %>
+            <div class="pdf-metric-icon"><%= metric[:icon] %></div>
+          <% end %>
+          <div class="pdf-metric-label"><%= metric[:label] %></div>
+          <div class="pdf-metric-value-container">
+            <span class="pdf-metric-value" style="color: <%= metric[:color] || '#1e40af' %>;">
+              <%= metric[:value] %>
+            </span>
+            <% if metric[:trend].present? %>
+              <span class="pdf-metric-trend" style="color: <%= metric[:trend][:color] %>;">
+                <%= metric[:trend][:symbol] %> <%= metric[:trend][:text] %>
+              </span>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Key Findings -->
+    <% if key_findings.present? %>
+      <div style="margin-top: 20pt;">
+        <h3 style="font-size: 13pt; color: #1e40af; margin-bottom: 12pt;">Hallazgos Clave</h3>
+        <ul class="executive-summary-bullets">
+          <% key_findings.each do |finding| %>
+            <li class="executive-summary-bullet">
+              <span class="bullet-icon" style="color: <%= finding[:color] || '#1e40af' %>;">
+                <%= finding[:icon] || '•' %>
+              </span>
+              <span class="bullet-text"><%= finding[:text] %></span>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <!-- Main Insights -->
+    <% if insights.present? %>
+      <div style="margin-top: 20pt;">
+        <h3 style="font-size: 13pt; color: #1e40af; margin-bottom: 12pt;">Insights Principales</h3>
+        <ul class="executive-summary-bullets">
+          <% insights.each do |insight| %>
+            <li class="executive-summary-bullet">
+              <span class="bullet-icon" style="color: #059669;">💡</span>
+              <span class="bullet-text"><%= insight %></span>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<!-- Page break after executive summary -->
+<div style="page-break-after: always;"></div>
+
