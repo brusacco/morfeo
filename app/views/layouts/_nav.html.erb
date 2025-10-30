@@ -25,23 +25,22 @@
               (request.path == root_path ? "bg-indigo-700 text-white" : "text-indigo-100 hover:bg-indigo-700 hover:text-white")
             ] %>
 
-        <!-- Topics Mega Dropdown -->
+        <% topics_for_dropdown = (@topicos.present? ? @topicos : Topic.active).to_a %>
+
+        <!-- Digitales Dropdown -->
         <div class="relative" x-data="{ open: false }" @click.away="open = false">
           <button @click="open = !open"
                   class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium text-indigo-100 hover:bg-indigo-700 hover:text-white transition-all duration-200"
                   :class="{ 'bg-indigo-700 text-white': open }"
                   aria-expanded="false"
                   aria-haspopup="true">
-            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
-            </svg>
-            Temas
+            <i class="fa-solid fa-newspaper w-4 h-4 mr-2"></i>
+            Digitales
             <svg class="w-4 h-4 ml-2 transition-transform duration-200" :class="{ 'rotate-180': open }" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
             </svg>
           </button>
 
-          <!-- Mega Menu Dropdown -->
           <div x-show="open"
                x-transition:enter="transition ease-out duration-200"
                x-transition:enter-start="opacity-0 scale-95"
@@ -49,75 +48,89 @@
                x-transition:leave="transition ease-in duration-150"
                x-transition:leave-start="opacity-100 scale-100"
                x-transition:leave-end="opacity-0 scale-95"
-               class="absolute left-0 mt-2 w-screen max-w-md origin-top-left rounded-xl bg-white shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none"
+               class="absolute left-0 mt-2 w-64 origin-top-left rounded-xl bg-white shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none"
                style="z-index: 10001;"
                role="menu">
-            
-            <div class="p-4">
-              <div class="mb-3">
-                <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Canales</h3>
-                <div class="grid grid-cols-3 gap-2">
-                  
-                  <!-- Digitales -->
-                  <div class="col-span-1">
-                    <p class="text-xs font-medium text-gray-700 mb-2 px-2">
-                      <i class="fa-solid fa-newspaper text-indigo-600 mr-1"></i>Digitales
-                    </p>
-                    <div class="space-y-1">
-                      <% topics_for_dropdown = (@topicos.present? ? @topicos : Topic.active).to_a %>
-                      <% topics_for_dropdown.first(5).each do |topic| %>
-                        <%= link_to topic.name, topic_path(topic),
-                                    class: [
-                                      "block px-3 py-2 text-sm rounded-lg transition-colors duration-150",
-                                      (request.path == topic_path(topic) ? "bg-indigo-50 text-indigo-700 font-medium" : "text-gray-700 hover:bg-gray-50")
-                                    ] %>
-                      <% end %>
-                      <% if topics_for_dropdown.count > 5 %>
-                        <p class="px-3 py-1 text-xs text-gray-500">+<%= topics_for_dropdown.count - 5 %> más</p>
-                      <% end %>
-                    </div>
-                  </div>
+            <div class="py-2">
+              <% topics_for_dropdown.each do |topic| %>
+                <%= link_to topic.name, topic_path(topic),
+                            class: [
+                              "block px-4 py-2 text-sm transition-colors duration-150",
+                              (request.path == topic_path(topic) ? "bg-indigo-50 text-indigo-700 font-medium" : "text-gray-700 hover:bg-gray-50")
+                            ] %>
+              <% end %>
+            </div>
+          </div>
+        </div>
 
-                  <!-- Facebook -->
-                  <div class="col-span-1">
-                    <p class="text-xs font-medium text-gray-700 mb-2 px-2">
-                      <i class="fa-brands fa-facebook text-blue-600 mr-1"></i>Facebook
-                    </p>
-                    <div class="space-y-1">
-                      <% topics_for_dropdown.first(5).each do |topic| %>
-                        <%= link_to topic.name, facebook_topic_path(topic),
-                                    class: [
-                                      "block px-3 py-2 text-sm rounded-lg transition-colors duration-150",
-                                      (request.path == facebook_topic_path(topic) ? "bg-blue-50 text-blue-700 font-medium" : "text-gray-700 hover:bg-gray-50")
-                                    ] %>
-                      <% end %>
-                      <% if topics_for_dropdown.count > 5 %>
-                        <p class="px-3 py-1 text-xs text-gray-500">+<%= topics_for_dropdown.count - 5 %> más</p>
-                      <% end %>
-                    </div>
-                  </div>
+        <!-- Facebook Dropdown -->
+        <div class="relative" x-data="{ open: false }" @click.away="open = false">
+          <button @click="open = !open"
+                  class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium text-indigo-100 hover:bg-indigo-700 hover:text-white transition-all duration-200"
+                  :class="{ 'bg-indigo-700 text-white': open }"
+                  aria-expanded="false"
+                  aria-haspopup="true">
+            <i class="fa-brands fa-facebook w-4 h-4 mr-2"></i>
+            Facebook
+            <svg class="w-4 h-4 ml-2 transition-transform duration-200" :class="{ 'rotate-180': open }" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+            </svg>
+          </button>
 
-                  <!-- Twitter -->
-                  <div class="col-span-1">
-                    <p class="text-xs font-medium text-gray-700 mb-2 px-2">
-                      <i class="fa-brands fa-twitter text-sky-500 mr-1"></i>Twitter
-                    </p>
-                    <div class="space-y-1">
-                      <% topics_for_dropdown.first(5).each do |topic| %>
-                        <%= link_to topic.name, twitter_topic_path(topic),
-                                    class: [
-                                      "block px-3 py-2 text-sm rounded-lg transition-colors duration-150",
-                                      (request.path == twitter_topic_path(topic) ? "bg-sky-50 text-sky-700 font-medium" : "text-gray-700 hover:bg-gray-50")
-                                    ] %>
-                      <% end %>
-                      <% if topics_for_dropdown.count > 5 %>
-                        <p class="px-3 py-1 text-xs text-gray-500">+<%= topics_for_dropdown.count - 5 %> más</p>
-                      <% end %>
-                    </div>
-                  </div>
+          <div x-show="open"
+               x-transition:enter="transition ease-out duration-200"
+               x-transition:enter-start="opacity-0 scale-95"
+               x-transition:enter-end="opacity-100 scale-100"
+               x-transition:leave="transition ease-in duration-150"
+               x-transition:leave-start="opacity-100 scale-100"
+               x-transition:leave-end="opacity-0 scale-95"
+               class="absolute left-0 mt-2 w-64 origin-top-left rounded-xl bg-white shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none"
+               style="z-index: 10001;"
+               role="menu">
+            <div class="py-2">
+              <% topics_for_dropdown.each do |topic| %>
+                <%= link_to topic.name, facebook_topic_path(topic),
+                            class: [
+                              "block px-4 py-2 text-sm transition-colors duration-150",
+                              (request.path == facebook_topic_path(topic) ? "bg-blue-50 text-blue-700 font-medium" : "text-gray-700 hover:bg-gray-50")
+                            ] %>
+              <% end %>
+            </div>
+          </div>
+        </div>
 
-                </div>
-              </div>
+        <!-- Twitter Dropdown -->
+        <div class="relative" x-data="{ open: false }" @click.away="open = false">
+          <button @click="open = !open"
+                  class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium text-indigo-100 hover:bg-indigo-700 hover:text-white transition-all duration-200"
+                  :class="{ 'bg-indigo-700 text-white': open }"
+                  aria-expanded="false"
+                  aria-haspopup="true">
+            <i class="fa-brands fa-twitter w-4 h-4 mr-2"></i>
+            Twitter
+            <svg class="w-4 h-4 ml-2 transition-transform duration-200" :class="{ 'rotate-180': open }" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+            </svg>
+          </button>
+
+          <div x-show="open"
+               x-transition:enter="transition ease-out duration-200"
+               x-transition:enter-start="opacity-0 scale-95"
+               x-transition:enter-end="opacity-100 scale-100"
+               x-transition:leave="transition ease-in duration-150"
+               x-transition:leave-start="opacity-100 scale-100"
+               x-transition:leave-end="opacity-0 scale-95"
+               class="absolute left-0 mt-2 w-64 origin-top-left rounded-xl bg-white shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none"
+               style="z-index: 10001;"
+               role="menu">
+            <div class="py-2">
+              <% topics_for_dropdown.each do |topic| %>
+                <%= link_to topic.name, twitter_topic_path(topic),
+                            class: [
+                              "block px-4 py-2 text-sm transition-colors duration-150",
+                              (request.path == twitter_topic_path(topic) ? "bg-sky-50 text-sky-700 font-medium" : "text-gray-700 hover:bg-gray-50")
+                            ] %>
+              <% end %>
             </div>
           </div>
         </div>
@@ -274,21 +287,44 @@
               (request.path == root_path ? "bg-indigo-700 text-white" : "text-indigo-100 hover:bg-indigo-700 hover:text-white")
             ] %>
 
-        <!-- Mobile Topics -->
+        <% topics_for_mobile = (@topicos.present? ? @topicos : Topic.active).to_a %>
+
+        <!-- Mobile Digitales Topics -->
         <div class="px-4 py-2">
-          <p class="text-xs font-semibold text-indigo-200 uppercase tracking-wider mb-2">Temas</p>
-          <% topics_for_dropdown = (@topicos.present? ? @topicos : Topic.active).to_a %>
-          <% topics_for_dropdown.first(3).each do |topic| %>
-            <%= link_to topic.name, topic_path(topic), class: "block py-2 text-sm text-indigo-100 hover:text-white" %>
+          <p class="text-xs font-semibold text-indigo-200 uppercase tracking-wider mb-2 flex items-center">
+            <i class="fa-solid fa-newspaper mr-2"></i>Digitales
+          </p>
+          <% topics_for_mobile.each do |topic| %>
+            <%= link_to topic.name, topic_path(topic), class: "block py-2 pl-4 text-sm text-indigo-100 hover:text-white transition-colors" %>
+          <% end %>
+        </div>
+
+        <!-- Mobile Facebook Topics -->
+        <div class="px-4 py-2">
+          <p class="text-xs font-semibold text-indigo-200 uppercase tracking-wider mb-2 flex items-center">
+            <i class="fa-brands fa-facebook mr-2"></i>Facebook
+          </p>
+          <% topics_for_mobile.each do |topic| %>
+            <%= link_to topic.name, facebook_topic_path(topic), class: "block py-2 pl-4 text-sm text-indigo-100 hover:text-white transition-colors" %>
+          <% end %>
+        </div>
+
+        <!-- Mobile Twitter Topics -->
+        <div class="px-4 py-2">
+          <p class="text-xs font-semibold text-indigo-200 uppercase tracking-wider mb-2 flex items-center">
+            <i class="fa-brands fa-twitter mr-2"></i>Twitter
+          </p>
+          <% topics_for_mobile.each do |topic| %>
+            <%= link_to topic.name, twitter_topic_path(topic), class: "block py-2 pl-4 text-sm text-indigo-100 hover:text-white transition-colors" %>
           <% end %>
         </div>
 
         <!-- Mobile Reports -->
-        <div class="px-4 py-2">
+        <div class="px-4 py-2 border-t border-indigo-700 mt-2 pt-2">
           <p class="text-xs font-semibold text-indigo-200 uppercase tracking-wider mb-2">Reportes</p>
-          <%= link_to "Más Populares", popular_entries_path, class: "block py-2 text-sm text-indigo-100 hover:text-white" %>
-          <%= link_to "Más Comentadas", commented_entries_path, class: "block py-2 text-sm text-indigo-100 hover:text-white" %>
-          <%= link_to "Resumen Semanal", week_entries_path, class: "block py-2 text-sm text-indigo-100 hover:text-white" %>
+          <%= link_to "Más Populares", popular_entries_path, class: "block py-2 pl-4 text-sm text-indigo-100 hover:text-white transition-colors" %>
+          <%= link_to "Más Comentadas", commented_entries_path, class: "block py-2 pl-4 text-sm text-indigo-100 hover:text-white transition-colors" %>
+          <%= link_to "Resumen Semanal", week_entries_path, class: "block py-2 pl-4 text-sm text-indigo-100 hover:text-white transition-colors" %>
         </div>
       </div>
     </div>
