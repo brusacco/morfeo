@@ -1,0 +1,542 @@
+/* ============================================
+   Morfeo Design System - Custom Utilities
+   ============================================ */
+
+/* Typography Classes
+   ========================================== */
+
+// Page Titles
+.page-title {
+  @apply text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight;
+}
+
+.page-subtitle {
+  @apply text-base text-gray-600 mt-2;
+}
+
+// Section Titles
+.section-title {
+  @apply text-2xl font-bold text-gray-900 mb-6;
+}
+
+.section-subtitle {
+  @apply text-base text-gray-600 mb-4;
+}
+
+// Card Titles
+.card-title {
+  @apply text-lg font-semibold text-gray-900;
+}
+
+.card-description {
+  @apply text-sm text-gray-600 mt-1;
+}
+
+// Metric Display
+.metric-value {
+  @apply text-3xl sm:text-4xl font-bold tracking-tight;
+}
+
+.metric-label {
+  @apply text-sm font-medium text-gray-600 uppercase tracking-wide;
+}
+
+.metric-delta {
+  @apply text-sm font-medium;
+}
+
+.metric-delta-positive {
+  @apply text-green-600;
+}
+
+.metric-delta-negative {
+  @apply text-red-600;
+}
+
+// Body Text
+.body-text {
+  @apply text-base text-gray-700 leading-relaxed;
+}
+
+.body-text-sm {
+  @apply text-sm text-gray-600 leading-relaxed;
+}
+
+// Labels
+.label-text {
+  @apply text-sm font-medium text-gray-700;
+}
+
+.helper-text {
+  @apply text-xs text-gray-500;
+}
+
+/* Card Components
+   ========================================== */
+
+// Standard Card
+.card {
+  @apply bg-white rounded-xl shadow-sm border border-gray-200 p-6;
+  @apply hover:shadow-lg transition-shadow duration-300;
+}
+
+.card-large {
+  @apply bg-white rounded-xl shadow-sm border border-gray-200 p-8;
+  @apply hover:shadow-lg transition-shadow duration-300;
+}
+
+.card-compact {
+  @apply bg-white rounded-xl shadow-sm border border-gray-200 p-4;
+  @apply hover:shadow-lg transition-shadow duration-300;
+}
+
+// Interactive Card (with hover transform)
+.card-interactive {
+  @apply bg-white rounded-xl shadow-sm border border-gray-200 p-6;
+  @apply transition-all duration-300;
+  @apply hover:shadow-xl hover:border-indigo-200 hover:scale-[1.02];
+}
+
+// Metric Card
+.card-metric {
+  @apply bg-white rounded-xl shadow-sm border border-gray-200 p-6;
+  @apply hover:shadow-lg hover:border-indigo-200 transition-all duration-200;
+  @apply cursor-default;
+}
+
+/* Button Enhancements
+   ========================================== */
+
+// Button Hover Effects
+.button-hover {
+  @apply transition-all duration-200 hover:scale-105 active:scale-95;
+}
+
+.button-subtle {
+  @apply transition-colors duration-200 hover:bg-gray-50;
+}
+
+/* Link Styles
+   ========================================== */
+
+.link-primary {
+  @apply text-indigo-600 hover:text-indigo-700 transition-colors duration-200;
+}
+
+.link-subtle {
+  @apply text-gray-600 hover:text-gray-900 transition-colors duration-200;
+}
+
+.link-underline {
+  @apply underline decoration-indigo-300 hover:decoration-indigo-600 transition-colors duration-200;
+}
+
+/* Badge Components
+   ========================================== */
+
+.badge {
+  @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium;
+}
+
+.badge-default {
+  @apply bg-gray-100 text-gray-800;
+}
+
+.badge-success {
+  @apply bg-green-100 text-green-800;
+}
+
+.badge-warning {
+  @apply bg-amber-100 text-amber-800;
+}
+
+.badge-error {
+  @apply bg-red-100 text-red-800;
+}
+
+.badge-info {
+  @apply bg-blue-100 text-blue-800;
+}
+
+.badge-primary {
+  @apply bg-indigo-100 text-indigo-800;
+}
+
+/* Input Enhancements
+   ========================================== */
+
+.input-enhanced {
+  @apply block w-full rounded-lg border-gray-300 shadow-sm;
+  @apply focus:border-indigo-500 focus:ring-indigo-500 focus:ring-2;
+  @apply transition-all duration-200;
+}
+
+.select-enhanced {
+  @apply block w-full rounded-lg border-gray-300 shadow-sm;
+  @apply focus:border-indigo-500 focus:ring-indigo-500 focus:ring-2;
+  @apply transition-all duration-200;
+}
+
+/* Loading & Empty States
+   ========================================== */
+
+.loading-spinner {
+  @apply inline-block w-8 h-8 border-4 border-gray-200 border-t-indigo-600 rounded-full animate-spin;
+}
+
+.loading-spinner-sm {
+  @apply inline-block w-4 h-4 border-2 border-gray-200 border-t-indigo-600 rounded-full animate-spin;
+}
+
+.loading-spinner-lg {
+  @apply inline-block w-12 h-12 border-4 border-gray-200 border-t-indigo-600 rounded-full animate-spin;
+}
+
+.empty-state {
+  @apply flex flex-col items-center justify-center py-12 px-4;
+}
+
+.empty-state-icon {
+  @apply w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4;
+}
+
+.empty-state-title {
+  @apply text-lg font-semibold text-gray-900 mb-2;
+}
+
+.empty-state-description {
+  @apply text-sm text-gray-600 text-center max-w-sm;
+}
+
+/* Skeleton Screens
+   ========================================== */
+
+.skeleton {
+  @apply animate-pulse bg-gray-200 rounded;
+}
+
+.skeleton-text {
+  @apply h-4 bg-gray-200 rounded;
+}
+
+.skeleton-title {
+  @apply h-6 bg-gray-200 rounded;
+}
+
+.skeleton-card {
+  @apply bg-white rounded-xl shadow-sm border border-gray-200 p-6 animate-pulse;
+}
+
+/* Focus Indicators (Accessibility)
+   ========================================== */
+
+// Global focus visible styles
+*:focus-visible {
+  @apply outline-none ring-2 ring-indigo-500 ring-offset-2 rounded;
+}
+
+button:focus-visible,
+a:focus-visible {
+  @apply outline-none ring-2 ring-indigo-500 ring-offset-2;
+}
+
+/* Animations & Transitions
+   ========================================== */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOut {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-fade-out {
+  animation: fadeOut 0.3s ease-out;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+.animate-slide-out {
+  animation: slideOut 0.3s ease-out;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.2s ease-out;
+}
+
+.page-transition {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Hover Effects
+   ========================================== */
+
+.hover-lift {
+  @apply transition-all duration-300;
+  
+  &:hover {
+    transform: translateY(-4px);
+    @apply shadow-xl;
+  }
+}
+
+.hover-scale {
+  @apply transition-transform duration-200;
+  
+  &:hover {
+    transform: scale(1.05);
+  }
+  
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.hover-glow {
+  @apply transition-all duration-300;
+  
+  &:hover {
+    @apply shadow-lg;
+    box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.2), 
+                0 8px 10px -6px rgba(79, 70, 229, 0.1);
+  }
+}
+
+/* Dividers
+   ========================================== */
+
+.divider {
+  @apply border-t border-gray-200 my-6;
+}
+
+.divider-vertical {
+  @apply border-l border-gray-200 mx-4;
+}
+
+/* Utility Classes
+   ========================================== */
+
+// Truncate with ellipsis
+.text-truncate-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.text-truncate-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+// Smooth scroll
+.smooth-scroll {
+  scroll-behavior: smooth;
+}
+
+// Hide scrollbar but keep functionality
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+// Custom thin scrollbar
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db #f3f4f6;
+  
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #f3f4f6;
+    border-radius: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 4px;
+    
+    &:hover {
+      background: #9ca3af;
+    }
+  }
+}
+
+/* Responsive Utilities
+   ========================================== */
+
+// Show only on mobile
+@media (min-width: 640px) {
+  .mobile-only {
+    display: none !important;
+  }
+}
+
+// Show only on desktop
+@media (max-width: 639px) {
+  .desktop-only {
+    display: none !important;
+  }
+}
+
+/* Print Styles
+   ========================================== */
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .page-break-before {
+    page-break-before: always;
+  }
+  
+  .page-break-after {
+    page-break-after: always;
+  }
+  
+  .page-break-inside-avoid {
+    page-break-inside: avoid;
+  }
+}
+
+/* Dark Mode Support (Future Enhancement)
+   ========================================== */
+
+// Placeholder for future dark mode implementation
+// @media (prefers-color-scheme: dark) {
+//   // Dark mode styles
+// }
+
+/* Accessibility Enhancements
+   ========================================== */
+
+// Screen reader only content
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+// Skip to main content link
+.skip-to-main {
+  @apply absolute -top-full left-0 bg-indigo-600 text-white px-4 py-2 rounded-br-lg;
+  @apply focus:top-0 transition-all duration-200;
+  z-index: 9999;
+}
+
+/* Component-Specific Enhancements
+   ========================================== */
+
+// Alert/Notification Styles
+.alert {
+  @apply rounded-lg p-4 mb-4;
+}
+
+.alert-success {
+  @apply bg-green-50 border-l-4 border-green-500 text-green-800;
+}
+
+.alert-warning {
+  @apply bg-amber-50 border-l-4 border-amber-500 text-amber-800;
+}
+
+.alert-error {
+  @apply bg-red-50 border-l-4 border-red-500 text-red-800;
+}
+
+.alert-info {
+  @apply bg-blue-50 border-l-4 border-blue-500 text-blue-800;
+}
+
+// Toast Notification Container
+.toast-container {
+  @apply fixed top-4 right-4 z-50 flex flex-col gap-2;
+  max-width: 420px;
+}
+
+.toast {
+  @apply rounded-xl shadow-xl border animate-slide-in;
+  animation: slideIn 0.3s ease-out;
+}
+
+// Modal Backdrop
+.modal-backdrop {
+  @apply fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm z-40;
+  @apply transition-opacity duration-300;
+}
+
+.modal-panel {
+  @apply relative bg-white rounded-2xl shadow-2xl p-6 max-w-lg w-full;
+  @apply animate-scale-in;
+}
+
+/* ============================================
+   End of Design System
+   ============================================ */
+

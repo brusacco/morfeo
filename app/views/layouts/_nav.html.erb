@@ -1,118 +1,310 @@
-<nav class="bg-indigo-600" style="position: relative; z-index: 10000;">
-  <div class="mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex h-16 items-center justify-between">
-      <div class="flex items-center">
-        <%=image_tag 'moopio-logo.png', class: 'h-8 w-8', alt: 'Moopio.com'%>
-        <div class="hidden md:block">
-          <div class="ml-10 flex items-baseline space-x-4">
-            <%= link_to "Inicio", root_path, data: {turbo: false}, 
-                  class: ["text-white hover:bg-indigo-700 hover:bg-opacity-75 rounded-md px-3 py-2 text-sm font-medium", ("bg-indigo-700" if request.path == root_path)] %>
-            <% topics_for_dropdown = (@topicos.present? ? @topicos : Topic.active).to_a %>
-            <!-- Dropdown de Tópicos -->
-            <div class="relative">
-              <%= link_to '#',
-                  class: [
-                    "text-white hover:bg-indigo-700 hover:bg-opacity-75 rounded-md px-3 py-2 text-sm font-medium flex items-center justify-between w-full md:w-auto",
-                    ("bg-indigo-700" if controller_name == "topic" && action_name == "show")
-                  ],
-                  id: "topics-menu-button", role: "button", "aria-expanded": "false", "aria-haspopup": "true" do %>
-                Digitales
-                <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                  <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                </svg>
-              <% end %>
-              <div id="topics-menu"
-                   class="absolute mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none hidden"
-                   style="z-index: 10000;"
-                   role="menu" aria-orientation="vertical" tabindex="-1">
-                <% topics_for_dropdown.each do |topic| %>
-                  <%= link_to topic.name, topic_path(topic),
-                              class: [
-                                "text-sm font-medium rounded-md hover:bg-gray-100 block px-4 py-2",
-                                ("bg-blue-400 hover:bg-indigo-200" if request.path == topic_path(topic))
-                              ] %>
-                <% end %>
+<!-- Enhanced Professional Navigation with Design System -->
+<nav class="bg-indigo-600 shadow-lg" style="position: relative; z-index: 10000;">
+  <div class="w-full px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16">
+      
+      <!-- Left: Logo & Brand -->
+      <div class="flex items-center flex-shrink-0">
+        <%= link_to root_path, class: "flex items-center space-x-3 group", data: {turbo: false} do %>
+          <%= image_tag 'moopio-logo.png', class: 'h-10 w-10 transition-transform duration-200 group-hover:scale-110', alt: 'Morfeo Analytics' %>
+          <div class="hidden lg:block">
+            <span class="text-white text-xl font-bold tracking-tight">Morfeo</span>
+            <span class="block text-indigo-200 text-xs font-medium">Media Analytics</span>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Center: Main Navigation (Desktop) -->
+      <div class="hidden lg:flex items-center space-x-1">
+        
+        <!-- Home Link -->
+        <%= link_to "Inicio", root_path, 
+            data: {turbo: false}, 
+            class: [
+              "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+              (request.path == root_path ? "bg-indigo-700 text-white" : "text-indigo-100 hover:bg-indigo-700 hover:text-white")
+            ] %>
+
+        <!-- Topics Mega Dropdown -->
+        <div class="relative" x-data="{ open: false }" @click.away="open = false">
+          <button @click="open = !open"
+                  class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium text-indigo-100 hover:bg-indigo-700 hover:text-white transition-all duration-200"
+                  :class="{ 'bg-indigo-700 text-white': open }"
+                  aria-expanded="false"
+                  aria-haspopup="true">
+            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
+            </svg>
+            Temas
+            <svg class="w-4 h-4 ml-2 transition-transform duration-200" :class="{ 'rotate-180': open }" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+            </svg>
+          </button>
+
+          <!-- Mega Menu Dropdown -->
+          <div x-show="open"
+               x-transition:enter="transition ease-out duration-200"
+               x-transition:enter-start="opacity-0 scale-95"
+               x-transition:enter-end="opacity-100 scale-100"
+               x-transition:leave="transition ease-in duration-150"
+               x-transition:leave-start="opacity-100 scale-100"
+               x-transition:leave-end="opacity-0 scale-95"
+               class="absolute left-0 mt-2 w-screen max-w-md origin-top-left rounded-xl bg-white shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none"
+               style="z-index: 10001;"
+               role="menu">
+            
+            <div class="p-4">
+              <div class="mb-3">
+                <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Canales</h3>
+                <div class="grid grid-cols-3 gap-2">
+                  
+                  <!-- Digitales -->
+                  <div class="col-span-1">
+                    <p class="text-xs font-medium text-gray-700 mb-2 px-2">
+                      <i class="fa-solid fa-newspaper text-indigo-600 mr-1"></i>Digitales
+                    </p>
+                    <div class="space-y-1">
+                      <% topics_for_dropdown = (@topicos.present? ? @topicos : Topic.active).to_a %>
+                      <% topics_for_dropdown.first(5).each do |topic| %>
+                        <%= link_to topic.name, topic_path(topic),
+                                    class: [
+                                      "block px-3 py-2 text-sm rounded-lg transition-colors duration-150",
+                                      (request.path == topic_path(topic) ? "bg-indigo-50 text-indigo-700 font-medium" : "text-gray-700 hover:bg-gray-50")
+                                    ] %>
+                      <% end %>
+                      <% if topics_for_dropdown.count > 5 %>
+                        <p class="px-3 py-1 text-xs text-gray-500">+<%= topics_for_dropdown.count - 5 %> más</p>
+                      <% end %>
+                    </div>
+                  </div>
+
+                  <!-- Facebook -->
+                  <div class="col-span-1">
+                    <p class="text-xs font-medium text-gray-700 mb-2 px-2">
+                      <i class="fa-brands fa-facebook text-blue-600 mr-1"></i>Facebook
+                    </p>
+                    <div class="space-y-1">
+                      <% topics_for_dropdown.first(5).each do |topic| %>
+                        <%= link_to topic.name, facebook_topic_path(topic),
+                                    class: [
+                                      "block px-3 py-2 text-sm rounded-lg transition-colors duration-150",
+                                      (request.path == facebook_topic_path(topic) ? "bg-blue-50 text-blue-700 font-medium" : "text-gray-700 hover:bg-gray-50")
+                                    ] %>
+                      <% end %>
+                      <% if topics_for_dropdown.count > 5 %>
+                        <p class="px-3 py-1 text-xs text-gray-500">+<%= topics_for_dropdown.count - 5 %> más</p>
+                      <% end %>
+                    </div>
+                  </div>
+
+                  <!-- Twitter -->
+                  <div class="col-span-1">
+                    <p class="text-xs font-medium text-gray-700 mb-2 px-2">
+                      <i class="fa-brands fa-twitter text-sky-500 mr-1"></i>Twitter
+                    </p>
+                    <div class="space-y-1">
+                      <% topics_for_dropdown.first(5).each do |topic| %>
+                        <%= link_to topic.name, twitter_topic_path(topic),
+                                    class: [
+                                      "block px-3 py-2 text-sm rounded-lg transition-colors duration-150",
+                                      (request.path == twitter_topic_path(topic) ? "bg-sky-50 text-sky-700 font-medium" : "text-gray-700 hover:bg-gray-50")
+                                    ] %>
+                      <% end %>
+                      <% if topics_for_dropdown.count > 5 %>
+                        <p class="px-3 py-1 text-xs text-gray-500">+<%= topics_for_dropdown.count - 5 %> más</p>
+                      <% end %>
+                    </div>
+                  </div>
+
+                </div>
               </div>
             </div>
-            <!-- Dropdown de Facebook Topics -->
-            <div class="relative">
-              <%= link_to '#',
-                  class: [
-                    "text-white hover:bg-indigo-700 hover:bg-opacity-75 rounded-md px-3 py-2 text-sm font-medium flex items-center justify-between w-full md:w-auto",
-                    ("bg-indigo-700" if controller_name == "facebook_topic" && action_name == "show")
-                  ],
-                  id: "facebook-topics-menu-button", role: "button", "aria-expanded": "false", "aria-haspopup": "true" do %>
-                Facebook
-                <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                  <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                </svg>
-              <% end %>
-              <div id="facebook-topics-menu"
-                   class="absolute mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none hidden"
-                   style="z-index: 10000;"
-                   role="menu" aria-orientation="vertical" tabindex="-1">
-                <% topics_for_dropdown.each do |topic| %>
-                  <%= link_to topic.name, facebook_topic_path(topic),
-                              class: [
-                                "text-sm font-medium rounded-md hover:bg-gray-100 block px-4 py-2",
-                                ("bg-blue-400 hover:bg-indigo-200" if request.path == facebook_topic_path(topic))
-                              ] %>
-                <% end %>
-              </div>
-            </div>
-            <!-- Dropdown de Twitter Topics -->
-            <div class="relative">
-              <%= link_to '#',
-                  class: [
-                    "text-white hover:bg-indigo-700 hover:bg-opacity-75 rounded-md px-3 py-2 text-sm font-medium flex items-center justify-between w-full md:w-auto",
-                    ("bg-indigo-700" if controller_name == "twitter_topic" && action_name == "show")
-                  ],
-                  id: "twitter-topics-menu-button", role: "button", "aria-expanded": "false", "aria-haspopup": "true" do %>
-                Twitter
-                <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                  <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                </svg>
-              <% end %>
-              <div id="twitter-topics-menu"
-                   class="absolute mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none hidden"
-                   style="z-index: 10000;"
-                   role="menu" aria-orientation="vertical" tabindex="-1">
-                <% topics_for_dropdown.each do |topic| %>
-                  <%= link_to topic.name, twitter_topic_path(topic),
-                              class: [
-                                "text-sm font-medium rounded-md hover:bg-gray-100 block px-4 py-2",
-                                ("bg-sky-400 hover:bg-sky-200" if request.path == twitter_topic_path(topic))
-                              ] %>
-                <% end %>
-              </div>
-            </div>
-            <%= link_to 'Populares', popular_entries_path, 
-                  class: ["text-white hover:bg-indigo-700 hover:bg-opacity-75 rounded-md px-3 py-2 text-sm font-medium", ("bg-indigo-700" if request.path == popular_entries_path)] %>
-            <%= link_to 'Comentadas', commented_entries_path, 
-                  class: ["text-white hover:bg-indigo-700 hover:bg-opacity-75 rounded-md px-3 py-2 text-sm font-medium", ("bg-indigo-700" if request.path == commented_entries_path)] %>
-            <%= link_to 'Semanal', week_entries_path, 
-                  class: ["text-white hover:bg-indigo-700 hover:bg-opacity-75 rounded-md px-3 py-2 text-sm font-medium", ("bg-indigo-700" if request.path == week_entries_path)] %>
-            <%# if current_user.id == 1 || current_user.id == 6 || current_user.id == 8 %>
-            <%#= link_to 'Reporte', templates_path, 
-                    class: ["text-white hover:bg-indigo-700 hover:bg-opacity-75 rounded-md px-3 py-2 text-sm font-medium", ("bg-indigo-700" if request.path == templates_path)] %>
-            <%# end %>
           </div>
         </div>
-      </div>
-      <!-- Profile / Logout -->
-      <div class="hidden md:block">
-        <div class="ml-4 flex items-center md:ml-6">
-          <div class="relative ml-3">
-            <button type="button" class="relative flex max-w-xs items-center rounded-full bg-indigo-600 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-indigo-600" id="user-menu-button" aria-expanded="false" aria-haspopup="true">
-              <%= image_tag 'default-avatar.png', class: 'h-8 w-8 rounded-full' %>
-            </button>
-            <!-- Menú desplegable de usuario -->
-            <div id="user-menu" class="absolute right-0 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none hidden" style="z-index: 10000;" role="menu" aria-orientation="vertical" tabindex="-1">
-              <%= link_to 'Cerrar Sesión', destroy_user_session_path, method: :delete, data: { turbo_method: :delete }, class: 'block px-4 py-2 text-sm text-gray-700' %>
+
+        <!-- Reports Dropdown -->
+        <div class="relative" x-data="{ open: false }" @click.away="open = false">
+          <button @click="open = !open"
+                  class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium text-indigo-100 hover:bg-indigo-700 hover:text-white transition-all duration-200"
+                  :class="{ 'bg-indigo-700 text-white': open }">
+            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            Reportes
+            <svg class="w-4 h-4 ml-2 transition-transform duration-200" :class="{ 'rotate-180': open }" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+            </svg>
+          </button>
+
+          <div x-show="open"
+               x-transition:enter="transition ease-out duration-200"
+               x-transition:enter-start="opacity-0 scale-95"
+               x-transition:enter-end="opacity-100 scale-100"
+               x-transition:leave="transition ease-in duration-150"
+               x-transition:leave-start="opacity-100 scale-100"
+               x-transition:leave-end="opacity-0 scale-95"
+               class="absolute right-0 mt-2 w-56 origin-top-right rounded-xl bg-white shadow-xl ring-1 ring-black ring-opacity-5 focus:outline-none"
+               style="z-index: 10001;">
+            <div class="py-2">
+              <%= link_to popular_entries_path, class: "flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors" do %>
+                <i class="fa-solid fa-fire text-orange-500 w-5 mr-3"></i>
+                <span>Más Populares</span>
+              <% end %>
+              <%= link_to commented_entries_path, class: "flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors" do %>
+                <i class="fa-solid fa-comments text-green-600 w-5 mr-3"></i>
+                <span>Más Comentadas</span>
+              <% end %>
+              <%= link_to week_entries_path, class: "flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors" do %>
+                <i class="fa-solid fa-calendar-week text-indigo-600 w-5 mr-3"></i>
+                <span>Resumen Semanal</span>
+              <% end %>
             </div>
           </div>
+        </div>
+
+      </div>
+
+      <!-- Right: User Menu & Actions -->
+      <div class="flex items-center space-x-4">
+        
+        <!-- Search (Desktop) - Future Enhancement -->
+        <!-- <button class="hidden lg:inline-flex p-2 rounded-lg text-indigo-100 hover:bg-indigo-700 hover:text-white transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+        </button> -->
+
+        <!-- Notifications - Future Enhancement -->
+        <!-- <button class="hidden lg:inline-flex relative p-2 rounded-lg text-indigo-100 hover:bg-indigo-700 hover:text-white transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+          </svg>
+          <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+        </button> -->
+
+        <!-- User Profile Dropdown -->
+        <div class="relative" x-data="{ open: false }" @click.away="open = false">
+          <button @click="open = !open"
+                  class="flex items-center space-x-2 p-1 rounded-lg hover:bg-indigo-700 transition-colors"
+                  aria-expanded="false"
+                  aria-haspopup="true">
+            <div class="hidden lg:block text-right">
+              <p class="text-sm font-medium text-white"><%= current_user.email.split('@').first.capitalize %></p>
+              <p class="text-xs text-indigo-200">Usuario</p>
+            </div>
+            <div class="w-10 h-10 bg-indigo-700 rounded-full flex items-center justify-center text-white font-semibold ring-2 ring-indigo-400 hover:ring-white transition-all">
+              <%= current_user.email[0].upcase %>
+            </div>
+            <svg class="hidden lg:block w-4 h-4 text-indigo-200 transition-transform duration-200" :class="{ 'rotate-180': open }" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+            </svg>
+          </button>
+
+          <div x-show="open"
+               x-transition:enter="transition ease-out duration-200"
+               x-transition:enter-start="opacity-0 scale-95"
+               x-transition:enter-end="opacity-100 scale-100"
+               x-transition:leave="transition ease-in duration-150"
+               x-transition:leave-start="opacity-100 scale-100"
+               x-transition:leave-end="opacity-0 scale-95"
+               class="absolute right-0 mt-2 w-56 origin-top-right rounded-xl bg-white shadow-xl ring-1 ring-black ring-opacity-5 focus:outline-none"
+               style="z-index: 10001;">
+            
+            <!-- User Info -->
+            <div class="px-4 py-3 border-b border-gray-100">
+              <p class="text-sm font-medium text-gray-900"><%= current_user.email.split('@').first.capitalize %></p>
+              <p class="text-xs text-gray-500 truncate"><%= current_user.email %></p>
+            </div>
+
+            <!-- Menu Items -->
+            <div class="py-2">
+              <!-- Future enhancement: User profile and settings -->
+              <!-- <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                <i class="fa-solid fa-user w-5 mr-3 text-gray-400"></i>
+                <span>Mi Perfil</span>
+              </a>
+              <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                <i class="fa-solid fa-cog w-5 mr-3 text-gray-400"></i>
+                <span>Configuración</span>
+              </a> -->
+              
+              <!-- Note: Admin panel uses separate AdminUser authentication -->
+              <!-- Regular users don't have access to admin panel -->
+            </div>
+
+            <!-- Logout -->
+            <div class="border-t border-gray-100">
+              <%= link_to destroy_user_session_path, method: :delete, data: { turbo_method: :delete }, class: "flex items-center px-4 py-3 text-sm text-red-700 hover:bg-red-50 transition-colors rounded-b-xl" do %>
+                <i class="fa-solid fa-arrow-right-from-bracket w-5 mr-3"></i>
+                <span>Cerrar Sesión</span>
+              <% end %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mobile Menu Toggle -->
+        <button @click="mobileMenuOpen = !mobileMenuOpen"
+                x-data="{ mobileMenuOpen: false }"
+                class="lg:hidden p-2 rounded-lg text-white hover:bg-indigo-700 transition-colors">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+
+      </div>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div x-show="mobileMenuOpen"
+         x-data="{ mobileMenuOpen: false }"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0 -translate-y-2"
+         x-transition:enter-end="opacity-100 translate-y-0"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100 translate-y-0"
+         x-transition:leave-end="opacity-0 -translate-y-2"
+         class="lg:hidden border-t border-indigo-700 py-3 w-full"
+         id="mobile-menu">
+      
+      <div class="space-y-1">
+        <%= link_to "Inicio", root_path, 
+            data: {turbo: false},
+            class: [
+              "block px-4 py-2 text-sm font-medium rounded-lg transition-colors",
+              (request.path == root_path ? "bg-indigo-700 text-white" : "text-indigo-100 hover:bg-indigo-700 hover:text-white")
+            ] %>
+
+        <!-- Mobile Topics -->
+        <div class="px-4 py-2">
+          <p class="text-xs font-semibold text-indigo-200 uppercase tracking-wider mb-2">Temas</p>
+          <% topics_for_dropdown = (@topicos.present? ? @topicos : Topic.active).to_a %>
+          <% topics_for_dropdown.first(3).each do |topic| %>
+            <%= link_to topic.name, topic_path(topic), class: "block py-2 text-sm text-indigo-100 hover:text-white" %>
+          <% end %>
+        </div>
+
+        <!-- Mobile Reports -->
+        <div class="px-4 py-2">
+          <p class="text-xs font-semibold text-indigo-200 uppercase tracking-wider mb-2">Reportes</p>
+          <%= link_to "Más Populares", popular_entries_path, class: "block py-2 text-sm text-indigo-100 hover:text-white" %>
+          <%= link_to "Más Comentadas", commented_entries_path, class: "block py-2 text-sm text-indigo-100 hover:text-white" %>
+          <%= link_to "Resumen Semanal", week_entries_path, class: "block py-2 text-sm text-indigo-100 hover:text-white" %>
         </div>
       </div>
     </div>
+
   </div>
 </nav>
+
+<!-- Alpine.js for dropdowns (if not already included) -->
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+<script>
+  // Close dropdowns on escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      // Trigger click away event
+      document.dispatchEvent(new Event('click'));
+    }
+  });
+</script>
