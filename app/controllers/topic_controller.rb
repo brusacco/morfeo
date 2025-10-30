@@ -66,6 +66,7 @@ class TopicController < ApplicationController
     load_chart_data
     calculate_percentages
     load_tags_and_word_data
+    load_temporal_intelligence
   end
 
   def comments
@@ -269,5 +270,68 @@ class TopicController < ApplicationController
 
     # Top sites
     @site_top_counts = @entries.group('site_id').order(Arel.sql('COUNT(*) DESC')).limit(12).count
+  end
+
+  def load_temporal_intelligence
+    # Load temporal intelligence data
+    begin
+      @temporal_summary = @topic.temporal_intelligence_summary
+      Rails.logger.info "✅ temporal_summary loaded successfully"
+    rescue StandardError => e
+      Rails.logger.error "❌ Error loading temporal_summary: #{e.class} - #{e.message}"
+      Rails.logger.error e.backtrace.first(5).join("\n")
+      @temporal_summary = nil
+    end
+    
+    begin
+      @optimal_time = @topic.optimal_publishing_time
+      Rails.logger.info "✅ optimal_time loaded successfully: #{@optimal_time.inspect}"
+    rescue StandardError => e
+      Rails.logger.error "❌ Error loading optimal_time: #{e.class} - #{e.message}"
+      Rails.logger.error e.backtrace.first(5).join("\n")
+      @optimal_time = nil
+    end
+    
+    begin
+      @trend_velocity = @topic.trend_velocity
+    rescue StandardError => e
+      Rails.logger.error "❌ Error loading trend_velocity: #{e.message}"
+      @trend_velocity = { velocity_percent: 0, direction: 'stable' }
+    end
+    
+    begin
+      @engagement_velocity = @topic.engagement_velocity
+    rescue StandardError => e
+      Rails.logger.error "❌ Error loading engagement_velocity: #{e.message}"
+      @engagement_velocity = { velocity_percent: 0, direction: 'stable' }
+    end
+    
+    begin
+      @content_half_life = @topic.content_half_life
+    rescue StandardError => e
+      Rails.logger.error "❌ Error loading content_half_life: #{e.message}"
+      @content_half_life = nil
+    end
+    
+    begin
+      @peak_hours = @topic.peak_publishing_times_by_hour
+    rescue StandardError => e
+      Rails.logger.error "❌ Error loading peak_hours: #{e.message}"
+      @peak_hours = {}
+    end
+    
+    begin
+      @peak_days = @topic.peak_publishing_times_by_day
+    rescue StandardError => e
+      Rails.logger.error "❌ Error loading peak_days: #{e.message}"
+      @peak_days = {}
+    end
+    
+    begin
+      @heatmap_data = @topic.engagement_heatmap_data
+    rescue StandardError => e
+      Rails.logger.error "❌ Error loading heatmap_data: #{e.message}"
+      @heatmap_data = []
+    end
   end
 end
