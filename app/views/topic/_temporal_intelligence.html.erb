@@ -149,15 +149,8 @@
 
   <!-- JavaScript for Charts -->
   <script>
-  // Load heatmap module first
-  (function() {
-    var script = document.createElement('script');
-    script.src = 'https://code.highcharts.com/modules/heatmap.js';
-    script.async = false;
-    document.head.appendChild(script);
-  })();
-  
-  document.addEventListener('DOMContentLoaded', function() {
+  // Function to initialize all temporal intelligence charts
+  function initializeTemporalCharts() {
     <% if @peak_hours.present? && @peak_hours.any? %>
       // Peak Hours Chart
       Highcharts.chart('peak-hours-chart', {
@@ -333,7 +326,11 @@
     <% else %>
       console.log('Heatmap data not available');
     <% end %>
-  });
+  }
+  
+  // Initialize charts on both DOMContentLoaded and turbo:load
+  document.addEventListener('DOMContentLoaded', initializeTemporalCharts);
+  document.addEventListener('turbo:load', initializeTemporalCharts);
   </script>
 <% end %>
 
