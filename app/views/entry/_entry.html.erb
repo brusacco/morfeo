@@ -3,36 +3,47 @@
     <%= image_tag entry.clean_image, 
       loading: 'lazy', 
       onerror: "this.onerror=null;this.src='#{asset_path('default-entry.svg')}';", 
+      alt: entry.title,
       class: 'h-full w-full object-cover object-center group-hover:opacity-90 transition-opacity' %>
   </div>
   <div class="p-4">
     <div class="mb-3">
-      <%= link_to entry.url, target: '_blank', class: 'text-sm font-medium text-gray-900 hover:text-indigo-600 line-clamp-3 block' do %>
+      <%= link_to entry.url, target: '_blank', rel: 'noopener noreferrer', 
+          class: 'text-sm font-medium text-gray-900 hover:text-indigo-600 line-clamp-3 block visited:text-purple-600',
+          'aria-label': "Leer: #{entry.title}" do %>
         <%= entry.title %>
-        <i class="fa-solid fa-external-link text-xs text-gray-400 ml-1"></i>
+        <i class="fa-solid fa-external-link text-xs text-gray-400 ml-1" aria-hidden="true"></i>
       <% end %>
     </div>
     <div class="space-y-2">
       <div class="flex items-center text-xs text-gray-600">
-        <i class="fa-regular fa-newspaper mr-1.5 text-gray-400"></i>
-        <%= link_to entry.site.name, entry.site, class: 'font-medium hover:text-indigo-600' %>
+        <i class="fa-regular fa-newspaper mr-1.5 text-gray-400" aria-hidden="true"></i>
+        <%= link_to entry.site.name, entry.site, class: 'font-medium hover:text-indigo-600 transition-colors' %>
       </div>
       <div class="flex items-center justify-between text-xs text-gray-500">
         <div class="flex items-center">
-          <i class="fa-regular fa-calendar mr-1.5"></i>
-          <%= entry.published_at.strftime('%d/%m/%Y %H:%M') %>
+          <i class="fa-regular fa-clock mr-1.5" aria-hidden="true"></i>
+          <time datetime="<%= entry.published_at.iso8601 %>" 
+                title="<%= entry.published_at.strftime('%d/%m/%Y %H:%M') %>"
+                class="hover:text-gray-700 transition-colors">
+            <%= time_ago_in_words(entry.published_at) %> atrás
+          </time>
         </div>
       </div>
       <% if entry.tag_list.any? %>
-        <div class="flex flex-wrap gap-1 pt-2 border-t border-gray-100">
-          <% entry.tag_list.first(2).each do |tag| %>
-            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">
-              <%= tag %>
-            </span>
+        <div class="flex flex-wrap gap-1 pt-2 border-t border-gray-100" 
+             <% if entry.tag_list.size > 3 %>
+               title="Todas las etiquetas: <%= entry.tag_list.join(', ') %>"
+             <% end %>>
+          <% entry.tag_list.first(3).each do |tag| %>
+            <%= link_to tag, "/tags/#{tag}", 
+                class: "inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700 hover:bg-indigo-100 hover:text-indigo-700 transition-colors",
+                'aria-label': "Ver más noticias con la etiqueta #{tag}" %>
           <% end %>
-          <% if entry.tag_list.size > 2 %>
-            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-500">
-              +<%= entry.tag_list.size - 2 %>
+          <% if entry.tag_list.size > 3 %>
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-500 cursor-help"
+                  title="<%= entry.tag_list[3..-1].join(', ') %>">
+              +<%= entry.tag_list.size - 3 %> más
             </span>
           <% end %>
         </div>
@@ -40,29 +51,41 @@
     </div>
     <div class="mt-4 pt-3 border-t border-gray-200">
       <div class="grid grid-cols-4 gap-2 text-center">
-        <div title="Reacciones">
+        <div class="group/metric" role="group" aria-label="Reacciones: <%= number_with_delimiter(entry.reaction_count) %>">
           <div class="text-xs text-gray-500 mb-1">
-            <i class="fa-solid fa-thumbs-up text-blue-600"></i>
+            <i class="fa-solid fa-thumbs-up text-blue-600" aria-hidden="true"></i>
+            <span class="sr-only">Reacciones</span>
           </div>
-          <div class="text-sm font-semibold text-blue-600"><%= number_with_delimiter(entry.reaction_count) %></div>
+          <div class="text-sm font-semibold text-blue-600 group-hover/metric:scale-110 transition-transform">
+            <%= number_with_delimiter(entry.reaction_count) %>
+          </div>
         </div>
-        <div title="Comentarios">
+        <div class="group/metric" role="group" aria-label="Comentarios: <%= number_with_delimiter(entry.comment_count) %>">
           <div class="text-xs text-gray-500 mb-1">
-            <i class="fa-solid fa-comment text-green-600"></i>
+            <i class="fa-solid fa-comment text-green-600" aria-hidden="true"></i>
+            <span class="sr-only">Comentarios</span>
           </div>
-          <div class="text-sm font-semibold text-green-600"><%= number_with_delimiter(entry.comment_count) %></div>
+          <div class="text-sm font-semibold text-green-600 group-hover/metric:scale-110 transition-transform">
+            <%= number_with_delimiter(entry.comment_count) %>
+          </div>
         </div>
-        <div title="Compartidos">
+        <div class="group/metric" role="group" aria-label="Compartidos: <%= number_with_delimiter(entry.share_count) %>">
           <div class="text-xs text-gray-500 mb-1">
-            <i class="fa-solid fa-share text-purple-600"></i>
+            <i class="fa-solid fa-share text-purple-600" aria-hidden="true"></i>
+            <span class="sr-only">Compartidos</span>
           </div>
-          <div class="text-sm font-semibold text-purple-600"><%= number_with_delimiter(entry.share_count) %></div>
+          <div class="text-sm font-semibold text-purple-600 group-hover/metric:scale-110 transition-transform">
+            <%= number_with_delimiter(entry.share_count) %>
+          </div>
         </div>
-        <div title="Total de interacciones">
+        <div class="group/metric" role="group" aria-label="Total de interacciones: <%= number_with_delimiter(entry.total_count) %>">
           <div class="text-xs text-gray-500 mb-1">
-            <i class="fa-solid fa-chart-line text-indigo-600"></i>
+            <i class="fa-solid fa-chart-line text-indigo-600" aria-hidden="true"></i>
+            <span class="sr-only">Total</span>
           </div>
-          <div class="text-sm font-bold text-indigo-600"><%= number_with_delimiter(entry.total_count) %></div>
+          <div class="text-sm font-bold text-indigo-600 bg-indigo-50 rounded px-1 py-0.5 group-hover/metric:scale-110 transition-transform">
+            <%= number_with_delimiter(entry.total_count) %>
+          </div>
         </div>
       </div>
     </div>
