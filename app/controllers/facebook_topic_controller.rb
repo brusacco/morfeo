@@ -23,6 +23,7 @@ class FacebookTopicController < ApplicationController
   def entries_data
     date = parse_date_param || Date.current
     entries = FacebookEntry.for_topic(@topic, start_time: date.beginning_of_day, end_time: date.end_of_day)
+                           .reorder(Arel.sql('(reactions_total_count + comments_count + share_count) DESC'))
 
     render partial: 'facebook_topic/chart_entries', locals: { entries:, entries_date: date, topic_name: @topic.name }
   end

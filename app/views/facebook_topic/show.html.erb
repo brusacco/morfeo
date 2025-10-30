@@ -30,12 +30,20 @@
       background: white;
       width: 100%;
     }
-    /* Lower z-index for chart containers */
+    /* Lower z-index for chart containers and all Highcharts elements */
     .chart-container, 
     .highcharts-container,
-    [data-controller="topics"] {
-      position: relative;
-      z-index: 1;
+    .highcharts-container *,
+    .highcharts-root,
+    svg[class*="highcharts"],
+    [data-controller="topics"],
+    div[class*="w-full"][class*="overflow-hidden"] {
+      z-index: 1 !important;
+    }
+    
+    /* Ensure chart parent cards don't interfere */
+    section .bg-white {
+      isolation: auto;
     }
   </style>
 <% end %>

@@ -23,6 +23,7 @@ class TwitterTopicController < ApplicationController
   def entries_data
     date = parse_date_param || Date.current
     posts = TwitterPost.for_topic(@topic, start_time: date.beginning_of_day, end_time: date.end_of_day)
+                       .reorder(Arel.sql('(favorite_count + retweet_count + reply_count + quote_count) DESC'))
 
     render partial: 'twitter_topic/chart_entries', locals: { posts:, entries_date: date, topic_name: @topic.name }
   end

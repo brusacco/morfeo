@@ -32,8 +32,7 @@ export default class extends Controller {
                     polarity = '';
                   }
 
-                  let clickedDate = new Date(event.point.category);
-                  const formattedDate = clickedDate.toISOString().split('T')[0];
+                  let formattedDate = _this.parseDateFromCategory(event.point.category);
                   
                   // topicId del controller
                   _this.loadEntries(_this.topicIdValue, formattedDate, polarity, _this.titleValue);
@@ -43,6 +42,28 @@ export default class extends Controller {
           }
         }
       });
+    }
+  }
+
+  parseDateFromCategory(category) {
+    // Handle different date formats
+    // Format 1: "30/10" (DD/MM from Facebook/Twitter)
+    // Format 2: "2025-10-30" or Date object (from regular entries)
+    
+    if (typeof category === 'string' && category.match(/^\d{1,2}\/\d{1,2}$/)) {
+      // Format: "DD/MM" - need to add current year
+      const [day, month] = category.split('/');
+      const year = new Date().getFullYear();
+      const date = new Date(year, parseInt(month) - 1, parseInt(day));
+      return date.toISOString().split('T')[0];
+    } else {
+      // Try to parse as regular date
+      const clickedDate = new Date(category);
+      if (!isNaN(clickedDate.getTime())) {
+        return clickedDate.toISOString().split('T')[0];
+      }
+      // Fallback to today if parsing fails
+      return new Date().toISOString().split('T')[0];
     }
   }
   
