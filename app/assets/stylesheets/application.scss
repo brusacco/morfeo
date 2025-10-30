@@ -131,3 +131,26 @@ ul.cloud li[data-sentiment="neutral"] {
     display: none;
   }
 }
+
+/* Ensure dropdowns and modals appear above sticky navigation (z-index: 9999) */
+.dataTables_wrapper .dataTables_length select,
+.dataTables_wrapper .dataTables_filter select,
+select[multiple],
+select[size] {
+  position: relative;
+  z-index: 10001 !important;
+}
+
+/* DataTables dropdown menus */
+.dataTables_wrapper .dataTables_paginate,
+.dataTables_wrapper .dataTables_length,
+.dataTables_wrapper .dataTables_filter {
+  position: relative;
+  z-index: 10;
+}
+
+/* Ensure any select2 or custom dropdowns also appear on top */
+.select2-container,
+.select2-dropdown {
+  z-index: 10001 !important;
+}
