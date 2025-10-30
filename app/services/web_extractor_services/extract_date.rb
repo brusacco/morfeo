@@ -36,8 +36,8 @@ module WebExtractorServices
       elsif @doc.at_css('time') && @date.nil?
         @date = @doc.at_css('time')[:datetime]
         @parsed = true
-      elsif @doc.at_css('#fusion-app > div > section.sec-m.container > div > article > header > div.bl > div.dt') && @date.nil?
-        @date = @doc.at_css('#fusion-app > div > section.sec-m.container > div > article > header > div.bl > div.dt').text
+      elsif @doc.at_css('.dt') && @date.nil?
+        @date = @doc.at_css('.dt').text
         @parsed = false
       elsif @doc.at_css('#container > section > div > div > div.col-sm-8 > div > div > div.title-post > ul > li:nth-child(1)') && @date.nil?
         @date = @doc.at_css('#container > section > div > div > div.col-sm-8 > div > div > div.title-post > ul > li:nth-child(1)').text
@@ -91,10 +91,21 @@ module WebExtractorServices
       if @date.nil?
         handle_error('Fecha no encontrada')
       else
-        unless @parsed
+        if @parsed
+          # Date is already in a parseable format (ISO 8601, RFC 3339, etc.)
+          begin
+            @date = DateTime.parse(@date) if @date.is_a?(String)
+          rescue ArgumentError => e
+            Rails.logger.warn("[ExtractDate] Failed to parse date '#{@date}': #{e.message}")
+            handle_error('Fecha no válida')
+            return
+          end
+        else
+          # Date needs translation and parsing
           @date = translate_crawled_date(@date)
           @date = Chronic.parse(@date, endian_precedence: :little)
         end
+        
         handle_success({ published_at: @date })
       end
     end
@@ -103,28 +114,47 @@ module WebExtractorServices
     # Parse ld+json data
     #------------------------------------------------------------------------------------
     def date_from_ld(json_ld)
+      return nil if json_ld.blank?
+      
       data = JSON.parse(json_ld)
-      find_key(data, 'datePublished')
+      date = find_key(data, 'datePublished')
+      
+      # Validate the date string
+      return nil if date.blank?
+      
+      # Return the date if it's valid
+      date
+    rescue JSON::ParserError => e
+      Rails.logger.warn("[ExtractDate] JSON-LD parsing error: #{e.message}")
+      nil
+    rescue StandardError => e
+      Rails.logger.warn("[ExtractDate] Unexpected error parsing JSON-LD: #{e.message}")
+      nil
     end
 
     #------------------------------------------------------------------------------------
-    # Fins a key in a JSON structure at any level
+    # Find a key in a JSON structure at any level (recursive)
     #------------------------------------------------------------------------------------
     def find_key(data, key)
+      return nil unless data
+      
       case data
       when Array
         data.each do |item|
           result = find_key(item, key)
-          return result if result
+          return result if result.present?
         end
       when Hash
-        return data[key] if data.key?(key)
+        return data[key] if data.key?(key) && data[key].present?
 
         data.each_value do |value|
           result = find_key(value, key)
-          return result if result
+          return result if result.present?
         end
       end
+      nil
+    rescue StandardError => e
+      Rails.logger.warn("[ExtractDate] Error in find_key: #{e.message}")
       nil
     end
 
