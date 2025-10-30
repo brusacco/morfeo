@@ -62,147 +62,10 @@ class TopicController < ApplicationController
                          alert: 'El Tópico al que intentaste acceder no está asignado a tu usuario o se encuentra deshabilitado'
     end
 
-    @tag_list = @topic.tags.map(&:name)
-    @entries = @topic.list_entries
-
-    # Precompute aggregates to avoid multiple SQL queries
-    @entries_count = @entries.size
-    @entries_total_sum = @entries.sum(:total_count)
-
-    # Combine polarity aggregations into a single query
-    @entries_polarity_data = @entries
-                             .where.not(polarity: nil)
-                             .group(:polarity)
-                             .pluck(
-                               :polarity,
-                               Arel.sql('COUNT(*)'),
-                               Arel.sql('SUM(entries.total_count)')
-                             )
-                             .map { |p, c, s| [p, { count: c, sum: s }] }
-                             .to_h
-
-    # Extract counts and sums from the combined data
-    @entries_polarity_counts = @entries_polarity_data.transform_values { |v| v[:count] }
-    @entries_polarity_sums = @entries_polarity_data.transform_values { |v| v[:sum] }
-
-    # Precompute site group queries to avoid duplicate group-by operations
-    @site_counts =
-      Rails.cache.fetch("topic_#{@topic.id}_site_counts", expires_in: 1.hour) do
-        @entries.group('sites.name').count('*')
-      end
-    @site_sums =
-      Rails.cache.fetch("topic_#{@topic.id}_site_sums", expires_in: 1.hour) do
-        @entries.group('sites.name').sum(:total_count)
-      end
-
-    # Use pre-aggregated daily stats for performance
-    topic_stats = @topic.topic_stat_dailies.normal_range.order(:topic_date)
-    
-    # Build chart data from aggregated stats
-    @chart_entries_counts = topic_stats.pluck(:topic_date, :entry_count).to_h
-    @chart_entries_sums = topic_stats.pluck(:topic_date, :total_count).to_h
-    
-    # Sentiment chart data from aggregated stats
-    @chart_entries_sentiments_counts = {}
-    @chart_entries_sentiments_sums = {}
-    
-    topic_stats.each do |stat|
-      date = stat.topic_date
-      # Counts by sentiment
-      @chart_entries_sentiments_counts[['positive', date]] = stat.positive_quantity || 0
-      @chart_entries_sentiments_counts[['neutral', date]] = stat.neutral_quantity || 0
-      @chart_entries_sentiments_counts[['negative', date]] = stat.negative_quantity || 0
-      
-      # Interactions by sentiment
-      @chart_entries_sentiments_sums[['positive', date]] = stat.positive_interaction || 0
-      @chart_entries_sentiments_sums[['neutral', date]] = stat.neutral_interaction || 0
-      @chart_entries_sentiments_sums[['negative', date]] = stat.negative_interaction || 0
-    end
-    
-    # Use pre-aggregated title stats for performance
-    title_stats = @topic.title_topic_stat_dailies.normal_range.order(:topic_date)
-    
-    @title_chart_entries_counts = title_stats.pluck(:topic_date, :entry_quantity).to_h
-    @title_chart_entries_sums = title_stats.pluck(:topic_date, :entry_interaction).to_h
-
-    # @analytics = @topic.analytics_topic_entries
-
-    @total_entries = @entries_count
-    @total_interactions = @entries_total_sum
-
-    # Calcular numeros de totales de la semana
-    all_entries = @topic.all_list_entries
-    @all_entries_size = all_entries.size
-    @all_entries_interactions = all_entries.sum(:total_count)
-
-    # Cosas nuevas
-    @word_occurrences =
-      Rails.cache.fetch("topic_#{@topic.id}_word_occurrences", expires_in: 1.hour) do
-        @entries.word_occurrences
-      end
-    @bigram_occurrences =
-      Rails.cache.fetch("topic_#{@topic.id}_bigram_occurrences", expires_in: 1.hour) do
-        @entries.bigram_occurrences
-      end
-    @report = @topic.reports.last
-
-    # @comments = Comment.where(entry_id: @entries.select(:id))
-    # @comments_word_occurrences = @comments.word_occurrences
-    # @comments_bigram_occurrences = @comments.bigram_occurrences
-    @comments = []
-    @comments_word_occurrences = []
-
-    @positive_words = @topic.positive_words.split(',') if @topic.positive_words.present?
-    @negative_words = @topic.negative_words.split(',') if @topic.negative_words.present?
-
-    polarity_counts = @entries_polarity_counts
-    @neutrals = polarity_counts['neutral'] || 0
-    @positives = polarity_counts['positive'] || 0
-    @negatives = polarity_counts['negative'] || 0
-
-    if @entries_count > 0
-      @percentage_positives = (Float(@positives) / @entries_count * 100).round(0)
-      @percentage_negatives = (Float(@negatives) / @entries_count * 100).round(0)
-      @percentage_neutrals = (Float(@neutrals) / @entries_count * 100).round(0)
-
-      total_count = @entries_count + @all_entries_size
-      @topic_percentage = (Float(@entries_count) / total_count * 100).round(0)
-      @all_percentage = (Float(@all_entries_size) / total_count * 100).round(0)
-
-      total_count = @entries_total_sum + @all_entries_interactions
-      @topic_interactions_percentage = (Float(@entries_total_sum) / total_count * 100).round(1)
-      @all_intereactions_percentage = (Float(@all_entries_interactions) / total_count * 100).round(1)
-    end
-
-    @most_interactions = @entries.order(total_count: :desc).limit(20)
-
-    if @total_entries.zero?
-      @promedio = 0
-    else
-      @promedio = @total_interactions / @total_entries
-    end
-
-    @tags = Tag.joins(:taggings)
-               .where(taggings: {
-                        taggable_type: Entry.base_class.name,
-                        context: 'tags',
-                        taggable_id: @entries.select(:id)
-                      })
-               .group('tags.id', 'tags.name')
-               .order(Arel.sql('COUNT(DISTINCT taggings.taggable_id) DESC'))
-               .limit(20)
-               .select('tags.id, tags.name, COUNT(DISTINCT taggings.taggable_id) AS count')
-
-    @tags_interactions = Entry.joins(:tags)
-                              .where(id: @entries.select(:id), tags: { id: @tags.map(&:id) })
-                              .group('tags.name')
-                              .sum(:total_count)
-
-    @tags_count = {}
-    @tags.each { |n| @tags_count[n.name] = n.count }
-
-    # Precompute top sites for partial to avoid query in view
-    @site_top_counts = @entries.group('site_id').order(Arel.sql('COUNT(*) DESC')).limit(12).count
+    load_topic_data
+    load_chart_data
+    calculate_percentages
+    load_tags_and_word_data
   end
 
   def comments
@@ -233,7 +96,23 @@ class TopicController < ApplicationController
                          alert: 'El Tópico al que intentaste acceder no está asignado a tu usuario o se encuentra deshabilitado'
     end
 
-    # Reuse the same data preparation logic as show action
+    load_topic_data
+    load_chart_data
+    calculate_percentages_for_pdf
+    load_tags_and_word_data
+
+    # Render with specific layout for PDF
+    render layout: false
+  end
+
+  def history
+    @topic = Topic.find(params[:id])
+    @reports = @topic.reports.where.not(report_text: nil).order(created_at: :desc).limit(20)
+  end
+
+  private
+
+  def load_topic_data
     @tag_list = @topic.tags.map(&:name)
     @entries = @topic.list_entries
 
@@ -267,6 +146,11 @@ class TopicController < ApplicationController
         @entries.group('sites.name').sum(:total_count)
       end
 
+    @total_entries = @entries_count
+    @total_interactions = @entries_total_sum
+  end
+
+  def load_chart_data
     # Use pre-aggregated daily stats for performance
     topic_stats = @topic.topic_stat_dailies.normal_range.order(:topic_date)
     
@@ -296,13 +180,54 @@ class TopicController < ApplicationController
     
     @title_chart_entries_counts = title_stats.pluck(:topic_date, :entry_quantity).to_h
     @title_chart_entries_sums = title_stats.pluck(:topic_date, :entry_interaction).to_h
+  end
 
-    @total_entries = @entries_count
-    @total_interactions = @entries_total_sum
+  def calculate_percentages
+    # Calculate all entries stats (for show action)
+    all_entries = @topic.all_list_entries
+    @all_entries_size = all_entries.size
+    @all_entries_interactions = all_entries.sum(:total_count)
 
+    calculate_sentiment_and_comparison_percentages
+  end
+
+  def calculate_percentages_for_pdf
+    # Calculate all entries stats differently for PDF (excludes current topic entries)
     @all_entries_size = Entry.enabled.normal_range.where.not(id: @entries.ids).count
     @all_entries_interactions = Entry.enabled.normal_range.where.not(id: @entries.ids).sum(:total_count)
 
+    calculate_sentiment_and_comparison_percentages
+  end
+
+  def calculate_sentiment_and_comparison_percentages
+    @neutrals = @entries_polarity_counts['neutral'] || 0
+    @positives = @entries_polarity_counts['positive'] || 0
+    @negatives = @entries_polarity_counts['negative'] || 0
+
+    if @entries_count > 0
+      @percentage_positives = (Float(@positives) / @entries_count * 100).round(0)
+      @percentage_negatives = (Float(@negatives) / @entries_count * 100).round(0)
+      @percentage_neutrals = (Float(@neutrals) / @entries_count * 100).round(0)
+
+      total_count = @entries_count + @all_entries_size
+      if total_count > 0
+        @topic_percentage = (Float(@entries_count) / total_count * 100).round(0)
+        @all_percentage = (Float(@all_entries_size) / total_count * 100).round(0)
+      end
+
+      total_interactions = @entries_total_sum + @all_entries_interactions
+      if total_interactions > 0
+        @topic_interactions_percentage = (Float(@entries_total_sum) / total_interactions * 100).round(1)
+        @all_intereactions_percentage = (Float(@all_entries_interactions) / total_interactions * 100).round(1)
+      end
+    end
+
+    @promedio = @total_entries.zero? ? 0 : @total_interactions / @total_entries
+    @most_interactions = @entries.order(total_count: :desc).limit(20)
+  end
+
+  def load_tags_and_word_data
+    # Word occurrences and bigrams
     @word_occurrences =
       Rails.cache.fetch("topic_#{@topic.id}_word_occurrences", expires_in: 1.hour) do
         @entries.word_occurrences
@@ -311,61 +236,38 @@ class TopicController < ApplicationController
       Rails.cache.fetch("topic_#{@topic.id}_bigram_occurrences", expires_in: 1.hour) do
         @entries.bigram_occurrences
       end
+    
     @report = @topic.reports.last
 
-    # @comments = Comment.where(entry_id: @entries.select(:id))
-    # @comments_word_occurrences = @comments.word_occurrences
+    # Comments data (empty for now, comments feature disabled)
+    @comments = []
+    @comments_word_occurrences = []
 
+    # Sentiment words
     @positive_words = @topic.positive_words.split(',') if @topic.positive_words.present?
     @negative_words = @topic.negative_words.split(',') if @topic.negative_words.present?
 
-    polarity_counts = @entries_polarity_counts
-    @neutrals = polarity_counts['neutral'] || 0
-    @positives = polarity_counts['positive'] || 0
-    @negatives = polarity_counts['negative'] || 0
-
-    if @entries_count > 0
-      @percentage_positives = (Float(@positives) / @entries_count * 100).round(0)
-      @percentage_negatives = (Float(@negatives) / @entries_count * 100).round(0)
-      @percentage_neutrals = (Float(@neutrals) / @entries_count * 100).round(0)
-
-      total_count = @entries_count + @all_entries_size
-      @topic_percentage = (Float(@entries_count) / total_count * 100).round(0)
-      @all_percentage = (Float(@all_entries_size) / total_count * 100).round(0)
-
-      total_count = @entries_total_sum + @all_entries_interactions
-      @topic_interactions_percentage = (Float(@entries_total_sum) / total_count * 100).round(1)
-      @all_intereactions_percentage = (Float(@all_entries_interactions) / total_count * 100).round(1)
-    end
-
-    @most_interactions = @entries.order(total_count: :desc).limit(20)
-
-    if @total_entries.zero?
-      @promedio = 0
-    else
-      @promedio = @total_interactions / @total_entries
-    end
-
-    @tags = @entries.tag_counts_on(:tags).order(count: :desc).limit(20)
+    # Tags analysis
+    @tags = Tag.joins(:taggings)
+               .where(taggings: {
+                        taggable_type: Entry.base_class.name,
+                        context: 'tags',
+                        taggable_id: @entries.select(:id)
+                      })
+               .group('tags.id', 'tags.name')
+               .order(Arel.sql('COUNT(DISTINCT taggings.taggable_id) DESC'))
+               .limit(20)
+               .select('tags.id, tags.name, COUNT(DISTINCT taggings.taggable_id) AS count')
 
     @tags_interactions = Entry.joins(:tags)
                               .where(id: @entries.select(:id), tags: { id: @tags.map(&:id) })
                               .group('tags.name')
-                              .order('SUM(entries.total_count) DESC')
                               .sum(:total_count)
 
     @tags_count = {}
     @tags.each { |n| @tags_count[n.name] = n.count }
 
-    # Precompute top sites for partial to avoid query in view
-    @site_top_counts = @entries.joins(:site).group('sites.id').order(Arel.sql('COUNT(*) DESC')).limit(12).count
-
-    # Render with specific layout for PDF
-    render layout: false
-  end
-
-  def history
-    @topic = Topic.find(params[:id])
-    @reports = @topic.reports.where.not(report_text: nil).order(created_at: :desc).limit(20)
+    # Top sites
+    @site_top_counts = @entries.group('site_id').order(Arel.sql('COUNT(*) DESC')).limit(12).count
   end
 end
