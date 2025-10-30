@@ -35,13 +35,16 @@ class EntryController < ApplicationController
     @word_occurrences = @entries.word_occurrences
     @bigram_occurrences = @entries.bigram_occurrences
 
-    @comments = Comment.where(entry_id: @entries.select(:id)).order(created_time: :desc)
+    # Use pluck for comments to avoid LIMIT in subquery issue with find_each
+    entry_ids = @entries.pluck(:id)
+    @comments = Comment.where(entry_id: entry_ids).order(created_time: :desc)
     @comments_word_occurrences = @comments.word_occurrences
 
     @tags_interactions =
       Rails.cache.fetch("tags_interactions_popular_#{Date.current}", expires_in: CACHE_DURATION) do
+        # Use entry_ids array instead of subquery with LIMIT
         Entry.joins(:tags)
-             .where(id: @entries.select(:id), tags: { id: @tags.map(&:id) })
+             .where(id: entry_ids, tags: { id: @tags.map(&:id) })
              .group('tags.name')
              .order(Arel.sql('SUM(total_count) DESC'))
              .sum(:total_count)
@@ -61,8 +64,11 @@ class EntryController < ApplicationController
     @entries_for_grouping = Entry.enabled.joins(:site).a_day_ago.where.not(image_url: nil)
     @tags = @entries.tag_counts_on(:tags).order(count: :desc)
 
+    # Use pluck for entry_ids to avoid LIMIT in subquery issue
+    entry_ids = @entries.pluck(:id)
+
     @tags_interactions = Entry.joins(:tags)
-                              .where(id: @entries.select(:id), tags: { id: @tags.map(&:id) })
+                              .where(id: entry_ids, tags: { id: @tags.map(&:id) })
                               .group('tags.name')
                               .order(Arel.sql('SUM(tw_total) DESC'))
                               .sum(:tw_total)
@@ -87,10 +93,14 @@ class EntryController < ApplicationController
     @word_occurrences = @entries.word_occurrences
     @bigram_occurrences = @entries.bigram_occurrences
 
+    # Use pluck for entry_ids to avoid LIMIT in subquery issue
+    entry_ids = @entries.pluck(:id)
+
     @tags_interactions =
       Rails.cache.fetch("tags_interactions_commented_#{Date.current}", expires_in: CACHE_DURATION) do
+        # Use entry_ids array instead of subquery with LIMIT
         Entry.joins(:tags)
-             .where(id: @entries.select(:id), tags: { id: @tags.map(&:id) })
+             .where(id: entry_ids, tags: { id: @tags.map(&:id) })
              .group('tags.name')
              .order(Arel.sql('SUM(total_count) DESC'))
              .sum(:total_count)
