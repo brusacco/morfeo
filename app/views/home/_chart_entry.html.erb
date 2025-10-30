@@ -29,8 +29,16 @@
   </td>
   <td class="px-6 py-4 whitespace-nowrap">
     <div class="flex items-center">
-      <div class="flex-shrink-0 h-8 w-8 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-full flex items-center justify-center">
-        <span class="text-white text-xs font-bold"><%= entry.site.name[0].upcase %></span>
+      <div class="flex-shrink-0 h-8 w-8 rounded-full overflow-hidden bg-white border border-gray-200">
+        <% if entry.site.image64.present? %>
+          <%= image_tag "data:image/jpeg;base64,#{entry.site.image64}", 
+              alt: entry.site.name,
+              class: "h-full w-full object-cover" %>
+        <% else %>
+          <div class="h-full w-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center">
+            <span class="text-white text-xs font-bold"><%= entry.site.name[0].upcase %></span>
+          </div>
+        <% end %>
       </div>
       <div class="ml-3">
         <p class="text-sm font-medium text-gray-900"><%= entry.site.name %></p>
