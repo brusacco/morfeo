@@ -1,5 +1,5 @@
-<div class="group relative rounded-lg border border-gray-200 bg-white hover:shadow-lg transition-shadow duration-200">
-  <div class="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-t-lg bg-gray-50">
+<div class="group relative rounded-lg border border-gray-200 bg-white hover:shadow-lg transition-shadow duration-200 flex flex-col h-full min-h-[420px]">
+  <div class="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-t-lg bg-gray-50 flex-shrink-0">
     <% if twitter_post.has_images? %>
       <%= image_tag twitter_post.primary_image, 
         loading: 'lazy', 
@@ -16,74 +16,98 @@
       </div>
     <% end %>
   </div>
-  <div class="p-4">
-    <div class="mb-3">
+  <div class="p-4 flex flex-col flex-grow min-h-0">
+    <div class="mb-3 flex-shrink-0">
       <% if twitter_post.tweet_url.present? %>
-        <%= link_to twitter_post.tweet_url, target: '_blank', class: 'text-sm font-medium text-gray-900 hover:text-blue-600 line-clamp-3 block' do %>
+        <%= link_to twitter_post.tweet_url, target: '_blank', rel: 'noopener noreferrer',
+            class: 'text-sm font-medium text-gray-900 hover:text-blue-600 line-clamp-3 block visited:text-purple-600',
+            'aria-label': "Ver tweet: #{twitter_post.text.to_s.truncate(50)}" do %>
           <%= twitter_post.text.to_s.truncate(120) %>
-          <i class="fa-solid fa-external-link text-xs text-gray-400 ml-1"></i>
+          <i class="fa-solid fa-external-link text-xs text-gray-400 ml-1" aria-hidden="true"></i>
         <% end %>
       <% else %>
         <p class="text-sm text-gray-900 line-clamp-3"><%= twitter_post.text.to_s.truncate(120) %></p>
       <% end %>
     </div>
-    <div class="space-y-2">
+    <div class="space-y-2 flex-grow min-h-0 mb-3">
       <div class="flex items-center text-xs text-gray-600">
-        <i class="fa-solid fa-user mr-1.5 text-gray-400"></i>
+        <i class="fa-solid fa-user mr-1.5 text-gray-400" aria-hidden="true"></i>
         <span class="font-medium">@<%= twitter_post.twitter_profile&.username || 'Unknown' %></span>
       </div>
       <div class="flex items-center justify-between text-xs text-gray-500">
         <div class="flex items-center">
-          <i class="fa-regular fa-calendar mr-1.5"></i>
-          <%= twitter_post.posted_at.strftime('%d/%m/%Y %H:%M') %>
+          <i class="fa-regular fa-calendar mr-1.5" aria-hidden="true"></i>
+          <time datetime="<%= twitter_post.posted_at.iso8601 %>" 
+                class="hover:text-gray-700 transition-colors">
+            <%= twitter_post.posted_at.strftime('%d/%m/%Y') %>
+          </time>
         </div>
       </div>
       <% if twitter_post.tag_list.any? %>
-        <div class="flex flex-wrap gap-1 pt-2 border-t border-gray-100">
+        <div class="flex flex-wrap gap-1 pt-2 pb-2 border-t border-gray-100"
+             <% if twitter_post.tag_list.size > 2 %>
+               title="Todas las etiquetas: <%= twitter_post.tag_list.join(', ') %>"
+             <% end %>>
           <% twitter_post.tag_list.first(2).each do |tag| %>
             <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">
               <%= tag %>
             </span>
           <% end %>
           <% if twitter_post.tag_list.size > 2 %>
-            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-500">
-              +<%= twitter_post.tag_list.size - 2 %>
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-500 cursor-help"
+                  title="<%= twitter_post.tag_list[2..-1].join(', ') %>">
+              +<%= twitter_post.tag_list.size - 2 %> más
             </span>
           <% end %>
         </div>
       <% end %>
     </div>
-    <div class="mt-4 pt-3 border-t border-gray-200">
+    <div class="mt-auto pt-4 border-t border-gray-200 flex-shrink-0">
       <div class="grid grid-cols-5 gap-2 text-center">
-        <div title="Me gusta">
+        <div class="group/metric" role="group" aria-label="Me gusta: <%= number_with_delimiter(twitter_post.favorite_count) %>">
           <div class="text-xs text-gray-500 mb-1">
-            <i class="fa-solid fa-heart text-red-600"></i>
+            <i class="fa-solid fa-heart text-red-600" aria-hidden="true"></i>
+            <span class="sr-only">Me gusta</span>
           </div>
-          <div class="text-sm font-semibold text-red-600"><%= number_with_delimiter(twitter_post.favorite_count) %></div>
+          <div class="text-sm font-semibold text-red-600 group-hover/metric:scale-110 transition-transform">
+            <%= number_with_delimiter(twitter_post.favorite_count) %>
+          </div>
         </div>
-        <div title="Retweets">
+        <div class="group/metric" role="group" aria-label="Retweets: <%= number_with_delimiter(twitter_post.retweet_count) %>">
           <div class="text-xs text-gray-500 mb-1">
-            <i class="fa-solid fa-retweet text-green-600"></i>
+            <i class="fa-solid fa-retweet text-green-600" aria-hidden="true"></i>
+            <span class="sr-only">Retweets</span>
           </div>
-          <div class="text-sm font-semibold text-green-600"><%= number_with_delimiter(twitter_post.retweet_count) %></div>
+          <div class="text-sm font-semibold text-green-600 group-hover/metric:scale-110 transition-transform">
+            <%= number_with_delimiter(twitter_post.retweet_count) %>
+          </div>
         </div>
-        <div title="Respuestas">
+        <div class="group/metric" role="group" aria-label="Respuestas: <%= number_with_delimiter(twitter_post.reply_count) %>">
           <div class="text-xs text-gray-500 mb-1">
-            <i class="fa-solid fa-reply text-blue-600"></i>
+            <i class="fa-solid fa-reply text-blue-600" aria-hidden="true"></i>
+            <span class="sr-only">Respuestas</span>
           </div>
-          <div class="text-sm font-semibold text-blue-600"><%= number_with_delimiter(twitter_post.reply_count) %></div>
+          <div class="text-sm font-semibold text-blue-600 group-hover/metric:scale-110 transition-transform">
+            <%= number_with_delimiter(twitter_post.reply_count) %>
+          </div>
         </div>
-        <div title="Vistas">
+        <div class="group/metric" role="group" aria-label="Vistas: <%= number_with_delimiter(twitter_post.views_count) %>">
           <div class="text-xs text-gray-500 mb-1">
-            <i class="fa-solid fa-eye text-amber-600"></i>
+            <i class="fa-solid fa-eye text-amber-600" aria-hidden="true"></i>
+            <span class="sr-only">Vistas</span>
           </div>
-          <div class="text-sm font-semibold text-amber-600"><%= number_with_delimiter(twitter_post.views_count) %></div>
+          <div class="text-sm font-semibold text-amber-600 group-hover/metric:scale-110 transition-transform">
+            <%= number_with_delimiter(twitter_post.views_count) %>
+          </div>
         </div>
-        <div title="Total de interacciones">
+        <div class="group/metric" role="group" aria-label="Total: <%= number_with_delimiter(twitter_post.total_interactions) %>">
           <div class="text-xs text-gray-500 mb-1">
-            <i class="fa-solid fa-chart-line text-sky-600"></i>
+            <i class="fa-solid fa-chart-line text-sky-600" aria-hidden="true"></i>
+            <span class="sr-only">Total</span>
           </div>
-          <div class="text-sm font-bold text-sky-600"><%= number_with_delimiter(twitter_post.total_interactions) %></div>
+          <div class="text-sm font-bold text-sky-600 bg-sky-50 rounded px-1 py-0.5 group-hover/metric:scale-110 transition-transform">
+            <%= number_with_delimiter(twitter_post.total_interactions) %>
+          </div>
         </div>
       </div>
     </div>

@@ -1,13 +1,13 @@
-<div class="group relative rounded-lg border border-gray-200 bg-white hover:shadow-lg transition-shadow duration-200">
-  <div class="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-t-lg bg-gray-50">
+<div class="group relative rounded-lg border border-gray-200 bg-white hover:shadow-lg transition-shadow duration-200 flex flex-col h-full min-h-[420px]">
+  <div class="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-t-lg bg-gray-50 flex-shrink-0">
     <%= image_tag entry.clean_image, 
       loading: 'lazy', 
       onerror: "this.onerror=null;this.src='#{asset_path('default-entry.svg')}';", 
       alt: entry.title,
       class: 'h-full w-full object-cover object-center group-hover:opacity-90 transition-opacity' %>
   </div>
-  <div class="p-4">
-    <div class="mb-3">
+  <div class="p-4 flex flex-col flex-grow min-h-0">
+    <div class="mb-3 flex-shrink-0">
       <%= link_to entry.url, target: '_blank', rel: 'noopener noreferrer', 
           class: 'text-sm font-medium text-gray-900 hover:text-indigo-600 line-clamp-3 block visited:text-purple-600',
           'aria-label': "Leer: #{entry.title}" do %>
@@ -15,23 +15,22 @@
         <i class="fa-solid fa-external-link text-xs text-gray-400 ml-1" aria-hidden="true"></i>
       <% end %>
     </div>
-    <div class="space-y-2">
+    <div class="space-y-2 flex-grow min-h-0 mb-3">
       <div class="flex items-center text-xs text-gray-600">
         <i class="fa-regular fa-newspaper mr-1.5 text-gray-400" aria-hidden="true"></i>
         <%= link_to entry.site.name, entry.site, class: 'font-medium hover:text-indigo-600 transition-colors' %>
       </div>
       <div class="flex items-center justify-between text-xs text-gray-500">
         <div class="flex items-center">
-          <i class="fa-regular fa-clock mr-1.5" aria-hidden="true"></i>
+          <i class="fa-regular fa-calendar mr-1.5" aria-hidden="true"></i>
           <time datetime="<%= entry.published_at.iso8601 %>" 
-                title="<%= entry.published_at.strftime('%d/%m/%Y %H:%M') %>"
                 class="hover:text-gray-700 transition-colors">
-            <%= time_ago_in_words(entry.published_at) %> atrás
+            <%= entry.published_at.strftime('%d/%m/%Y') %>
           </time>
         </div>
       </div>
       <% if entry.tag_list.any? %>
-        <div class="flex flex-wrap gap-1 pt-2 border-t border-gray-100" 
+        <div class="flex flex-wrap gap-1 pt-2 pb-2 border-t border-gray-100" 
              <% if entry.tag_list.size > 3 %>
                title="Todas las etiquetas: <%= entry.tag_list.join(', ') %>"
              <% end %>>
@@ -49,7 +48,7 @@
         </div>
       <% end %>
     </div>
-    <div class="mt-4 pt-3 border-t border-gray-200">
+    <div class="mt-auto pt-4 border-t border-gray-200 flex-shrink-0">
       <div class="grid grid-cols-4 gap-2 text-center">
         <div class="group/metric" role="group" aria-label="Reacciones: <%= number_with_delimiter(entry.reaction_count) %>">
           <div class="text-xs text-gray-500 mb-1">

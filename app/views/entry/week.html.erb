@@ -1,8 +1,230 @@
+<% content_for :extra_stylesheets do %>
+  <style>
+    /* Hide scrollbars but keep functionality */
+    .scrollbar-hide::-webkit-scrollbar {
+      display: none;
+    }
+    .scrollbar-hide {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Smooth scroll behavior */
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 4rem;
+    }
+
+    /* Ensure sticky nav stays on top */
+    html, body {
+      overflow-x: hidden;
+      overflow-y: auto;
+      height: 100%;
+    }
+
+    #week-nav {
+      position: sticky;
+      position: -webkit-sticky;
+      top: 0;
+      z-index: 9999;
+      background: white;
+      width: 100%;
+    }
+
+    /* Lower z-index for charts */
+    .chart-container,
+    .highcharts-container {
+      position: relative;
+      z-index: 1 !important;
+    }
+  </style>
+<% end %>
+
+<!-- Page Header -->
+<header class="bg-white shadow-sm border-b border-gray-200">
+  <div class="mx-auto px-4 py-6 sm:px-6 lg:px-8">
+    <div class="md:flex md:items-center md:justify-between">
+      <div class="flex-1 min-w-0">
+        <h1 class="text-3xl font-bold text-gray-900 tracking-tight">
+          Noticias de la Semana
+        </h1>
+        <p class="mt-1 text-sm text-gray-600">
+          Análisis de las <%= @entries.count %> noticias más destacadas de los últimos 7 días
+        </p>
+      </div>
+      <div class="mt-4 flex space-x-3 md:mt-0 md:ml-4">
+        <span class="inline-flex items-center rounded-full bg-blue-100 px-3 py-0.5 text-xs font-medium text-blue-800" role="status" aria-label="<%= @entries.count %> noticias">
+          <svg class="-ml-1 mr-1.5 h-2 w-2 text-blue-400" fill="currentColor" viewBox="0 0 8 8" aria-hidden="true">
+            <circle cx="4" cy="4" r="3" />
+          </svg>
+          <%= @entries.count %> Noticias
+        </span>
+        <span class="inline-flex items-center rounded-full bg-purple-100 px-3 py-0.5 text-xs font-medium text-purple-800" role="status" aria-label="Últimos 7 días">
+          <svg class="-ml-1 mr-1.5 h-2 w-2 text-purple-400" fill="currentColor" viewBox="0 0 8 8" aria-hidden="true">
+            <circle cx="4" cy="4" r="3" />
+          </svg>
+          7 Días
+        </span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Sticky Navigation -->
+<nav id="week-nav" class="bg-white border-b border-gray-200 shadow-sm">
+  <div class="mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-12">
+      <div class="flex items-center space-x-1 overflow-x-auto scrollbar-hide">
+        <% Date.today.to_date.downto(1.week.ago.to_date) do |date| %>
+          <a href="#day-<%= date.to_s %>" data-turbo="false" class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-purple-600 hover:bg-purple-50 rounded-md transition-colors whitespace-nowrap" aria-label="Ir a noticias del <%= I18n.l(date, format: '%d de %B').split.map { |word| word == 'de' ? word : word.capitalize }.join(' ') %>">
+            <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+              <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+            </svg>
+            <%= I18n.l(date, format: '%d %b').capitalize %>
+          </a>
+        <% end %>
+      </div>
+      <a id="backToTop" class="ml-4 inline-flex items-center px-3 py-2 text-sm font-medium text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-md transition-colors cursor-pointer whitespace-nowrap" aria-label="Volver arriba">
+        <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+          <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd" />
+        </svg>
+        Arriba
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- Main Content -->
 <% 
   Date.today.to_date.downto(1.week.ago.to_date) do |date| 
   entries = Entry.where(published_date: date.to_date).order(total_count: :desc).limit(12)
   tags = entries.tag_counts_on(:tags).order('count desc')
 %>
-<%= render partial: 'entry/entries', locals: { last_entries: entries, title: "Noticias Populares del: #{date}" } %>
-<hr>
+
+<!-- Day Section -->
+<section id="day-<%= date.to_s %>" class="bg-white scroll-mt-16" aria-labelledby="heading-<%= date.to_s %>">
+  <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
+    <!-- Day Header -->
+    <div class="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-6 mb-6 border border-purple-100">
+      <div class="flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <h2 id="heading-<%= date.to_s %>" class="text-2xl font-bold text-gray-900 mb-1">
+            <%= I18n.l(date, format: '%A, %d de %B de %Y').split.map { |word| word == 'de' ? word : word.capitalize }.join(' ') %>
+          </h2>
+          <p class="text-sm text-gray-600">
+            <%= entries.count %> noticias populares este día
+          </p>
+        </div>
+        <div class="flex items-center space-x-2">
+          <% if date == Date.today %>
+            <span class="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-800">
+              <svg class="-ml-1 mr-1.5 h-2 w-2 text-green-400" fill="currentColor" viewBox="0 0 8 8" aria-hidden="true">
+                <circle cx="4" cy="4" r="3" />
+              </svg>
+              Hoy
+            </span>
+          <% elsif date == Date.yesterday %>
+            <span class="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-800">
+              Ayer
+            </span>
+          <% else %>
+            <span class="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">
+              Hace <%= (Date.today - date).to_i %> días
+            </span>
+          <% end %>
+          <span class="inline-flex items-center rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-800">
+            <%= entries.sum(&:total_count) %> interacciones
+          </span>
+        </div>
+      </div>
+      
+      <!-- Top Tags for the Day -->
+      <% if tags.any? %>
+        <div class="mt-4 pt-4 border-t border-purple-200">
+          <p class="text-xs font-medium text-gray-700 mb-2">Etiquetas destacadas del día:</p>
+          <div class="flex flex-wrap gap-2">
+            <% tags.first(5).each do |tag| %>
+              <%= link_to entry_search_path(query: tag.name), 
+                  class: 'inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-white text-purple-700 hover:bg-purple-100 border border-purple-200 transition-colors',
+                  'aria-label': "Ver noticias con la etiqueta #{tag.name}" do %>
+                <svg class="w-3 h-3 mr-1.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                  <path fill-rule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                </svg>
+                <%= tag.name %>
+                <span class="ml-1.5 px-1.5 py-0.5 text-xs font-semibold text-purple-600 bg-purple-100 rounded">
+                  <%= tag.count %>
+                </span>
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- News Grid -->
+    <% if entries.any? %>
+      <div class="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
+        <%= render partial: 'entry/entry', collection: entries, as: :entry, cached: true %>
+      </div>
+    <% else %>
+      <div class="bg-gray-50 rounded-lg p-12 text-center border-2 border-dashed border-gray-300">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">No hay noticias</h3>
+        <p class="mt-1 text-sm text-gray-500">No se encontraron noticias para este día.</p>
+      </div>
+    <% end %>
+  </div>
+</section>
+
+<!-- Section Divider -->
+<% unless date == 1.week.ago.to_date %>
+  <div class="relative py-8">
+    <div class="absolute inset-0 flex items-center" aria-hidden="true">
+      <div class="w-full border-t border-gray-300"></div>
+    </div>
+    <div class="relative flex justify-center">
+      <span class="bg-gray-100 px-3 text-sm text-gray-500">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+          <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+        </svg>
+      </span>
+    </div>
+  </div>
 <% end %>
+
+<% end %>
+
+<script>
+  // Back to top functionality
+  (function() {
+    function initBackToTop() {
+      const backToTopBtn = document.getElementById('backToTop');
+      if (!backToTopBtn) return;
+      
+      // Prevent multiple initializations
+      if (backToTopBtn.dataset.initialized === 'true') return;
+      backToTopBtn.dataset.initialized = 'true';
+      
+      backToTopBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Scroll to top with cross-browser compatibility
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+      });
+    }
+    
+    // Initialize on DOM ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initBackToTop);
+    } else {
+      initBackToTop();
+    }
+    
+    // Re-initialize on Turbo navigation
+    document.addEventListener('turbo:load', initBackToTop);
+  })();
+</script>
