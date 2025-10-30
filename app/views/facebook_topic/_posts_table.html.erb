@@ -22,8 +22,14 @@
           <tr>
             <th scope="col" class="relative px-3 py-3.5 text-left text-sm font-semibold text-gray-900 pr-8">Fecha</th>
             <th scope="col" class="relative px-3 py-3.5 text-left text-sm font-semibold text-gray-900 pr-8">Publicación</th>
+            <th scope="col" class="relative px-3 py-3.5 text-center text-sm font-semibold text-gray-900 pr-8">
+              <i class="fa-solid fa-tag text-purple-600 mr-1"></i>Tipo
+            </th>
             <th scope="col" class="relative px-3 py-3.5 text-left text-sm font-semibold text-gray-900 pr-8">Etiquetas</th>
             <th scope="col" class="relative px-3 py-3.5 text-left text-sm font-semibold text-gray-900 pr-8">Fanpage</th>
+            <th scope="col" class="relative px-3 py-3.5 text-center text-sm font-semibold text-gray-900 pr-8">
+              <i class="fa-solid fa-newspaper text-emerald-600 mr-1"></i>Noticia
+            </th>
             <th scope="col" class="relative px-3 py-3.5 text-center text-sm font-semibold text-gray-900 pr-8">
               <i class="fa-solid fa-thumbs-up text-blue-600 mr-1"></i>Reacciones
             </th>
@@ -64,6 +70,35 @@
                   <% end %>
                 </div>
               </td>
+              <td class="whitespace-nowrap px-3 py-4 text-center">
+                <% 
+                  type_colors = {
+                    'Video' => 'bg-red-100 text-red-800 border-red-200',
+                    'Foto' => 'bg-purple-100 text-purple-800 border-purple-200',
+                    'Album' => 'bg-pink-100 text-pink-800 border-pink-200',
+                    'Link' => 'bg-indigo-100 text-indigo-800 border-indigo-200',
+                    'Evento' => 'bg-yellow-100 text-yellow-800 border-yellow-200',
+                    'Encuesta' => 'bg-orange-100 text-orange-800 border-orange-200',
+                    'Publicación' => 'bg-gray-100 text-gray-800 border-gray-200'
+                  }
+                  type_icons = {
+                    'Video' => 'fa-video',
+                    'Foto' => 'fa-image',
+                    'Album' => 'fa-images',
+                    'Link' => 'fa-link',
+                    'Evento' => 'fa-calendar-day',
+                    'Encuesta' => 'fa-poll',
+                    'Publicación' => 'fa-comment'
+                  }
+                  post_type = entry.post_type
+                  color_class = type_colors[post_type] || type_colors['Publicación']
+                  icon_class = type_icons[post_type] || type_icons['Publicación']
+                %>
+                <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium <%= color_class %> border">
+                  <i class="fa-solid <%= icon_class %> mr-1" aria-hidden="true"></i>
+                  <%= post_type %>
+                </span>
+              </td>
               <td class="px-3 py-4 text-xs">
                 <div class="flex flex-wrap gap-1">
                   <% entry.tag_list.first(3).each do |tag| %>
@@ -81,6 +116,23 @@
               <td class="whitespace-nowrap px-3 py-4 text-sm">
                 <div class="font-medium text-gray-900"><%= entry.page.name %></div>
                 <div class="text-xs text-gray-500">@<%= entry.page.username %></div>
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-center">
+                <% if entry.entry.present? %>
+                  <%= link_to entry.entry.url, 
+                      target: '_blank',
+                      rel: 'noopener noreferrer',
+                      class: "inline-flex items-center px-2.5 py-1.5 rounded-md text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 hover:border-emerald-300 transition-colors",
+                      title: "Ver noticia: #{entry.entry.title.to_s.truncate(60)}" do %>
+                    <i class="fa-solid fa-newspaper mr-1" aria-hidden="true"></i>
+                    Ver
+                    <i class="fa-solid fa-external-link text-xs ml-1" aria-hidden="true"></i>
+                  <% end %>
+                <% else %>
+                  <span class="inline-flex items-center px-2.5 py-1.5 rounded-md text-xs font-medium bg-gray-50 text-gray-400 border border-gray-200">
+                    <i class="fa-solid fa-minus" aria-hidden="true"></i>
+                  </span>
+                <% end %>
               </td>
               <td class="whitespace-nowrap px-3 py-4 text-center" data-sort="<%= entry.reactions_total_count %>">
                 <span class="text-lg font-semibold text-blue-600"><%= number_with_delimiter(entry.reactions_total_count) %></span>
@@ -248,12 +300,22 @@
               className: 'max-w-xs truncate'
             },
             {
-              targets: [2], // Tags column
+              targets: [2], // Type column
+              className: 'text-center',
+              orderable: true
+            },
+            {
+              targets: [3], // Tags column
               className: 'text-xs',
               orderable: false
             },
             {
-              targets: [4, 5, 6, 7, 8], // Numeric columns (reactions, comments, shares, views, total)
+              targets: [5], // Linked entry column
+              className: 'text-center',
+              orderable: false
+            },
+            {
+              targets: [6, 7, 8, 9, 10], // Numeric columns (reactions, comments, shares, views, total)
               className: 'text-center font-semibold'
             }
           ],

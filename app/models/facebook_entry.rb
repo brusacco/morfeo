@@ -104,6 +104,17 @@ class FacebookEntry < ApplicationRecord
     end.compact
   end
 
+  # Get the post type for display
+  def post_type
+    return 'Video' if attachment_type == 'video_autoplay' || attachment_type == 'video_inline'
+    return 'Foto' if attachment_type == 'photo'
+    return 'Album' if attachment_type == 'album'
+    return 'Link' if attachment_type == 'share' || has_external_url?
+    return 'Evento' if attachment_type == 'event'
+    return 'Encuesta' if attachment_type == 'poll'
+    'Publicación'
+  end
+
   # Estimated views calculation based on engagement metrics
   # Formula: (likes * 15) + (comments * 40) + (shares * 80) + (followers * 0.04)
   def estimated_views

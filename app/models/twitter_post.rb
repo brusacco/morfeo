@@ -99,6 +99,32 @@ class TwitterPost < ApplicationRecord
     twitter_profile&.site
   end
 
+  # Get the post type for display
+  def post_type
+    return 'Retweet' if is_retweet
+    return 'Quote' if is_quote
+    return 'Video' if has_video?
+    return 'Imagen' if has_images?
+    return 'Link' if has_external_url?
+    'Tweet'
+  end
+
+  # Check if tweet has video
+  def has_video?
+    return false unless payload
+
+    parsed_payload = parse_payload
+    return false unless parsed_payload
+
+    media_array = parsed_payload.dig('legacy', 'extended_entities', 'media') ||
+                  parsed_payload.dig('legacy', 'entities', 'media') ||
+                  []
+    
+    media_array.any? { |m| m['type'] == 'video' || m['type'] == 'animated_gif' }
+  rescue StandardError
+    false
+  end
+
   # Extract images from the tweet media
   def tweet_images
     return [] unless payload
