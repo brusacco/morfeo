@@ -11,11 +11,29 @@ export default class extends Controller {
   }
 
   connect() {
-    this.setupChartClickEvent();
+    // Wait for chart to be ready before setting up click events
+    this.waitForChart();
+  }
+
+  waitForChart(attempts = 0, maxAttempts = 50) {
+    const chart = Highcharts.charts.find(chart => chart && chart.renderTo && chart.renderTo.id === this.idValue);
+    
+    if (chart) {
+      // Chart is ready, set up click events
+      this.setupChartClickEvent();
+      console.log(`Chart ${this.idValue} initialized with click handler`);
+    } else if (attempts < maxAttempts) {
+      // Chart not ready yet, try again in 100ms
+      setTimeout(() => {
+        this.waitForChart(attempts + 1, maxAttempts);
+      }, 100);
+    } else {
+      console.warn(`Chart ${this.idValue} failed to initialize after ${maxAttempts} attempts`);
+    }
   }
 
   setupChartClickEvent() {
-    let chart = Highcharts.charts.find(chart => chart.renderTo.id === this.idValue);
+    let chart = Highcharts.charts.find(chart => chart && chart.renderTo && chart.renderTo.id === this.idValue);
   
     if (chart) {
       let _this = this;
@@ -42,6 +60,8 @@ export default class extends Controller {
           }
         }
       });
+      
+      console.log(`Click events attached to chart: ${this.idValue}`);
     }
   }
 

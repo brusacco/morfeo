@@ -16,3 +16,6 @@ Rails.application.config.assets.version = '1.0'
 
 # DataTables configuration
 Rails.application.config.assets.precompile += %w[datatables_config.js]
+
+# Highcharts configuration
+Rails.application.config.assets.precompile += %w[charts_config.js]
