@@ -68,7 +68,8 @@ class FacebookTopicController < ApplicationController
     @average_interactions = @total_posts.zero? ? 0 : (Float(@total_interactions) / @total_posts).round(1)
 
     # Use database ORDER BY instead of Ruby sort - more efficient
-    @top_posts = @entries.order(
+    # Clear existing ordering first with reorder, then order by total interactions
+    @top_posts = @entries.reorder(
       Arel.sql('(facebook_entries.reactions_total_count + facebook_entries.comments_count + facebook_entries.share_count) DESC')
     ).limit(top_posts_limit)
 

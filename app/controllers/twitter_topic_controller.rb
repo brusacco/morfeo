@@ -68,8 +68,10 @@ class TwitterTopicController < ApplicationController
     @average_interactions = @total_posts.zero? ? 0 : (Float(@total_interactions) / @total_posts).round(1)
 
     # Use database ORDER BY instead of Ruby sort - more efficient
-    @top_posts = @posts.order(
-      Arel.sql('(twitter_posts.favorite_count + twitter_posts.retweet_count + twitter_posts.reply_count) DESC')
+    # Clear existing ordering first with reorder, then order by total interactions
+    # Include quote_count to match the total_interactions instance method
+    @top_posts = @posts.reorder(
+      Arel.sql('(twitter_posts.favorite_count + twitter_posts.retweet_count + twitter_posts.reply_count + twitter_posts.quote_count) DESC')
     ).limit(top_posts_limit)
 
     @word_occurrences = TwitterPost.word_occurrences(@posts)
@@ -86,10 +88,11 @@ class TwitterTopicController < ApplicationController
   def load_tag_interactions
     # Use SQL aggregation instead of Ruby iteration for better performance
     # Need to clear default ordering to avoid conflicts with GROUP BY
+    # Include quote_count to match the total_interactions instance method
     @tag_interactions = @posts.reorder(nil)
                               .joins(:tags)
                               .group('tags.name')
-                              .sum(Arel.sql('twitter_posts.favorite_count + twitter_posts.retweet_count + twitter_posts.reply_count'))
+                              .sum(Arel.sql('twitter_posts.favorite_count + twitter_posts.retweet_count + twitter_posts.reply_count + twitter_posts.quote_count'))
                               .sort_by { |_, value| -value }
                               .to_h
   end
@@ -124,6 +127,6 @@ class TwitterTopicController < ApplicationController
     @site_sums = @posts.joins(twitter_profile: :site)
                        .reorder(nil)
                        .group('sites.name')
-                       .sum(Arel.sql('twitter_posts.favorite_count + twitter_posts.retweet_count + twitter_posts.reply_count'))
+                       .sum(Arel.sql('twitter_posts.favorite_count + twitter_posts.retweet_count + twitter_posts.reply_count + twitter_posts.quote_count'))
   end
 end

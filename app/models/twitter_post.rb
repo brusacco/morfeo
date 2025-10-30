@@ -36,12 +36,12 @@ class TwitterPost < ApplicationRecord
     scope.except(:includes).reorder(nil).group_by_day(
       :posted_at,
       format:
-    ).sum(Arel.sql('favorite_count + retweet_count + reply_count'))
+    ).sum(Arel.sql('favorite_count + retweet_count + reply_count + quote_count'))
   end
 
   def self.total_interactions(scope = all)
     relation = scope.except(:includes).reorder(nil)
-    relation.sum(:favorite_count) + relation.sum(:retweet_count) + relation.sum(:reply_count)
+    relation.sum(:favorite_count) + relation.sum(:retweet_count) + relation.sum(:reply_count) + relation.sum(:quote_count)
   end
 
   def self.total_views(scope = all)
