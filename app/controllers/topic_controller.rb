@@ -95,21 +95,35 @@ class TopicController < ApplicationController
         @entries.group('sites.name').sum(:total_count)
       end
 
-    @chart_entries = @entries.group_by_day(:published_at)
-    @chart_entries_sentiments = @entries.where.not(polarity: nil).group(:polarity).group_by_day(:published_at)
-
-    @title_entries = @topic.title_list_entries
-    @title_chart_entries = @title_entries.reorder(nil).group_by_day(:published_at)
-
-    # Precompute chart data to avoid multiple SQL queries per chart
-    @chart_entries_counts = @chart_entries.size
-    @chart_entries_sums = @chart_entries.sum(:total_count)
-    @title_chart_entries_counts = @title_chart_entries.size
-    @title_chart_entries_sums = @title_chart_entries.sum(:total_count)
-
-    # Precompute sentiment chart data
-    @chart_entries_sentiments_counts = @chart_entries_sentiments.size
-    @chart_entries_sentiments_sums = @chart_entries_sentiments.sum(:total_count)
+    # Use pre-aggregated daily stats for performance
+    topic_stats = @topic.topic_stat_dailies.normal_range.order(:topic_date)
+    
+    # Build chart data from aggregated stats
+    @chart_entries_counts = topic_stats.pluck(:topic_date, :entry_count).to_h
+    @chart_entries_sums = topic_stats.pluck(:topic_date, :total_count).to_h
+    
+    # Sentiment chart data from aggregated stats
+    @chart_entries_sentiments_counts = {}
+    @chart_entries_sentiments_sums = {}
+    
+    topic_stats.each do |stat|
+      date = stat.topic_date
+      # Counts by sentiment
+      @chart_entries_sentiments_counts[['positive', date]] = stat.positive_quantity || 0
+      @chart_entries_sentiments_counts[['neutral', date]] = stat.neutral_quantity || 0
+      @chart_entries_sentiments_counts[['negative', date]] = stat.negative_quantity || 0
+      
+      # Interactions by sentiment
+      @chart_entries_sentiments_sums[['positive', date]] = stat.positive_interaction || 0
+      @chart_entries_sentiments_sums[['neutral', date]] = stat.neutral_interaction || 0
+      @chart_entries_sentiments_sums[['negative', date]] = stat.negative_interaction || 0
+    end
+    
+    # Use pre-aggregated title stats for performance
+    title_stats = @topic.title_topic_stat_dailies.normal_range.order(:topic_date)
+    
+    @title_chart_entries_counts = title_stats.pluck(:topic_date, :entry_quantity).to_h
+    @title_chart_entries_sums = title_stats.pluck(:topic_date, :entry_interaction).to_h
 
     # @analytics = @topic.analytics_topic_entries
 
@@ -253,21 +267,35 @@ class TopicController < ApplicationController
         @entries.group('sites.name').sum(:total_count)
       end
 
-    @chart_entries = @entries.group_by_day(:published_at)
-    @chart_entries_sentiments = @entries.where.not(polarity: nil).group(:polarity).group_by_day(:published_at)
-
-    @title_entries = @topic.title_list_entries
-    @title_chart_entries = @title_entries.reorder(nil).group_by_day(:published_at)
-
-    # Precompute chart data to avoid multiple SQL queries per chart
-    @chart_entries_counts = @chart_entries.size
-    @chart_entries_sums = @chart_entries.sum(:total_count)
-    @title_chart_entries_counts = @title_chart_entries.size
-    @title_chart_entries_sums = @title_chart_entries.sum(:total_count)
-
-    # Precompute sentiment chart data
-    @chart_entries_sentiments_counts = @chart_entries_sentiments.size
-    @chart_entries_sentiments_sums = @chart_entries_sentiments.sum(:total_count)
+    # Use pre-aggregated daily stats for performance
+    topic_stats = @topic.topic_stat_dailies.normal_range.order(:topic_date)
+    
+    # Build chart data from aggregated stats
+    @chart_entries_counts = topic_stats.pluck(:topic_date, :entry_count).to_h
+    @chart_entries_sums = topic_stats.pluck(:topic_date, :total_count).to_h
+    
+    # Sentiment chart data from aggregated stats
+    @chart_entries_sentiments_counts = {}
+    @chart_entries_sentiments_sums = {}
+    
+    topic_stats.each do |stat|
+      date = stat.topic_date
+      # Counts by sentiment
+      @chart_entries_sentiments_counts[['positive', date]] = stat.positive_quantity || 0
+      @chart_entries_sentiments_counts[['neutral', date]] = stat.neutral_quantity || 0
+      @chart_entries_sentiments_counts[['negative', date]] = stat.negative_quantity || 0
+      
+      # Interactions by sentiment
+      @chart_entries_sentiments_sums[['positive', date]] = stat.positive_interaction || 0
+      @chart_entries_sentiments_sums[['neutral', date]] = stat.neutral_interaction || 0
+      @chart_entries_sentiments_sums[['negative', date]] = stat.negative_interaction || 0
+    end
+    
+    # Use pre-aggregated title stats for performance
+    title_stats = @topic.title_topic_stat_dailies.normal_range.order(:topic_date)
+    
+    @title_chart_entries_counts = title_stats.pluck(:topic_date, :entry_quantity).to_h
+    @title_chart_entries_sums = title_stats.pluck(:topic_date, :entry_interaction).to_h
 
     @total_entries = @entries_count
     @total_interactions = @entries_total_sum
