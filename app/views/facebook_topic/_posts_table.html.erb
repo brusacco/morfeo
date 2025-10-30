@@ -388,27 +388,45 @@
       });
     }
 
+    // Function to wait for jQuery and DataTables to be loaded
+    function waitForLibraries(callback, maxAttempts = 50) {
+      let attempts = 0;
+      const checkInterval = setInterval(function() {
+        attempts++;
+        if (typeof window.$ !== 'undefined' && typeof window.$.fn.DataTable !== 'undefined') {
+          clearInterval(checkInterval);
+          console.log('jQuery and DataTables loaded successfully for Facebook table');
+          callback();
+        } else if (attempts >= maxAttempts) {
+          clearInterval(checkInterval);
+          console.error('jQuery or DataTables failed to load after ' + maxAttempts + ' attempts');
+        }
+      }, 100); // Check every 100ms
+    }
+
     // Initialize when DOM is ready
-    $(document).ready(function() {
-      if (typeof $.fn.DataTable !== 'undefined') {
-        initializeFacebookDataTables();
-      }
-    });
+    if (typeof $ !== 'undefined') {
+      $(document).ready(function() {
+        waitForLibraries(initializeFacebookDataTables);
+      });
+    }
 
     // Handle Turbo navigation (Rails 7 with Turbo)
     document.addEventListener('turbo:load', function() {
-      if (typeof $ !== 'undefined' && typeof $.fn.DataTable !== 'undefined') {
-        initializeFacebookDataTables();
-      }
+      console.log('turbo:load event fired for Facebook posts table');
+      waitForLibraries(initializeFacebookDataTables);
     });
 
     // Clean up DataTable before Turbo navigates away
     document.addEventListener('turbo:before-cache', function() {
-      $('.facebook-posts-datatable').each(function() {
-        if ($.fn.DataTable.isDataTable(this)) {
-          $(this).DataTable().destroy();
-        }
-      });
+      if (typeof $ !== 'undefined' && typeof $.fn.DataTable !== 'undefined') {
+        $('.facebook-posts-datatable').each(function() {
+          if ($.fn.DataTable.isDataTable(this)) {
+            $(this).DataTable().destroy();
+            console.log('Facebook DataTable destroyed before cache');
+          }
+        });
+      }
     });
   })();
 </script>
