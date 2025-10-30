@@ -1,52 +1,395 @@
-/* DataTables custom styles - non-tailwind specific */
-table.dataTable thead th.sorting:before,
-table.dataTable thead th.sorting:after,
-table.dataTable thead th.sorting_asc:before,
-table.dataTable thead th.sorting_asc:after,
-table.dataTable thead th.sorting_desc:before,
-table.dataTable thead th.sorting_desc:after {
-  position: absolute;
-  right: 8px;
-  display: block;
-  font-family: 'Font Awesome 6 Free';
-  font-weight: 900;
+/* ============================================
+   Morfeo Professional DataTables Styling
+   Using Tailwind @apply for maintainability
+   ============================================ */
+
+/* ============================================
+   Table Container & Wrapper
+   ============================================ */
+
+.dataTables_wrapper {
+  @apply w-full;
 }
 
-table.dataTable thead th.sorting:before {
-  content: "\f0dc";
-  color: #cbd5e1;
-}
-
-table.dataTable thead th.sorting_asc:before {
-  content: "\f0de";
-  color: #4f46e5;
-}
-
-table.dataTable thead th.sorting_desc:before {
-  content: "\f0dd";
-  color: #4f46e5;
-}
-
-/* Clear floats */
 .dataTables_wrapper:after {
   content: "";
   display: table;
   clear: both;
 }
 
-/* Custom responsive adjustments */
+/* ============================================
+   Header Controls (Length & Filter)
+   ============================================ */
+
+.datatables-header {
+  @apply flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4;
+}
+
+/* Length Menu (Entries per page) */
+.dataTables_length {
+  @apply flex items-center gap-2;
+}
+
+.dataTables_length label {
+  @apply flex items-center gap-2 text-sm font-medium text-gray-700;
+}
+
+.dataTables_length select {
+  @apply rounded-lg border-gray-300 text-sm shadow-sm;
+  @apply focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50;
+  @apply transition-all duration-200;
+  @apply py-2 px-3 pr-8;
+}
+
+/* Search Filter */
+.dataTables_filter {
+  @apply flex items-center gap-2;
+}
+
+.dataTables_filter label {
+  @apply flex items-center gap-2 text-sm font-medium text-gray-700;
+}
+
+.dataTables_filter input {
+  @apply rounded-lg border-gray-300 text-sm shadow-sm;
+  @apply focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50;
+  @apply transition-all duration-200;
+  @apply py-2 px-4 w-full sm:w-64;
+  @apply placeholder-gray-400;
+}
+
+/* ============================================
+   Table Styling
+   ============================================ */
+
+table.dataTable {
+  @apply w-full border-collapse;
+}
+
+/* Table Head */
+table.dataTable thead {
+  @apply bg-gray-50;
+}
+
+table.dataTable thead th {
+  @apply px-6 py-4 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider;
+  @apply border-b-2 border-gray-200;
+  @apply relative;
+}
+
+/* Sortable Headers */
+table.dataTable thead th.sorting,
+table.dataTable thead th.sorting_asc,
+table.dataTable thead th.sorting_desc {
+  @apply cursor-pointer select-none;
+  @apply hover:bg-gray-100 transition-colors duration-150;
+  padding-right: 2rem !important; /* Space for sort icon */
+}
+
+/* Sort Icons */
+table.dataTable thead th.sorting:before,
+table.dataTable thead th.sorting_asc:before,
+table.dataTable thead th.sorting_desc:before {
+  position: absolute;
+  right: 1rem;
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 900;
+  font-size: 0.75rem;
+}
+
+table.dataTable thead th.sorting:before {
+  content: "\f0dc"; /* fa-sort */
+  @apply text-gray-400;
+}
+
+table.dataTable thead th.sorting_asc:before {
+  content: "\f0de"; /* fa-sort-up */
+  @apply text-indigo-600;
+}
+
+table.dataTable thead th.sorting_desc:before {
+  content: "\f0dd"; /* fa-sort-down */
+  @apply text-indigo-600;
+}
+
+/* Table Body */
+table.dataTable tbody {
+  @apply bg-white divide-y divide-gray-100;
+}
+
+table.dataTable tbody tr {
+  @apply transition-colors duration-150;
+}
+
+table.dataTable tbody tr:hover {
+  @apply bg-gray-50;
+}
+
+table.dataTable tbody td {
+  @apply px-6 py-4 text-sm text-gray-900;
+  @apply border-b border-gray-100;
+}
+
+/* Centered columns */
+table.dataTable tbody td.dt-center,
+table.dataTable thead th.dt-center {
+  @apply text-center;
+}
+
+/* Right-aligned columns */
+table.dataTable tbody td.dt-right,
+table.dataTable thead th.dt-right {
+  @apply text-right;
+}
+
+/* ============================================
+   Footer Controls (Info & Pagination)
+   ============================================ */
+
+.datatables-footer {
+  @apply flex flex-col sm:flex-row sm:items-center sm:justify-between mt-6 gap-4;
+}
+
+/* Info Text */
+.dataTables_info {
+  @apply text-sm text-gray-700 font-medium;
+}
+
+/* ============================================
+   Pagination Styling
+   ============================================ */
+
+.dataTables_paginate {
+  @apply flex items-center gap-1;
+}
+
+.dataTables_paginate .paginate_button {
+  @apply inline-flex items-center justify-center;
+  @apply px-3 py-2 text-sm font-medium;
+  @apply text-gray-700 bg-white border border-gray-300;
+  @apply transition-all duration-150;
+  @apply cursor-pointer select-none;
+  text-decoration: none !important;
+}
+
+/* First button */
+.dataTables_paginate .paginate_button:first-child {
+  @apply rounded-l-lg;
+}
+
+/* Last button */
+.dataTables_paginate .paginate_button:last-child {
+  @apply rounded-r-lg;
+}
+
+/* Middle buttons */
+.dataTables_paginate .paginate_button:not(:first-child) {
+  margin-left: -1px;
+}
+
+/* Hover state */
+.dataTables_paginate .paginate_button:not(.disabled):not(.current):hover {
+  @apply bg-gray-50 text-gray-900 border-gray-400;
+  @apply z-10;
+}
+
+/* Active/Current page */
+.dataTables_paginate .paginate_button.current {
+  @apply bg-indigo-600 text-white border-indigo-600;
+  @apply z-20;
+  @apply hover:bg-indigo-700 hover:border-indigo-700;
+}
+
+/* Disabled state */
+.dataTables_paginate .paginate_button.disabled {
+  @apply opacity-50 cursor-not-allowed;
+  @apply text-gray-400 bg-gray-50;
+  @apply pointer-events-none;
+}
+
+/* Focus state */
+.dataTables_paginate .paginate_button:focus {
+  @apply outline-none ring-2 ring-indigo-500 ring-offset-2;
+  @apply z-30;
+}
+
+/* ============================================
+   Processing/Loading State
+   ============================================ */
+
+.dataTables_processing {
+  @apply fixed inset-0 flex items-center justify-center;
+  @apply bg-gray-900 bg-opacity-50 backdrop-blur-sm;
+  @apply z-50;
+}
+
+.dataTables_processing:after {
+  content: 'Cargando...';
+  @apply inline-flex items-center gap-3;
+  @apply px-6 py-4 bg-white rounded-xl shadow-2xl;
+  @apply text-sm font-medium text-gray-900;
+}
+
+/* ============================================
+   Empty Table State
+   ============================================ */
+
+.dataTables_empty {
+  @apply text-center py-12 text-gray-500;
+}
+
+/* ============================================
+   Row Selection (if enabled)
+   ============================================ */
+
+table.dataTable tbody tr.selected {
+  @apply bg-indigo-50;
+}
+
+table.dataTable tbody tr.selected:hover {
+  @apply bg-indigo-100;
+}
+
+/* ============================================
+   Responsive Adjustments
+   ============================================ */
+
 @media (max-width: 640px) {
-  .dataTables_wrapper .dataTables_length,
-  .dataTables_wrapper .dataTables_filter {
-    float: none !important;
-    text-align: left;
-    margin-bottom: 1rem;
+  /* Stack controls vertically */
+  .dataTables_length,
+  .dataTables_filter {
+    @apply w-full;
   }
   
-  .dataTables_wrapper .dataTables_info,
-  .dataTables_wrapper .dataTables_paginate {
-    float: none !important;
-    text-align: center;
-    margin-top: 1rem;
+  .dataTables_filter input {
+    @apply w-full;
+  }
+  
+  /* Smaller padding on mobile */
+  table.dataTable thead th,
+  table.dataTable tbody td {
+    @apply px-4 py-3;
+  }
+  
+  /* Smaller pagination buttons */
+  .dataTables_paginate .paginate_button {
+    @apply px-2 py-1 text-xs;
+  }
+  
+  /* Hide some text on very small screens */
+  .dataTables_info {
+    @apply text-xs;
   }
 }
+
+/* ============================================
+   Additional Utility Classes
+   ============================================ */
+
+/* Numeric columns */
+.dt-number {
+  @apply font-semibold tabular-nums;
+}
+
+/* Status badges in tables */
+.dt-badge {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+
+.dt-badge-success {
+  @apply bg-green-100 text-green-800;
+}
+
+.dt-badge-warning {
+  @apply bg-amber-100 text-amber-800;
+}
+
+.dt-badge-error {
+  @apply bg-red-100 text-red-800;
+}
+
+.dt-badge-info {
+  @apply bg-blue-100 text-blue-800;
+}
+
+/* Link styling in tables */
+.dt-link {
+  @apply text-indigo-600 hover:text-indigo-900 font-medium transition-colors;
+}
+
+/* Truncate long text */
+.dt-truncate {
+  @apply truncate max-w-xs;
+}
+
+/* Icon in cell */
+.dt-icon {
+  @apply inline-flex items-center justify-center w-5 h-5;
+}
+
+/* ============================================
+   Print Styles
+   ============================================ */
+
+@media print {
+  .dataTables_length,
+  .dataTables_filter,
+  .dataTables_info,
+  .dataTables_paginate {
+    display: none !important;
+  }
+  
+  table.dataTable tbody tr:hover {
+    background-color: transparent !important;
+  }
+  
+  table.dataTable thead th.sorting:before,
+  table.dataTable thead th.sorting_asc:before,
+  table.dataTable thead th.sorting_desc:before {
+    display: none !important;
+  }
+}
+
+/* ============================================
+   Dark Mode Support (Future Enhancement)
+   ============================================ */
+
+/* Uncomment when implementing dark mode
+@media (prefers-color-scheme: dark) {
+  .dataTables_wrapper {
+    @apply text-gray-100;
+  }
+  
+  table.dataTable thead {
+    @apply bg-gray-800;
+  }
+  
+  table.dataTable thead th {
+    @apply text-gray-100 border-gray-700;
+  }
+  
+  table.dataTable tbody {
+    @apply bg-gray-900;
+  }
+  
+  table.dataTable tbody tr:hover {
+    @apply bg-gray-800;
+  }
+  
+  table.dataTable tbody td {
+    @apply text-gray-300 border-gray-800;
+  }
+  
+  .dataTables_paginate .paginate_button {
+    @apply bg-gray-800 border-gray-700 text-gray-300;
+  }
+  
+  .dataTables_paginate .paginate_button.current {
+    @apply bg-indigo-600 border-indigo-600 text-white;
+  }
+}
+*/
+
+/* ============================================
+   End of DataTables Professional Styling
+   ============================================ */

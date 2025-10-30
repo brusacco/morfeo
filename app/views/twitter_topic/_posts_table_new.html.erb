@@ -1,0 +1,162 @@
+<% table_id = "twitter_posts_#{SecureRandom.hex(4)}" %>
+<div class="mb-12 animate-fade-in">
+  <!-- Section Header -->
+  <div class="mb-6">
+    <h2 class="section-title flex items-center gap-3">
+      <i class="fa-brands fa-twitter text-twitter text-3xl" aria-hidden="true"></i>
+      <span><%= title %></span>
+    </h2>
+    <p class="text-sm text-gray-600">Mostrando <%= posts.count %> tweets</p>
+  </div>
+
+  <!-- Table Card -->
+  <div class="card-large p-0 overflow-hidden">
+    <div class="p-6">
+      <table id="<%= table_id %>" class="twitter-posts-datatable display" style="width:100%">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Tweet</th>
+            <th>Tipo</th>
+            <th>Etiquetas</th>
+            <th>Perfil</th>
+            <th>Nota Vinculada</th>
+            <th class="dt-center">
+              <i class="fa-solid fa-heart text-red-500 mr-1" aria-hidden="true"></i>
+              <span class="sr-only">Favoritos</span>
+            </th>
+            <th class="dt-center">
+              <i class="fa-solid fa-quote-right text-blue-500 mr-1" aria-hidden="true"></i>
+              <span class="sr-only">Quotes</span>
+            </th>
+            <th class="dt-center">
+              <i class="fa-solid fa-reply text-green-600 mr-1" aria-hidden="true"></i>
+              <span class="sr-only">Respuestas</span>
+            </th>
+            <th class="dt-center">
+              <i class="fa-solid fa-retweet text-twitter mr-1" aria-hidden="true"></i>
+              <span class="sr-only">Retweets</span>
+            </th>
+            <th class="dt-center">
+              <i class="fa-solid fa-chart-line text-indigo-600 mr-1" aria-hidden="true"></i>
+              <span class="sr-only">Total</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <% posts.each do |post| %>
+            <tr>
+              <!-- Date -->
+              <td data-order="<%= post.created_at.strftime('%Y%m%d%H%M%S') %>">
+                <time datetime="<%= post.created_at.iso8601 %>" class="block">
+                  <div class="font-semibold"><%= post.created_at.strftime('%d/%m/%Y') %></div>
+                  <div class="text-xs text-gray-500"><%= post.created_at.strftime('%H:%M') %></div>
+                </time>
+              </td>
+              
+              <!-- Tweet Text -->
+              <td>
+                <div class="max-w-xs">
+                  <% if post.tweet_url.present? %>
+                    <%= link_to post.tweet_url, target: '_blank', rel: 'noopener noreferrer', 
+                        class: "dt-link hover:underline line-clamp-3",
+                        title: post.text do %>
+                      <%= truncate(post.text, length: 100) %>
+                      <i class="fa-brands fa-twitter text-xs ml-1" aria-hidden="true"></i>
+                    <% end %>
+                  <% else %>
+                    <span class="text-gray-900"><%= truncate(post.text, length: 100) %></span>
+                  <% end %>
+                </div>
+              </td>
+              
+              <!-- Type -->
+              <td>
+                <% type_config = {
+                  'tweet' => { icon: 'fa-comment', color: 'blue', label: 'Tweet' },
+                  'retweet' => { icon: 'fa-retweet', color: 'green', label: 'Retweet' },
+                  'reply' => { icon: 'fa-reply', color: 'purple', label: 'Respuesta' },
+                  'quote' => { icon: 'fa-quote-right', color: 'indigo', label: 'Quote' }
+                } %>
+                <% config = type_config[post.tweet_type] || { icon: 'fa-file', color: 'gray', label: post.tweet_type } %>
+                <span class="dt-badge dt-badge-info">
+                  <i class="fa-solid <%= config[:icon] %> mr-1" aria-hidden="true"></i>
+                  <%= config[:label] %>
+                </span>
+              </td>
+              
+              <!-- Tags -->
+              <td>
+                <div class="flex flex-wrap gap-1">
+                  <% post.tag_list.first(2).each do |tag| %>
+                    <span class="dt-badge dt-badge-info"><%= tag %></span>
+                  <% end %>
+                  <% if post.tag_list.count > 2 %>
+                    <span class="dt-badge bg-gray-100 text-gray-600">+<%= post.tag_list.count - 2 %></span>
+                  <% end %>
+                </div>
+              </td>
+              
+              <!-- Profile -->
+              <td>
+                <div class="flex items-center gap-2">
+                  <% if post.twitter_profile.profile_image_url.present? %>
+                    <%= image_tag post.twitter_profile.profile_image_url, 
+                        class: "w-8 h-8 rounded-full",
+                        alt: post.twitter_profile.name %>
+                  <% end %>
+                  <div>
+                    <div class="font-medium text-gray-900"><%= post.twitter_profile.name %></div>
+                    <div class="text-xs text-gray-500">@<%= post.twitter_profile.username %></div>
+                  </div>
+                </div>
+              </td>
+              
+              <!-- Linked Entry -->
+              <td>
+                <% if post.entry.present? %>
+                  <%= link_to entry_path(post.entry.id), 
+                      class: "inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-900",
+                      title: "Ver nota vinculada" do %>
+                    <i class="fa-solid fa-newspaper" aria-hidden="true"></i>
+                    <span class="sr-only">Nota vinculada</span>
+                  <% end %>
+                <% else %>
+                  <span class="text-gray-400">—</span>
+                <% end %>
+              </td>
+              
+              <!-- Favorites -->
+              <td data-order="<%= post.favorite_count %>">
+                <span class="text-lg font-bold text-red-500"><%= number_with_delimiter(post.favorite_count) %></span>
+              </td>
+              
+              <!-- Quotes -->
+              <td data-order="<%= post.quote_count %>">
+                <span class="text-lg font-bold text-blue-500"><%= number_with_delimiter(post.quote_count) %></span>
+              </td>
+              
+              <!-- Replies -->
+              <td data-order="<%= post.reply_count %>">
+                <span class="text-lg font-bold text-green-600"><%= number_with_delimiter(post.reply_count) %></span>
+              </td>
+              
+              <!-- Retweets -->
+              <td data-order="<%= post.retweet_count %>">
+                <span class="text-lg font-bold text-twitter"><%= number_with_delimiter(post.retweet_count) %></span>
+              </td>
+              
+              <!-- Total -->
+              <td data-order="<%= post.total_interactions %>">
+                <span class="text-xl font-bold text-indigo-600"><%= number_with_delimiter(post.total_interactions) %></span>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Note: DataTables initialization is handled automatically by datatables_config.js -->
+

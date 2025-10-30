@@ -1,0 +1,152 @@
+<% table_id = "facebook_posts_#{SecureRandom.hex(4)}" %>
+<div class="mb-12 animate-fade-in">
+  <!-- Section Header -->
+  <div class="mb-6">
+    <h2 class="section-title flex items-center gap-3">
+      <i class="fa-brands fa-facebook text-facebook text-3xl" aria-hidden="true"></i>
+      <span><%= title %></span>
+    </h2>
+    <p class="text-sm text-gray-600">Mostrando <%= posts.count %> publicaciones de Facebook</p>
+  </div>
+
+  <!-- Table Card -->
+  <div class="card-large p-0 overflow-hidden">
+    <div class="p-6">
+      <table id="<%= table_id %>" class="facebook-posts-datatable display" style="width:100%">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Mensaje</th>
+            <th>Tipo</th>
+            <th>Etiquetas</th>
+            <th>Página</th>
+            <th>Nota Vinculada</th>
+            <th class="dt-center">
+              <i class="fa-solid fa-thumbs-up text-facebook mr-1" aria-hidden="true"></i>
+              <span class="sr-only">Reacciones</span>
+            </th>
+            <th class="dt-center">
+              <i class="fa-solid fa-face-laugh text-amber-500 mr-1" aria-hidden="true"></i>
+              <span class="sr-only">Risas</span>
+            </th>
+            <th class="dt-center">
+              <i class="fa-solid fa-heart text-red-500 mr-1" aria-hidden="true"></i>
+              <span class="sr-only">Me encanta</span>
+            </th>
+            <th class="dt-center">
+              <i class="fa-solid fa-comments text-green-600 mr-1" aria-hidden="true"></i>
+              <span class="sr-only">Comentarios</span>
+            </th>
+            <th class="dt-center">
+              <i class="fa-solid fa-share text-purple-600 mr-1" aria-hidden="true"></i>
+              <span class="sr-only">Compartidos</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <% posts.each do |post| %>
+            <tr>
+              <!-- Date -->
+              <td data-order="<%= post.created_time.strftime('%Y%m%d%H%M%S') %>">
+                <time datetime="<%= post.created_time.iso8601 %>" class="block">
+                  <div class="font-semibold"><%= post.created_time.strftime('%d/%m/%Y') %></div>
+                  <div class="text-xs text-gray-500"><%= post.created_time.strftime('%H:%M') %></div>
+                </time>
+              </td>
+              
+              <!-- Message -->
+              <td>
+                <div class="max-w-xs">
+                  <% if post.permalink_url.present? %>
+                    <%= link_to post.permalink_url, target: '_blank', rel: 'noopener noreferrer', 
+                        class: "dt-link hover:underline line-clamp-3",
+                        title: post.message do %>
+                      <%= truncate(post.message, length: 100) %>
+                      <i class="fa-brands fa-facebook text-xs ml-1" aria-hidden="true"></i>
+                    <% end %>
+                  <% else %>
+                    <span class="text-gray-900"><%= truncate(post.message, length: 100) %></span>
+                  <% end %>
+                </div>
+              </td>
+              
+              <!-- Type -->
+              <td>
+                <% type_config = {
+                  'status' => { icon: 'fa-comment', color: 'blue', label: 'Estado' },
+                  'link' => { icon: 'fa-link', color: 'indigo', label: 'Enlace' },
+                  'photo' => { icon: 'fa-image', color: 'pink', label: 'Foto' },
+                  'video' => { icon: 'fa-video', color: 'red', label: 'Video' }
+                } %>
+                <% config = type_config[post.post_type] || { icon: 'fa-file', color: 'gray', label: post.post_type } %>
+                <span class="dt-badge dt-badge-info">
+                  <i class="fa-solid <%= config[:icon] %> mr-1" aria-hidden="true"></i>
+                  <%= config[:label] %>
+                </span>
+              </td>
+              
+              <!-- Tags -->
+              <td>
+                <div class="flex flex-wrap gap-1">
+                  <% post.tag_list.first(2).each do |tag| %>
+                    <span class="dt-badge dt-badge-info"><%= tag %></span>
+                  <% end %>
+                  <% if post.tag_list.count > 2 %>
+                    <span class="dt-badge bg-gray-100 text-gray-600">+<%= post.tag_list.count - 2 %></span>
+                  <% end %>
+                </div>
+              </td>
+              
+              <!-- Page -->
+              <td>
+                <div class="font-medium text-gray-900"><%= post.page.name %></div>
+              </td>
+              
+              <!-- Linked Entry -->
+              <td>
+                <% if post.entry.present? %>
+                  <%= link_to entry_path(post.entry.id), 
+                      class: "inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-900",
+                      title: "Ver nota vinculada" do %>
+                    <i class="fa-solid fa-newspaper" aria-hidden="true"></i>
+                    <span class="sr-only">Nota vinculada</span>
+                  <% end %>
+                <% else %>
+                  <span class="text-gray-400">—</span>
+                <% end %>
+              </td>
+              
+              <!-- Reactions -->
+              <td data-order="<%= post.reactions_like %>">
+                <span class="text-lg font-bold text-facebook"><%= number_with_delimiter(post.reactions_like) %></span>
+              </td>
+              
+              <!-- Laugh -->
+              <td data-order="<%= post.reactions_haha %>">
+                <span class="text-lg font-bold text-amber-500"><%= number_with_delimiter(post.reactions_haha) %></span>
+              </td>
+              
+              <!-- Love -->
+              <td data-order="<%= post.reactions_love %>">
+                <span class="text-lg font-bold text-red-500"><%= number_with_delimiter(post.reactions_love) %></span>
+              </td>
+              
+              <!-- Comments -->
+              <td data-order="<%= post.comments_count %>">
+                <span class="text-lg font-bold text-green-600"><%= number_with_delimiter(post.comments_count) %></span>
+              </td>
+              
+              <!-- Shares -->
+              <td data-order="<%= post.shares_count %>">
+                <span class="text-lg font-bold text-purple-600"><%= number_with_delimiter(post.shares_count) %></span>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Note: DataTables initialization is handled automatically by datatables_config.js -->
+

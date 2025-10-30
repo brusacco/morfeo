@@ -1,0 +1,105 @@
+<% table_id = "entries_#{SecureRandom.hex(4)}" %>
+<div class="mb-12 animate-fade-in">
+  <!-- Section Header -->
+  <div class="mb-6">
+    <h2 class="section-title"><%= title %></h2>
+    <p class="text-sm text-gray-600">Mostrando <%= entries.count %> publicaciones</p>
+  </div>
+
+  <!-- Table Card -->
+  <div class="card-large p-0 overflow-hidden">
+    <div class="p-6">
+      <table id="<%= table_id %>" class="entries-datatable display" style="width:100%">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Nota</th>
+            <th>Etiquetas</th>
+            <th>Medio</th>
+            <th class="dt-center">
+              <i class="fa-solid fa-thumbs-up text-blue-600 mr-1" aria-hidden="true"></i>
+              <span class="sr-only">Reacciones</span>
+            </th>
+            <th class="dt-center">
+              <i class="fa-solid fa-comments text-green-600 mr-1" aria-hidden="true"></i>
+              <span class="sr-only">Comentarios</span>
+            </th>
+            <th class="dt-center">
+              <i class="fa-solid fa-share text-purple-600 mr-1" aria-hidden="true"></i>
+              <span class="sr-only">Compartidos</span>
+            </th>
+            <th class="dt-center">
+              <i class="fa-solid fa-chart-line text-indigo-600 mr-1" aria-hidden="true"></i>
+              <span class="sr-only">Total</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <% entries.each do |entry| %>
+            <tr>
+              <!-- Date -->
+              <td data-order="<%= entry.published_at.strftime('%Y%m%d%H%M%S') %>">
+                <time datetime="<%= entry.published_at.iso8601 %>" class="block">
+                  <div class="font-semibold"><%= entry.published_at.strftime('%d/%m/%Y') %></div>
+                  <div class="text-xs text-gray-500"><%= entry.published_at.strftime('%H:%M') %></div>
+                </time>
+              </td>
+              
+              <!-- Title -->
+              <td>
+                <div class="max-w-xs">
+                  <%= link_to entry.url, target: '_blank', rel: 'noopener noreferrer', 
+                      class: "dt-link hover:underline line-clamp-2",
+                      title: entry.title do %>
+                    <%= entry.title %>
+                    <i class="fa-solid fa-external-link text-xs ml-1" aria-hidden="true"></i>
+                  <% end %>
+                </div>
+              </td>
+              
+              <!-- Tags -->
+              <td>
+                <div class="flex flex-wrap gap-1">
+                  <% entry.tag_list.first(3).each do |tag| %>
+                    <span class="dt-badge dt-badge-info"><%= tag %></span>
+                  <% end %>
+                  <% if entry.tag_list.count > 3 %>
+                    <span class="dt-badge bg-gray-100 text-gray-600">+<%= entry.tag_list.count - 3 %></span>
+                  <% end %>
+                </div>
+              </td>
+              
+              <!-- Site/Medium -->
+              <td>
+                <div class="font-medium text-gray-900"><%= entry.site.name %></div>
+              </td>
+              
+              <!-- Reactions -->
+              <td data-order="<%= entry.reaction_count %>">
+                <span class="text-lg font-bold text-blue-600"><%= number_with_delimiter(entry.reaction_count) %></span>
+              </td>
+              
+              <!-- Comments -->
+              <td data-order="<%= entry.comment_count %>">
+                <span class="text-lg font-bold text-green-600"><%= number_with_delimiter(entry.comment_count) %></span>
+              </td>
+              
+              <!-- Shares -->
+              <td data-order="<%= entry.share_count %>">
+                <span class="text-lg font-bold text-purple-600"><%= number_with_delimiter(entry.share_count) %></span>
+              </td>
+              
+              <!-- Total -->
+              <td data-order="<%= entry.total_count %>">
+                <span class="text-xl font-bold text-indigo-600"><%= number_with_delimiter(entry.total_count) %></span>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Note: DataTables initialization is handled automatically by datatables_config.js -->
+
