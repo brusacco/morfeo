@@ -35,7 +35,12 @@ class EntryController < ApplicationController
                               .sum(:total_count)
 
     @tags_count = {}
-    @tags.each { |n| @tags_count[n.name] = n.count }
+    @tags.each do |tag|
+      @tags_count[tag.name] = tag.count
+      # Assign interactions to each tag object - capture value, not reference
+      interaction_count = @tags_interactions[tag.name] || 0
+      tag.define_singleton_method(:interactions) { interaction_count }
+    end
   end
 
   def twitter
@@ -79,7 +84,12 @@ class EntryController < ApplicationController
       end
 
     @tags_count = {}
-    @tags.each { |n| @tags_count[n.name] = n.count }
+    @tags.each do |tag|
+      @tags_count[tag.name] = tag.count
+      # Assign interactions to each tag object - capture value, not reference
+      interaction_count = @tags_interactions[tag.name] || 0
+      tag.define_singleton_method(:interactions) { interaction_count }
+    end
   end
 
   def week

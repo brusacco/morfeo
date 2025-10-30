@@ -262,12 +262,32 @@
     </section>
     
     <% if @word_occurrences.any? %>
-      <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h2 class="text-2xl font-bold text-gray-900 mb-6">Nube de palabras de tweets</h2>
-        <div class="mt-6 mb-6 px-4 py-6">
+      <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl font-bold text-gray-900">Nube de Palabras - Tweets</h2>
+          <div class="flex items-center space-x-4">
+            <div class="flex items-center text-xs text-gray-600">
+              <span class="inline-block w-3 h-3 rounded-full bg-green-500 mr-1.5"></span>
+              <span>Positivas</span>
+            </div>
+            <div class="flex items-center text-xs text-gray-600">
+              <span class="inline-block w-3 h-3 rounded-full bg-gray-500 mr-1.5"></span>
+              <span>Neutrales</span>
+            </div>
+            <div class="flex items-center text-xs text-gray-600">
+              <span class="inline-block w-3 h-3 rounded-full bg-red-500 mr-1.5"></span>
+              <span>Negativas</span>
+            </div>
+          </div>
+        </div>
+        <div>
           <ul class="cloud">
             <% prepare_word_cloud_data(@word_occurrences, @positive_words, @negative_words).each do |word_data| %>
-              <li style='color: <%= word_data[:color] %>' data-weight="<%= word_data[:weight] %>"><%= word_data[:word] %></li>
+              <li style='color: <%= word_data[:color] %>' 
+                  data-weight="<%= word_data[:weight] %>"
+                  data-sentiment="<%= word_data[:sentiment] || 'neutral' %>">
+                <%= word_data[:word] %>
+              </li>
             <% end %>
           </ul>
         </div>
