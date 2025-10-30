@@ -18,6 +18,7 @@ class TwitterTopicController < ApplicationController
   def show
     load_twitter_data
     load_profiles_data
+    load_twitter_temporal_intelligence
   end
 
   def entries_data
@@ -129,5 +130,71 @@ class TwitterTopicController < ApplicationController
                        .reorder(nil)
                        .group('sites.name')
                        .sum(Arel.sql('twitter_posts.favorite_count + twitter_posts.retweet_count + twitter_posts.reply_count + twitter_posts.quote_count'))
+  end
+
+  def load_twitter_temporal_intelligence
+    begin
+      @temporal_summary = @topic.twitter_temporal_intelligence_summary
+      Rails.logger.info "✅ Twitter temporal_summary loaded successfully"
+    rescue StandardError => e
+      Rails.logger.error "❌ Error loading Twitter temporal_summary: #{e.class} - #{e.message}"
+      @temporal_summary = nil
+    end
+
+    begin
+      @optimal_time = @topic.twitter_optimal_publishing_time
+      Rails.logger.info "✅ Twitter optimal_time loaded successfully"
+    rescue StandardError => e
+      Rails.logger.error "❌ Error loading Twitter optimal_time: #{e.class} - #{e.message}"
+      @optimal_time = nil
+    end
+
+    begin
+      @trend_velocity = @topic.twitter_trend_velocity
+      Rails.logger.info "✅ Twitter trend_velocity loaded successfully"
+    rescue StandardError => e
+      Rails.logger.error "❌ Error loading Twitter trend_velocity: #{e.class} - #{e.message}"
+      @trend_velocity = { velocity_percent: 0, direction: 'stable' }
+    end
+
+    begin
+      @engagement_velocity = @topic.twitter_engagement_velocity
+      Rails.logger.info "✅ Twitter engagement_velocity loaded successfully"
+    rescue StandardError => e
+      Rails.logger.error "❌ Error loading Twitter engagement_velocity: #{e.class} - #{e.message}"
+      @engagement_velocity = { velocity_percent: 0, direction: 'stable' }
+    end
+
+    begin
+      @content_half_life = @topic.twitter_content_half_life
+      Rails.logger.info "✅ Twitter content_half_life loaded successfully"
+    rescue StandardError => e
+      Rails.logger.error "❌ Error loading Twitter content_half_life: #{e.class} - #{e.message}"
+      @content_half_life = nil
+    end
+
+    begin
+      @peak_hours = @topic.twitter_peak_publishing_times_by_hour
+      Rails.logger.info "✅ Twitter peak_hours loaded successfully"
+    rescue StandardError => e
+      Rails.logger.error "❌ Error loading Twitter peak_hours: #{e.class} - #{e.message}"
+      @peak_hours = {}
+    end
+
+    begin
+      @peak_days = @topic.twitter_peak_publishing_times_by_day
+      Rails.logger.info "✅ Twitter peak_days loaded successfully"
+    rescue StandardError => e
+      Rails.logger.error "❌ Error loading Twitter peak_days: #{e.class} - #{e.message}"
+      @peak_days = {}
+    end
+
+    begin
+      @heatmap_data = @topic.twitter_engagement_heatmap_data
+      Rails.logger.info "✅ Twitter heatmap_data loaded successfully"
+    rescue StandardError => e
+      Rails.logger.error "❌ Error loading Twitter heatmap_data: #{e.class} - #{e.message}"
+      @heatmap_data = []
+    end
   end
 end

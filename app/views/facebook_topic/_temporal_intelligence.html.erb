@@ -1,0 +1,331 @@
+<% if @temporal_summary.present? %>
+  <!-- TEMPORAL INTELLIGENCE SECTION -->
+  <section id="temporal-intelligence" class="mb-8">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+        <i class="fas fa-clock text-indigo-600 mr-3" aria-hidden="true"></i>
+        Inteligencia Temporal
+      </h2>
+
+      <!-- Quick Insights Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <!-- Optimal Publishing Time -->
+        <% if @optimal_time.present? %>
+          <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 p-4 rounded-lg border border-indigo-200">
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="text-sm font-medium text-indigo-900">Mejor Momento</h3>
+              <i class="fas fa-star text-indigo-600"></i>
+            </div>
+            <p class="text-2xl font-bold text-indigo-700"><%= @optimal_time[:hour] %>:00</p>
+            <p class="text-xs text-indigo-600 mt-1"><%= @optimal_time[:day] %></p>
+            <p class="text-xs text-gray-600 mt-2">
+              <%= number_with_delimiter(@optimal_time[:avg_engagement].round(0)) %> interacciones promedio
+            </p>
+          </div>
+        <% end %>
+
+        <!-- Trend Velocity -->
+        <% if @trend_velocity.present? %>
+          <div class="bg-gradient-to-br from-<%= @trend_velocity[:direction] == 'up' ? 'green' : @trend_velocity[:direction] == 'down' ? 'red' : 'gray' %>-50 to-<%= @trend_velocity[:direction] == 'up' ? 'green' : @trend_velocity[:direction] == 'down' ? 'red' : 'gray' %>-100 p-4 rounded-lg border border-<%= @trend_velocity[:direction] == 'up' ? 'green' : @trend_velocity[:direction] == 'down' ? 'red' : 'gray' %>-200">
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="text-sm font-medium text-gray-900">Velocidad del Tema</h3>
+              <i class="fas fa-<%= @trend_velocity[:direction] == 'up' ? 'arrow-trend-up' : @trend_velocity[:direction] == 'down' ? 'arrow-trend-down' : 'minus' %> text-<%= @trend_velocity[:direction] == 'up' ? 'green' : @trend_velocity[:direction] == 'down' ? 'red' : 'gray' %>-600"></i>
+            </div>
+            <p class="text-2xl font-bold text-<%= @trend_velocity[:direction] == 'up' ? 'green' : @trend_velocity[:direction] == 'down' ? 'red' : 'gray' %>-700">
+              <%= @trend_velocity[:velocity_percent] > 0 ? '+' : '' %><%= @trend_velocity[:velocity_percent] %>%
+            </p>
+            <p class="text-xs text-gray-600 mt-1 capitalize"><%= @trend_velocity[:trend] %></p>
+            <p class="text-xs text-gray-500 mt-2">
+              <%= @trend_velocity[:recent_count] %> posts (últimas 24h)
+            </p>
+          </div>
+        <% end %>
+
+        <!-- Engagement Velocity -->
+        <% if @engagement_velocity.present? %>
+          <div class="bg-gradient-to-br from-<%= @engagement_velocity[:direction] == 'up' ? 'blue' : @engagement_velocity[:direction] == 'down' ? 'orange' : 'gray' %>-50 to-<%= @engagement_velocity[:direction] == 'up' ? 'blue' : @engagement_velocity[:direction] == 'down' ? 'orange' : 'gray' %>-100 p-4 rounded-lg border border-<%= @engagement_velocity[:direction] == 'up' ? 'blue' : @engagement_velocity[:direction] == 'down' ? 'orange' : 'gray' %>-200">
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="text-sm font-medium text-gray-900">Velocidad de Interacción</h3>
+              <i class="fas fa-bolt text-<%= @engagement_velocity[:direction] == 'up' ? 'blue' : @engagement_velocity[:direction] == 'down' ? 'orange' : 'gray' %>-600"></i>
+            </div>
+            <p class="text-2xl font-bold text-<%= @engagement_velocity[:direction] == 'up' ? 'blue' : @engagement_velocity[:direction] == 'down' ? 'orange' : 'gray' %>-700">
+              <%= @engagement_velocity[:velocity_percent] > 0 ? '+' : '' %><%= @engagement_velocity[:velocity_percent] %>%
+            </p>
+            <p class="text-xs text-gray-600 mt-1 capitalize"><%= @engagement_velocity[:trend] %></p>
+            <p class="text-xs text-gray-500 mt-2">
+              <%= number_with_delimiter(@engagement_velocity[:recent_interactions]) %> interacciones (últimas 24h)
+            </p>
+          </div>
+        <% end %>
+
+        <!-- Content Half-Life -->
+        <% if @content_half_life.present? %>
+          <div class="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg border border-purple-200">
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="text-sm font-medium text-purple-900">Vida Útil del Contenido</h3>
+              <i class="fas fa-hourglass-half text-purple-600"></i>
+            </div>
+            <p class="text-2xl font-bold text-purple-700"><%= @content_half_life[:median_hours] %> horas</p>
+            <p class="text-xs text-purple-600 mt-1">Mediana de relevancia</p>
+            <p class="text-xs text-gray-600 mt-2">
+              Basado en <%= @content_half_life[:sample_size] %> posts
+            </p>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Publishing Time Analysis -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- Peak Hours Chart -->
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <i class="fas fa-chart-bar text-indigo-600 mr-2"></i>
+            Mejores Horas para Publicar
+          </h3>
+          <div id="peak-hours-chart" style="height: 300px;"></div>
+        </div>
+
+        <!-- Peak Days Chart -->
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <i class="fas fa-calendar text-indigo-600 mr-2"></i>
+            Mejores Días para Publicar
+          </h3>
+          <div id="peak-days-chart" style="height: 300px;"></div>
+        </div>
+      </div>
+
+      <!-- Engagement Heatmap -->
+      <% if @heatmap_data.present? && @heatmap_data.any? %>
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <i class="fas fa-fire text-orange-600 mr-2"></i>
+            Mapa de Calor de Interacciones
+            <span class="ml-2 text-sm font-normal text-gray-500">(Día x Hora) - <%= @heatmap_data.size %> puntos de datos</span>
+          </h3>
+          <div id="engagement-heatmap" style="height: 400px;"></div>
+        </div>
+      <% else %>
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <i class="fas fa-fire text-orange-600 mr-2"></i>
+            Mapa de Calor de Interacciones
+            <span class="ml-2 text-sm font-normal text-gray-500">(Día x Hora)</span>
+          </h3>
+          <div class="bg-yellow-50 border border-yellow-200 rounded p-4">
+            <p class="text-sm text-gray-600">
+              ℹ️ No hay suficientes datos para generar el mapa de calor. 
+              Se necesitan más posts con interacciones en diferentes horarios.
+            </p>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Recommendations Box -->
+      <% if @optimal_time.present? %>
+        <div class="mt-6 bg-indigo-50 border-l-4 border-indigo-600 p-4 rounded-r-lg">
+          <div class="flex items-start">
+            <i class="fas fa-lightbulb text-indigo-600 mt-1 mr-3"></i>
+            <div>
+              <h4 class="text-sm font-semibold text-indigo-900 mb-1">Recomendación</h4>
+              <p class="text-sm text-indigo-800">
+                Para maximizar el engagement en Facebook, publica contenido sobre este tema los 
+                <strong><%= @optimal_time[:day] %></strong> alrededor de las 
+                <strong><%= @optimal_time[:hour] %>:00 hrs</strong>. 
+                En este horario, el contenido obtiene un promedio de 
+                <strong><%= number_with_delimiter(@optimal_time[:avg_engagement].round(0)) %> interacciones</strong>.
+              </p>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </section>
+
+  <!-- JavaScript for Charts -->
+  <script>
+  // Function to initialize all temporal intelligence charts
+  function initializeTemporalCharts() {
+    <% if @peak_hours.present? && @peak_hours.any? %>
+      // Peak Hours Chart
+      Highcharts.chart('peak-hours-chart', {
+        chart: { type: 'column' },
+        title: { text: null },
+        xAxis: {
+          categories: <%= (0..23).to_a.to_json.html_safe %>,
+          title: { text: 'Hora del Día' }
+        },
+        yAxis: {
+          title: { text: 'Interacciones Promedio' },
+          min: 0
+        },
+        series: [{
+          name: 'Interacciones',
+          data: <%= (0..23).map { |h| @peak_hours[h]&.dig(:avg_engagement) || 0 }.to_json.html_safe %>,
+          color: '#4F46E5'
+        }],
+        credits: { enabled: false },
+        legend: { enabled: false },
+        tooltip: {
+          formatter: function() {
+            return '<b>' + this.x + ':00 hrs</b><br/>' +
+                   'Promedio: ' + Highcharts.numberFormat(this.y, 0, ',', '.') + ' interacciones<br/>' +
+                   'Posts: ' + <%= @peak_hours.values.map { |v| v[:entry_count] }.to_json.html_safe %>[this.point.index];
+          }
+        }
+      });
+    <% end %>
+
+    <% if @peak_days.present? && @peak_days.any? %>
+      // Peak Days Chart
+      Highcharts.chart('peak-days-chart', {
+        chart: { type: 'bar' },
+        title: { text: null },
+        xAxis: {
+          categories: <%= @peak_days.keys.to_json.html_safe %>,
+          title: { text: '' }
+        },
+        yAxis: {
+          title: { text: 'Interacciones Promedio' },
+          min: 0
+        },
+        series: [{
+          name: 'Interacciones',
+          data: <%= @peak_days.values.map { |v| v[:avg_engagement] }.to_json.html_safe %>,
+          color: '#10B981'
+        }],
+        credits: { enabled: false },
+        legend: { enabled: false },
+        tooltip: {
+          formatter: function() {
+            var dayData = <%= @peak_days.values.to_json.html_safe %>[this.point.index];
+            return '<b>' + this.x + '</b><br/>' +
+                   'Promedio: ' + Highcharts.numberFormat(this.y, 0, ',', '.') + ' interacciones<br/>' +
+                   'Posts: ' + dayData.entry_count;
+          }
+        }
+      });
+    <% end %>
+
+    <% if @heatmap_data.present? && @heatmap_data.any? %>
+      // Engagement Heatmap - Load module and render
+      
+      // Function to load heatmap module
+      function loadHeatmapModule(callback) {
+        // Check if module is already loaded
+        if (typeof Highcharts !== 'undefined' && Highcharts.seriesTypes && Highcharts.seriesTypes.heatmap) {
+          setTimeout(callback, 50);
+          return;
+        }
+        
+        var script = document.createElement('script');
+        // Use the SAME version as the main Highcharts library (10.3.2)
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/highcharts/10.3.2/modules/heatmap.js';
+        script.crossOrigin = 'anonymous';
+        script.onload = function() {
+          // Wait for the module to fully register with Highcharts
+          var checkInterval = setInterval(function() {
+            if (typeof Highcharts !== 'undefined' && Highcharts.seriesTypes && Highcharts.seriesTypes.heatmap) {
+              clearInterval(checkInterval);
+              callback();
+            }
+          }, 50);
+          // Timeout after 3 seconds
+          setTimeout(function() {
+            clearInterval(checkInterval);
+            if (!Highcharts.seriesTypes || !Highcharts.seriesTypes.heatmap) {
+              console.error('Error: Heatmap module could not be initialized');
+            }
+          }, 3000);
+        };
+        script.onerror = function() {
+          console.error('Error: Failed to load heatmap module');
+        };
+        document.head.appendChild(script);
+      }
+      
+      // Load module then render chart
+      loadHeatmapModule(function() {
+        try {
+          var heatmapData = <%= @heatmap_data.to_json.html_safe %>;
+          
+          // Prepare data for Highcharts heatmap format: [x, y, value]
+          var chartData = heatmapData.map(function(item) {
+            return [item.hour, item.day_number, item.avg_engagement];
+          });
+
+          var chart = Highcharts.chart('engagement-heatmap', {
+            chart: { 
+              type: 'heatmap', 
+              marginTop: 40, 
+              marginBottom: 80,
+              plotBorderWidth: 1
+            },
+            title: { text: null },
+            xAxis: {
+              categories: <%= (0..23).to_a.to_json.html_safe %>,
+              title: { text: 'Hora del Día' },
+              opposite: false
+            },
+            yAxis: {
+              categories: ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
+              title: { text: 'Día de la Semana' },
+              reversed: true
+            },
+            colorAxis: {
+              min: 0,
+              minColor: '#FFFFFF',
+              maxColor: '#4F46E5',
+              stops: [
+                [0, '#FFFFFF'],
+                [0.5, '#A5B4FC'],
+                [1, '#4F46E5']
+              ]
+            },
+            series: [{
+              name: 'Interacciones',
+              borderWidth: 1,
+              data: chartData,
+              dataLabels: {
+                enabled: false
+              }
+            }],
+            credits: { enabled: false },
+            legend: { 
+              align: 'right',
+              layout: 'vertical',
+              margin: 0,
+              verticalAlign: 'top',
+              y: 25,
+              symbolHeight: 280
+            },
+            tooltip: {
+              formatter: function() {
+                var days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+                return '<b>' + days[this.point.y] + ' ' + this.point.x + ':00 hrs</b><br/>' +
+                       'Promedio: <b>' + Highcharts.numberFormat(this.point.value, 0, ',', '.') + ' interacciones</b>';
+              }
+            }
+          });
+          
+        } catch (error) {
+          console.error('Error rendering heatmap:', error.message);
+          // Show error message in the chart container
+          document.getElementById('engagement-heatmap').innerHTML = 
+            '<div class="p-4 text-center text-red-600">' +
+            '<p class="font-bold">Error al cargar el mapa de calor</p>' +
+            '<p class="text-sm mt-2">' + error.message + '</p>' +
+            '</div>';
+        }
+      });
+    <% else %>
+      console.log('Heatmap data not available');
+    <% end %>
+  }
+  
+  // Initialize charts on both DOMContentLoaded and turbo:load
+  document.addEventListener('DOMContentLoaded', initializeTemporalCharts);
+  document.addEventListener('turbo:load', initializeTemporalCharts);
+  </script>
+<% end %>
+

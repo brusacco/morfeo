@@ -18,6 +18,7 @@ class FacebookTopicController < ApplicationController
   def show
     load_facebook_data
     load_pages_data
+    load_facebook_temporal_intelligence
   end
 
   def entries_data
@@ -124,5 +125,71 @@ class FacebookTopicController < ApplicationController
                          .reorder(nil)
                          .group('sites.name')
                          .sum(Arel.sql('facebook_entries.reactions_total_count + facebook_entries.comments_count + facebook_entries.share_count'))
+  end
+
+  def load_facebook_temporal_intelligence
+    begin
+      @temporal_summary = @topic.facebook_temporal_intelligence_summary
+      Rails.logger.info "✅ Facebook temporal_summary loaded successfully"
+    rescue StandardError => e
+      Rails.logger.error "❌ Error loading Facebook temporal_summary: #{e.class} - #{e.message}"
+      @temporal_summary = nil
+    end
+
+    begin
+      @optimal_time = @topic.facebook_optimal_publishing_time
+      Rails.logger.info "✅ Facebook optimal_time loaded successfully"
+    rescue StandardError => e
+      Rails.logger.error "❌ Error loading Facebook optimal_time: #{e.class} - #{e.message}"
+      @optimal_time = nil
+    end
+
+    begin
+      @trend_velocity = @topic.facebook_trend_velocity
+      Rails.logger.info "✅ Facebook trend_velocity loaded successfully"
+    rescue StandardError => e
+      Rails.logger.error "❌ Error loading Facebook trend_velocity: #{e.class} - #{e.message}"
+      @trend_velocity = { velocity_percent: 0, direction: 'stable' }
+    end
+
+    begin
+      @engagement_velocity = @topic.facebook_engagement_velocity
+      Rails.logger.info "✅ Facebook engagement_velocity loaded successfully"
+    rescue StandardError => e
+      Rails.logger.error "❌ Error loading Facebook engagement_velocity: #{e.class} - #{e.message}"
+      @engagement_velocity = { velocity_percent: 0, direction: 'stable' }
+    end
+
+    begin
+      @content_half_life = @topic.facebook_content_half_life
+      Rails.logger.info "✅ Facebook content_half_life loaded successfully"
+    rescue StandardError => e
+      Rails.logger.error "❌ Error loading Facebook content_half_life: #{e.class} - #{e.message}"
+      @content_half_life = nil
+    end
+
+    begin
+      @peak_hours = @topic.facebook_peak_publishing_times_by_hour
+      Rails.logger.info "✅ Facebook peak_hours loaded successfully"
+    rescue StandardError => e
+      Rails.logger.error "❌ Error loading Facebook peak_hours: #{e.class} - #{e.message}"
+      @peak_hours = {}
+    end
+
+    begin
+      @peak_days = @topic.facebook_peak_publishing_times_by_day
+      Rails.logger.info "✅ Facebook peak_days loaded successfully"
+    rescue StandardError => e
+      Rails.logger.error "❌ Error loading Facebook peak_days: #{e.class} - #{e.message}"
+      @peak_days = {}
+    end
+
+    begin
+      @heatmap_data = @topic.facebook_engagement_heatmap_data
+      Rails.logger.info "✅ Facebook heatmap_data loaded successfully"
+    rescue StandardError => e
+      Rails.logger.error "❌ Error loading Facebook heatmap_data: #{e.class} - #{e.message}"
+      @heatmap_data = []
+    end
   end
 end
