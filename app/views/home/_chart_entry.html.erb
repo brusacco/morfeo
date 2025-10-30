@@ -1,11 +1,33 @@
-<div class="flex flex-row even:bg-gray-50 odd:bg-white border-b border-gray-200 hover:bg-blue-100">
-  <div class="w-1/2 py-3 px-6 text-left flex items-center">
-    <span class="font-medium text-gray-800"><%= link_to entry.title, entry.url, target: '_blank' %></span>
-  </div>
-  <div class="w-1/4 py-3 px-6 text-left flex items-center">
-    <span class="text-gray-600"><%= entry.site.name %></span>
-  </div>
-  <div class="w-1/6 py-3 px-6 text-left flex items-center">
-    <span class="text-gray-600"><%= entry.total_count %></span>
-  </div>
-</div>
+<tr class="hover:bg-indigo-50 transition-colors duration-150">
+  <td class="px-6 py-4">
+    <%= link_to entry.url, target: '_blank', class: 'group inline-flex items-start' do %>
+      <div class="flex-1">
+        <p class="text-sm font-medium text-gray-900 group-hover:text-indigo-600 transition-colors line-clamp-2">
+          <%= entry.title %>
+        </p>
+        <div class="mt-1 flex items-center text-xs text-gray-500">
+          <i class="fas fa-external-link-alt mr-1"></i>
+          <span class="truncate"><%= URI.parse(entry.url).host rescue 'Link' %></span>
+        </div>
+      </div>
+      <i class="fas fa-arrow-up-right-from-square text-gray-400 group-hover:text-indigo-600 ml-2 mt-1 transition-colors"></i>
+    <% end %>
+  </td>
+  <td class="px-6 py-4 whitespace-nowrap">
+    <div class="flex items-center">
+      <div class="flex-shrink-0 h-8 w-8 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-full flex items-center justify-center">
+        <span class="text-white text-xs font-bold"><%= entry.site.name[0].upcase %></span>
+      </div>
+      <div class="ml-3">
+        <p class="text-sm font-medium text-gray-900"><%= entry.site.name %></p>
+      </div>
+    </div>
+  </td>
+  <td class="px-6 py-4 whitespace-nowrap text-right">
+    <div class="flex items-center justify-end">
+      <div class="text-sm font-semibold text-gray-900 bg-indigo-100 px-3 py-1 rounded-full">
+        <%= number_with_delimiter(entry.total_count, delimiter: '.') %>
+      </div>
+    </div>
+  </td>
+</tr>
