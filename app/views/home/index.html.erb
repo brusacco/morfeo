@@ -106,13 +106,6 @@
           </svg>
           Palabras Clave
         </a>
-        <a href="#noticias" data-turbo="false" class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap" aria-label="Ir a últimas noticias">
-          <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-            <path fill-rule="evenodd" d="M2 5a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 002 2H4a2 2 0 01-2-2V5zm3 1h6v4H5V6zm6 6H5v2h6v-2z" clip-rule="evenodd" />
-            <path d="M15 7h1a2 2 0 012 2v5.5a1.5 1.5 0 01-3 0V7z" />
-          </svg>
-          Noticias
-        </a>
       </div>
       <a id="backToTop" class="ml-4 inline-flex items-center px-3 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-md transition-colors cursor-pointer whitespace-nowrap" aria-label="Volver arriba">
         <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
@@ -598,21 +591,6 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
             </svg>
             <p class="text-sm">Sin portadas disponibles para hoy</p>
-          </div>
-        <% end %>
-      </div>
-    </section>
-    <!-- Latest News Section -->
-    <section id="noticias" class="mb-8 scroll-mt-16">
-      <h2 class="text-2xl font-bold text-gray-900 mb-6">Últimas Noticias por Tema</h2>
-      <div class="space-y-8">
-        <% @topicos.each do |topic| %>
-          <% next if topic.list_entries.empty? %>
-          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-indigo-200 transition-all duration-200">
-            <h3 class="text-xl font-bold tracking-tight text-gray-900 mb-6"><%= topic.name %></h3>
-            <div class="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
-              <%= render partial: 'entry/entry', collection: topic.list_entries.limit(12), as: :entry, cached: true %>
-            </div>
           </div>
         <% end %>
       </div>
