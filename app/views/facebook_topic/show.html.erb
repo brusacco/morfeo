@@ -145,21 +145,7 @@
     </section>
     <!-- Top Media Sources Section -->
     <section class="mb-8">
-      <%= render partial: 'site/sites', locals: { sites: @site_top_counts, title: 'Los medios que mas han mencionado' } %>
-    </section>
-    <!-- Media Distribution Analysis Section -->
-    <section class="mb-8">
-      <h2 class="text-2xl font-bold text-gray-900 mb-6">Distribución por Medios</h2>
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Cantidad de Publicaciones por medio</h3>
-          <%= pie_chart @site_counts, donut: true, colors: ['#2563EB', '#F97316', '#10B981', '#F59E0B', '#EC4899'] %>
-        </div>
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Cantidad de Interacciones por medio</h3>
-          <%= pie_chart @site_sums, donut: true, colors: ['#0EA5E9', '#6366F1', '#22C55E', '#D97706', '#EF4444'] %>
-        </div>
-      </div>
+      <%= render partial: 'site/sites', locals: { sites: @site_top_counts, title: 'Cuentas que mas han mencionado este tópico fueron:' } %>
     </section>
     <!-- All posts -->
     <section>

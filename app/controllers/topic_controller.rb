@@ -160,7 +160,7 @@ class TopicController < ApplicationController
       @all_intereactions_percentage = (Float(@all_entries_interactions) / total_count * 100).round(1)
     end
 
-    @most_interactions = @entries.order(total_count: :desc).limit(12)
+    @most_interactions = @entries.order(total_count: :desc).limit(20)
 
     if @total_entries.zero?
       @promedio = 0
@@ -310,7 +310,7 @@ class TopicController < ApplicationController
       @all_intereactions_percentage = (Float(@all_entries_interactions) / total_count * 100).round(1)
     end
 
-    @most_interactions = @entries.order(total_count: :desc).limit(12)
+    @most_interactions = @entries.order(total_count: :desc).limit(20)
 
     if @total_entries.zero?
       @promedio = 0

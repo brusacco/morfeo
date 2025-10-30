@@ -16,7 +16,7 @@ class FacebookTopicController < ApplicationController
     @total_views = FacebookEntry.total_views(@entries)
     @average_interactions = @total_posts.zero? ? 0 : (Float(@total_interactions) / @total_posts).round(1)
 
-    @top_posts = @entries.sort_by(&:total_interactions).reverse.first(12)
+    @top_posts = @entries.sort_by(&:total_interactions).reverse.first(20)
 
     @word_occurrences = FacebookEntry.word_occurrences(@entries)
     @bigram_occurrences = FacebookEntry.bigram_occurrences(@entries)

@@ -234,26 +234,6 @@
         </div>
       </section>
     <%end%>
-    <!-- Media Impact Section -->
-    <section class="mb-8">
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h2 class="text-2xl font-bold text-gray-900 mb-6">Impacto de la Etiqueta</h2>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
-          <div class="hover:shadow-md transition-shadow w-full">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Cantidad de Notas por Medio</h3>
-            <div class='w-full overflow-hidden'>
-              <%= pie_chart @entries.group("sites.name").count, donut: true %>
-            </div>
-          </div>
-          <div class="hover:shadow-md transition-shadow w-full">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Cantidad de Interacciones por Medio</h3>
-            <div class='w-full overflow-hidden'>
-              <%= pie_chart @entries.group("sites.name").sum(:total_count), donut: true %>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
     <!-- Related Tags Analysis Section -->
     <section class="mb-8">
       <h2 class="text-2xl font-bold text-gray-900 mb-6">Análisis de Tags Relacionados</h2>
@@ -272,10 +252,6 @@
         </div>
       </div>
     </section>
-    <!-- Top Media Sources Section -->
-    <section class="mb-8">
-      <%= render partial: 'site/sites', locals: { sites: @site_top_counts, title: 'Los medios que mas han mencionado' } %>
-    </section>
     <!-- Media Distribution Analysis Section -->
     <section class="mb-8">
       <h2 class="text-2xl font-bold text-gray-900 mb-6">Distribución por Medios</h2>
@@ -289,6 +265,10 @@
           <%= pie_chart @site_sums, donut: true %>
         </div>
       </div>
+    </section>
+    <!-- Top Media Sources Section -->
+    <section class="mb-8">
+      <%= render partial: 'site/sites', locals: { sites: @site_top_counts, title: 'Los medios que mas han mencionado' } %>
     </section>
     <!-- Latest News Section -->
     <section>
@@ -357,24 +337,6 @@
         <%= render partial: 'entry/entries', locals: { last_entries: @most_interactions, title: 'Top Interacciones de la Etiqueta' } %>
       </div>
     </section>
-    <% if @tags.any? %>
-      <!-- Tag Appearances Section -->
-      <section class="mb-8">
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 class="text-2xl font-bold text-gray-900 mb-6">Aparición de Etiquetas</h2>
-          <%= render partial: "tag/tag_pill", collection: @tags %>
-          <p><small class="text-gray-500 mt-4 block">*Cantidad de veces que aparecen las etiquetas en las notas</small></p>
-        </div>
-      </section>
-      <!-- Tag Interactions Section -->
-      <section class="mb-8">
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 class="text-2xl font-bold text-gray-900 mb-6">Interacciones de Etiquetas</h2>
-          <%= render partial: "tag/tag_pill_interactions", collection: @tags.to_a.sort_by(&:interactions).reverse %>
-          <p><small class="text-gray-500 mt-4 block">*Interacciones en las notas</small></p>
-        </div>
-      </section>
-    <%end%>
   </div>
 </main>
 <script>

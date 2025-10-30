@@ -500,10 +500,6 @@
         </div>
       </div>
     </section>
-    <!-- Top Media Sources Section -->
-    <section class="mb-8">
-      <%= render partial: 'site/sites', locals: { sites: @site_top_counts, title: 'Los medios que mas han mencionado' } %>
-    </section>
     <!-- Media Distribution Analysis Section -->
     <section class="mb-8">
       <h2 class="text-2xl font-bold text-gray-900 mb-6">Distribución por Medios</h2>
@@ -517,6 +513,10 @@
           <%= pie_chart @site_sums, donut: true %>
         </div>
       </div>
+    </section>
+    <!-- Top Media Sources Section -->
+    <section class="mb-8">
+      <%= render partial: 'site/sites', locals: { sites: @site_top_counts, title: 'Los medios que mas han mencionado' } %>
     </section>
     <!-- Latest News Section -->
     <section>

@@ -16,7 +16,7 @@ class TwitterTopicController < ApplicationController
     @total_views = TwitterPost.total_views(@posts)
     @average_interactions = @total_posts.zero? ? 0 : (Float(@total_interactions) / @total_posts).round(1)
 
-    @top_posts = @posts.sort_by(&:total_interactions).reverse.first(12)
+    @top_posts = @posts.sort_by(&:total_interactions).reverse.first(20)
 
     @word_occurrences = TwitterPost.word_occurrences(@posts)
     @bigram_occurrences = TwitterPost.bigram_occurrences(@posts)

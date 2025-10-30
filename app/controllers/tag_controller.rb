@@ -27,7 +27,7 @@ class TagController < ApplicationController
 
     @promedio = @total_entries.zero? ? 0 : @total_interactions / @total_entries
 
-    @most_interactions = @entries.order(total_count: :desc).limit(12)
+    @most_interactions = @entries.order(total_count: :desc).limit(20)
 
     @title_entries = @tag.title_list_entries
     @title_chart_entries = @title_entries.group_by_day(:published_at)
@@ -38,7 +38,7 @@ class TagController < ApplicationController
     @site_counts = @entries.group('sites.name').count('*')
     @site_sums = @entries.group('sites.name').sum(:total_count)
 
-    @tags = @entries.tag_counts_on(:tags).order('count desc').limit(50)
+    @tags = @entries.tag_counts_on(:tags).where.not(id: @tag.id).order('count desc').limit(50)
 
     @tags_interactions = Entry.joins(:tags)
                               .where(id: @entries.select(:id), tags: { id: @tags.map(&:id) })
