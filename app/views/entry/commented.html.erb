@@ -1,58 +1,258 @@
-<header class="bg-white shadow-sm">
-  <div class="mx-auto px-4 py-4 sm:px-6 lg:px-8">
-    <h1 class="text-lg font-semibold leading-6 text-gray-900">Noticias Más Comentadas</h1>
+<% content_for :extra_stylesheets do %>
+  <style>
+    /* Hide scrollbars but keep functionality */
+    .scrollbar-hide::-webkit-scrollbar {
+      display: none;
+    }
+    .scrollbar-hide {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Smooth scroll behavior */
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 4rem;
+    }
+
+    /* Ensure sticky nav stays on top */
+    html, body {
+      overflow-x: hidden;
+      overflow-y: auto;
+      height: 100%;
+    }
+
+    #commented-nav {
+      position: sticky;
+      position: -webkit-sticky;
+      top: 0;
+      z-index: 9999;
+      background: white;
+      width: 100%;
+    }
+
+    /* Lower z-index for charts */
+    .chart-container,
+    .highcharts-container {
+      position: relative;
+      z-index: 1 !important;
+    }
+  </style>
+<% end %>
+
+<!-- Page Header -->
+<header class="bg-white shadow-sm border-b border-gray-200">
+  <div class="mx-auto px-4 py-6 sm:px-6 lg:px-8">
+    <div class="md:flex md:items-center md:justify-between">
+      <div class="flex-1 min-w-0">
+        <h1 class="text-3xl font-bold text-gray-900 tracking-tight">
+          Noticias Más Comentadas
+        </h1>
+        <p class="mt-1 text-sm text-gray-600">
+          Análisis de las <%= @entries.count %> noticias con más comentarios de las últimas 24 horas
+        </p>
+      </div>
+      <div class="mt-4 flex space-x-3 md:mt-0 md:ml-4">
+        <span class="inline-flex items-center rounded-full bg-purple-100 px-3 py-0.5 text-xs font-medium text-purple-800" role="status" aria-label="<%= @entries.count %> noticias comentadas">
+          <svg class="-ml-1 mr-1.5 h-2 w-2 text-purple-400" fill="currentColor" viewBox="0 0 8 8" aria-hidden="true">
+            <circle cx="4" cy="4" r="3" />
+          </svg>
+          <%= @entries.count %> Noticias
+        </span>
+        <span class="inline-flex items-center rounded-full bg-green-100 px-3 py-0.5 text-xs font-medium text-green-800" role="status" aria-label="Últimas 24 horas">
+          <svg class="-ml-1 mr-1.5 h-2 w-2 text-green-400" fill="currentColor" viewBox="0 0 8 8" aria-hidden="true">
+            <circle cx="4" cy="4" r="3" />
+          </svg>
+          24 Horas
+        </span>
+      </div>
+    </div>
   </div>
 </header>
-<main>
-  <div class="mx-auto sm:px-6 lg:px-8">
-    <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8  lg:px-8">
-      <h2  class="text-2xl font-bold tracking-tight text-gray-900">Análisis de Palabras:</h2>
-      <%= render partial: "tag/tag_pill_array", collection: @word_occurrences %>
-      <p><small class="text-muted px-1">*Cantidad de veces que aparecen las palabras en las notas</small></p>
+
+<!-- Sticky Navigation -->
+<nav id="commented-nav" class="bg-white border-b border-gray-200 shadow-sm">
+  <div class="mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-12">
+      <div class="flex items-center space-x-1 overflow-x-auto scrollbar-hide">
+        <a href="#palabras" data-turbo="false" class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-purple-600 hover:bg-purple-50 rounded-md transition-colors whitespace-nowrap" aria-label="Ir a análisis de palabras">
+          <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+            <path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 715 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clip-rule="evenodd" />
+          </svg>
+          Palabras
+        </a>
+        <a href="#bigramas" data-turbo="false" class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-purple-600 hover:bg-purple-50 rounded-md transition-colors whitespace-nowrap" aria-label="Ir a análisis de bigramas">
+          <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+            <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z" />
+            <path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z" />
+          </svg>
+          Bigramas
+        </a>
+        <a href="#graficos" data-turbo="false" class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-purple-600 hover:bg-purple-50 rounded-md transition-colors whitespace-nowrap" aria-label="Ir a gráficos de análisis">
+          <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+            <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+          </svg>
+          Gráficos
+        </a>
+        <a href="#etiquetas" data-turbo="false" class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-purple-600 hover:bg-purple-50 rounded-md transition-colors whitespace-nowrap" aria-label="Ir a etiquetas">
+          <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+            <path fill-rule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+          </svg>
+          Etiquetas
+        </a>
+        <a href="#noticias" data-turbo="false" class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-purple-600 hover:bg-purple-50 rounded-md transition-colors whitespace-nowrap" aria-label="Ir a noticias comentadas">
+          <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+            <path fill-rule="evenodd" d="M2 5a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 002 2H4a2 2 0 01-2-2V5zm3 1h6v4H5V6zm6 6H5v2h6v-2z" clip-rule="evenodd" />
+            <path d="M15 7h1a2 2 0 012 2v5.5a1.5 1.5 0 01-3 0V7z" />
+          </svg>
+          Noticias
+        </a>
+      </div>
+      <a id="backToTop" class="ml-4 inline-flex items-center px-3 py-2 text-sm font-medium text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-md transition-colors cursor-pointer whitespace-nowrap" aria-label="Volver arriba">
+        <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+          <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd" />
+        </svg>
+        Arriba
+      </a>
     </div>
-    <%# <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8  lg:px-8"> %>
-      <%# <h2 class="text-2xl font-bold tracking-tight text-gray-900">Análisis de Bigramas:</h2> %>
-      <%#= render partial: "tag/tag_pill_array", collection: @bigram_occurrences %>
-      <%# <p><small class="text-muted px-1">*Cantidad de veces que aparecen bigramas en las notas</small></p> %>
-    <%# </div> %>
-    <h2 class="text-2xl font-bold tracking-tight text-gray-900">Análisis de notas populares 24Hrs..</h2>
-    <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
-      <div class="chart-container">
-        <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
-          <h3 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Notas por medio</h3>
-          <%= pie_chart @entries_for_grouping.group("sites.name").count, donut: true %>
+  </div>
+</nav>
+
+<main class="bg-gray-50 min-h-screen">
+  <div class="mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    
+    <!-- Word Analysis Section -->
+    <section id="palabras" class="mb-8 scroll-mt-16">
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">Análisis de Palabras</h2>
+        <div class="mb-4">
+          <%= render partial: "tag/tag_pill_array", collection: @word_occurrences %>
         </div>
-        <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
-          <h3 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Cantidad de Interacciones por medio</h3>
-          <%= pie_chart @entries_for_grouping.group("sites.name").sum(:total_count), donut: true %>
+        <p class="text-xs text-gray-500 italic">*Cantidad de veces que aparecen las palabras en las notas</p>
+      </div>
+    </section>
+
+    <!-- Bigram Analysis Section -->
+    <section id="bigramas" class="mb-8 scroll-mt-16">
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">Análisis de Bigramas</h2>
+        <div class="mb-4">
+          <%= render partial: "tag/tag_pill_array", collection: @bigram_occurrences %>
+        </div>
+        <p class="text-xs text-gray-500 italic">*Cantidad de veces que aparecen bigramas en las notas</p>
+      </div>
+    </section>
+
+    <!-- Charts Section -->
+    <section id="graficos" class="mb-8 scroll-mt-16">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">Análisis de Noticias Comentadas - 24 Horas</h2>
+      
+      <!-- Media Charts -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Cantidad de Notas por Medio</h3>
+          <div class="w-full overflow-hidden">
+            <%= pie_chart @entries_for_grouping.group("sites.name").count, donut: true %>
+          </div>
+        </div>
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Interacciones por Medio</h3>
+          <div class="w-full overflow-hidden">
+            <%= pie_chart @entries_for_grouping.group("sites.name").sum(:total_count), donut: true %>
+          </div>
         </div>
       </div>
-    </div>
-    <hr>
-    <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8 lg:px-8">
-      <div class="chart-container">
-        <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
-          <h3 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Apariciones Etiquetas</h3>
-          <%= pie_chart @tags_count, donut: true %>
+
+      <!-- Tag Charts -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Apariciones de Etiquetas</h3>
+          <div class="w-full overflow-hidden">
+            <%= pie_chart @tags_count, donut: true %>
+          </div>
         </div>
-        <div class="w-full sm:w-1/2 overflow-hidden bg-white shadow sm:rounded-lg mb-4 sm:mb-0">
-          <h3 class="text-xl mx-5 my-5 font-bold tracking-tight text-gray-900">Interacciones Etiquetas</h3>
-          <%= pie_chart @tags_interactions, donut: true %>
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Interacciones por Etiqueta</h3>
+          <div class="w-full overflow-hidden">
+            <%= pie_chart @tags_interactions, donut: true %>
+          </div>
         </div>
       </div>
-    </div>
-    <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8  lg:px-8">
-      <h2 class="text-2xl font-bold tracking-tight text-gray-900">Apariciones Etiquetas</h2>
-      <%= render partial: "tag/tag_pill", collection: @tags %>
-      <p><small class="text-muted px-1">*Cantidad de veces que aparecen las etiquetas en las notas</small></p>
-    </div>
-    <hr>
-    <div class="mx-auto px-4 py-8 sm:px-6 sm:py-8  lg:px-8">
-      <h2 class="text-2xl font-bold tracking-tight text-gray-900">Interacciones Etiquetas</h2>
-      <%= render partial: "tag/tag_pill_interactions", collection: @tags.to_a.sort_by(&:interactions).reverse %>
-      <p><small class="text-muted px-1">*Interacciones en las notas</small></p>
-    </div>
-    <hr>
-    <%= render partial: 'entry/entries', locals: { last_entries: @entries, title: 'Últimas Noticias Populares' } %>
+    </section>
+
+    <!-- Tag Appearances Section -->
+    <section id="etiquetas" class="mb-8 scroll-mt-16">
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-2xl font-bold text-gray-900">Apariciones de Etiquetas</h2>
+          <span class="inline-flex items-center rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-800">
+            <svg class="-ml-0.5 mr-1.5 h-2 w-2 text-purple-400" fill="currentColor" viewBox="0 0 8 8" aria-hidden="true">
+              <circle cx="4" cy="4" r="3" />
+            </svg>
+            De tus temas
+          </span>
+        </div>
+        <div class="mb-4">
+          <%= render partial: "tag/tag_pill", collection: @tags %>
+        </div>
+        <p class="text-xs text-gray-500 italic">*Cantidad de veces que las etiquetas de tus temas aparecen en las notas comentadas</p>
+      </div>
+    </section>
+
+    <!-- Tag Interactions Section -->
+    <section class="mb-8">
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-2xl font-bold text-gray-900">Interacciones por Etiqueta</h2>
+          <span class="inline-flex items-center rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-800">
+            <svg class="-ml-0.5 mr-1.5 h-2 w-2 text-purple-400" fill="currentColor" viewBox="0 0 8 8" aria-hidden="true">
+              <circle cx="4" cy="4" r="3" />
+            </svg>
+            De tus temas
+          </span>
+        </div>
+        <div class="mb-4">
+          <%= render partial: "tag/tag_pill_interactions", collection: @tags.to_a.sort_by(&:interactions).reverse %>
+        </div>
+        <p class="text-xs text-gray-500 italic">*Total de interacciones en las notas comentadas con etiquetas de tus temas</p>
+      </div>
+    </section>
+
+    <!-- Commented News Section -->
+    <section id="noticias" class="scroll-mt-16">
+      <%= render partial: 'entry/entries', locals: { last_entries: @entries, title: 'Noticias Más Comentadas' } %>
+    </section>
+
   </div>
 </main>
+
+<script>
+  // Back to Top functionality - works with Turbo
+  function initBackToTop() {
+    const backToTopBtn = document.getElementById('backToTop');
+    if (!backToTopBtn) return;
+    
+    // Prevent multiple initializations
+    if (backToTopBtn.dataset.initialized === 'true') return;
+    backToTopBtn.dataset.initialized = 'true';
+    
+    backToTopBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Scroll to top with cross-browser compatibility
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    });
+  }
+  
+  // Initialize on DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initBackToTop);
+  } else {
+    initBackToTop();
+  }
+  
+  // Re-initialize on Turbo navigation
+  document.addEventListener('turbo:load', initBackToTop);
+</script>

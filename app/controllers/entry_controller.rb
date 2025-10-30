@@ -12,7 +12,13 @@ class EntryController < ApplicationController
     @entries = Entry.enabled.joins(:site).where(total_count: 1..).a_day_ago.order(total_count: :desc).limit(50)
     # Separate query for grouping operations to avoid MySQL strict mode issues
     @entries_for_grouping = Entry.enabled.joins(:site).where(total_count: 1..).a_day_ago
-    @tags = @entries.tag_counts_on(:tags).order(count: :desc)
+    
+    # Get all tags from user's topics
+    user_topic_tags = @topicos.flat_map(&:tags).uniq
+    user_topic_tag_names = user_topic_tags.map(&:name)
+    
+    # Filter tags to only show those from user's topics
+    @tags = @entries.tag_counts_on(:tags).select { |tag| user_topic_tag_names.include?(tag.name) }.sort_by(&:count).reverse
 
     # Cosas nuevas
     @word_occurrences = @entries.word_occurrences
@@ -52,7 +58,16 @@ class EntryController < ApplicationController
     # Separate query for grouping operations to avoid MySQL strict mode issues
     @entries_for_grouping = Entry.enabled.joins(:site).a_day_ago.where.not(image_url: nil)
 
-    @tags = @entries.tag_counts_on(:tags).order(count: :desc)
+    # Get all tags from user's topics
+    user_topic_tags = @topicos.flat_map(&:tags).uniq
+    user_topic_tag_names = user_topic_tags.map(&:name)
+    
+    # Filter tags to only show those from user's topics
+    @tags = @entries.tag_counts_on(:tags).select { |tag| user_topic_tag_names.include?(tag.name) }.sort_by(&:count).reverse
+
+    # Cosas nuevas
+    @word_occurrences = @entries.word_occurrences
+    @bigram_occurrences = @entries.bigram_occurrences
 
     @tags_interactions =
       Rails.cache.fetch('tags_interactions_commented', expires_in: 1.hour) do
