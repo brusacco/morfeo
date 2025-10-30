@@ -1,3 +1,46 @@
+<% content_for :extra_stylesheets do %>
+  <style>
+    /* Hide scrollbars but keep functionality */
+    .scrollbar-hide::-webkit-scrollbar {
+      display: none;
+    }
+    .scrollbar-hide {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Smooth scroll behavior */
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 4rem;
+    }
+
+    /* Ensure sticky nav stays on top */
+    html, body {
+      overflow-x: hidden;
+      overflow-y: auto;
+      height: 100%;
+    }
+
+    #home-nav {
+      position: sticky;
+      position: -webkit-sticky;
+      top: 0;
+      z-index: 9999;
+      background: white;
+      width: 100%;
+    }
+
+    /* Lower z-index for charts */
+    .chart-container,
+    .highcharts-container,
+    [data-controller="entries-chart"] {
+      position: relative;
+      z-index: 1 !important;
+    }
+  </style>
+<% end %>
+
 <!-- User Dashboard Header -->
 <header class="bg-white shadow-sm border-b border-gray-200">
   <div class="mx-auto px-4 py-6 sm:px-6 lg:px-8">
@@ -11,14 +54,14 @@
         </p>
       </div>
       <div class="mt-4 flex space-x-3 md:mt-0 md:ml-4">
-        <span class="inline-flex items-center rounded-full bg-blue-100 px-3 py-0.5 text-xs font-medium text-blue-800">
-          <svg class="-ml-1 mr-1.5 h-2 w-2 text-blue-400" fill="currentColor" viewBox="0 0 8 8">
+        <span class="inline-flex items-center rounded-full bg-blue-100 px-3 py-0.5 text-xs font-medium text-blue-800" role="status" aria-label="<%= @topicos.count %> temas activos bajo monitoreo">
+          <svg class="-ml-1 mr-1.5 h-2 w-2 text-blue-400" fill="currentColor" viewBox="0 0 8 8" aria-hidden="true">
             <circle cx="4" cy="4" r="3" />
           </svg>
           <%= @topicos.count %> Temas Activos
         </span>
-        <span class="inline-flex items-center rounded-full bg-green-100 px-3 py-0.5 text-xs font-medium text-green-800">
-          <svg class="-ml-1 mr-1.5 h-2 w-2 text-green-400" fill="currentColor" viewBox="0 0 8 8">
+        <span class="inline-flex items-center rounded-full bg-green-100 px-3 py-0.5 text-xs font-medium text-green-800" role="status" aria-label="Datos actualizados">
+          <svg class="-ml-1 mr-1.5 h-2 w-2 text-green-400" fill="currentColor" viewBox="0 0 8 8" aria-hidden="true">
             <circle cx="4" cy="4" r="3" />
           </svg>
           Actualizado
@@ -27,13 +70,98 @@
     </div>
   </div>
 </header>
+
+<!-- Sticky Navigation -->
+<nav id="home-nav" class="bg-white border-b border-gray-200 shadow-sm">
+  <div class="mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-12">
+      <div class="flex items-center space-x-1 overflow-x-auto scrollbar-hide">
+        <a href="#resumen" data-turbo="false" class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap" aria-label="Ir a resumen de 24 horas">
+          <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+            <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+          </svg>
+          Resumen 24h
+        </a>
+        <a href="#rendimiento" data-turbo="false" class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap" aria-label="Ir a rendimiento de temas">
+          <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+            <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd" />
+          </svg>
+          Rendimiento
+        </a>
+        <a href="#tendencias" data-turbo="false" class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap" aria-label="Ir a tendencias generales">
+          <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+            <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+          </svg>
+          Tendencias
+        </a>
+        <a href="#sentimiento" data-turbo="false" class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap" aria-label="Ir a análisis de sentimiento">
+          <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 100-2 1 1 0 000 2zm7-1a1 1 0 11-2 0 1 1 0 012 0zm-.464 5.535a1 1 0 10-1.415-1.414 3 3 0 01-4.242 0 1 1 0 00-1.415 1.414 5 5 0 007.072 0z" clip-rule="evenodd" />
+          </svg>
+          Sentimiento
+        </a>
+        <a href="#palabras" data-turbo="false" class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap" aria-label="Ir a palabras clave trending">
+          <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+            <path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 715 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clip-rule="evenodd" />
+          </svg>
+          Palabras Clave
+        </a>
+        <a href="#noticias" data-turbo="false" class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap" aria-label="Ir a últimas noticias">
+          <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+            <path fill-rule="evenodd" d="M2 5a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 002 2H4a2 2 0 01-2-2V5zm3 1h6v4H5V6zm6 6H5v2h6v-2z" clip-rule="evenodd" />
+            <path d="M15 7h1a2 2 0 012 2v5.5a1.5 1.5 0 01-3 0V7z" />
+          </svg>
+          Noticias
+        </a>
+      </div>
+      <a id="backToTop" class="ml-4 inline-flex items-center px-3 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-md transition-colors cursor-pointer whitespace-nowrap" aria-label="Volver arriba">
+        <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+          <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd" />
+        </svg>
+        Arriba
+      </a>
+    </div>
+  </div>
+</nav>
+
 <main class="bg-gray-50 min-h-screen">
   <div class="mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    
+    <% if @entry_quantities.all? { |topic_data| topic_data[:data].empty? } %>
+      <!-- Data Missing Alert -->
+      <div class="mb-8 rounded-lg bg-yellow-50 border-l-4 border-yellow-400 p-6 shadow-sm">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <svg class="h-6 w-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+              <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div class="ml-3">
+            <h3 class="text-sm font-medium text-yellow-800">Datos estadísticos no disponibles</h3>
+            <div class="mt-2 text-sm text-yellow-700">
+              <p>
+                Las estadísticas del dashboard no están generadas. Para generar los datos, ejecuta el siguiente comando en el servidor:
+              </p>
+              <code class="mt-2 block bg-yellow-100 px-3 py-2 rounded font-mono text-xs">
+                rails topic_stat_daily
+              </code>
+              <p class="mt-2">
+                Este proceso calculará las estadísticas de los últimos <%= DAYS_RANGE %> días para todos tus temas activos.
+              </p>
+              <p class="mt-2 text-xs">
+                <strong>Nota:</strong> Este comando se puede automatizar mediante <%= link_to 'whenever gem', 'https://github.com/javan/whenever', target: '_blank', class: 'underline' %> para ejecutarse periódicamente.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+    
     <!-- Your Topics Overview Section -->
-    <section class="mb-8">
+    <section id="resumen" class="mb-8 scroll-mt-16">
       <h2 class="text-2xl font-bold text-gray-900 mb-6">Resumen de tus Temas - Últimas 24 Horas</h2>
       <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow border border-gray-200 hover:shadow-md transition-shadow">
+        <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow border border-gray-200 hover:shadow-lg hover:border-indigo-200 transition-all duration-200">
           <dt class="truncate text-sm font-medium text-gray-500">Nuevas Menciones</dt>
           <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">
             <%= number_with_delimiter(@notas_ultimo_dia_topico.values.sum, delimiter: ".") %>
@@ -52,7 +180,7 @@
             <% end %>
           </div>
         </div>
-        <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow border border-gray-200 hover:shadow-md transition-shadow">
+        <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow border border-gray-200 hover:shadow-lg hover:border-indigo-200 transition-all duration-200">
           <dt class="truncate text-sm font-medium text-gray-500">Total de Interacciones</dt>
           <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">
             <%= number_with_delimiter(@interacciones_ultimo_dia_topico.values.sum, delimiter: ".") %>
@@ -64,7 +192,7 @@
             Alcance total
           </div>
         </div>
-        <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow border border-gray-200 hover:shadow-md transition-shadow">
+        <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow border border-gray-200 hover:shadow-lg hover:border-indigo-200 transition-all duration-200">
           <dt class="truncate text-sm font-medium text-gray-500">Tema Más Activo</dt>
           <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">
             <%= @notas_ultimo_dia_topico.keys.first || "N/A" %>
@@ -76,7 +204,7 @@
             <%= @notas_ultimo_dia_topico.values.first || 0 %> menciones
           </div>
         </div>
-        <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow border border-gray-200 hover:shadow-md transition-shadow">
+        <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow border border-gray-200 hover:shadow-lg hover:border-indigo-200 transition-all duration-200">
           <dt class="truncate text-sm font-medium text-gray-500">Engagement Promedio</dt>
           <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">
             <%= @notas_ultimo_dia_topico.values.sum > 0 ? number_with_delimiter((@interacciones_ultimo_dia_topico.values.sum.to_f / @notas_ultimo_dia_topico.values.sum).round, delimiter: ".") : "0" %>
@@ -95,14 +223,14 @@
       <h2 class="text-2xl font-bold text-gray-900 mb-6">Acciones Rápidas</h2>
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <% @topicos.limit(3).each do |topic| %>
-          <div class="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm hover:shadow-md transition-shadow">
-            <%= link_to topic_path(topic), class: "focus:outline-none" do %>
+          <div class="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm hover:shadow-lg hover:border-indigo-300 transition-all duration-200">
+            <%= link_to topic_path(topic), class: "focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 rounded-lg", 'aria-label': "Ver análisis completo del tema #{topic.name}" do %>
               <span class="absolute inset-0" aria-hidden="true"></span>
               <div class="flex items-center justify-between">
                 <div class="flex items-center">
                   <div class="flex-shrink-0">
-                    <div class="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-lg">
-                      <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                    <div class="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
+                      <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                         <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
                       </svg>
                     </div>
@@ -112,7 +240,7 @@
                     <p class="text-sm text-gray-500">Ver análisis completo</p>
                   </div>
                 </div>
-                <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                <svg class="w-5 h-5 text-gray-400 group-hover:text-indigo-600 transition-colors" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                   <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
                 </svg>
               </div>
@@ -122,7 +250,7 @@
       </div>
     </section>
     <!-- My Topics Performance Section -->
-    <section class="mb-8">
+    <section id="rendimiento" class="mb-8 scroll-mt-16">
       <div class="flex items-center justify-between mb-6">
         <h2 class="text-2xl font-bold text-gray-900">Rendimiento de tus Temas (24h)</h2>
         <% if @topicos.count > 5 %>
@@ -131,7 +259,7 @@
       </div>
       <% if @notas_ultimo_dia_topico.any? %>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
-          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow w-full">
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-indigo-200 transition-all duration-200 w-full">
             <div class="flex items-center justify-between mb-4">
               <h3 class="text-lg font-medium text-gray-900">Menciones por Tema</h3>
               <div class="flex items-center text-sm text-gray-500">
@@ -152,7 +280,7 @@
                   } } %>
             </div>
           </div>
-          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow w-full">
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-indigo-200 transition-all duration-200 w-full">
             <div class="flex items-center justify-between mb-4">
               <h3 class="text-lg font-medium text-gray-900">Engagement por Tema</h3>
               <div class="flex items-center text-sm text-gray-500">
@@ -188,53 +316,103 @@
       <% end %>
     </section>
     <!-- Trending Overview Section -->
-    <section class="mb-8">
+    <section id="tendencias" class="mb-8 scroll-mt-16">
       <h2 class="text-2xl font-bold text-gray-900 mb-6">Tendencias Generales - Tus Temas</h2>
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div>
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Actividad General (<%=DAYS_RANGE%> días)</h3>
-            <div class='w-full overflow-hidden'
-              data-controller='entries-chart'
-              data-entries-chart-id-value='entryQuantitiesChart'
-              data-entries-chart-url-value='<%= entries_data_topics_path %>'>
-              <%= line_chart @entry_quantities, xtitle: "Fecha", ytitle: "Menciones", thousands: ".", curve: false, 
-                    adapter: 'highcharts', id: 'entryQuantitiesChart', colors: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'], library: {
-                    plotOptions: {
-                      series: {
-                        dataLabels: {
-                          enabled: false
-                        }
-                      }
-                    } } %>
-              <%= render partial: 'modal', locals: { graph_id: 'entryQuantitiesChart', controller_name: 'entries-chart' } %>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
+        <!-- Chart Card 1: Entry Quantities -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-indigo-200 transition-all duration-200 w-full">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-medium text-gray-900">Notas por Día</h3>
+            <div class="flex items-center text-sm text-gray-500">
+              <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+              </svg>
+              Últimos <%=DAYS_RANGE%> días
             </div>
           </div>
-          <div>
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Engagement Total</h3>
-            <div class='w-full overflow-hidden'
-              data-controller='entries-chart'
-              data-entries-chart-id-value='entryInteractionsChart'
-              data-entries-chart-url-value='<%= entries_data_topics_path %>'>
-              <%= line_chart @entry_interactions, xtitle: "Fecha", ytitle: "Interacciones", thousands: ".", curve: false, 
-                    adapter: 'highcharts', id: 'entryInteractionsChart', colors: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'], library: {
-                    plotOptions: {
-                      series: {
-                        dataLabels: {
-                          enabled: false
-                        }
+          <div class='w-full overflow-hidden'
+            data-controller='entries-chart'
+            data-entries-chart-id-value='entryQuantitiesChart'
+            data-entries-chart-url-value='<%= entries_data_topics_path %>'>
+            <%= column_chart @entry_quantities, xtitle: "Fecha", ytitle: "Cant. Notas", thousands: ".", curve: false, 
+                  adapter: 'highcharts', id: 'entryQuantitiesChart', colors: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#6366F1', '#14B8A6'], library: {
+                  chart: {
+                    type: 'column'
+                  },
+                  plotOptions: {
+                    column: {
+                      grouping: true,
+                      shadow: false,
+                      borderWidth: 0,
+                      dataLabels: {
+                        enabled: false
                       }
-                    } } %>
-              <%= render partial: 'modal', locals: { graph_id: 'entryInteractionsChart', controller_name: 'entries-chart' } %>
+                    }
+                  },
+                  legend: {
+                    enabled: true,
+                    align: 'center',
+                    verticalAlign: 'bottom',
+                    layout: 'horizontal'
+                  },
+                  tooltip: {
+                    shared: false,
+                    valueSuffix: ' notas'
+                  }
+                } %>
+            <%= render partial: 'modal', locals: { graph_id: 'entryQuantitiesChart', controller_name: 'entries-chart' } %>
+          </div>
+        </div>
+        <!-- Chart Card 2: Interactions -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-indigo-200 transition-all duration-200 w-full">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-medium text-gray-900">Interacciones por Día</h3>
+            <div class="flex items-center text-sm text-gray-500">
+              <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" />
+              </svg>
+              Total de interacciones
             </div>
+          </div>
+          <div class='w-full overflow-hidden'
+            data-controller='entries-chart'
+            data-entries-chart-id-value='entryInteractionsChart'
+            data-entries-chart-url-value='<%= entries_data_topics_path %>'>
+            <%= column_chart @entry_interactions, xtitle: "Fecha", ytitle: "Interacciones", thousands: ".", curve: false, 
+                  adapter: 'highcharts', id: 'entryInteractionsChart', colors: ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#6366F1', '#14B8A6'], library: {
+                  chart: {
+                    type: 'column'
+                  },
+                  plotOptions: {
+                    column: {
+                      grouping: true,
+                      shadow: false,
+                      borderWidth: 0,
+                      dataLabels: {
+                        enabled: false
+                      }
+                    }
+                  },
+                  legend: {
+                    enabled: true,
+                    align: 'center',
+                    verticalAlign: 'bottom',
+                    layout: 'horizontal'
+                  },
+                  tooltip: {
+                    shared: false,
+                    valueSuffix: ' interacciones'
+                  }
+                } %>
+            <%= render partial: 'modal', locals: { graph_id: 'entryInteractionsChart', controller_name: 'entries-chart' } %>
           </div>
         </div>
       </div>
     </section>
     <!-- Sentiment Overview Section -->
-    <section class="mb-8">
+    <section id="sentimiento" class="mb-8 scroll-mt-16">
       <h2 class="text-2xl font-bold text-gray-900 mb-6">Estado del Sentimiento - Tus Temas</h2>
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-indigo-200 transition-all duration-200">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <!-- Sentiment Summary -->
           <div>
@@ -347,9 +525,9 @@
       </div>
     </section>
     <!-- Key Insights Section -->
-    <section class="mb-8">
+    <section id="palabras" class="mb-8 scroll-mt-16">
       <h2 class="text-2xl font-bold text-gray-900 mb-6">Palabras Clave Trending</h2>
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-indigo-200 transition-all duration-200">
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-medium text-gray-900">Términos Más Mencionados</h3>
           <div class="flex items-center text-sm text-gray-500">
@@ -413,12 +591,12 @@
       </div>
     </section>
     <!-- Latest News Section -->
-    <section class="mb-8">
+    <section id="noticias" class="mb-8 scroll-mt-16">
       <h2 class="text-2xl font-bold text-gray-900 mb-6">Últimas Noticias por Tema</h2>
       <div class="space-y-8">
         <% @topicos.each do |topic| %>
           <% next if topic.list_entries.empty? %>
-          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-indigo-200 transition-all duration-200">
             <h3 class="text-xl font-bold tracking-tight text-gray-900 mb-6"><%= topic.name %></h3>
             <div class="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
               <%= render partial: 'entry/entry', collection: topic.list_entries.limit(12), as: :entry, cached: true %>
@@ -430,3 +608,34 @@
   </div>
 </div>
 </main>
+
+<script>
+  // Back to Top functionality - works with Turbo
+  function initBackToTop() {
+    const backToTopBtn = document.getElementById('backToTop');
+    if (!backToTopBtn) return;
+    
+    // Prevent multiple initializations
+    if (backToTopBtn.dataset.initialized === 'true') return;
+    backToTopBtn.dataset.initialized = 'true';
+    
+    backToTopBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Scroll to top with cross-browser compatibility
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    });
+  }
+  
+  // Initialize on DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initBackToTop);
+  } else {
+    initBackToTop();
+  }
+  
+  // Re-initialize on Turbo navigation
+  document.addEventListener('turbo:load', initBackToTop);
+</script>
