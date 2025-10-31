@@ -445,12 +445,64 @@
                         <%= post.message.to_s.truncate(80) %>
                         <i class="fa-solid fa-external-link text-xs ml-1"></i>
                       <% end %>
-                      <div class="flex items-center justify-between text-xs">
+                      <div class="flex items-center justify-between text-xs mb-2">
                         <span class="text-gray-600"><%= post.page.name %></span>
                         <span class="font-bold text-green-700">
                           <%= sentiment_emoji(post.sentiment_score) %>
                           <%= number_with_precision(post.sentiment_score, precision: 1) %>
                         </span>
+                      </div>
+                      <!-- Reaction Breakdown -->
+                      <div class="pt-2 border-t border-green-100">
+                        <div class="flex items-center justify-between text-xs text-gray-600">
+                          <div class="flex items-center gap-2 flex-wrap">
+                            <% if post.reactions_love_count > 0 %>
+                              <span class="inline-flex items-center gap-1">
+                                <span>❤️</span>
+                                <span class="font-medium"><%= post.reactions_love_count %></span>
+                              </span>
+                            <% end %>
+                            <% if post.reactions_haha_count > 0 %>
+                              <span class="inline-flex items-center gap-1">
+                                <span>😂</span>
+                                <span class="font-medium"><%= post.reactions_haha_count %></span>
+                              </span>
+                            <% end %>
+                            <% if post.reactions_like_count > 0 %>
+                              <span class="inline-flex items-center gap-1">
+                                <span>👍</span>
+                                <span class="font-medium"><%= post.reactions_like_count %></span>
+                              </span>
+                            <% end %>
+                            <% if post.reactions_wow_count > 0 %>
+                              <span class="inline-flex items-center gap-1">
+                                <span>😮</span>
+                                <span class="font-medium"><%= post.reactions_wow_count %></span>
+                              </span>
+                            <% end %>
+                            <% if post.reactions_thankful_count > 0 %>
+                              <span class="inline-flex items-center gap-1">
+                                <span>🙏</span>
+                                <span class="font-medium"><%= post.reactions_thankful_count %></span>
+                              </span>
+                            <% end %>
+                            <% if post.reactions_sad_count > 0 %>
+                              <span class="inline-flex items-center gap-1 text-gray-500">
+                                <span>😢</span>
+                                <span class="font-medium"><%= post.reactions_sad_count %></span>
+                              </span>
+                            <% end %>
+                            <% if post.reactions_angry_count > 0 %>
+                              <span class="inline-flex items-center gap-1 text-gray-500">
+                                <span>😡</span>
+                                <span class="font-medium"><%= post.reactions_angry_count %></span>
+                              </span>
+                            <% end %>
+                          </div>
+                          <span class="text-gray-500">
+                            Total: <%= post.reactions_total_count %>
+                          </span>
+                        </div>
                       </div>
                     </div>
                   <% end %>
@@ -473,12 +525,64 @@
                         <%= post.message.to_s.truncate(80) %>
                         <i class="fa-solid fa-external-link text-xs ml-1"></i>
                       <% end %>
-                      <div class="flex items-center justify-between text-xs">
+                      <div class="flex items-center justify-between text-xs mb-2">
                         <span class="text-gray-600"><%= post.page.name %></span>
                         <span class="font-bold text-red-700">
                           <%= sentiment_emoji(post.sentiment_score) %>
                           <%= number_with_precision(post.sentiment_score, precision: 1) %>
                         </span>
+                      </div>
+                      <!-- Reaction Breakdown -->
+                      <div class="pt-2 border-t border-red-100">
+                        <div class="flex items-center justify-between text-xs text-gray-600">
+                          <div class="flex items-center gap-2 flex-wrap">
+                            <% if post.reactions_angry_count > 0 %>
+                              <span class="inline-flex items-center gap-1 text-red-600">
+                                <span>😡</span>
+                                <span class="font-semibold"><%= post.reactions_angry_count %></span>
+                              </span>
+                            <% end %>
+                            <% if post.reactions_sad_count > 0 %>
+                              <span class="inline-flex items-center gap-1 text-red-600">
+                                <span>😢</span>
+                                <span class="font-semibold"><%= post.reactions_sad_count %></span>
+                              </span>
+                            <% end %>
+                            <% if post.reactions_love_count > 0 %>
+                              <span class="inline-flex items-center gap-1 text-gray-500">
+                                <span>❤️</span>
+                                <span class="font-medium"><%= post.reactions_love_count %></span>
+                              </span>
+                            <% end %>
+                            <% if post.reactions_haha_count > 0 %>
+                              <span class="inline-flex items-center gap-1 text-gray-500">
+                                <span>😂</span>
+                                <span class="font-medium"><%= post.reactions_haha_count %></span>
+                              </span>
+                            <% end %>
+                            <% if post.reactions_like_count > 0 %>
+                              <span class="inline-flex items-center gap-1 text-gray-500">
+                                <span>👍</span>
+                                <span class="font-medium"><%= post.reactions_like_count %></span>
+                              </span>
+                            <% end %>
+                            <% if post.reactions_wow_count > 0 %>
+                              <span class="inline-flex items-center gap-1 text-gray-500">
+                                <span>😮</span>
+                                <span class="font-medium"><%= post.reactions_wow_count %></span>
+                              </span>
+                            <% end %>
+                            <% if post.reactions_thankful_count > 0 %>
+                              <span class="inline-flex items-center gap-1 text-gray-500">
+                                <span>🙏</span>
+                                <span class="font-medium"><%= post.reactions_thankful_count %></span>
+                              </span>
+                            <% end %>
+                          </div>
+                          <span class="text-gray-500">
+                            Total: <%= post.reactions_total_count %>
+                          </span>
+                        </div>
                       </div>
                     </div>
                   <% end %>
