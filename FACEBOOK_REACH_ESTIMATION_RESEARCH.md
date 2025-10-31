@@ -3,6 +3,7 @@
 ## 📊 Current Implementation Analysis
 
 ### Current Formula (Basic)
+
 ```ruby
 # app/models/facebook_entry.rb (lines 152-160)
 def estimated_views
@@ -16,6 +17,7 @@ end
 ```
 
 **Issues:**
+
 - ❌ No academic backing
 - ❌ Fixed multipliers don't account for content type
 - ❌ Doesn't consider temporal decay
@@ -29,14 +31,15 @@ end
 
 ### 1. **Facebook Organic Reach Statistics (2024)**
 
-| Metric | Industry Benchmark | Source |
-|--------|-------------------|---------|
-| **Average Organic Reach** | 2-5% of page followers | Meta Business Suite |
-| **Engagement Rate** | 0.08-0.15% avg | Sprout Social 2024 |
-| **Reach-to-Engagement Ratio** | 10:1 to 20:1 | Locowise 2023 |
-| **Video Reach Multiplier** | 1.35x higher | MDPI Research 2023 |
+| Metric                        | Industry Benchmark     | Source              |
+| ----------------------------- | ---------------------- | ------------------- |
+| **Average Organic Reach**     | 2-5% of page followers | Meta Business Suite |
+| **Engagement Rate**           | 0.08-0.15% avg         | Sprout Social 2024  |
+| **Reach-to-Engagement Ratio** | 10:1 to 20:1           | Locowise 2023       |
+| **Video Reach Multiplier**    | 1.35x higher           | MDPI Research 2023  |
 
 **Key Finding:**
+
 > "Video posts generate 454.38 more interactions on average compared to link posts"
 > — MDPI, Social Media Analytics and Metrics (2023)
 
@@ -51,13 +54,15 @@ Facebook's algorithm considers:
 3. **Time Decay** (Content freshness)
 
 **Formula:**
+
 ```
 EdgeRank = Affinity × Weight × Time Decay
 ```
 
 **Weight Hierarchy (Research-Backed):**
+
 - **Share**: 80-120 reach points (highest)
-- **Comment**: 30-50 reach points  
+- **Comment**: 30-50 reach points
 - **Reaction (Love/Haha/Wow)**: 20-30 reach points
 - **Reaction (Like)**: 10-15 reach points
 - **Click**: 8-12 reach points
@@ -68,13 +73,13 @@ EdgeRank = Affinity × Weight × Time Decay
 
 ### 3. **Content Type Impact on Reach**
 
-| Content Type | Reach Multiplier | Engagement Multiplier |
-|--------------|------------------|----------------------|
-| **Video** | 1.35x | 2.8x |
-| **Photo** | 1.0x (baseline) | 1.0x |
-| **Link** | 0.65x | 0.45x |
-| **Text only** | 0.75x | 0.6x |
-| **Album** | 1.15x | 1.3x |
+| Content Type  | Reach Multiplier | Engagement Multiplier |
+| ------------- | ---------------- | --------------------- |
+| **Video**     | 1.35x            | 2.8x                  |
+| **Photo**     | 1.0x (baseline)  | 1.0x                  |
+| **Link**      | 0.65x            | 0.45x                 |
+| **Text only** | 0.75x            | 0.6x                  |
+| **Album**     | 1.15x            | 1.3x                  |
 
 > Source: Meta Business Analysis & MDPI Research (2023)
 
@@ -91,6 +96,7 @@ where α = 0.8 to 1.2 (decay rate)
 ```
 
 **Half-Life by Content Type:**
+
 - Video: 24-48 hours
 - Photo: 18-24 hours
 - Link: 6-12 hours
@@ -118,6 +124,7 @@ Viral_Reach = (
 ```
 
 **Where:**
+
 - `Organic_Reach_Rate`: 0.02 to 0.05 (2-5%)
 - `Strong_Reactions`: Love, Haha, Wow, Sad, Angry
 - `Weak_Reactions`: Like, Thankful
@@ -135,24 +142,24 @@ def estimated_reach_professional
   followers = page&.followers || 0
   shares = share_count || 0
   comments = comments_count || 0
-  
+
   # Separate reactions by strength
   strong_reactions = (
-    reactions_love_count + reactions_haha_count + 
-    reactions_wow_count + reactions_sad_count + 
+    reactions_love_count + reactions_haha_count +
+    reactions_wow_count + reactions_sad_count +
     reactions_angry_count
   )
   weak_reactions = reactions_like_count + reactions_thankful_count
-  
+
   total_engagement = shares + comments + strong_reactions + weak_reactions
-  
+
   # 1. Base Organic Reach (2-5% of followers)
   organic_reach_rate = calculate_organic_reach_rate(followers)
   base_reach = followers * organic_reach_rate
-  
+
   # 2. Content Type Multiplier
   content_multiplier = content_type_reach_multiplier
-  
+
   # 3. Viral Reach (from engagement)
   viral_reach = (
     (shares * 120) +              # Shares have highest impact
@@ -160,21 +167,21 @@ def estimated_reach_professional
     (strong_reactions * 25) +     # Strong reactions = higher visibility
     (weak_reactions * 12)         # Weak reactions = lower visibility
   )
-  
+
   # 4. Virality Factor (engagement quality)
   engagement_rate = followers > 0 ? (total_engagement.to_f / followers) : 0
   virality_factor = calculate_virality_factor(engagement_rate)
-  
+
   # 5. Time Decay
   time_decay = calculate_time_decay
-  
+
   # Final calculation
   estimated_reach = (
-    (base_reach + (viral_reach * virality_factor)) * 
-    content_multiplier * 
+    (base_reach + (viral_reach * virality_factor)) *
+    content_multiplier *
     time_decay
   ).round
-  
+
   # Return reach (unique users)
   estimated_reach
 end
@@ -231,7 +238,7 @@ def calculate_time_decay
   # Posts continue to get views over time
   # Most views happen in first 24-48 hours
   hours_since_post = ((Time.current - posted_at) / 1.hour).round
-  
+
   case attachment_type
   when 'video_autoplay', 'video_inline'
     # Videos have longer half-life (48 hours)
@@ -255,10 +262,10 @@ For a simpler implementation:
 ```ruby
 def estimated_reach_simplified
   followers = page&.followers || 0
-  
+
   # 1. Base reach (3% avg organic reach)
   base_reach = followers * 0.03
-  
+
   # 2. Engagement-driven reach (research-backed multipliers)
   engagement_reach = (
     (share_count * 100) +                    # Each share reaches ~100 people
@@ -266,7 +273,7 @@ def estimated_reach_simplified
     ((reactions_total_count - reactions_like_count) * 20) +  # Strong reactions
     (reactions_like_count * 10)              # Likes reach ~10 people
   )
-  
+
   # 3. Content type multiplier
   multiplier = case attachment_type
                when /video/ then 1.35
@@ -274,7 +281,7 @@ def estimated_reach_simplified
                when 'photo' then 1.0
                else 0.7
                end
-  
+
   ((base_reach + engagement_reach) * multiplier).round
 end
 ```
@@ -287,6 +294,7 @@ end
 **Views/Impressions** = Total times the post was displayed (includes repeats)
 
 **Industry Average:**
+
 ```
 Views = Reach × 1.15 to 1.3
 ```
@@ -294,6 +302,7 @@ Views = Reach × 1.15 to 1.3
 Most users see a post once, but some see it multiple times (feed refreshes, shared by multiple friends, etc.)
 
 **Recommended:**
+
 ```ruby
 def estimated_views
   estimated_reach_professional * 1.2  # 20% repeat views
@@ -308,12 +317,12 @@ end
 
 ## 🔬 Validation & Confidence Intervals
 
-Since we're *estimating*, we should provide confidence levels:
+Since we're _estimating_, we should provide confidence levels:
 
 ```ruby
 def reach_confidence_level
   engagement_count = total_interactions
-  
+
   case engagement_count
   when 0...10
     :very_low      # < 10 interactions: wild guess
@@ -346,17 +355,18 @@ end
 ### Example Post Analysis
 
 **Post Details:**
+
 - Followers: 50,000
 - Likes: 100
 - Comments: 20
 - Shares: 10
 - Type: Video
 
-| Model | Calculation | Estimated Reach |
-|-------|-------------|-----------------|
-| **Current** | `(100×15) + (20×40) + (10×80) + (50000×0.04)` | **4,300** |
-| **Proposed (Simplified)** | `Base: 1,500 + Engagement: 2,550 × Video: 1.35` | **5,468** |
-| **Proposed (Full)** | `Base: 1,500 + Viral: 3,200 × 1.35 × 0.95` | **6,021** |
+| Model                     | Calculation                                     | Estimated Reach |
+| ------------------------- | ----------------------------------------------- | --------------- |
+| **Current**               | `(100×15) + (20×40) + (10×80) + (50000×0.04)`   | **4,300**       |
+| **Proposed (Simplified)** | `Base: 1,500 + Engagement: 2,550 × Video: 1.35` | **5,468**       |
+| **Proposed (Full)**       | `Base: 1,500 + Viral: 3,200 × 1.35 × 0.95`      | **6,021**       |
 
 **Industry Benchmark** (3-5% of 50k = 1,500-2,500 base + viral lift):
 Expected range: **4,500 - 7,500** ✅
@@ -387,18 +397,21 @@ Expected range: **4,500 - 7,500** ✅
 ## 🎯 Recommended Implementation Strategy
 
 ### Phase 1: Enhanced Formula (Immediate)
+
 1. ✅ Implement simplified research-based model
 2. ✅ Add content type multipliers
 3. ✅ Separate strong/weak reactions
 4. ✅ Add confidence indicators
 
 ### Phase 2: Advanced Analytics (Future)
+
 1. ⏳ Add temporal decay functions
 2. ⏳ Implement virality factors
 3. ⏳ Track actual reach data (if API available)
 4. ⏳ Machine learning model based on historical data
 
 ### Phase 3: Validation (Ongoing)
+
 1. ⏳ Compare estimates with actual reach (Meta Business Suite)
 2. ⏳ Adjust multipliers based on your specific data
 3. ⏳ A/B test different formulas
@@ -425,16 +438,19 @@ Expected range: **4,500 - 7,500** ✅
 ## 💡 Key Takeaway
 
 **Current Formula:**
+
 ```ruby
 (likes * 15) + (comments * 40) + (shares * 80) + (followers * 0.04)
 ```
+
 ❌ No research backing, treats all content equally
 
 **Proposed Formula:**
+
 ```ruby
 (Base_Reach + Viral_Reach) × Content_Multiplier × Time_Decay
 ```
+
 ✅ Research-backed, content-aware, temporally adjusted
 
 **Improvement:** More accurate, more transparent, academically sound! 🎯
-
