@@ -139,3 +139,18 @@ div[id*="highcharts-"],
 [data-highcharts-chart] {
   z-index: 1 !important;
 }
+
+/* Alpine.js cloak - prevents flash of unstyled content */
+[x-cloak] {
+  display: none !important;
+}
+
+/* Ensure dropdowns are hidden by default until Alpine.js initializes */
+[x-show] {
+  display: none;
+}
+
+[x-show][style*="display: block"],
+[x-show][style*="display: flex"] {
+  display: revert;
+}
