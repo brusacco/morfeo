@@ -340,6 +340,23 @@
               <div class="text-5xl"><%= sentiment_emoji(@sentiment_summary[:average_sentiment]) %></div>
             </div>
             <p class="text-xs text-gray-500 mt-3">-2.0 (muy negativo) a +2.0 (muy positivo)</p>
+            <% if @sentiment_summary[:statistical_validity] %>
+              <% validity = @sentiment_summary[:statistical_validity] %>
+              <div class="mt-3 pt-3 border-t border-purple-200">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="text-gray-600">Confianza:</span>
+                  <span class="font-semibold <%= validity[:overall_confidence] > 0.7 ? 'text-green-600' : 'text-amber-600' %>">
+                    <%= (validity[:overall_confidence] * 100).round %>%
+                  </span>
+                </div>
+                <div class="flex items-center justify-between text-xs mt-1">
+                  <span class="text-gray-600">Reacciones:</span>
+                  <span class="font-semibold text-purple-600">
+                    <%= number_with_delimiter(validity[:total_reactions]) %>
+                  </span>
+                </div>
+              </div>
+            <% end %>
           </div>
           
           <!-- Trend -->

@@ -831,11 +831,17 @@ class Topic < ApplicationRecord
   # ============================================
 
   def facebook_sentiment_summary(start_time: DAYS_RANGE.days.ago, end_time: Time.zone.now)
-    Rails.cache.fetch("topic_#{id}_fb_sentiment_#{start_time.to_date}_#{end_time.to_date}", expires_in: 2.hours) do
+    Rails.cache.fetch("topic_#{id}_fb_sentiment_v2_#{start_time.to_date}_#{end_time.to_date}", expires_in: 2.hours) do
       entries = FacebookEntry.for_topic(self, start_time:, end_time:)
                             .where('reactions_total_count > 0')
       
       return nil if entries.empty?
+      
+      # Calculate statistical validity (load to array to avoid groupdate issues)
+      entries_array = entries.to_a
+      total_reactions = entries_array.sum(&:reactions_total_count)
+      total_posts = entries_array.size
+      significant_posts = entries_array.count { |e| e.statistically_significant? }
       
       {
         average_sentiment: entries.average(:sentiment_score).to_f.round(2),
@@ -854,7 +860,15 @@ class Topic < ApplicationRecord
                                    .limit(5),
         sentiment_over_time: sentiment_over_time(entries),
         reaction_breakdown: aggregate_reaction_breakdown(entries),
-        emotional_trends: emotional_intensity_analysis(entries)
+        emotional_trends: emotional_intensity_analysis(entries),
+        statistical_validity: {
+          total_posts: total_posts,
+          total_reactions: total_reactions,
+          avg_reactions_per_post: (total_reactions.to_f / total_posts).round(1),
+          statistically_significant_posts: significant_posts,
+          significance_percentage: (significant_posts.to_f / total_posts * 100).round(1),
+          overall_confidence: calculate_overall_confidence(entries)
+        }
       }
     end
   end
@@ -958,9 +972,21 @@ class Topic < ApplicationRecord
     
     {
       average_intensity: FacebookEntry.where(id: entry_ids).average(:emotional_intensity).to_f.round(2),
-      high_intensity_count: FacebookEntry.where(id: entry_ids).where('emotional_intensity > ?', 2.0).count,
-      low_intensity_count: FacebookEntry.where(id: entry_ids).where('emotional_intensity < ?', 0.5).count
+      high_intensity_count: FacebookEntry.where(id: entry_ids).where('emotional_intensity > ?', FacebookEntry::HIGH_EMOTION_THRESHOLD).count,
+      low_intensity_count: FacebookEntry.where(id: entry_ids).where('emotional_intensity < ?', 20.0).count
     }
+  end
+  
+  def calculate_overall_confidence(entries)
+    # Calculate weighted average confidence based on reaction counts
+    total_reactions = entries.sum(:reactions_total_count)
+    return 0.0 if total_reactions.zero?
+    
+    weighted_confidence = entries.sum do |entry|
+      entry.sentiment_confidence * entry.reactions_total_count
+    end
+    
+    (weighted_confidence / total_reactions).round(2)
   end
 
   private

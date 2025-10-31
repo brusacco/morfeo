@@ -51,7 +51,8 @@ class FacebookEntry < ApplicationRecord
   
   # Sentiment thresholds
   CONTROVERSY_THRESHOLD = 0.6  # Posts with >60% polarization
-  HIGH_EMOTION_THRESHOLD = 2.0  # Emotional reactions > 2x normal likes
+  HIGH_EMOTION_THRESHOLD = 50.0  # Emotional reactions > 50% of total
+  STATISTICAL_SIGNIFICANCE_THRESHOLD = 30  # Minimum reactions for statistical validity
 
   # Sentiment scopes
   scope :positive_sentiment, -> { where(sentiment_label: [:positive, :very_positive]) }
@@ -266,11 +267,15 @@ class FacebookEntry < ApplicationRecord
   end
   
   def calculate_emotional_intensity
+    # Calculate as percentage of total reactions (0-100 scale)
+    # More intuitive than ratio to likes
     intense_reactions = reactions_love_count + reactions_angry_count + 
                        reactions_sad_count + reactions_wow_count + 
                        reactions_thankful_count
     
-    (intense_reactions.to_f / ([reactions_like_count, 1].max)).round(4)
+    return 0.0 if reactions_total_count.zero?
+    
+    (intense_reactions.to_f / reactions_total_count * 100).round(2)
   end
   
   # Human-readable sentiment label with emoji
@@ -306,6 +311,63 @@ class FacebookEntry < ApplicationRecord
       'text-red-700 bg-red-50 border-red-200'
     else
       'text-gray-500 bg-gray-50 border-gray-200'
+    end
+  end
+  
+  # Statistical significance indicator
+  def statistically_significant?
+    reactions_total_count >= STATISTICAL_SIGNIFICANCE_THRESHOLD
+  end
+  
+  # Confidence level for sentiment score (0-1 scale)
+  # Based on Wilson score interval for binomial proportion
+  def sentiment_confidence
+    return 0.0 if reactions_total_count.zero?
+    
+    n = reactions_total_count
+    
+    # More reactions = higher confidence
+    # Using simplified confidence calculation
+    # 95% confidence level (z = 1.96)
+    confidence = 1.0 - (1.96 / Math.sqrt(n))
+    
+    # Ensure confidence is between 0 and 1
+    [[confidence, 0.0].max, 1.0].min.round(2)
+  end
+  
+  # Human-readable confidence level
+  def confidence_level
+    conf = sentiment_confidence
+    
+    case conf
+    when 0.0...0.3
+      :very_low
+    when 0.3...0.5
+      :low
+    when 0.5...0.7
+      :moderate
+    when 0.7...0.9
+      :good
+    else
+      :excellent
+    end
+  end
+  
+  # Confidence level text for display
+  def confidence_text
+    case confidence_level
+    when :very_low
+      '⚠️ Muy Baja'
+    when :low
+      '⚠️ Baja'
+    when :moderate
+      '📊 Moderada'
+    when :good
+      '✅ Buena'
+    when :excellent
+      '✅ Excelente'
+    else
+      '❓ Desconocida'
     end
   end
 
