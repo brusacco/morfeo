@@ -120,5 +120,17 @@
         </div>
       </div>
     </div>
+    <!-- Sentiment Badge -->
+    <% if facebook_entry.sentiment_score.present? %>
+      <div class="mt-3 pt-3 border-t border-gray-200">
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-gray-500">Sentimiento:</span>
+          <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border <%= facebook_entry.sentiment_color %>">
+            <%= facebook_entry.sentiment_text %>
+            <span class="ml-1.5 font-bold"><%= number_with_precision(facebook_entry.sentiment_score, precision: 1) %></span>
+          </span>
+        </div>
+      </div>
+    <% end %>
   </div>
 </div>

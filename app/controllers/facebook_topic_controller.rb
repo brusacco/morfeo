@@ -19,6 +19,7 @@ class FacebookTopicController < ApplicationController
     load_facebook_data
     load_pages_data
     load_facebook_temporal_intelligence
+    load_sentiment_analysis
   end
 
   def entries_data
@@ -190,6 +191,36 @@ class FacebookTopicController < ApplicationController
     rescue StandardError => e
       Rails.logger.error "❌ Error loading Facebook heatmap_data: #{e.class} - #{e.message}"
       @heatmap_data = []
+    end
+  end
+
+  def load_sentiment_analysis
+    begin
+      @sentiment_summary = @topic.facebook_sentiment_summary
+      
+      if @sentiment_summary
+        @sentiment_distribution = @sentiment_summary[:sentiment_distribution]
+        @sentiment_over_time = @sentiment_summary[:sentiment_over_time]
+        @reaction_breakdown = @sentiment_summary[:reaction_breakdown]
+        @top_positive_posts = @sentiment_summary[:top_positive_posts]
+        @top_negative_posts = @sentiment_summary[:top_negative_posts]
+        @controversial_posts = @sentiment_summary[:controversial_posts]
+        @emotional_trends = @sentiment_summary[:emotional_trends]
+      end
+      
+      @sentiment_trend = @topic.facebook_sentiment_trend
+      Rails.logger.info "✅ Sentiment analysis loaded successfully"
+    rescue StandardError => e
+      Rails.logger.error "❌ Error loading sentiment analysis: #{e.class} - #{e.message}"
+      Rails.logger.error e.backtrace.first(5).join("\n")
+      @sentiment_summary = nil
+      @sentiment_trend = { 
+        trend: 'stable', 
+        change_percent: 0.0, 
+        recent_score: 0.0, 
+        previous_score: 0.0,
+        direction: 'stable'
+      }
     end
   end
 end

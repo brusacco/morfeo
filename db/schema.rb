@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_10_28_111947) do
+ActiveRecord::Schema[7.0].define(version: 2025_10_31_140720) do
   create_table "active_admin_comments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "namespace"
     t.text "body"
@@ -142,10 +142,23 @@ ActiveRecord::Schema[7.0].define(version: 2025_10_28_111947) do
     t.datetime "updated_at", null: false
     t.integer "views_count", default: 0, null: false
     t.bigint "entry_id"
+    t.decimal "sentiment_score", precision: 5, scale: 2
+    t.integer "sentiment_label", default: 0
+    t.decimal "sentiment_positive_pct", precision: 5, scale: 2
+    t.decimal "sentiment_negative_pct", precision: 5, scale: 2
+    t.decimal "sentiment_neutral_pct", precision: 5, scale: 2
+    t.decimal "controversy_index", precision: 5, scale: 4
+    t.decimal "emotional_intensity", precision: 8, scale: 4
+    t.index ["controversy_index", "sentiment_score"], name: "index_fb_entries_on_controversy_and_score"
+    t.index ["emotional_intensity", "posted_at"], name: "index_fb_entries_on_emotion_and_posted_at"
     t.index ["entry_id"], name: "index_facebook_entries_on_entry_id"
     t.index ["facebook_post_id"], name: "index_facebook_entries_on_facebook_post_id", unique: true
     t.index ["page_id", "posted_at"], name: "index_facebook_entries_on_page_id_and_posted_at"
     t.index ["page_id"], name: "index_facebook_entries_on_page_id"
+    t.index ["posted_at", "sentiment_score"], name: "index_fb_entries_on_posted_at_and_sentiment"
+    t.index ["sentiment_label", "sentiment_score"], name: "index_fb_entries_on_sentiment_label_and_score"
+    t.index ["sentiment_label"], name: "index_facebook_entries_on_sentiment_label"
+    t.index ["sentiment_score"], name: "index_facebook_entries_on_sentiment_score"
   end
 
   create_table "newspaper_texts", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|

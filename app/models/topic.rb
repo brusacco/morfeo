@@ -826,6 +826,143 @@ class Topic < ApplicationRecord
     }
   end
 
+  # ============================================
+  # FACEBOOK SENTIMENT ANALYSIS METHODS
+  # ============================================
+
+  def facebook_sentiment_summary(start_time: DAYS_RANGE.days.ago, end_time: Time.zone.now)
+    Rails.cache.fetch("topic_#{id}_fb_sentiment_#{start_time.to_date}_#{end_time.to_date}", expires_in: 2.hours) do
+      entries = FacebookEntry.for_topic(self, start_time:, end_time:)
+                            .where('reactions_total_count > 0')
+      
+      return nil if entries.empty?
+      
+      {
+        average_sentiment: entries.average(:sentiment_score).to_f.round(2),
+        sentiment_distribution: calculate_sentiment_distribution(entries),
+        top_positive_posts: entries.positive_sentiment
+                                  .includes(:page)
+                                  .order(sentiment_score: :desc)
+                                  .limit(5),
+        top_negative_posts: entries.negative_sentiment
+                                  .includes(:page)
+                                  .order(sentiment_score: :asc)
+                                  .limit(5),
+        controversial_posts: entries.controversial
+                                   .includes(:page)
+                                   .order(controversy_index: :desc)
+                                   .limit(5),
+        sentiment_over_time: sentiment_over_time(entries),
+        reaction_breakdown: aggregate_reaction_breakdown(entries),
+        emotional_trends: emotional_intensity_analysis(entries)
+      }
+    end
+  end
+
+  def facebook_sentiment_trend
+    Rails.cache.fetch("topic_#{id}_fb_sentiment_trend", expires_in: 1.hour) do
+      recent = FacebookEntry.for_topic(self, start_time: 24.hours.ago)
+                           .where('reactions_total_count > 0')
+                           .average(:sentiment_score).to_f
+                           
+      previous = FacebookEntry.for_topic(self, start_time: 48.hours.ago, end_time: 24.hours.ago)
+                             .where('reactions_total_count > 0')
+                             .average(:sentiment_score).to_f
+      
+      # Return default values if no data
+      if recent.zero? || previous.zero?
+        return { 
+          trend: 'stable', 
+          change_percent: 0.0, 
+          recent_score: 0.0, 
+          previous_score: 0.0,
+          direction: 'stable'
+        }
+      end
+      
+      change = ((recent - previous) / previous.abs * 100).round(1)
+      
+      {
+        recent_score: recent.round(2),
+        previous_score: previous.round(2),
+        change_percent: change,
+        trend: change > 5 ? 'improving' : (change < -5 ? 'declining' : 'stable'),
+        direction: change > 0 ? 'up' : (change < 0 ? 'down' : 'stable')
+      }
+    end
+  end
+
+  def calculate_sentiment_distribution(entries)
+    # Load entries into an array to avoid conflicts with groupdate gem
+    entries_array = entries.to_a
+    total = entries_array.size
+    return {} if total.zero?
+    
+    # Count occurrences using Ruby
+    counts = entries_array.group_by(&:sentiment_label).transform_values(&:count)
+    
+    # Map enum string keys to counts
+    very_positive_count = counts['very_positive'] || 0
+    positive_count = counts['positive'] || 0
+    neutral_count = counts['neutral'] || 0
+    negative_count = counts['negative'] || 0
+    very_negative_count = counts['very_negative'] || 0
+    
+    {
+      very_positive: {
+        count: very_positive_count,
+        percentage: (very_positive_count.to_f / total * 100).round(1)
+      },
+      positive: {
+        count: positive_count,
+        percentage: (positive_count.to_f / total * 100).round(1)
+      },
+      neutral: {
+        count: neutral_count,
+        percentage: (neutral_count.to_f / total * 100).round(1)
+      },
+      negative: {
+        count: negative_count,
+        percentage: (negative_count.to_f / total * 100).round(1)
+      },
+      very_negative: {
+        count: very_negative_count,
+        percentage: (very_negative_count.to_f / total * 100).round(1)
+      }
+    }
+  end
+
+  def sentiment_over_time(entries, format: '%d/%m')
+    # Remove existing order to avoid conflicts with GROUP BY
+    entries.reorder(nil)
+           .group_by_day(:posted_at, format:)
+           .average(:sentiment_score)
+           .transform_values { |v| v.to_f.round(2) }
+  end
+
+  def aggregate_reaction_breakdown(entries)
+    {
+      love: entries.sum(:reactions_love_count),
+      haha: entries.sum(:reactions_haha_count),
+      wow: entries.sum(:reactions_wow_count),
+      like: entries.sum(:reactions_like_count),
+      thankful: entries.sum(:reactions_thankful_count),
+      sad: entries.sum(:reactions_sad_count),
+      angry: entries.sum(:reactions_angry_count)
+    }
+  end
+
+  def emotional_intensity_analysis(entries)
+    # Get IDs to avoid groupdate wrapping issues
+    entry_ids = entries.pluck(:id)
+    
+    {
+      average_intensity: FacebookEntry.where(id: entry_ids).average(:emotional_intensity).to_f.round(2),
+      high_intensity_count: FacebookEntry.where(id: entry_ids).where('emotional_intensity > ?', 2.0).count,
+      low_intensity_count: FacebookEntry.where(id: entry_ids).where('emotional_intensity < ?', 0.5).count
+    }
+  end
+
   private
 
   def remove_words_spaces

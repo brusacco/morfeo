@@ -10,6 +10,27 @@ class FacebookEntry < ApplicationRecord
   validates :posted_at, presence: true
 
   before_save :calculate_views_count
+  before_save :calculate_sentiment_analysis, if: :reactions_changed?
+
+  # Sentiment labels enum
+  enum sentiment_label: {
+    very_negative: 0,
+    negative: 1,
+    neutral: 2,
+    positive: 3,
+    very_positive: 4
+  }
+
+  # Sentiment weights based on research
+  SENTIMENT_WEIGHTS = {
+    reactions_like_count: 0.5,
+    reactions_love_count: 2.0,
+    reactions_haha_count: 1.5,
+    reactions_wow_count: 1.0,
+    reactions_sad_count: -1.5,
+    reactions_angry_count: -2.0,
+    reactions_thankful_count: 2.0
+  }.freeze
 
   scope :recent, -> { order(posted_at: :desc) }
   scope :linked, -> { where.not(entry_id: nil) }
@@ -27,6 +48,17 @@ class FacebookEntry < ApplicationRecord
         lambda { |tag_names|
           tag_names.present? ? tagged_with(tag_names, any: true) : all
         }
+  
+  # Sentiment thresholds
+  CONTROVERSY_THRESHOLD = 0.6  # Posts with >60% polarization
+  HIGH_EMOTION_THRESHOLD = 2.0  # Emotional reactions > 2x normal likes
+
+  # Sentiment scopes
+  scope :positive_sentiment, -> { where(sentiment_label: [:positive, :very_positive]) }
+  scope :negative_sentiment, -> { where(sentiment_label: [:negative, :very_negative]) }
+  scope :neutral_sentiment, -> { where(sentiment_label: :neutral) }
+  scope :controversial, -> { where('controversy_index > ?', CONTROVERSY_THRESHOLD) }
+  scope :high_emotion, -> { where('emotional_intensity > ?', HIGH_EMOTION_THRESHOLD) }
 
   def self.for_topic(topic, start_time: DAYS_RANGE.days.ago.beginning_of_day, end_time: Time.zone.now.end_of_day)
     tag_names = topic.tags.pluck(:name)
@@ -171,6 +203,112 @@ class FacebookEntry < ApplicationRecord
     update(entry: matching_entry)
   end
 
+  # ============================================
+  # SENTIMENT ANALYSIS METHODS
+  # ============================================
+
+  def calculate_sentiment_analysis
+    return if reactions_total_count.zero?
+    
+    self.sentiment_score = calculate_weighted_sentiment_score
+    self.sentiment_label = determine_sentiment_label(sentiment_score)
+    
+    # Calculate distribution percentages
+    positive = reactions_like_count + reactions_love_count + reactions_haha_count + 
+               reactions_wow_count + reactions_thankful_count
+    negative = reactions_sad_count + reactions_angry_count
+    
+    self.sentiment_positive_pct = (positive.to_f / reactions_total_count * 100).round(2)
+    self.sentiment_negative_pct = (negative.to_f / reactions_total_count * 100).round(2)
+    self.sentiment_neutral_pct = (100 - sentiment_positive_pct - sentiment_negative_pct).round(2)
+    
+    # Calculate controversy index
+    self.controversy_index = calculate_controversy_index(positive, negative)
+    
+    # Calculate emotional intensity
+    self.emotional_intensity = calculate_emotional_intensity
+  end
+  
+  def calculate_weighted_sentiment_score
+    return 0.0 if reactions_total_count.zero?
+    
+    weighted_sum = 0.0
+    
+    SENTIMENT_WEIGHTS.each do |reaction_field, weight|
+      count = send(reaction_field) || 0
+      weighted_sum += count * weight
+    end
+    
+    (weighted_sum / reactions_total_count.to_f).round(2)
+  end
+  
+  def determine_sentiment_label(score)
+    case score
+    when 1.5..Float::INFINITY
+      :very_positive
+    when 0.5..1.5
+      :positive
+    when -0.5..0.5
+      :neutral
+    when -1.5..-0.5
+      :negative
+    else
+      :very_negative
+    end
+  end
+  
+  def calculate_controversy_index(positive, negative)
+    return 0.0 if reactions_total_count.zero?
+    
+    balance = ((positive - negative).abs.to_f / reactions_total_count)
+    controversy = 1.0 - balance
+    controversy.round(4)
+  end
+  
+  def calculate_emotional_intensity
+    intense_reactions = reactions_love_count + reactions_angry_count + 
+                       reactions_sad_count + reactions_wow_count + 
+                       reactions_thankful_count
+    
+    (intense_reactions.to_f / ([reactions_like_count, 1].max)).round(4)
+  end
+  
+  # Human-readable sentiment label with emoji
+  def sentiment_text
+    case sentiment_label
+    when 'very_positive'
+      '😊 Muy Positivo'
+    when 'positive'
+      '🙂 Positivo'
+    when 'neutral'
+      '😐 Neutral'
+    when 'negative'
+      '☹️ Negativo'
+    when 'very_negative'
+      '😠 Muy Negativo'
+    else
+      '❓ Sin clasificar'
+    end
+  end
+  
+  # Color for sentiment display
+  def sentiment_color
+    case sentiment_label
+    when 'very_positive'
+      'text-green-700 bg-green-50 border-green-200'
+    when 'positive'
+      'text-green-600 bg-green-50 border-green-100'
+    when 'neutral'
+      'text-gray-600 bg-gray-50 border-gray-200'
+    when 'negative'
+      'text-red-600 bg-red-50 border-red-100'
+    when 'very_negative'
+      'text-red-700 bg-red-50 border-red-200'
+    else
+      'text-gray-500 bg-gray-50 border-gray-200'
+    end
+  end
+
   private
 
   # Normalize URL to try different variations for matching
@@ -217,5 +355,9 @@ class FacebookEntry < ApplicationRecord
 
   def calculate_views_count
     self.views_count = estimated_views.round
+  end
+  
+  def reactions_changed?
+    changed.any? { |attr| attr.start_with?('reactions_') }
   end
 end
