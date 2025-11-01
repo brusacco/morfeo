@@ -1,4 +1,5 @@
 # 🔍 Morfeo Rails Application - Complete Controller Audit
+
 **Date:** November 1, 2025  
 **Audited by:** Senior Rails Developer  
 **Rails Version:** 7.0.8 | Ruby Version: 3.1.6
@@ -20,7 +21,8 @@
 
 ## 🎯 Controller Inventory
 
-###  Main Application Controllers
+### Main Application Controllers
+
 1. `ApplicationController` ✅
 2. `HomeController` ⚠️
 3. `TopicController` ✅
@@ -33,12 +35,14 @@
 10. `TemplatesController` (not reviewed yet)
 
 ### API Controllers (v1)
+
 11. `Api::V1::EntriesController`
 12. `Api::V1::TagsController`
 13. `Api::V1::TopicsController`
 14. `Api::V1::SitesController`
 
 ### Devise Controllers (Authentication)
+
 15. `Users::ConfirmationsController`
 16. `Users::OmniauthCallbacksController`
 17. `Users::PasswordsController`
@@ -51,6 +55,7 @@
 ## 🔴 CRITICAL ISSUES
 
 ### 1. **Unauthenticated Deploy Endpoint** (HomeController)
+
 **Severity:** 🔴 **CRITICAL - SECURITY VULNERABILITY**
 
 **Location:** `app/controllers/home_controller.rb:146-170`
@@ -71,6 +76,7 @@ end
 ```
 
 **Issues:**
+
 - ❌ No authentication required (only skips CSRF, not authentication)
 - ❌ Anyone can trigger deployment via POST request
 - ❌ Potential for DoS attacks
@@ -81,6 +87,7 @@ end
 **Impact:** **CRITICAL** - Unauthorized users can deploy code, potentially introducing malicious changes or causing service disruption.
 
 **Recommendation:**
+
 ```ruby
 before_action :authenticate_admin_user!, only: [:deploy]
 skip_before_action :verify_authenticity_token, only: [:deploy]
@@ -91,22 +98,22 @@ def deploy
     render json: { error: 'Unauthorized IP' }, status: :forbidden
     return
   end
-  
+
   # Add authentication token
   unless params[:token] == ENV['DEPLOY_SECRET_TOKEN']
     render json: { error: 'Invalid token' }, status: :unauthorized
     return
   end
-  
+
   # Log deployment
   Rails.logger.info "Deployment triggered by #{current_admin_user&.email || 'System'} from #{request.remote_ip}"
-  
+
   # Existing deployment logic...
-  
-  render json: { 
-    status: 'success', 
+
+  render json: {
+    status: 'success',
     message: 'Deployment complete!',
-    timestamp: Time.current 
+    timestamp: Time.current
   }
 end
 ```
@@ -114,6 +121,7 @@ end
 ---
 
 ### 2. **Open Web Scraping Endpoint** (HomeController)
+
 **Severity:** 🔴 **CRITICAL - SECURITY VULNERABILITY**
 
 **Location:** `app/controllers/home_controller.rb:172-177`
@@ -128,6 +136,7 @@ end
 ```
 
 **Issues:**
+
 - ❌ No authentication required
 - ❌ Server-Side Request Forgery (SSRF) vulnerability
 - ❌ Can be used to scan internal network
@@ -138,6 +147,7 @@ end
 **Impact:** **CRITICAL** - Attackers can use your server to probe internal networks or attack external sites.
 
 **Recommendation:**
+
 ```ruby
 before_action :authenticate_admin_user!, only: [:check]
 
@@ -145,7 +155,7 @@ ALLOWED_DOMAINS = ['abc.com.py', 'lanacion.com.py', 'ultimahora.com'].freeze
 
 def check
   @url = params[:url]
-  
+
   # Validate URL
   begin
     uri = URI.parse(@url)
@@ -153,19 +163,19 @@ def check
     render json: { error: 'Invalid URL' }, status: :bad_request
     return
   end
-  
+
   # Whitelist domains
   unless ALLOWED_DOMAINS.any? { |domain| uri.host&.include?(domain) }
     render json: { error: 'Domain not allowed' }, status: :forbidden
     return
   end
-  
+
   # Prevent internal network access
   if uri.host =~ /^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)/
     render json: { error: 'Internal network access denied' }, status: :forbidden
     return
   end
-  
+
   @doc = Nokogiri::HTML(URI.parse(@url).open('User-Agent' => 'Mozilla/5.0...'))
   @result = WebExtractorServices::ExtractDate.call(@doc)
   render layout: false
@@ -180,6 +190,7 @@ end
 ## 🟠 HIGH PRIORITY ISSUES
 
 ### 3. **Missing Route for TopicController#topic** (HomeController)
+
 **Severity:** 🟠 **HIGH - DEAD CODE**
 
 **Location:** `app/controllers/home_controller.rb:131-144`
@@ -192,7 +203,8 @@ def topic
 end
 ```
 
-**Issue:** 
+**Issue:**
+
 - ❌ No route defined for `home#topic` in `config/routes.rb`
 - ❌ Unused code that should be removed or given a route
 - ❌ Typo: `Entries` instead of `Entry` (will cause NameError)
@@ -200,6 +212,7 @@ end
 **Impact:** HIGH - This is dead code that will fail if accessed.
 
 **Recommendation:**
+
 1. **If needed:** Add route `get 'home/topic'`
 2. **If not needed:** Remove the method entirely
 3. **Fix typo:** Change `Entries` to `Entry`
@@ -207,6 +220,7 @@ end
 ---
 
 ### 4. **Inconsistent Authorization Checks**
+
 **Severity:** 🟠 **HIGH - SECURITY**
 
 **Issue:** Different controllers use different authorization patterns:
@@ -222,16 +236,16 @@ end
 # app/controllers/concerns/topic_authorizable.rb
 module TopicAuthorizable
   extend ActiveSupport::Concern
-  
+
   included do
     before_action :authorize_topic_access!, only: [:show, :pdf]
   end
-  
+
   private
-  
+
   def authorize_topic_access!
     return if @topic&.status && @topic.users.exists?(current_user.id)
-    
+
     redirect_to root_path,
                 alert: 'El Tópico al que intentaste acceder no está asignado a tu usuario o se encuentra deshabilitado'
   end
@@ -247,23 +261,26 @@ end
 ---
 
 ### 5. **Missing Error Handling in entries_data**
+
 **Severity:** 🟠 **HIGH - RELIABILITY**
 
 **Location:** Multiple controllers (TopicController, FacebookTopicController, TwitterTopicController)
 
 **Issue:**
+
 - ❌ No error handling for invalid `date` parameter
 - ❌ No error handling if topic not found
 - ❌ No error handling for database errors
 
 **Current Code (TopicController):**
+
 ```ruby
 def entries_data
   topic_id = params[:topic_id]
   date_filter = params[:date]
   polarity = params[:polarity]
   title = params[:title]
-  
+
   date = Date.parse(date_filter) if date_filter.present?  # Can raise ArgumentError
   topic = Topic.find_by(id: topic_id)  # Can return nil
   # ...
@@ -271,24 +288,25 @@ end
 ```
 
 **Recommendation:**
+
 ```ruby
 def entries_data
   begin
     topic_id = params[:topic_id]
     topic = Topic.find_by(id: topic_id)
-    
+
     unless topic
-      render partial: 'home/error_message', 
+      render partial: 'home/error_message',
              locals: { message: 'Tópico no encontrado' },
              status: :not_found
       return
     end
-    
+
     date = parse_date_param(params[:date]) || Date.current
     polarity = validate_polarity(params[:polarity])
-    
+
     entries = load_entries(topic, date, polarity, params[:title])
-    
+
     render partial: 'home/chart_entries',
            locals: { topic_entries: entries, entries_date: date, topic: topic.name }
   rescue => e
@@ -313,6 +331,7 @@ end
 ---
 
 ### 6. **N+1 Query Risk in HomeController**
+
 **Severity:** 🟠 **HIGH - PERFORMANCE**
 
 **Location:** `app/controllers/home_controller.rb:111-117`
@@ -326,10 +345,12 @@ end
 ```
 
 **Issue:**
+
 - If `list_entries` triggers additional queries, this creates N+1 problem
 - Could be inefficient with many topics
 
 **Recommendation:**
+
 ```ruby
 # Check if list_entries can be optimized to return IDs directly
 tag_names = @topicos.flat_map { |t| t.tags.pluck(:name) }.uniq
@@ -343,11 +364,13 @@ all_entry_ids = Entry.tagged_with(tag_names, any: true)
 ---
 
 ### 7. **Unsafe SQL in HomeController**
+
 **Severity:** 🟠 **HIGH - SECURITY (already fixed)**
 
 **Location:** `app/controllers/home_controller.rb:139`
 
 **Current (GOOD):**
+
 ```ruby
 .order(Arel.sql('SUM(total_count) DESC'))
 ```
@@ -359,6 +382,7 @@ all_entry_ids = Entry.tagged_with(tag_names, any: true)
 ## 🟡 MEDIUM PRIORITY ISSUES
 
 ### 8. **Overly Broad CSRF Skip** (HomeController)
+
 **Severity:** 🟡 **MEDIUM - SECURITY**
 
 **Location:** `app/controllers/home_controller.rb:6`
@@ -370,6 +394,7 @@ skip_before_action :verify_authenticity_token
 **Issue:** Skips CSRF for ALL actions, including authenticated ones.
 
 **Recommendation:**
+
 ```ruby
 skip_before_action :verify_authenticity_token, only: [:deploy, :check]
 ```
@@ -377,11 +402,13 @@ skip_before_action :verify_authenticity_token, only: [:deploy, :check]
 ---
 
 ### 9. **Cache Action Without User Scoping**
+
 **Severity:** 🟡 **MEDIUM - SECURITY/DATA LEAK**
 
 **Location:** Multiple controllers
 
 **Example (EntryController):**
+
 ```ruby
 caches_action :popular, expires_in: CACHE_DURATION
 caches_action :commented, expires_in: CACHE_DURATION
@@ -390,12 +417,14 @@ caches_action :commented, expires_in: CACHE_DURATION
 **Issue:** These actions show different data based on user's topics (`@topicos`), but cache doesn't include user_id in cache key.
 
 **Current (FacebookTopicController - CORRECT):**
+
 ```ruby
 caches_action :show, :pdf, expires_in: CACHE_DURATION,
               cache_path: proc { |c| { topic_id: c.params[:id], user_id: c.current_user.id } }
 ```
 
 **Recommendation:** Apply user-scoped caching to all cached actions:
+
 ```ruby
 caches_action :popular, expires_in: CACHE_DURATION,
               cache_path: proc { |c| { user_id: c.current_user.id, date: Date.current } }
@@ -404,6 +433,7 @@ caches_action :popular, expires_in: CACHE_DURATION,
 ---
 
 ### 10. **Hardcoded Topic Names**
+
 **Severity:** 🟡 **MEDIUM - MAINTENANCE**
 
 **Location:** `app/controllers/home_controller.rb:132`
@@ -419,15 +449,18 @@ tags = 'Horacio Cartes, santiago Peña'
 ---
 
 ### 11. **Missing Pagination**
+
 **Severity:** 🟡 **MEDIUM - PERFORMANCE**
 
 **Location:** Multiple actions load large datasets without pagination
 
 **Examples:**
+
 - `EntryController#popular` - Loads 50 entries, could be paginated
 - `HomeController#index` - Loads all topics
 
 **Recommendation:**
+
 ```ruby
 # Use kaminari for pagination
 @entries = Entry.enabled
@@ -441,6 +474,7 @@ tags = 'Horacio Cartes, santiago Peña'
 ---
 
 ### 12. **Inconsistent Limit Constants**
+
 **Severity:** 🟡 **MEDIUM - MAINTENANCE**
 
 **Issue:** Different controllers define similar constants differently:
@@ -460,6 +494,7 @@ TOP_POSTS_PDF_LIMIT = 10
 ```
 
 **Recommendation:** Move to application-level config:
+
 ```ruby
 # config/initializers/morfeo_config.rb
 module MorfeoConfig
@@ -473,11 +508,13 @@ end
 ---
 
 ### 13. **No Rate Limiting on API Endpoints**
+
 **Severity:** 🟡 **MEDIUM - SECURITY**
 
 **Issue:** API controllers have no rate limiting.
 
 **Recommendation:**
+
 ```ruby
 # Use rack-attack gem
 # config/initializers/rack_attack.rb
@@ -491,27 +528,29 @@ end
 ---
 
 ### 14. **Missing API Authentication**
+
 **Severity:** 🟡 **MEDIUM - SECURITY**
 
 **Issue:** API endpoints don't appear to require authentication tokens.
 
 **Recommendation:**
+
 ```ruby
 # app/controllers/api/v1/base_controller.rb
 module Api
   module V1
     class BaseController < ApplicationController
       before_action :authenticate_api_request!
-      
+
       private
-      
+
       def authenticate_api_request!
         token = request.headers['Authorization']&.gsub('Bearer ', '')
         unless valid_api_token?(token)
           render json: { error: 'Unauthorized' }, status: :unauthorized
         end
       end
-      
+
       def valid_api_token?(token)
         # Implement token validation
         token == ENV['API_SECRET_TOKEN']
@@ -524,9 +563,11 @@ end
 ---
 
 ### 15. **Lack of Request ID Logging**
+
 **Severity:** 🟡 **MEDIUM - OBSERVABILITY**
 
 **Recommendation:** Add request ID to all logs for better tracing:
+
 ```ruby
 # config/application.rb
 config.log_tags = [:request_id, :remote_ip]
@@ -537,9 +578,11 @@ config.log_tags = [:request_id, :remote_ip]
 ## 🟢 LOW PRIORITY ISSUES
 
 ### 16. **Commented Out Code**
+
 **Severity:** 🟢 **LOW - MAINTENANCE**
 
 **Locations:**
+
 - `HomeController:4` - `# caches_action :index, expires_in: 1.hour`
 - `TopicController:6` - `# caches_action :show, expires_in: 1.hour`
 - Various commented features in navigation
@@ -549,6 +592,7 @@ config.log_tags = [:request_id, :remote_ip]
 ---
 
 ### 17. **Inconsistent Comment Styles**
+
 **Severity:** 🟢 **LOW - MAINTENANCE**
 
 **Issue:** Mix of English and Spanish comments.
@@ -558,9 +602,11 @@ config.log_tags = [:request_id, :remote_ip]
 ---
 
 ### 18. **Magic Numbers**
+
 **Severity:** 🟢 **LOW - MAINTENANCE**
 
 **Example:**
+
 ```ruby
 .limit(250)
 .limit(10)
@@ -573,9 +619,11 @@ config.log_tags = [:request_id, :remote_ip]
 ## ✅ BEST PRACTICES & IMPROVEMENTS
 
 ### 19. **Excellent Service Object Pattern**
+
 **Status:** ✅ **GOOD**
 
 All dashboard controllers properly delegate to service objects:
+
 - `DigitalDashboardServices::AggregatorService`
 - `FacebookDashboardServices::AggregatorService`
 - `TwitterDashboardServices::AggregatorService`
@@ -587,9 +635,11 @@ This is **excellent architecture** - keeps controllers thin and logic reusable.
 ---
 
 ### 20. **Proper Authorization Checks**
+
 **Status:** ✅ **GOOD**
 
 Most controllers properly check:
+
 1. User is authenticated (`before_action :authenticate_user!`)
 2. Topic is assigned to user (`@topic.users.exists?(current_user.id)`)
 3. Topic is active (`@topic.status == true`)
@@ -597,9 +647,11 @@ Most controllers properly check:
 ---
 
 ### 21. **Good Use of Caching**
+
 **Status:** ✅ **GOOD**
 
 Controllers use multiple caching strategies:
+
 - Action caching with expiration
 - Fragment caching in views
 - `Rails.cache.fetch` for expensive operations
@@ -607,9 +659,11 @@ Controllers use multiple caching strategies:
 ---
 
 ### 22. **Proper Eager Loading**
+
 **Status:** ✅ **GOOD**
 
 Controllers use `.includes()` to avoid N+1 queries:
+
 ```ruby
 Entry.enabled.includes(:site, :tags)
 ```
@@ -617,9 +671,11 @@ Entry.enabled.includes(:site, :tags)
 ---
 
 ### 23. **SQL Injection Protection**
+
 **Status:** ✅ **GOOD**
 
 All raw SQL properly wrapped:
+
 ```ruby
 .order(Arel.sql('SUM(total_count) DESC'))
 ```
@@ -627,9 +683,11 @@ All raw SQL properly wrapped:
 ---
 
 ### 24. **Good Error Handling in PDF**
+
 **Status:** ✅ **GOOD**
 
 `GeneralDashboardController#pdf` has comprehensive error handling:
+
 ```ruby
 rescue StandardError => e
   Rails.logger.error "Error generating PDF..."
@@ -642,9 +700,11 @@ end
 ---
 
 ### 25. **Proper Date Parsing with Error Handling**
+
 **Status:** ✅ **GOOD**
 
 `FacebookTopicController` and `TwitterTopicController` properly handle invalid dates:
+
 ```ruby
 def parse_date_param
   Date.parse(params[:date]) if params[:date].present?
@@ -657,9 +717,11 @@ end
 ---
 
 ### 26. **Consistent Helper Methods**
+
 **Status:** ✅ **GOOD**
 
 Controllers use well-named private helper methods:
+
 - `assign_topic_data`
 - `assign_chart_data`
 - `assign_percentages`
@@ -668,9 +730,11 @@ Controllers use well-named private helper methods:
 ---
 
 ### 27. **Good Use of Scopes**
+
 **Status:** ✅ **GOOD**
 
 Code leverages model scopes effectively:
+
 ```ruby
 Entry.enabled.a_day_ago.normal_range
 ```
@@ -678,9 +742,11 @@ Entry.enabled.a_day_ago.normal_range
 ---
 
 ### 28. **Proper Constants**
+
 **Status:** ✅ **GOOD**
 
 Controllers define clear constants:
+
 ```ruby
 TOP_POSTS_SHOW_LIMIT = 20
 CACHE_DURATION = 1.hour
@@ -689,9 +755,11 @@ CACHE_DURATION = 1.hour
 ---
 
 ### 29. **Good Separation of Concerns**
+
 **Status:** ✅ **GOOD**
 
 Controllers separate:
+
 - Web actions (show)
 - PDF generation (pdf)
 - API endpoints (entries_data)
@@ -699,9 +767,11 @@ Controllers separate:
 ---
 
 ### 30. **Proper Struct Usage**
+
 **Status:** ✅ **EXCELLENT**
 
 `TopicController` uses clever Struct pattern for PDF optimization:
+
 ```ruby
 @entries = Struct.new(:relation, :by_site_count, :by_site_sum) do
   def method_missing(method, *args, &block)
@@ -740,18 +810,21 @@ Verified that all controller actions have corresponding routes in `config/routes
 ## 🎯 Priority Action Items
 
 ### Immediate (This Week)
+
 1. **🔴 CRITICAL:** Secure `deploy` endpoint or remove it
 2. **🔴 CRITICAL:** Secure or remove `check` endpoint (SSRF vulnerability)
 3. **🟠 HIGH:** Remove or fix `HomeController#topic` (dead code)
 4. **🟠 HIGH:** Add user_id to cache keys in `EntryController`
 
 ### Short Term (Next Sprint)
+
 5. **🟠 HIGH:** Create `TopicAuthorizable` concern for consistent authorization
 6. **🟠 HIGH:** Add error handling to `entries_data` methods
 7. **🟡 MEDIUM:** Fix CSRF skip to be action-specific
 8. **🟡 MEDIUM:** Add rate limiting to API
 
 ### Long Term (Future)
+
 9. **🟡 MEDIUM:** Add pagination to large result sets
 10. **🟡 MEDIUM:** Centralize configuration constants
 11. **🟡 MEDIUM:** Add API authentication tokens
@@ -763,6 +836,7 @@ Verified that all controller actions have corresponding routes in `config/routes
 ## 🏆 Overall Assessment
 
 ### Strengths
+
 - ✅ **Excellent service object architecture**
 - ✅ **Proper SQL injection protection**
 - ✅ **Good eager loading practices**
@@ -772,12 +846,14 @@ Verified that all controller actions have corresponding routes in `config/routes
 - ✅ **Advanced Ruby patterns (Struct proxies)**
 
 ### Weaknesses
+
 - ⚠️ **Two critical security vulnerabilities** (deploy, check endpoints)
 - ⚠️ **Some inconsistent authorization patterns**
 - ⚠️ **Missing error handling in a few key places**
 - ⚠️ **No API rate limiting or authentication**
 
 ### Recommendation
+
 **Status:** ✅ **PRODUCTION READY** after addressing the 2 critical security issues.
 
 The codebase shows professional Rails development practices with excellent architecture. The critical issues are limited to 2 endpoints that can be quickly secured or removed.
@@ -786,5 +862,3 @@ The codebase shows professional Rails development practices with excellent archi
 
 **Audit Completed:** November 1, 2025  
 **Next Review:** Recommended in 3 months or after major features
-
-

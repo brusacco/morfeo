@@ -204,9 +204,7 @@
         const overlay = document.getElementById('morfeo-loading-overlay');
         const tipElement = document.getElementById('loading-tip');
         let tipInterval;
-        let showTimeout;
-        let pageLoadStartTime = Date.now();
-        let isLoaderActive = false; // Flag to prevent duplicate triggers
+        let currentTipIndex = 0;
         
         // Loading tips to cycle through
         const loadingTips = [
@@ -218,7 +216,6 @@
           '⚡ Optimizando la visualización de datos',
           '🌟 Casi listo... Generando tu dashboard personalizado'
         ];
-        let currentTipIndex = 0;
         
         function showNextTip() {
           if (tipElement) {
@@ -232,21 +229,14 @@
         }
         
         function showLoader() {
-          // Prevent duplicate triggers
-          if (isLoaderActive) return;
-          
-          // Clear any existing timeout
-          if (showTimeout) clearTimeout(showTimeout);
-          
-          // Mark loader as active
-          isLoaderActive = true;
-          
-          // Reset load start time for this navigation
-          pageLoadStartTime = Date.now();
-          
-          // Show loader IMMEDIATELY on navigation click
           if (overlay) {
             overlay.classList.add('active');
+            
+            // Freeze the page immediately to prevent visual flicker
+            document.body.style.overflow = 'hidden';        // freeze scroll
+            document.body.style.pointerEvents = 'none';     // disable interactions
+            document.body.style.userSelect = 'none';        // disable text selection
+            
             currentTipIndex = 0;
             if (tipElement) {
               tipElement.textContent = loadingTips[0];
@@ -257,160 +247,41 @@
         }
         
         function hideLoader() {
-          // Clear show timeout if page loads before delay
-          if (showTimeout) {
-            clearTimeout(showTimeout);
-            showTimeout = null;
-          }
-          
-          // For very fast page loads (< 300ms), hide immediately to avoid flash
-          const loadTime = Date.now() - pageLoadStartTime;
-          const hideDelay = loadTime < 300 ? 0 : 200;
-          
-          // Wait for all resources to load (images, charts, etc.)
-          if (document.readyState === 'complete') {
-            // Page is already fully loaded
-            setTimeout(() => {
-              if (overlay) {
-                overlay.classList.remove('active');
-                if (tipInterval) {
-                  clearInterval(tipInterval);
-                  tipInterval = null;
-                }
-                // Reset flag for next navigation
-                isLoaderActive = false;
-              }
-            }, hideDelay);
-          } else {
-            // Wait for complete page load
-            window.addEventListener('load', function hideOnLoad() {
-              setTimeout(() => {
-                if (overlay) {
-                  overlay.classList.remove('active');
-                  if (tipInterval) {
-                    clearInterval(tipInterval);
-                    tipInterval = null;
-                  }
-                  // Reset flag for next navigation
-                  isLoaderActive = false;
-                }
-              }, hideDelay);
-              // Remove listener after execution
-              window.removeEventListener('load', hideOnLoad);
-            });
-          }
-        }
-        
-        // Detect direct navigation (URL typed, bookmark, or shared link)
-        // Show loader immediately on page load for heavy pages
-        function checkInitialLoad() {
-          // Check if this is a fresh page load (not Turbo navigation)
-          const isDirectNavigation = !document.documentElement.hasAttribute('data-turbo-preview');
-          const path = window.location.pathname;
-          const isHeavyPage = path === '/' || 
-                             path === '/home' || 
-                             path === '/home/index' ||
-                             path.match(/\/topic\//) ||
-                             path.match(/\/facebook_topic\//) ||
-                             path.match(/\/twitter_topic\//) ||
-                             path.match(/\/site\//);
-          
-          // If direct navigation to a heavy page, show loader immediately
-          if (isDirectNavigation && isHeavyPage) {
-            // Show loader without delay for initial loads
-            if (overlay) {
-              overlay.classList.add('active');
-              currentTipIndex = 0;
-              if (tipElement) {
-                tipElement.textContent = loadingTips[0];
-              }
-              tipInterval = setInterval(showNextTip, 3000);
-            }
-          }
-        }
-        
-        // Check on script load (for direct navigation)
-        checkInitialLoad();
-        
-        // Intercept all navigation link clicks to show loader immediately
-        document.addEventListener('click', function(e) {
-          // Find the closest anchor tag
-          const link = e.target.closest('a[href]');
-          
-          if (link && !link.hasAttribute('data-turbo-confirm') && 
-              !link.hasAttribute('target') && 
-              !link.hasAttribute('download') &&
-              !link.href.includes('#') &&
-              link.href.startsWith(window.location.origin)) {
-            
-            // Check if it's a navigation to a heavy page
-            const href = link.getAttribute('href') || link.href;
-            const isHeavyPage = href === '/' || 
-                               href === '/home' || 
-                               href.includes('/home/index') ||
-                               href.match(/\/topic\/\d/) ||
-                               href.match(/\/facebook_topic/) ||
-                               href.match(/\/twitter_topic/) ||
-                               href.match(/\/site\/\d/);
-            
-            if (isHeavyPage) {
-              // Show loader immediately on click
-              showLoader();
-            }
-          }
-        }, true); // Use capture phase to catch event early
-        
-        // For direct/initial page loads, also listen to window.load
-        window.addEventListener('load', function() {
-          // Hide loader when page is fully loaded (initial loads)
-          if (overlay && overlay.classList.contains('active')) {
-            setTimeout(() => {
-              overlay.classList.remove('active');
-              if (tipInterval) {
-                clearInterval(tipInterval);
-                tipInterval = null;
-              }
-              // Reset flag for next navigation
-              isLoaderActive = false;
-            }, 200);
-          }
-        });
-        
-        // Show loader on Turbo navigation (prefetch is disabled globally)
-        document.addEventListener('turbo:before-visit', showLoader);
-        document.addEventListener('turbo:submit-start', showLoader);
-        
-        // Hide loader when page loads - now waits for complete page load inside hideLoader()
-        document.addEventListener('turbo:render', hideLoader);
-        
-        // Handle errors - hide immediately on error
-        document.addEventListener('turbo:fetch-request-error', function() {
           if (overlay) {
             overlay.classList.remove('active');
+            
+            // Restore normal page behavior
+            document.body.style.overflow = '';              // restore scroll
+            document.body.style.pointerEvents = '';         // restore interaction
+            document.body.style.userSelect = '';            // allow selection
+            
             if (tipInterval) {
               clearInterval(tipInterval);
               tipInterval = null;
             }
-            // Reset flag on error
-            isLoaderActive = false;
           }
-        });
+        }
+        
+        // Show loader before navigation starts
+        document.addEventListener('turbo:before-visit', showLoader);
+        document.addEventListener('turbo:submit-start', showLoader);
+        
+        // Hide loader RIGHT AFTER DOM is replaced with new page
+        // This fires as soon as content appears, even during slow loads
+        document.addEventListener('turbo:render', hideLoader);
+        
+        // IMPORTANT: Hide loader before caching current page
+        // This prevents the loader from appearing when navigating back
+        document.addEventListener('turbo:before-cache', hideLoader);
+        
+        // Handle errors - hide immediately on error
+        document.addEventListener('turbo:fetch-request-error', hideLoader);
         
         // Fallback: hide loader after 15 seconds max
         let maxLoadTimeout;
         document.addEventListener('turbo:before-visit', () => {
           if (maxLoadTimeout) clearTimeout(maxLoadTimeout);
-          maxLoadTimeout = setTimeout(() => {
-            if (overlay) {
-              overlay.classList.remove('active');
-              if (tipInterval) {
-                clearInterval(tipInterval);
-                tipInterval = null;
-              }
-              // Reset flag on timeout
-              isLoaderActive = false;
-            }
-          }, 15000);
+          maxLoadTimeout = setTimeout(hideLoader, 15000);
         });
         
         document.addEventListener('turbo:render', () => {
