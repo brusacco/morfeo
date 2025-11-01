@@ -1,0 +1,425 @@
+/* Lazy Loading & Performance Optimizations for Morfeo */
+
+/* ==================================
+   LAZY LOADING IMAGES
+   ================================== */
+
+/* Images start with loading placeholder */
+img[loading="lazy"] {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  min-height: 200px;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Image fade-in when loaded */
+img.loaded {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ==================================
+   INTERSECTION OBSERVER TARGETS
+   ================================== */
+
+/* Elements to lazy load */
+.lazy-load {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.lazy-load.loaded {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Chart containers */
+.chart-lazy-load {
+  min-height: 400px;
+  background: #f9fafb;
+  border-radius: 0.5rem;
+  position: relative;
+}
+
+.chart-lazy-load::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #6366f1;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* ==================================
+   CONTENT VISIBILITY API
+   ================================== */
+
+/* Auto-render below-fold content */
+.content-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 500px;
+}
+
+/* Skeleton for off-screen sections */
+.content-skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  min-height: 400px;
+  border-radius: 0.5rem;
+}
+
+/* ==================================
+   DEFER OFFSCREEN CONTENT
+   ================================== */
+
+/* Defer rendering of off-screen charts */
+.chart-container {
+  contain: layout style paint;
+}
+
+/* Defer heavy tables */
+.data-table-container {
+  contain: layout style;
+}
+
+/* ==================================
+   PROGRESSIVE IMAGE LOADING
+   ================================== */
+
+/* Blur-up technique for images */
+.progressive-image {
+  position: relative;
+  overflow: hidden;
+}
+
+.progressive-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.progressive-image .thumb {
+  filter: blur(10px);
+  transform: scale(1.05);
+  transition: filter 0.3s ease-in, transform 0.3s ease-in;
+}
+
+.progressive-image .full {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.3s ease-in;
+}
+
+.progressive-image.loaded .thumb {
+  filter: blur(0);
+  transform: scale(1);
+}
+
+.progressive-image.loaded .full {
+  opacity: 1;
+}
+
+/* ==================================
+   SKELETON LOADERS
+   ================================== */
+
+/* Generic skeleton */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 0.25rem;
+}
+
+/* Skeleton variations */
+.skeleton-text {
+  height: 1rem;
+  margin-bottom: 0.5rem;
+  width: 100%;
+}
+
+.skeleton-text.short {
+  width: 60%;
+}
+
+.skeleton-heading {
+  height: 2rem;
+  width: 40%;
+  margin-bottom: 1rem;
+}
+
+.skeleton-card {
+  height: 200px;
+  border-radius: 0.5rem;
+}
+
+.skeleton-chart {
+  height: 400px;
+  border-radius: 0.5rem;
+}
+
+/* ==================================
+   VIRTUAL SCROLLING
+   ================================== */
+
+/* Container for virtualized lists */
+.virtual-scroll-container {
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+}
+
+.virtual-scroll-spacer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  pointer-events: none;
+}
+
+.virtual-scroll-content {
+  position: relative;
+}
+
+/* ==================================
+   PERFORMANCE HINTS
+   ================================== */
+
+/* Will-change for animated elements */
+.will-animate {
+  will-change: transform, opacity;
+}
+
+/* GPU acceleration for smooth animations */
+.gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Contain layout for cards */
+.card {
+  contain: layout style paint;
+}
+
+/* ==================================
+   REDUCE REPAINTS
+   ================================== */
+
+/* Use transform instead of position */
+.smooth-move {
+  transition: transform 0.3s ease-out;
+}
+
+.smooth-move:hover {
+  transform: translateY(-2px);
+}
+
+/* Avoid layout thrashing */
+.no-layout-shift {
+  min-height: var(--min-height, auto);
+}
+
+/* ==================================
+   FONT LOADING
+   ================================== */
+
+/* Font display swap for faster rendering */
+@font-face {
+  font-family: 'Inter';
+  font-display: swap;
+  src: url('...') format('woff2');
+}
+
+/* Fallback system fonts */
+body {
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+/* ==================================
+   PRELOAD CRITICAL ASSETS
+   ================================== */
+
+/* Critical images should be preloaded in HTML:
+<link rel="preload" as="image" href="/hero-image.jpg">
+*/
+
+/* ==================================
+   RESOURCE HINTS
+   ================================== */
+
+/* Use in HTML head:
+<link rel="dns-prefetch" href="https://cdn.example.com">
+<link rel="preconnect" href="https://api.example.com">
+*/
+
+/* ==================================
+   RESPONSIVE IMAGES
+   ================================== */
+
+/* Serve appropriate image sizes */
+.responsive-image {
+  width: 100%;
+  height: auto;
+}
+
+/* Use srcset in HTML:
+<img srcset="small.jpg 480w, medium.jpg 800w, large.jpg 1200w"
+     sizes="(max-width: 600px) 480px, (max-width: 1000px) 800px, 1200px"
+     src="medium.jpg"
+     alt="Description"
+     loading="lazy">
+*/
+
+/* ==================================
+   DEFER NON-CRITICAL CSS
+   ================================== */
+
+/* Load non-critical CSS asynchronously:
+<link rel="preload" href="non-critical.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+*/
+
+/* ==================================
+   INTERSECTION OBSERVER POLYFILL
+   ================================== */
+
+/* Fallback for older browsers */
+@supports not (content-visibility: auto) {
+  .content-auto {
+    display: block;
+  }
+}
+
+/* ==================================
+   LOADING STATES
+   ================================== */
+
+/* Global loading indicator */
+.page-loading {
+  pointer-events: none;
+  opacity: 0.6;
+  filter: grayscale(0.5);
+  transition: opacity 0.3s ease-out, filter 0.3s ease-out;
+}
+
+/* Section loading */
+.section-loading {
+  position: relative;
+  min-height: 200px;
+}
+
+.section-loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #6366f1;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* ==================================
+   PREFETCH ON HOVER
+   ================================== */
+
+/* Prefetch links on hover for instant navigation */
+a[data-prefetch]:hover {
+  /* Trigger prefetch via JavaScript */
+}
+
+/* ==================================
+   CRITICAL CSS
+   ================================== */
+
+/* Inline critical CSS in <head> for first paint:
+- Above-the-fold styles
+- Layout styles
+- Font styles
+- Critical component styles
+*/
+
+/* ==================================
+   PERFORMANCE BUDGETS
+   ================================== */
+
+/* Target Metrics:
+- First Contentful Paint (FCP): < 1.8s
+- Largest Contentful Paint (LCP): < 2.5s
+- First Input Delay (FID): < 100ms
+- Cumulative Layout Shift (CLS): < 0.1
+- Time to Interactive (TTI): < 3.8s
+*/
+
+/* ==================================
+   ACCESSIBILITY + PERFORMANCE
+   ================================== */
+
+/* Reduced motion for performance */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ==================================
+   PRINT OPTIMIZATION
+   ================================== */
+
+@media print {
+  /* Remove unnecessary elements */
+  .no-print,
+  nav,
+  aside,
+  .sidebar {
+    display: none !important;
+  }
+  
+  /* Optimize for printing */
+  body {
+    color: black;
+    background: white;
+  }
+  
+  /* Break pages appropriately */
+  .page-break {
+    page-break-after: always;
+  }
+  
+  /* Avoid breaking inside elements */
+  .keep-together {
+    page-break-inside: avoid;
+  }
+}
+

@@ -8,5 +8,6 @@ pin '@hotwired/stimulus', to: 'stimulus.min.js', preload: true
 pin '@hotwired/stimulus-loading', to: 'stimulus-loading.js', preload: true
 pin_all_from 'app/javascript/controllers', under: 'controllers'
 pin 'chartkick', to: 'chartkick.js'
+pin 'lazy_loading', to: 'lazy_loading.js'
 # pin 'Chart.bundle', to: 'Chart.bundle.js'
 # pin 'highcharts' # Loaded via CDN script tag in layout

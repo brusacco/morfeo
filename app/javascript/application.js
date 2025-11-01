@@ -2,6 +2,7 @@
 import "@hotwired/turbo-rails"
 import "controllers"
 import "chartkick"
+import "lazy_loading"
 // import "Chart.bundle"
 
 // Highcharts is loaded globally from CDN in layout
