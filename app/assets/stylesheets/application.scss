@@ -144,13 +144,3 @@ div[id*="highcharts-"],
 [x-cloak] {
   display: none !important;
 }
-
-/* Ensure dropdowns are hidden by default until Alpine.js initializes */
-[x-show] {
-  display: none;
-}
-
-[x-show][style*="display: block"],
-[x-show][style*="display: flex"] {
-  display: revert;
-}

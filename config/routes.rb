@@ -37,6 +37,10 @@ Rails.application.routes.draw do
     get :pdf, on: :member
   end
 
+  resources :general_dashboards, only: [:show], controller: 'general_dashboard' do
+    get :pdf, on: :member
+  end
+
   resources :topics do
     get 'entries_data', to: 'topic#entries_data', on: :collection
   end

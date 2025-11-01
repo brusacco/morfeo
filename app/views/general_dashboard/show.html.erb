@@ -1,0 +1,861 @@
+<% content_for :extra_stylesheets do %>
+  <style>
+    /* Hide scrollbar for Chrome, Safari and Opera */
+    .scrollbar-hide::-webkit-scrollbar {
+      display: none;
+    }
+    /* Hide scrollbar for IE, Edge and Firefox */
+    .scrollbar-hide {
+      -ms-overflow-style: none;  /* IE and Edge */
+      scrollbar-width: none;  /* Firefox */
+    }
+    
+    /* Ensure proper overflow for sticky to work */
+    html, body {
+      overflow-x: hidden;
+      overflow-y: auto;
+      height: 100%;
+    }
+    
+    /* Smooth scroll behavior */
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 4rem;
+    }
+    
+    /* Ensure sticky navigation stays above all content including charts */
+    #general-nav {
+      position: sticky;
+      position: -webkit-sticky;
+      top: 0;
+      z-index: 9999;
+      background: white;
+      width: 100%;
+    }
+    
+    /* Lower z-index for chart containers and all Highcharts elements */
+    .chart-container, 
+    .highcharts-container,
+    .highcharts-container *,
+    .highcharts-root,
+    svg[class*="highcharts"],
+    [data-controller="topics"],
+    div[class*="w-full"][class*="overflow-hidden"] {
+      z-index: 1 !important;
+    }
+    
+    /* Ensure chart parent cards don't interfere */
+    section .bg-white {
+      isolation: auto;
+    }
+    
+    /* Custom gradient animations */
+    @keyframes gradient-shift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+    
+    .gradient-animate {
+      background-size: 200% 200%;
+      animation: gradient-shift 15s ease infinite;
+    }
+  </style>
+<% end %>
+
+<!-- Clean Header -->
+<header class="bg-white shadow-sm border-b border-gray-200">
+  <div class="mx-auto px-4 py-6 sm:px-6 lg:px-8">
+    <div class="md:flex md:items-center md:justify-between">
+      <div class="flex-1 min-w-0">
+        <h1 class="text-3xl font-bold text-gray-900 tracking-tight">
+          <i class="fa-solid fa-chart-pie text-sky-500 mr-2" aria-hidden="true"></i> <%= @topic.name %> · Dashboard General <span class="text-xs text-gray-500">(BETA)</span>
+        </h1>
+        <p class="mt-1 text-sm text-gray-600">
+          Análisis Multi-Canal - Últimos <%= @executive_summary[:period][:days] %> días 
+          (<%= @executive_summary[:period][:start].strftime("%d/%m/%Y") %> - <%= @executive_summary[:period][:end].strftime("%d/%m/%Y") %>)
+        </p>
+      </div>
+      <div class="mt-4 flex space-x-3 md:mt-0 md:ml-4">
+        <%= link_to pdf_general_dashboard_path(@topic), target: '_blank', 
+            rel: 'noopener noreferrer',
+            class: 'inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors',
+            'aria-label': "Generar reporte PDF del tópico #{@topic.name}" do %>
+          <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+            <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clip-rule="evenodd" />
+          </svg>
+          Generar Reporte PDF
+        <% end %>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Data Freshness Indicator -->
+<div class="bg-gray-50 border-b border-gray-200">
+  <div class="mx-auto px-4 py-2 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between text-sm text-gray-600">
+      <div>
+        <i class="fa-solid fa-clock mr-2"></i>
+        Última actualización: <%= Time.current.strftime("%d/%m/%Y %H:%M") %>
+      </div>
+      <div class="text-xs text-gray-500">
+        <i class="fa-solid fa-database mr-1"></i>
+        Datos en caché por 30 minutos
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Sticky Navigation -->
+<nav class="border-b border-gray-200 shadow-md" id="general-nav">
+  <div class="mx-auto px-4 sm:px-6 lg:px-8 bg-white">
+    <div class="flex items-center justify-between h-12 overflow-x-auto scrollbar-hide">
+      <div class="flex space-x-1 md:space-x-4">
+        <a href="#executive-summary" 
+           data-turbo="false"
+           class="px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap"
+           aria-label="Ir a resumen ejecutivo">
+          <i class="fa-solid fa-crown mr-1 md:mr-2" aria-hidden="true"></i>
+          <span class="hidden sm:inline">Resumen</span>
+        </a>
+        <a href="#channels" 
+           data-turbo="false"
+           class="px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap"
+           aria-label="Ir a canales">
+          <i class="fa-solid fa-tower-broadcast mr-1 md:mr-2" aria-hidden="true"></i>
+          <span class="hidden sm:inline">Canales</span>
+        </a>
+        <a href="#sentiment" 
+           data-turbo="false"
+           class="px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-700 hover:text-purple-600 hover:bg-purple-50 rounded-md transition-colors whitespace-nowrap"
+           aria-label="Ir a sentimiento">
+          <i class="fa-solid fa-heart-pulse mr-1 md:mr-2" aria-hidden="true"></i>
+          <span class="hidden sm:inline">Sentimiento</span>
+        </a>
+        <a href="#reach" 
+           data-turbo="false"
+           class="px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-md transition-colors whitespace-nowrap"
+           aria-label="Ir a alcance">
+          <i class="fa-solid fa-bullhorn mr-1 md:mr-2" aria-hidden="true"></i>
+          <span class="hidden sm:inline">Alcance</span>
+        </a>
+        <a href="#competitive" 
+           data-turbo="false"
+           class="px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-700 hover:text-amber-600 hover:bg-amber-50 rounded-md transition-colors whitespace-nowrap"
+           aria-label="Ir a análisis competitivo">
+          <i class="fa-solid fa-trophy mr-1 md:mr-2" aria-hidden="true"></i>
+          <span class="hidden sm:inline">Competitivo</span>
+        </a>
+        <a href="#recommendations" 
+           data-turbo="false"
+           class="px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap"
+           aria-label="Ir a recomendaciones">
+          <i class="fa-solid fa-lightbulb mr-1 md:mr-2" aria-hidden="true"></i>
+          <span class="hidden sm:inline">Recomendaciones</span>
+        </a>
+      </div>
+      <!-- Back to Top Button -->
+      <a href="#" 
+         id="backToTop" 
+         class="ml-4 inline-flex items-center px-3 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-md transition-colors cursor-pointer whitespace-nowrap"
+         aria-label="Volver arriba">
+        <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+          <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd" />
+        </svg>
+        Arriba
+      </a>
+    </div>
+  </div>
+</nav>
+<script>
+  // Simple back to top functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    const backToTopLink = document.getElementById('backToTop');
+    if (backToTopLink) {
+      backToTopLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+      });
+    }
+  });
+  
+  document.addEventListener('turbo:load', function() {
+    const backToTopLink = document.getElementById('backToTop');
+    if (backToTopLink) {
+      backToTopLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+      });
+    }
+  });
+</script>
+
+<main class="bg-gradient-to-br from-gray-50 via-blue-50/20 to-purple-50/20 min-h-screen">
+  <div class="mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-8">
+    
+    <!-- EXECUTIVE SUMMARY -->
+    <section id="executive-summary" class="scroll-mt-20">
+      <div class="mb-6">
+        <h2 class="text-3xl font-bold text-gray-900 flex items-center">
+          <i class="fa-solid fa-crown text-yellow-500 mr-3"></i>
+          Resumen Ejecutivo
+        </h2>
+        <p class="text-gray-600 mt-2">Métricas clave para toma de decisiones estratégicas</p>
+      </div>
+
+      <!-- Premium KPI Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Total Mentions -->
+        <div class="relative bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-xl p-6 text-white overflow-hidden transform hover:scale-105 transition-all duration-300">
+          <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+          <div class="relative">
+            <div class="flex items-center justify-between mb-3">
+              <div class="text-sm font-semibold uppercase tracking-wider text-blue-100">Total Menciones</div>
+              <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                <i class="fa-solid fa-bullhorn text-2xl"></i>
+              </div>
+            </div>
+            <div class="text-4xl font-bold mb-2">
+              <%= number_with_delimiter(@executive_summary[:total_mentions]) %>
+            </div>
+            <div class="text-sm text-blue-100">Across all channels</div>
+          </div>
+        </div>
+
+        <!-- Total Interactions -->
+        <div class="relative bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-xl p-6 text-white overflow-hidden transform hover:scale-105 transition-all duration-300">
+          <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+          <div class="relative">
+            <div class="flex items-center justify-between mb-3">
+              <div class="text-sm font-semibold uppercase tracking-wider text-purple-100">Interacciones</div>
+              <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                <i class="fa-solid fa-heart text-2xl"></i>
+              </div>
+            </div>
+            <div class="text-4xl font-bold mb-2">
+              <%= number_with_delimiter(@executive_summary[:total_interactions]) %>
+            </div>
+            <div class="text-sm text-purple-100">Total engagement</div>
+          </div>
+        </div>
+
+        <!-- Total Reach -->
+        <div class="relative bg-gradient-to-br from-green-500 to-green-600 rounded-2xl shadow-xl p-6 text-white overflow-hidden transform hover:scale-105 transition-all duration-300">
+          <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+          <div class="relative">
+            <div class="flex items-center justify-between mb-3">
+              <div class="text-sm font-semibold uppercase tracking-wider text-green-100">Alcance Total</div>
+              <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                <i class="fa-solid fa-users text-2xl"></i>
+              </div>
+            </div>
+            <div class="text-4xl font-bold mb-2">
+              <%= number_with_delimiter(@executive_summary[:total_reach]) %>*
+            </div>
+            <div class="text-sm text-green-100">Estimated unique users</div>
+            <div class="text-xs text-green-200 mt-2">
+              * Digital: estimado (3x) | Facebook y Twitter: datos reales de API
+            </div>
+          </div>
+        </div>
+
+        <!-- Share of Voice -->
+        <div class="relative bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl shadow-xl p-6 text-white overflow-hidden transform hover:scale-105 transition-all duration-300">
+          <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+          <div class="relative">
+            <div class="flex items-center justify-between mb-3">
+              <div class="text-sm font-semibold uppercase tracking-wider text-amber-100">Share of Voice</div>
+              <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                <i class="fa-solid fa-chart-pie text-2xl"></i>
+              </div>
+            </div>
+            <div class="text-4xl font-bold mb-2">
+              <%= number_with_precision(@executive_summary[:share_of_voice], precision: 1) %>%
+            </div>
+            <div class="text-sm text-amber-100">Market presence</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Secondary KPIs -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+        <!-- Sentiment Score -->
+        <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900">Sentimiento Promedio</h3>
+            <div class="text-3xl"><%= sentiment_emoji(@executive_summary[:average_sentiment]) %></div>
+          </div>
+          <div class="text-3xl font-bold <%= sentiment_score_color(@executive_summary[:average_sentiment]) %> mb-2">
+            <%= number_with_precision(@executive_summary[:average_sentiment], precision: 1) %>
+          </div>
+          <div class="flex items-center text-sm">
+            <%= sentiment_trend_icon(@executive_summary[:trend_velocity][:direction]) %>
+            <span class="ml-2 text-gray-600"><%= @executive_summary[:trend_velocity][:trend] %></span>
+          </div>
+        </div>
+
+        <!-- Engagement Rate -->
+        <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900">Tasa de Engagement</h3>
+            <i class="fa-solid fa-percentage text-2xl text-indigo-600"></i>
+          </div>
+          <div class="text-3xl font-bold text-indigo-600 mb-2">
+            <%= number_with_precision(@executive_summary[:engagement_rate], precision: 2) %>%
+          </div>
+          <div class="text-sm text-gray-600">Interacciones / Alcance</div>
+        </div>
+
+        <!-- Trend Velocity -->
+        <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900">Velocidad de Tendencia</h3>
+            <i class="fa-solid fa-rocket text-2xl <%= @executive_summary[:trend_velocity][:direction] == 'up' ? 'text-green-600' : (@executive_summary[:trend_velocity][:direction] == 'down' ? 'text-red-600' : 'text-gray-600') %>"></i>
+          </div>
+          <div class="text-3xl font-bold <%= @executive_summary[:trend_velocity][:direction] == 'up' ? 'text-green-600' : (@executive_summary[:trend_velocity][:direction] == 'down' ? 'text-red-600' : 'text-gray-600') %> mb-2">
+            <%= "%+.1f" % @executive_summary[:trend_velocity][:velocity_percent] %>%
+          </div>
+          <div class="text-sm text-gray-600">vs. período anterior</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Data Quality Disclaimer -->
+    <div class="mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+      <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-lg shadow-sm">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <i class="fa-solid fa-info-circle text-blue-400 text-xl"></i>
+          </div>
+          <div class="ml-3">
+            <p class="text-sm text-blue-700">
+              <strong>Nota sobre datos de alcance:</strong> Facebook y Twitter proporcionan datos reales de vistas vía API oficial. 
+              Para medios digitales de terceros, el alcance es una estimación conservadora basada en interacciones.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHANNEL PERFORMANCE -->
+    <section id="channels" class="scroll-mt-20">
+      <div class="mb-6">
+        <h2 class="text-3xl font-bold text-gray-900 flex items-center">
+          <i class="fa-solid fa-tower-broadcast text-indigo-600 mr-3"></i>
+          Rendimiento por Canal
+        </h2>
+        <p class="text-gray-600 mt-2">Comparación de métricas across all platforms</p>
+      </div>
+
+      <!-- Channel Cards -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <% @channel_performance.each do |key, channel| %>
+          <% 
+            # Set colors based on channel
+            border_color = case channel[:color]
+            when 'indigo' then 'border-indigo-200'
+            when 'blue' then 'border-blue-200'
+            when 'sky' then 'border-sky-200'
+            else 'border-gray-200'
+            end
+            
+            header_gradient = case channel[:color]
+            when 'indigo' then 'bg-gradient-to-r from-indigo-500 to-indigo-600'
+            when 'blue' then 'bg-gradient-to-r from-blue-500 to-blue-600'
+            when 'sky' then 'bg-gradient-to-r from-sky-500 to-sky-600'
+            else 'bg-gradient-to-r from-gray-500 to-gray-600'
+            end
+            
+            text_light = case channel[:color]
+            when 'indigo' then 'text-indigo-100'
+            when 'blue' then 'text-blue-100'
+            when 'sky' then 'text-sky-100'
+            else 'text-gray-100'
+            end
+            
+            text_color = case channel[:color]
+            when 'indigo' then 'text-indigo-600'
+            when 'blue' then 'text-blue-600'
+            when 'sky' then 'text-sky-600'
+            else 'text-gray-600'
+            end
+          %>
+          
+          <div class="bg-white rounded-xl shadow-lg border-2 <%= border_color %> overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
+            <!-- Channel Header -->
+            <div class="<%= header_gradient %> px-6 py-4">
+              <div class="flex items-center justify-between text-white">
+                <div>
+                  <h3 class="text-xl font-bold"><%= channel[:name] %></h3>
+                  <p class="text-sm <%= text_light %> mt-1"><%= channel[:share] %>% del total</p>
+                </div>
+                <i class="<%= channel[:icon] %> text-3xl text-white/80"></i>
+              </div>
+            </div>
+
+            <!-- Channel Metrics -->
+            <div class="p-6 space-y-4">
+              <!-- Mentions -->
+              <div class="flex items-center justify-between">
+                <span class="text-sm font-medium text-gray-600">Menciones</span>
+                <span class="text-lg font-bold <%= text_color %>"><%= number_with_delimiter(channel[:mentions]) %></span>
+              </div>
+
+              <!-- Interactions -->
+              <div class="flex items-center justify-between">
+                <span class="text-sm font-medium text-gray-600">Interacciones</span>
+                <span class="text-lg font-bold <%= text_color %>"><%= number_with_delimiter(channel[:interactions]) %></span>
+              </div>
+
+              <!-- Reach -->
+              <div class="flex items-center justify-between">
+                <span class="text-sm font-medium text-gray-600">Alcance</span>
+                <span class="text-lg font-bold <%= text_color %>"><%= number_with_delimiter(channel[:reach]) %></span>
+              </div>
+
+              <!-- Engagement Rate -->
+              <div class="flex items-center justify-between pt-3 border-t border-gray-200">
+                <span class="text-sm font-medium text-gray-600">Eng. Rate</span>
+                <span class="text-xl font-bold <%= text_color %>"><%= number_with_precision(channel[:engagement_rate], precision: 2) %>%</span>
+              </div>
+
+              <!-- Sentiment -->
+              <div class="flex items-center justify-between">
+                <span class="text-sm font-medium text-gray-600">Sentimiento</span>
+                <span class="text-lg font-bold <%= sentiment_score_color(channel[:sentiment][:average]) %>">
+                  <%= number_with_precision(channel[:sentiment][:average], precision: 1) %>
+                </span>
+              </div>
+
+              <!-- Trend -->
+              <div class="flex items-center justify-between">
+                <span class="text-sm font-medium text-gray-600">Tendencia</span>
+                <span class="flex items-center text-sm <%= channel[:trend] > 0 ? 'text-green-600' : (channel[:trend] < 0 ? 'text-red-600' : 'text-gray-600') %>">
+                  <%= channel[:trend] > 0 ? '↑' : (channel[:trend] < 0 ? '↓' : '→') %>
+                  <%= "%+.1f" % channel[:trend] %>%
+                </span>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Channel Comparison Charts -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Menciones por Canal</h3>
+          <%= pie_chart @chart_channel_mentions, 
+              donut: true, 
+              colors: ['#6366F1', '#3B82F6', '#0EA5E9'],
+              library: { chart: { height: 300 } } %>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Interacciones por Canal</h3>
+          <%= pie_chart @chart_channel_interactions, 
+              donut: true, 
+              colors: ['#8B5CF6', '#EC4899', '#F97316'],
+              library: { chart: { height: 300 } } %>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Alcance por Canal</h3>
+          <%= pie_chart @chart_channel_reach, 
+              donut: true, 
+              colors: ['#10B981', '#14B8A6', '#06B6D4'],
+              library: { chart: { height: 300 } } %>
+        </div>
+      </div>
+    </section>
+
+    <!-- SENTIMENT ANALYSIS -->
+    <section id="sentiment" class="scroll-mt-20">
+      <div class="mb-6">
+        <h2 class="text-3xl font-bold text-gray-900 flex items-center">
+          <i class="fa-solid fa-heart-pulse text-purple-600 mr-3"></i>
+          Análisis de Sentimiento
+        </h2>
+        <p class="text-gray-600 mt-2">Percepción y reputación de marca</p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Overall Sentiment -->
+        <div class="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl shadow-lg border border-purple-200 p-8">
+          <h3 class="text-xl font-bold text-gray-900 mb-6">Sentimiento General</h3>
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <div class="text-5xl font-bold <%= sentiment_score_color(@sentiment_analysis[:overall][:score]) %> mb-2">
+                <%= number_with_precision(@sentiment_analysis[:overall][:score], precision: 1) %>
+              </div>
+              <div class="text-sm text-gray-600">Confianza: <%= (@sentiment_analysis[:overall][:confidence] * 100).round %>%</div>
+            </div>
+            <div class="text-7xl"><%= sentiment_emoji(@sentiment_analysis[:overall][:score]) %></div>
+          </div>
+          
+          <!-- Sentiment Bars -->
+          <div class="space-y-3">
+            <div>
+              <div class="flex items-center justify-between text-sm mb-1">
+                <span class="text-green-700 font-medium">Positivo</span>
+                <span class="text-green-700 font-bold"><%= @sentiment_analysis[:overall][:distribution][:positive] %></span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-3">
+                <div class="bg-gradient-to-r from-green-400 to-green-600 h-3 rounded-full transition-all duration-500" 
+                     style="width: <%= (@sentiment_analysis[:overall][:distribution][:positive].to_f / (@sentiment_analysis[:overall][:distribution][:positive] + @sentiment_analysis[:overall][:distribution][:neutral] + @sentiment_analysis[:overall][:distribution][:negative]) * 100).round(1) %>%"></div>
+              </div>
+            </div>
+            
+            <div>
+              <div class="flex items-center justify-between text-sm mb-1">
+                <span class="text-gray-700 font-medium">Neutral</span>
+                <span class="text-gray-700 font-bold"><%= @sentiment_analysis[:overall][:distribution][:neutral] %></span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-3">
+                <div class="bg-gradient-to-r from-gray-400 to-gray-600 h-3 rounded-full transition-all duration-500" 
+                     style="width: <%= (@sentiment_analysis[:overall][:distribution][:neutral].to_f / (@sentiment_analysis[:overall][:distribution][:positive] + @sentiment_analysis[:overall][:distribution][:neutral] + @sentiment_analysis[:overall][:distribution][:negative]) * 100).round(1) %>%"></div>
+              </div>
+            </div>
+            
+            <div>
+              <div class="flex items-center justify-between text-sm mb-1">
+                <span class="text-red-700 font-medium">Negativo</span>
+                <span class="text-red-700 font-bold"><%= @sentiment_analysis[:overall][:distribution][:negative] %></span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-3">
+                <div class="bg-gradient-to-r from-red-400 to-red-600 h-3 rounded-full transition-all duration-500" 
+                     style="width: <%= (@sentiment_analysis[:overall][:distribution][:negative].to_f / (@sentiment_analysis[:overall][:distribution][:positive] + @sentiment_analysis[:overall][:distribution][:neutral] + @sentiment_analysis[:overall][:distribution][:negative]) * 100).round(1) %>%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sentiment Distribution Pie -->
+        <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Distribución de Sentimiento</h3>
+          <%= pie_chart @chart_sentiment_distribution, 
+              donut: true, 
+              colors: ['#10B981', '#9CA3AF', '#EF4444'],
+              library: { chart: { height: 350 } } %>
+        </div>
+      </div>
+
+      <!-- Sentiment Alerts -->
+      <% if @sentiment_analysis[:alerts].any? %>
+        <div class="mt-6 space-y-4">
+          <% @sentiment_analysis[:alerts].each do |alert| %>
+            <div class="border-l-4 <%= alert[:severity] == 'high' ? 'border-red-500 bg-red-50' : (alert[:severity] == 'medium' ? 'border-yellow-500 bg-yellow-50' : 'border-blue-500 bg-blue-50') %> p-6 rounded-r-xl shadow-md">
+              <div class="flex items-start">
+                <div class="flex-shrink-0">
+                  <i class="fa-solid <%= alert[:type] == 'crisis' ? 'fa-triangle-exclamation' : (alert[:type] == 'warning' ? 'fa-exclamation-circle' : 'fa-lightbulb') %> text-2xl <%= alert[:severity] == 'high' ? 'text-red-600' : (alert[:severity] == 'medium' ? 'text-yellow-600' : 'text-blue-600') %>"></i>
+                </div>
+                <div class="ml-4 flex-1">
+                  <h4 class="text-lg font-bold <%= alert[:severity] == 'high' ? 'text-red-900' : (alert[:severity] == 'medium' ? 'text-yellow-900' : 'text-blue-900') %> mb-1">
+                    <%= alert[:message] %>
+                  </h4>
+                  <p class="text-sm <%= alert[:severity] == 'high' ? 'text-red-700' : (alert[:severity] == 'medium' ? 'text-yellow-700' : 'text-blue-700') %>">
+                    <strong>Recomendación:</strong> <%= alert[:recommendation] %>
+                  </p>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </section>
+
+    <!-- REACH & COMPETITIVE ANALYSIS -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <!-- Reach Analysis -->
+      <section id="reach" class="scroll-mt-20">
+        <div class="mb-6">
+          <h2 class="text-2xl font-bold text-gray-900 flex items-center">
+            <i class="fa-solid fa-bullhorn text-orange-600 mr-3"></i>
+            Análisis de Alcance
+          </h2>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+          <div class="space-y-4">
+            <div class="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg">
+              <span class="text-sm font-semibold text-gray-700">Alcance Total</span>
+              <span class="text-2xl font-bold text-blue-600"><%= number_with_delimiter(@reach_analysis[:total_reach]) %></span>
+            </div>
+
+            <!-- Impresiones Estimadas REMOVED - Not defensible without tracking pixels -->
+            
+            <div class="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg">
+              <span class="text-sm font-semibold text-gray-700">Fuentes Únicas</span>
+              <span class="text-2xl font-bold text-green-600"><%= number_with_delimiter(@reach_analysis[:unique_sources]) %></span>
+            </div>
+
+            <!-- By Channel Breakdown -->
+            <div class="pt-4 border-t border-gray-200">
+              <h4 class="text-sm font-semibold text-gray-700 mb-3">Alcance por Canal</h4>
+              <div class="space-y-2">
+                <% @reach_analysis[:by_channel].each do |channel, reach| %>
+                  <div class="flex items-center justify-between text-sm">
+                    <span class="text-gray-600"><%= channel.to_s.capitalize %></span>
+                    <span class="font-semibold text-gray-900"><%= number_with_delimiter(reach) %></span>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Competitive Analysis -->
+      <section id="competitive" class="scroll-mt-20">
+        <div class="mb-6">
+          <h2 class="text-2xl font-bold text-gray-900 flex items-center">
+            <i class="fa-solid fa-trophy text-yellow-600 mr-3"></i>
+            Análisis Competitivo
+          </h2>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+          <div class="space-y-6">
+            <!-- Share of Voice -->
+            <div>
+              <h4 class="text-lg font-semibold text-gray-900 mb-4">Share of Voice</h4>
+              <%= pie_chart @chart_share_of_voice, 
+                  donut: true, 
+                  colors: ['#8B5CF6', '#E5E7EB'],
+                  library: { chart: { height: 250 } } %>
+            </div>
+
+            <!-- Market Position -->
+            <% if @competitive_analysis[:market_position][:rank] %>
+              <div class="p-6 bg-gradient-to-br from-yellow-50 to-amber-50 rounded-xl border border-yellow-200">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <div class="text-sm font-semibold text-gray-700 mb-1">Posición en el Mercado</div>
+                    <div class="text-4xl font-bold text-yellow-600">#<%= @competitive_analysis[:market_position][:rank] %></div>
+                    <div class="text-sm text-gray-600 mt-1">
+                      de <%= @competitive_analysis[:market_position][:total_topics] %> topics
+                      (Top <%= @competitive_analysis[:market_position][:percentile] %>%)
+                    </div>
+                  </div>
+                  <i class="fa-solid fa-ranking-star text-5xl text-yellow-500/30"></i>
+                </div>
+              </div>
+            <% end %>
+
+            <!-- Growth Rate -->
+            <div class="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg">
+              <span class="text-sm font-semibold text-gray-700">Tasa de Crecimiento</span>
+              <span class="text-2xl font-bold <%= @competitive_analysis[:growth_rate] >= 0 ? 'text-green-600' : 'text-red-600' %>">
+                <%= "%+.1f" % @competitive_analysis[:growth_rate] %>%
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- RECOMMENDATIONS -->
+    <section id="recommendations" class="scroll-mt-20">
+      <div class="mb-6">
+        <h2 class="text-3xl font-bold text-gray-900 flex items-center">
+          <i class="fa-solid fa-lightbulb text-yellow-500 mr-3"></i>
+          Recomendaciones Estratégicas
+        </h2>
+        <p class="text-gray-600 mt-2">Insights accionables para optimizar resultados</p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Best Publishing Time -->
+        <div class="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-xl shadow-lg border border-indigo-200 p-6">
+          <div class="flex items-center mb-4">
+            <div class="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center text-white mr-4">
+              <i class="fa-solid fa-clock text-xl"></i>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900">Mejor Horario para Publicar</h3>
+          </div>
+          <p class="text-2xl font-bold text-indigo-600 mb-2">
+            <%= @recommendations[:best_publishing_time][:recommendation] %>
+          </p>
+          <p class="text-sm text-gray-600"><%= @recommendations[:best_publishing_time][:reasoning] %></p>
+        </div>
+
+        <!-- Best Channel -->
+        <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl shadow-lg border border-purple-200 p-6">
+          <div class="flex items-center mb-4">
+            <div class="w-12 h-12 bg-purple-600 rounded-xl flex items-center justify-center text-white mr-4">
+              <i class="fa-solid fa-trophy text-xl"></i>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900">Mejor Canal</h3>
+          </div>
+          <p class="text-2xl font-bold text-purple-600 mb-2">
+            <%= @recommendations[:best_channel][:channel] %>
+          </p>
+          <p class="text-sm text-gray-600"><%= @recommendations[:best_channel][:reasoning] %></p>
+        </div>
+      </div>
+
+      <!-- Content Suggestions -->
+      <% if @recommendations[:content_suggestions].any? %>
+        <div class="mt-6">
+          <h3 class="text-xl font-bold text-gray-900 mb-4">Sugerencias de Contenido</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <% @recommendations[:content_suggestions].each do |suggestion| %>
+              <div class="bg-white rounded-lg shadow border border-gray-200 p-4 hover:shadow-md transition-shadow">
+                <div class="flex items-start">
+                  <div class="flex-shrink-0">
+                    <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg 
+                          <%= suggestion[:priority] == 'high' ? 'bg-red-100 text-red-600' : (suggestion[:priority] == 'medium' ? 'bg-yellow-100 text-yellow-600' : 'bg-blue-100 text-blue-600') %>">
+                      <i class="fa-solid fa-lightbulb"></i>
+                    </span>
+                  </div>
+                  <div class="ml-3">
+                    <p class="text-sm text-gray-900 font-medium"><%= suggestion[:suggestion] %></p>
+                    <p class="text-xs text-gray-500 mt-1">Prioridad: <%= suggestion[:priority] %></p>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Growth Opportunities -->
+      <% if @recommendations[:growth_opportunities].any? %>
+        <div class="mt-6">
+          <h3 class="text-xl font-bold text-gray-900 mb-4">Oportunidades de Crecimiento</h3>
+          <div class="space-y-4">
+            <% @recommendations[:growth_opportunities].each do |opportunity| %>
+              <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg shadow border border-green-200 p-5">
+                <div class="flex items-start justify-between">
+                  <div class="flex-1">
+                    <h4 class="text-lg font-bold text-gray-900 mb-2"><%= opportunity[:area] %></h4>
+                    <div class="grid grid-cols-2 gap-4 text-sm mb-3">
+                      <div>
+                        <span class="text-gray-600">Actual:</span>
+                        <span class="font-semibold text-gray-900 ml-2"><%= opportunity[:current] %></span>
+                      </div>
+                      <div>
+                        <span class="text-gray-600">Potencial:</span>
+                        <span class="font-semibold text-green-600 ml-2"><%= opportunity[:potential] %></span>
+                      </div>
+                    </div>
+                    <p class="text-sm text-gray-700"><strong>Sugerencia:</strong> <%= opportunity[:suggestion] %></p>
+                  </div>
+                  <i class="fa-solid fa-arrow-trend-up text-3xl text-green-500/30 ml-4"></i>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </section>
+
+    <!-- TOP CONTENT PREVIEW -->
+    <section class="scroll-mt-20">
+      <div class="mb-6">
+        <h2 class="text-3xl font-bold text-gray-900 flex items-center">
+          <i class="fa-solid fa-fire text-orange-500 mr-3"></i>
+          Top Content
+        </h2>
+        <p class="text-gray-600 mt-2">Contenido con mejor rendimiento</p>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Top Digital Entries -->
+          <div>
+            <h3 class="text-lg font-semibold text-indigo-900 mb-4 flex items-center">
+              <i class="fa-solid fa-newspaper text-indigo-600 mr-2"></i>
+              Noticias Digitales
+            </h3>
+            <div class="space-y-3">
+              <% @top_content[:top_entries].first(3).each do |entry| %>
+                <div class="p-3 bg-indigo-50 rounded-lg border border-indigo-100">
+                  <%= link_to entry.url, target: '_blank', class: 'text-sm font-medium text-gray-900 hover:text-indigo-600 line-clamp-2 block mb-1' do %>
+                    <%= entry.title %>
+                    <i class="fa-solid fa-external-link text-xs ml-1"></i>
+                  <% end %>
+                  <div class="flex items-center justify-between text-xs text-gray-600 mt-2">
+                    <span><%= entry.site.name %></span>
+                    <span class="font-semibold text-indigo-600"><%= number_with_delimiter(entry.total_count) %> interacciones</span>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+
+          <!-- Top Facebook Posts -->
+          <div>
+            <h3 class="text-lg font-semibold text-blue-900 mb-4 flex items-center">
+              <i class="fa-brands fa-facebook text-blue-600 mr-2"></i>
+              Posts de Facebook
+            </h3>
+            <div class="space-y-3">
+              <% @top_content[:top_facebook_posts].first(3).each do |post| %>
+                <div class="p-3 bg-blue-50 rounded-lg border border-blue-100">
+                  <%= link_to post.permalink_url, target: '_blank', class: 'text-sm font-medium text-gray-900 hover:text-blue-600 line-clamp-2 block mb-1' do %>
+                    <%= post.message&.truncate(60) || 'Ver publicación' %>
+                    <i class="fa-solid fa-external-link text-xs ml-1"></i>
+                  <% end %>
+                  <div class="flex items-center justify-between text-xs text-gray-600 mt-2">
+                    <span><%= post.page.name %></span>
+                    <span class="font-semibold text-blue-600"><%= number_with_delimiter(post.total_interactions) %> interacciones</span>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+
+          <!-- Top Tweets -->
+          <div>
+            <h3 class="text-lg font-semibold text-sky-900 mb-4 flex items-center">
+              <i class="fa-brands fa-twitter text-sky-600 mr-2"></i>
+              Tweets
+            </h3>
+            <div class="space-y-3">
+              <% @top_content[:top_tweets].first(3).each do |tweet| %>
+                <div class="p-3 bg-sky-50 rounded-lg border border-sky-100">
+                  <%= link_to tweet.tweet_url, target: '_blank', class: 'text-sm font-medium text-gray-900 hover:text-sky-600 line-clamp-2 block mb-1' do %>
+                    <%= tweet.text&.truncate(60) || 'Ver tweet' %>
+                    <i class="fa-solid fa-external-link text-xs ml-1"></i>
+                  <% end %>
+                  <div class="flex items-center justify-between text-xs text-gray-600 mt-2">
+                    <span>@<%= tweet.twitter_profile.username %></span>
+                    <span class="font-semibold text-sky-600"><%= number_with_delimiter(tweet.total_interactions) %> interacciones</span>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script>
+  // Back to top functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    const backToTopLink = document.getElementById('backToTop');
+    if (backToTopLink) {
+      backToTopLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+      });
+    }
+  });
+  
+  document.addEventListener('turbo:load', function() {
+    const backToTopLink = document.getElementById('backToTop');
+    if (backToTopLink) {
+      backToTopLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+      });
+    }
+  });
+</script>
+

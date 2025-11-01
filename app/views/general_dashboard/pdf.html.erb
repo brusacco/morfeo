@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <title>Dashboard General: <%= @topic.name %> - Morfeo Analytics</title>
+    <!-- Chartkick for Charts -->
+    <script src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartkick@4.2.0/dist/chartkick.min.js"></script>
+    <style>
+      /* PDF Print Optimized Styles */
+      @page {
+        margin: 2cm;
+        size: A4;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Arial', 'Helvetica', sans-serif;
+        font-size: 11pt;
+        line-height: 1.4;
+        margin: 0;
+        padding: 0;
+        color: #1a1a1a;
+        background: white;
+      }
+
+      /* Typography */
+      h1 {
+        font-size: 20pt;
+        font-weight: bold;
+        margin: 0 0 12pt 0;
+        color: #1e3a8a;
+        border-bottom: 2pt solid #e5e7eb;
+        padding-bottom: 6pt;
+      }
+
+      h2 {
+        font-size: 16pt;
+        font-weight: bold;
+        margin: 16pt 0 8pt 0;
+        color: #1f2937;
+        page-break-after: avoid;
+      }
+
+      h3 {
+        font-size: 14pt;
+        font-weight: 600;
+        margin: 12pt 0 6pt 0;
+        color: #374151;
+        page-break-after: avoid;
+      }
+
+      p {
+        margin: 6pt 0;
+        text-align: justify;
+      }
+
+      /* Layout Structure */
+      .pdf-container {
+        width: 100%;
+        max-width: none;
+      }
+
+      .pdf-section {
+        margin-bottom: 20pt;
+        page-break-inside: avoid;
+      }
+
+      .pdf-section.break-before {
+        page-break-before: always;
+      }
+
+      .pdf-header {
+        text-align: center;
+        margin-bottom: 20pt;
+        padding-bottom: 12pt;
+        border-bottom: 1pt solid #e5e7eb;
+      }
+
+      /* Chart Containers */
+      .pdf-chart-row {
+        display: flex;
+        gap: 16pt;
+        margin-bottom: 16pt;
+        page-break-inside: avoid;
+      }
+
+      .pdf-chart-single {
+        width: 100%;
+        margin-bottom: 16pt;
+        page-break-inside: avoid;
+      }
+
+      .pdf-chart-half {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* Statistics Grid */
+      .pdf-stats-grid {
+        display: flex;
+        gap: 8pt;
+        margin-bottom: 16pt;
+        page-break-inside: avoid;
+      }
+
+      .pdf-stats-card {
+        flex: 1;
+        background: white;
+        border: 1pt solid #e5e7eb;
+        border-radius: 4pt;
+        padding: 8pt;
+        text-align: center;
+      }
+
+      .pdf-stats-label {
+        font-size: 9pt;
+        color: #6b7280;
+        margin-bottom: 4pt;
+      }
+
+      .pdf-stats-value {
+        font-size: 18pt;
+        font-weight: bold;
+        color: #1f2937;
+      }
+
+      /* Tables */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 16pt;
+        font-size: 9pt;
+      }
+
+      th {
+        background: #f3f4f6;
+        padding: 8pt;
+        text-align: left;
+        font-weight: 600;
+        color: #374151;
+        border: 1pt solid #d1d5db;
+      }
+
+      td {
+        padding: 6pt 8pt;
+        border: 1pt solid #e5e7eb;
+      }
+
+      tr:nth-child(even) {
+        background: #f9fafb;
+      }
+
+      /* Footer */
+      .pdf-footer {
+        margin-top: 20pt;
+        padding-top: 12pt;
+        border-top: 1pt solid #e5e7eb;
+        text-align: center;
+        font-size: 8pt;
+        color: #9ca3af;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="pdf-container">
+      
+      <!-- Header -->
+      <div class="pdf-header">
+        <h1>Dashboard General Ejecutivo</h1>
+        <p style="font-size: 12pt; color: #6b7280; margin: 0;">
+          Tópico: <strong><%= @topic.name %></strong>
+        </p>
+        <p style="font-size: 10pt; color: #9ca3af; margin: 4pt 0 0 0;">
+          Período: <%= @start_date.strftime('%d/%m/%Y') %> - <%= @end_date.strftime('%d/%m/%Y') %>
+          | Generado: <%= Time.zone.now.strftime('%d/%m/%Y %H:%M') %>
+        </p>
+      </div>
+
+      <!-- EXECUTIVE SUMMARY -->
+      <div class="pdf-section">
+        <h2>Resumen Ejecutivo</h2>
+        
+        <div class="pdf-stats-grid">
+          <div class="pdf-stats-card">
+            <div class="pdf-stats-label">Menciones Totales</div>
+            <div class="pdf-stats-value"><%= number_with_delimiter(@executive_summary[:total_mentions]) %></div>
+          </div>
+
+          <div class="pdf-stats-card">
+            <div class="pdf-stats-label">Interacciones</div>
+            <div class="pdf-stats-value"><%= number_with_delimiter(@executive_summary[:total_interactions]) %></div>
+          </div>
+
+          <div class="pdf-stats-card">
+            <div class="pdf-stats-label">Alcance</div>
+            <div class="pdf-stats-value"><%= number_with_delimiter(@executive_summary[:total_reach]) %></div>
+          </div>
+
+          <div class="pdf-stats-card">
+            <div class="pdf-stats-label">Engagement</div>
+            <div class="pdf-stats-value"><%= number_with_precision(@executive_summary[:engagement_rate], precision: 1) %>%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CHANNEL PERFORMANCE -->
+      <div class="pdf-section">
+        <h2>Rendimiento por Canal</h2>
+        
+        <table>
+          <thead>
+            <tr>
+              <th>Canal</th>
+              <th style="text-align: right;">Menciones</th>
+              <th style="text-align: right;">Interacciones</th>
+              <th style="text-align: right;">Alcance</th>
+              <th style="text-align: right;">Engagement</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Medios Digitales</strong></td>
+              <td style="text-align: right;"><%= number_with_delimiter(@channel_performance[:digital][:mentions]) %></td>
+              <td style="text-align: right;"><%= number_with_delimiter(@channel_performance[:digital][:interactions]) %></td>
+              <td style="text-align: right;"><%= number_with_delimiter(@channel_performance[:digital][:reach]) %></td>
+              <td style="text-align: right;"><%= number_with_precision(@channel_performance[:digital][:engagement_rate], precision: 1) %>%</td>
+            </tr>
+            <tr>
+              <td><strong>Facebook</strong></td>
+              <td style="text-align: right;"><%= number_with_delimiter(@channel_performance[:facebook][:mentions]) %></td>
+              <td style="text-align: right;"><%= number_with_delimiter(@channel_performance[:facebook][:interactions]) %></td>
+              <td style="text-align: right;"><%= number_with_delimiter(@channel_performance[:facebook][:reach]) %></td>
+              <td style="text-align: right;"><%= number_with_precision(@channel_performance[:facebook][:engagement_rate], precision: 1) %>%</td>
+            </tr>
+            <tr>
+              <td><strong>Twitter/X</strong></td>
+              <td style="text-align: right;"><%= number_with_delimiter(@channel_performance[:twitter][:mentions]) %></td>
+              <td style="text-align: right;"><%= number_with_delimiter(@channel_performance[:twitter][:interactions]) %></td>
+              <td style="text-align: right;"><%= number_with_delimiter(@channel_performance[:twitter][:reach]) %></td>
+              <td style="text-align: right;"><%= number_with_precision(@channel_performance[:twitter][:engagement_rate], precision: 1) %>%</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="pdf-chart-row">
+          <div class="pdf-chart-half">
+            <h3 style="text-align: center; font-size: 11pt;">Menciones por Canal</h3>
+            <%= pie_chart @chart_channel_mentions, 
+                donut: true, 
+                colors: ['#6366F1', '#3B82F6', '#0EA5E9'],
+                library: { chart: { height: 250 } } %>
+          </div>
+
+          <div class="pdf-chart-half">
+            <h3 style="text-align: center; font-size: 11pt;">Interacciones por Canal</h3>
+            <%= pie_chart @chart_channel_interactions, 
+                donut: true, 
+                colors: ['#8B5CF6', '#EC4899', '#F97316'],
+                library: { chart: { height: 250 } } %>
+          </div>
+        </div>
+      </div>
+
+      <!-- SENTIMENT ANALYSIS -->
+      <div class="pdf-section break-before">
+        <h2>Análisis de Sentimiento</h2>
+        
+        <div class="pdf-stats-grid">
+          <div class="pdf-stats-card">
+            <div class="pdf-stats-label">Sentimiento Promedio</div>
+            <div class="pdf-stats-value"><%= number_with_precision(@sentiment_analysis[:overall][:score], precision: 1) %></div>
+          </div>
+
+          <div class="pdf-stats-card">
+            <div class="pdf-stats-label">Menciones Positivas</div>
+            <div class="pdf-stats-value" style="color: #10b981;"><%= number_with_delimiter(@sentiment_analysis[:overall][:distribution][:positive]) %></div>
+          </div>
+
+          <div class="pdf-stats-card">
+            <div class="pdf-stats-label">Menciones Neutrales</div>
+            <div class="pdf-stats-value" style="color: #6b7280;"><%= number_with_delimiter(@sentiment_analysis[:overall][:distribution][:neutral]) %></div>
+          </div>
+
+          <div class="pdf-stats-card">
+            <div class="pdf-stats-label">Menciones Negativas</div>
+            <div class="pdf-stats-value" style="color: #ef4444;"><%= number_with_delimiter(@sentiment_analysis[:overall][:distribution][:negative]) %></div>
+          </div>
+        </div>
+
+        <div class="pdf-chart-single" style="max-width: 50%; margin: 0 auto;">
+          <%= pie_chart @chart_sentiment_distribution,
+              donut: true,
+              colors: ['#10B981', '#6B7280', '#EF4444'],
+              library: { chart: { height: 250 } } %>
+        </div>
+      </div>
+
+      <!-- TOP CONTENT -->
+      <div class="pdf-section break-before">
+        <h2>Contenido Destacado</h2>
+        
+        <% if @top_content[:top_entries].any? %>
+          <h3>Top Medios Digitales</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Título</th>
+                <th>Fuente</th>
+                <th style="text-align: right;">Reacciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @top_content[:top_entries].first(5).each do |entry| %>
+                <tr>
+                  <td><%= truncate(entry.title, length: 80) %></td>
+                  <td><%= entry.site.name %></td>
+                  <td style="text-align: right;"><%= number_with_delimiter(entry.total_count) %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        <% end %>
+
+        <% if @top_content[:top_facebook_posts].any? %>
+          <h3>Top Facebook</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Mensaje</th>
+                <th>Página</th>
+                <th style="text-align: right;">Interacciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @top_content[:top_facebook_posts].first(5).each do |post| %>
+                <tr>
+                  <td><%= truncate(post.message.presence || post.link, length: 80) %></td>
+                  <td><%= post.page.name %></td>
+                  <td style="text-align: right;"><%= number_with_delimiter(post.total_interactions) %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        <% end %>
+
+        <% if @top_content[:top_tweets].any? %>
+          <h3>Top Twitter</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Tweet</th>
+                <th>Cuenta</th>
+                <th style="text-align: right;">Interacciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @top_content[:top_tweets].first(5).each do |tweet| %>
+                <tr>
+                  <td><%= truncate(tweet.text, length: 80) %></td>
+                  <td>@<%= tweet.twitter_profile.username %></td>
+                  <td style="text-align: right;"><%= number_with_delimiter(tweet.total_interactions) %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        <% end %>
+      </div>
+
+      <!-- Footer -->
+      <div class="pdf-footer">
+        <p>
+          <strong>MORFEO Analytics</strong> | Dashboard General Ejecutivo<br>
+          Generado el <%= Time.zone.now.strftime('%d de %B de %Y a las %H:%M') %><br>
+          Confidencial - Solo para uso interno
+        </p>
+      </div>
+
+    </div>
+
+    <script>
+      // Wait for charts to load before printing
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          window.print();
+        }, 2000);
+      });
+    </script>
+  </body>
+</html>
