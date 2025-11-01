@@ -159,6 +159,9 @@ class HomeController < ApplicationController
       # Precompile assets
       system('RAILS_ENV=production rake assets:precompile')
 
+      # Clear Rails cache to see changes immediately
+      system('RAILS_ENV=production rails cache:clear')
+
       # Restart the Puma server
       system('touch tmp/restart.txt')
     end
