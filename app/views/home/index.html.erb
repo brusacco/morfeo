@@ -915,11 +915,13 @@
           </h3>
           <% if @sentiment_intelligence[:by_topic].any? %>
             <%= column_chart @sentiment_intelligence[:by_topic], 
-                xtitle: "Tema", 
-                ytitle: "Score de Sentimiento",
                 colors: ['#8B5CF6'],
+                height: '500px',
                 library: {
-                  chart: { height: 350 },
+                  chart: { 
+                    marginBottom: 150,
+                    spacingBottom: 30
+                  },
                   plotOptions: {
                     column: {
                       dataLabels: {
@@ -928,16 +930,54 @@
                       }
                     }
                   },
+                  xAxis: {
+                    type: 'category',
+                    labels: {
+                      rotation: -45,
+                      align: 'right',
+                      reserveSpace: true,
+                      useHTML: false,
+                      style: {
+                        fontSize: '13px',
+                        fontWeight: '500',
+                        color: '#374151'
+                      },
+                      y: 20
+                    },
+                    title: {
+                      text: 'Tema',
+                      margin: 20,
+                      style: {
+                        fontSize: '14px',
+                        fontWeight: '600'
+                      }
+                    }
+                  },
                   yAxis: {
                     min: -100,
                     max: 100,
+                    title: {
+                      text: 'Score de Sentimiento',
+                      style: {
+                        fontSize: '14px',
+                        fontWeight: '600'
+                      }
+                    },
                     plotLines: [{
                       color: '#9CA3AF',
                       width: 2,
                       value: 0,
                       dashStyle: 'Dash',
-                      label: { text: 'Neutral' }
+                      label: { 
+                        text: 'Neutral',
+                        style: {
+                          color: '#6B7280'
+                        }
+                      }
                     }]
+                  },
+                  legend: {
+                    enabled: false
                   }
                 } %>
           <% else %>
