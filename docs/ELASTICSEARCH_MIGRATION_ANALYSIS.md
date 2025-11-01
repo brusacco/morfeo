@@ -966,4 +966,80 @@ It's like asking someone to tell you which books to read from your bookshelf, th
 
 ---
 
+## ⚡ CRITICAL UPDATE: The Real Bottleneck
+
+**Date:** November 1, 2025  
+**New Hypothesis:** The real performance issue might be `acts_as_taggable_on` queries, NOT Elasticsearch!
+
+### Why This Changes Everything
+
+**Elasticsearch might be masking a deeper problem:**
+
+- ✅ ES bypasses the expensive `acts_as_taggable_on` JOINs
+- ❌ But costs 33.6GB RAM to avoid a JOIN
+- ❌ This is treating a symptom, not the disease
+
+**Your insight:**
+
+- `tagged_with()` queries create complex polymorphic JOINs
+- At 2M+ entries, these JOINs could add 100-200ms overhead
+- Multiple taggings per entry × 3 models = millions of JOIN rows
+- ES returns pre-indexed IDs, avoiding the JOIN entirely
+
+### The Real Question
+
+**Not:** "Should we keep Elasticsearch?"  
+**But:** "Should we fix the tagging queries, THEN remove Elasticsearch?"
+
+### Recommended Diagnostic Path
+
+1. **First:** Run `diagnose_tagging_performance.rb` to measure overhead
+
+   ```bash
+   rails runner scripts/diagnose_tagging_performance.rb
+   ```
+
+2. **If overhead > 100ms:** Fix tagging, then remove ES
+
+   - Implement Entry-Topic direct associations (Solution 4)
+   - Expected: 10-30ms queries (faster than ES!)
+   - Free 33.6GB RAM
+   - See: `docs/ACTS_AS_TAGGABLE_OPTIMIZATION.md`
+
+3. **If overhead < 50ms:** Tagging is fine, remove ES anyway
+   - Follow original migration plan
+   - ES isn't helping enough to justify 33.6GB RAM
+
+### Updated Decision Matrix
+
+| Scenario         | Tagging Fast (<50ms)         | Tagging Slow (>100ms)               |
+| ---------------- | ---------------------------- | ----------------------------------- |
+| **Keep ES?**     | ❌ No - unnecessary overhead | ⚠️ Maybe - but fix root cause first |
+| **Fix tagging?** | ✅ Optional optimization     | ✅ CRITICAL - do this first         |
+| **Save RAM?**    | 33.6GB immediately           | 33.6GB after fixing tagging         |
+| **Best outcome** | MySQL only (20-30ms)         | Entry-Topic associations (10-30ms)  |
+
+### Likely Scenario
+
+Based on your server metrics (33.6GB for ES), you're probably in the "tagging slow" scenario:
+
+1. ES is your current "solution" to slow tagging JOINs
+2. But it's an expensive band-aid (33.6GB RAM)
+3. Better approach: Fix tagging, then remove ES
+
+**Expected final result:**
+
+- ✅ 10-30ms queries (faster than current ES setup!)
+- ✅ Save 33.6GB RAM
+- ✅ Cleaner code with direct associations
+- ✅ No more polymorphic JOIN complexity
+
+---
+
+**Next Step:** Run the diagnostic to confirm hypothesis, then choose your path!
+
+See detailed solutions in: `docs/ACTS_AS_TAGGABLE_OPTIMIZATION.md`
+
+---
+
 **Questions?** Review this document with your team and let me know if you need help with the migration!
