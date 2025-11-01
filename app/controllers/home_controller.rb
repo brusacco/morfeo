@@ -128,21 +128,6 @@ class HomeController < ApplicationController
     @newspapers = Newspaper.where(date: Date.today)
   end
 
-  def topic
-    tags = 'Horacio Cartes, santiago Peña'
-    @entries = Entries.enabled.includes(:site, :tags).tagged_with(tags).limit(250)
-    @tags = @entries.tag_counts_on(:tags).order('count desc')
-
-    @tags_interactions = Entry.joins(:tags)
-                              .where(id: @entries.select(:id), tags: { id: @tags.map(&:id) })
-                              .group('tags.name')
-                              .order(Arel.sql('SUM(total_count) DESC'))
-                              .sum(:total_count)
-
-    @tags_count = {}
-    @tags.each { |n| @tags_count[n.name] = n.count }
-  end
-
   def deploy
     Dir.chdir('/home/rails/morfeo') do
       system('export RAILS_ENV=production')

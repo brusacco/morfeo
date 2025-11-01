@@ -1,7 +1,11 @@
 # frozen_string_literal: true
 
 class TopicController < ApplicationController
+  include TopicAuthorizable
+  
   before_action :authenticate_user!
+  before_action :set_topic, only: [:show, :pdf, :comments, :history]
+  before_action :authorize_topic_access!, only: [:show, :pdf]
 
   # caches_action :show, expires_in: 1.hour
 
@@ -11,42 +15,73 @@ class TopicController < ApplicationController
     polarity = params[:polarity]
     title = params[:title]
 
-    date = Date.parse(date_filter) if date_filter.present?
-
+    # Validate topic exists
     topic = Topic.find_by(id: topic_id)
+    unless topic
+      render partial: 'shared/error_message',
+             locals: { message: 'Tópico no encontrado' },
+             status: :not_found
+      return
+    end
+
+    # Parse date with error handling
+    date = parse_date_filter(date_filter)
+    unless date
+      render partial: 'shared/error_message',
+             locals: { message: 'Fecha inválida' },
+             status: :bad_request
+      return
+    end
+
+    # Validate polarity
     polarity = validate_polarity(polarity)
 
-    if topic
-      if title == 'true'
-        entries = topic.title_chart_entries(date)
-      else
-        entries = topic.chart_entries(date)
-      end
+    # Load entries based on parameters
+    entries = if title == 'true'
+                topic.title_chart_entries(date)
+              else
+                topic.chart_entries(date)
+              end
 
-      entries = entries.where(published_at: date.all_day)
+    entries = entries.where(published_at: date.all_day)
+    entries = entries.where(polarity: polarity) if polarity
 
-      entries = entries.where(polarity:) if polarity
-    end
-
-    case polarity
-    when 'neutral', '0'
-      polarityName = 'Neutral'
-    when 'positive', '1'
-      polarityName = 'Positiva'
-    when 'negative', '2'
-      polarityName = 'Negativa'
-    else
-      polarityName = 'Todas'
-    end
+    # Determine polarity name for display
+    polarity_name = case polarity
+                    when 'neutral', '0' then 'Neutral'
+                    when 'positive', '1' then 'Positiva'
+                    when 'negative', '2' then 'Negativa'
+                    else 'Todas'
+                    end
 
     render partial: 'home/chart_entries',
            locals: {
              topic_entries: entries,
              entries_date: date,
              topic: topic.name,
-             polarity: polarityName
+             polarity: polarity_name
            },
            layout: false
+  rescue ActiveRecord::RecordNotFound => e
+    Rails.logger.error "Topic not found in entries_data: #{e.message}"
+    render partial: 'shared/error_message',
+           locals: { message: 'Tópico no encontrado' },
+           status: :not_found
+  rescue StandardError => e
+    Rails.logger.error "Error in entries_data: #{e.class} - #{e.message}"
+    Rails.logger.error e.backtrace.first(5).join("\n")
+    render partial: 'shared/error_message',
+           locals: { message: 'Error cargando datos. Por favor intente nuevamente.' },
+           status: :internal_server_error
+  end
+
+  def parse_date_filter(date_string)
+    return Date.current if date_string.blank?
+    
+    Date.parse(date_string)
+  rescue ArgumentError => e
+    Rails.logger.warn "Invalid date parameter: #{date_string} - #{e.message}"
+    nil
   end
 
   def validate_polarity(polarity)
@@ -55,13 +90,6 @@ class TopicController < ApplicationController
   end
 
   def show
-    @topic = Topic.find(params[:id])
-
-    unless @topic.users.exists?(current_user.id) && @topic.status == true
-      return redirect_to root_path,
-                         alert: 'El Tópico al que intentaste acceder no está asignado a tu usuario o se encuentra deshabilitado'
-    end
-
     # Use service to load all data
     dashboard_data = DigitalDashboardServices::AggregatorService.call(topic: @topic)
 
@@ -74,12 +102,6 @@ class TopicController < ApplicationController
   end
 
   def comments
-    @topic = Topic.find(params[:id])
-
-    unless @topic.users.exists?(current_user.id)
-      return redirect_to root_path, alert: 'El Tópico al que intentaste acceder no está asignado a tu usuario'
-    end
-
     @tag_list = @topic.tags.map(&:name)
     @entries = @topic.list_entries
 
@@ -94,13 +116,6 @@ class TopicController < ApplicationController
   end
 
   def pdf
-    @topic = Topic.includes(:tags, :users).find(params[:id])
-
-    unless @topic.users.exists?(current_user.id) && @topic.status == true
-      return redirect_to root_path,
-                         alert: 'El Tópico al que intentaste acceder no está asignado a tu usuario o se encuentra deshabilitado'
-    end
-
     # Use dedicated PDF service
     pdf_data = DigitalDashboardServices::PdfService.call(topic: @topic)
 
@@ -115,11 +130,14 @@ class TopicController < ApplicationController
   end
 
   def history
-    @topic = Topic.find(params[:id])
     @reports = @topic.reports.where.not(report_text: nil).order(created_at: :desc).limit(20)
   end
 
   private
+
+  def set_topic
+    @topic = Topic.includes(:tags, :users).find(params[:id])
+  end
 
   # Helper class for grouped data in PDF
   class GroupProxy

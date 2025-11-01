@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
 class TwitterTopicController < ApplicationController
+  include TopicAuthorizable
+  
   before_action :authenticate_user!
   before_action :set_topic
-  before_action :authorize_topic!
+  before_action :authorize_topic_access!, only: [:show, :pdf]
 
   # Constants
   TOP_POSTS_SHOW_LIMIT = 20
@@ -29,11 +31,34 @@ class TwitterTopicController < ApplicationController
   end
 
   def entries_data
+    # Validate topic exists (set by set_topic before_action)
+    unless @topic
+      render partial: 'shared/error_message',
+             locals: { message: 'Tópico no encontrado' },
+             status: :not_found
+      return
+    end
+
+    # Parse date with error handling
     date = parse_date_param || Date.current
+    
+    # Load Twitter posts for the date
     posts = TwitterPost.for_topic(@topic, start_time: date.beginning_of_day, end_time: date.end_of_day)
                        .reorder(Arel.sql('(favorite_count + retweet_count + reply_count + quote_count) DESC'))
 
-    render partial: 'twitter_topic/chart_entries', locals: { posts:, entries_date: date, topic_name: @topic.name }
+    render partial: 'twitter_topic/chart_entries',
+           locals: { posts: posts, entries_date: date, topic_name: @topic.name }
+  rescue ActiveRecord::RecordNotFound => e
+    Rails.logger.error "Error loading Twitter posts: #{e.message}"
+    render partial: 'shared/error_message',
+           locals: { message: 'Tópico no encontrado' },
+           status: :not_found
+  rescue StandardError => e
+    Rails.logger.error "Error in Twitter entries_data: #{e.class} - #{e.message}"
+    Rails.logger.error e.backtrace.first(5).join("\n")
+    render partial: 'shared/error_message',
+           locals: { message: 'Error cargando publicaciones de Twitter. Por favor intente nuevamente.' },
+           status: :internal_server_error
   end
 
   def pdf
@@ -56,13 +81,6 @@ class TwitterTopicController < ApplicationController
   def set_topic
     topic_id = params[:id] || params[:topic_id]
     @topic = Topic.find(topic_id)
-  end
-
-  def authorize_topic!
-    return if @topic.status && @topic.users.exists?(current_user.id)
-
-    redirect_to root_path,
-                alert: 'El Tópico al que intentaste acceder no está asignado a tu usuario o se encuentra deshabilitado'
   end
 
   def parse_date_param

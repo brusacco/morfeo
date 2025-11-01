@@ -3,9 +3,11 @@
 # Professional General Dashboard Controller
 # CEO-level reporting and analytics across all data sources
 class GeneralDashboardController < ApplicationController
+  include TopicAuthorizable
+  
   before_action :authenticate_user!
   before_action :set_topic
-  before_action :verify_topic_access
+  before_action :authorize_topic_access!, only: [:show, :pdf]
 
   def show
     @start_date = start_date
@@ -84,13 +86,6 @@ class GeneralDashboardController < ApplicationController
 
   def set_topic
     @topic = Topic.find(params[:id])
-  end
-
-  def verify_topic_access
-    unless @topic.users.exists?(current_user.id) && @topic.status == true
-      redirect_to root_path,
-                  alert: 'El Tópico al que intentaste acceder no está asignado a tu usuario o se encuentra deshabilitado'
-    end
   end
 
   def start_date
