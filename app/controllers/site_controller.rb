@@ -5,12 +5,15 @@ class SiteController < ApplicationController
 
   def show
     @site = Site.find(params[:id])
-    @entries_stats = @site.entries.enabled.normal_range.group_by_day(:published_at)
-    @entries = @site.entries.includes(:tags).enabled.normal_range.order(published_at: :desc)
-
-    # Ensure entries are loaded for word/bigram analysis
-    loaded_entries = @entries.to_a
-    @word_occurrences = word_occurrences(loaded_entries)
-    @bigram_occurrences = bigram_occurrences(loaded_entries)
+    
+    # Use optimized service for data aggregation
+    data = SiteDashboardServices::AggregatorService.call(site: @site)
+    
+    @entries_stats = data[:entries_stats]
+    @entries = data[:entries]
+    @word_occurrences = data[:word_occurrences]
+    @bigram_occurrences = data[:bigram_occurrences]
+    @tags = data[:tags_data][:tags]
+    @tags_interactions = data[:tags_data][:tags_interactions]
   end
 end
