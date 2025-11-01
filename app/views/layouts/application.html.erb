@@ -199,6 +199,7 @@
         let tipInterval;
         let showTimeout;
         let pageLoadStartTime = Date.now();
+        let isLoaderActive = false; // Flag to prevent duplicate triggers
         
         // Loading tips to cycle through
         const loadingTips = [
@@ -224,8 +225,14 @@
         }
         
         function showLoader() {
+          // Prevent duplicate triggers
+          if (isLoaderActive) return;
+          
           // Clear any existing timeout
           if (showTimeout) clearTimeout(showTimeout);
+          
+          // Mark loader as active
+          isLoaderActive = true;
           
           // Reset load start time for this navigation
           pageLoadStartTime = Date.now();
@@ -263,6 +270,8 @@
                   clearInterval(tipInterval);
                   tipInterval = null;
                 }
+                // Reset flag for next navigation
+                isLoaderActive = false;
               }
             }, hideDelay);
           } else {
@@ -275,6 +284,8 @@
                     clearInterval(tipInterval);
                     tipInterval = null;
                   }
+                  // Reset flag for next navigation
+                  isLoaderActive = false;
                 }
               }, hideDelay);
               // Remove listener after execution
@@ -352,6 +363,8 @@
                 clearInterval(tipInterval);
                 tipInterval = null;
               }
+              // Reset flag for next navigation
+              isLoaderActive = false;
             }, 200);
           }
         });
@@ -371,6 +384,8 @@
               clearInterval(tipInterval);
               tipInterval = null;
             }
+            // Reset flag on error
+            isLoaderActive = false;
           }
         });
         
@@ -385,6 +400,8 @@
                 clearInterval(tipInterval);
                 tipInterval = null;
               }
+              // Reset flag on timeout
+              isLoaderActive = false;
             }
           }, 15000);
         });
