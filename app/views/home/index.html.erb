@@ -38,539 +38,757 @@
       position: relative;
       z-index: 1 !important;
     }
+
+    /* Gradient animations */
+    @keyframes gradient-shift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+    
+    .gradient-animate {
+      background-size: 200% 200%;
+      animation: gradient-shift 15s ease infinite;
+    }
+
+    /* Pulse animation for live indicator */
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    .animate-pulse-dot {
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
   </style>
 <% end %>
 
-<!-- User Dashboard Header -->
-<header class="bg-white shadow-sm border-b border-gray-200">
-  <div class="mx-auto px-4 py-6 sm:px-6 lg:px-8">
-    <div class="md:flex md:items-center md:justify-between">
-      <div class="flex-1 min-w-0">
-        <h1 class="text-3xl font-bold text-gray-900 tracking-tight">
-          Hola, <%= current_user.email.split('@').first.capitalize %>
+<!-- ========================================
+     PHASE 1: EXECUTIVE DASHBOARD HEADER 
+     ======================================== -->
+<header class="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 gradient-animate text-white shadow-2xl">
+  <div class="mx-auto px-4 py-10 sm:px-6 lg:px-8">
+    <!-- Welcome Section -->
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
+      <div class="mb-4 lg:mb-0">
+        <h1 class="text-4xl lg:text-5xl font-bold tracking-tight mb-2">
+          <i class="fa-solid fa-chart-line mr-3" aria-hidden="true"></i>
+          Dashboard Ejecutivo
         </h1>
-        <p class="mt-1 text-sm text-gray-600">
-          Tienes <%= @topicos.count %> <%= @topicos.count == 1 ? 'tema' : 'temas' %> bajo monitoreo - Últimos <%=DAYS_RANGE%> días
+        <p class="text-indigo-100 text-lg">
+          Bienvenido, <%= current_user.email.split('@').first.capitalize %> · 
+          Análisis Multi-Canal · <%= @topicos.count %> <%= @topicos.count == 1 ? 'Tema' : 'Temas' %> Activos
         </p>
       </div>
-      <div class="mt-4 flex space-x-3 md:mt-0 md:ml-4">
-        <span class="inline-flex items-center rounded-full bg-blue-100 px-3 py-0.5 text-xs font-medium text-blue-800" role="status" aria-label="<%= @topicos.count %> temas activos bajo monitoreo">
-          <svg class="-ml-1 mr-1.5 h-2 w-2 text-blue-400" fill="currentColor" viewBox="0 0 8 8" aria-hidden="true">
-            <circle cx="4" cy="4" r="3" />
-          </svg>
-          <%= @topicos.count %> Temas Activos
-        </span>
-        <span class="inline-flex items-center rounded-full bg-green-100 px-3 py-0.5 text-xs font-medium text-green-800" role="status" aria-label="Datos actualizados">
-          <svg class="-ml-1 mr-1.5 h-2 w-2 text-green-400" fill="currentColor" viewBox="0 0 8 8" aria-hidden="true">
-            <circle cx="4" cy="4" r="3" />
-          </svg>
-          Actualizado
-        </span>
+      <div class="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
+        <!-- Period Badge -->
+        <div class="inline-flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg border border-white/30">
+          <i class="fa-solid fa-calendar-days mr-2"></i>
+          <span class="font-medium">Últimos <%= DAYS_RANGE %> días</span>
+        </div>
+        <!-- Date Range -->
+        <div class="text-sm text-indigo-100">
+          <%= @executive_summary[:period][:start].strftime("%d/%m/%Y") %> - 
+          <%= @executive_summary[:period][:end].strftime("%d/%m/%Y") %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Executive KPI Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <!-- Total Mentions -->
+      <div class="relative bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 transform hover:scale-105">
+        <div class="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16"></div>
+        <div class="relative">
+          <div class="flex items-center justify-between mb-3">
+            <div class="text-sm font-semibold uppercase tracking-wider text-indigo-100">Total Menciones</div>
+            <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+              <i class="fa-solid fa-bullhorn text-2xl text-white"></i>
+            </div>
+          </div>
+          <div class="text-4xl font-bold mb-2">
+            <%= number_with_delimiter(@executive_summary[:total_mentions]) %>
+          </div>
+          <div class="text-sm text-indigo-100">Todos los canales</div>
+        </div>
+      </div>
+
+      <!-- Total Interactions -->
+      <div class="relative bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 transform hover:scale-105">
+        <div class="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16"></div>
+        <div class="relative">
+          <div class="flex items-center justify-between mb-3">
+            <div class="text-sm font-semibold uppercase tracking-wider text-purple-100">Interacciones</div>
+            <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+              <i class="fa-solid fa-heart text-2xl text-white"></i>
+            </div>
+          </div>
+          <div class="text-4xl font-bold mb-2">
+            <%= number_with_delimiter(@executive_summary[:total_interactions]) %>
+          </div>
+          <div class="text-sm text-purple-100">Total engagement</div>
+        </div>
+      </div>
+
+      <!-- Total Reach -->
+      <div class="relative bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 transform hover:scale-105">
+        <div class="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16"></div>
+        <div class="relative">
+          <div class="flex items-center justify-between mb-3">
+            <div class="text-sm font-semibold uppercase tracking-wider text-green-100">Alcance Total</div>
+            <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+              <i class="fa-solid fa-users text-2xl text-white"></i>
+            </div>
+          </div>
+          <div class="text-4xl font-bold mb-2">
+            <%= number_with_delimiter(@executive_summary[:total_reach]) %>*
+          </div>
+          <div class="text-xs text-green-100 mt-2">
+            * Digital: estimado (3x) | FB/Twitter: API real
+          </div>
+        </div>
+      </div>
+
+      <!-- Average Sentiment -->
+      <div class="relative bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 transform hover:scale-105">
+        <div class="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16"></div>
+        <div class="relative">
+          <div class="flex items-center justify-between mb-3">
+            <div class="text-sm font-semibold uppercase tracking-wider text-amber-100">Sentimiento</div>
+            <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+              <div class="text-2xl"><%= sentiment_emoji(@executive_summary[:average_sentiment]) %></div>
+            </div>
+          </div>
+          <div class="text-4xl font-bold mb-2 <%= @executive_summary[:average_sentiment] >= 0 ? 'text-green-100' : 'text-red-100' %>">
+            <%= number_with_precision(@executive_summary[:average_sentiment], precision: 1) %>%
+          </div>
+          <div class="text-sm text-amber-100">Promedio ponderado</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Secondary Metrics -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+      <!-- Engagement Rate -->
+      <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-sm font-semibold text-indigo-100 mb-1">Tasa de Engagement</div>
+            <div class="text-3xl font-bold">
+              <%= number_with_precision(@executive_summary[:engagement_rate], precision: 2) %>%
+            </div>
+            <div class="text-xs text-indigo-100 mt-1">Interacciones / Alcance</div>
+          </div>
+          <i class="fa-solid fa-percentage text-5xl text-white/20"></i>
+        </div>
+      </div>
+
+      <!-- Trend Velocity -->
+      <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-sm font-semibold text-purple-100 mb-1">Velocidad de Tendencia</div>
+            <div class="text-3xl font-bold <%= @executive_summary[:trend_velocity] >= 0 ? 'text-green-100' : 'text-red-100' %>">
+              <%= "%+.1f" % @executive_summary[:trend_velocity] %>%
+            </div>
+            <div class="text-xs text-purple-100 mt-1">vs. período anterior</div>
+          </div>
+          <i class="fa-solid fa-rocket text-5xl text-white/20"></i>
+        </div>
       </div>
     </div>
   </div>
 </header>
 
+<!-- Data Freshness Indicator -->
+<div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-indigo-100 shadow-sm">
+  <div class="mx-auto px-4 py-3 sm:px-6 lg:px-8">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between text-sm">
+      <div class="flex items-center space-x-4 mb-2 sm:mb-0">
+        <div class="flex items-center text-gray-700">
+          <i class="fa-solid fa-clock mr-2 text-indigo-600"></i>
+          <span>Última actualización: <strong><%= Time.current.strftime("%d/%m/%Y %H:%M") %></strong></span>
+        </div>
+        <div class="flex items-center text-gray-700">
+          <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse-dot"></span>
+          <span class="font-medium text-green-700">Datos en vivo</span>
+        </div>
+      </div>
+      <div class="text-xs text-gray-600">
+        <i class="fa-solid fa-database mr-1"></i>
+        Caché actualizado cada 30 minutos
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Sticky Navigation -->
-<nav id="home-nav" class="bg-white border-b border-gray-200 shadow-sm">
+<nav id="home-nav" class="border-b border-gray-200 shadow-md">
   <div class="mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex items-center justify-between h-12">
-      <div class="flex items-center space-x-1 overflow-x-auto scrollbar-hide">
-        <a href="#resumen" data-turbo="false" class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap" aria-label="Ir a resumen de 24 horas">
-          <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-            <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
-          </svg>
-          Resumen 24h
+      <div class="flex space-x-1 overflow-x-auto scrollbar-hide">
+        <a href="#topics" data-turbo="false" class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap">
+          <i class="fa-solid fa-list mr-2"></i>
+          Mis Temas
         </a>
-        <a href="#rendimiento" data-turbo="false" class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap" aria-label="Ir a rendimiento de temas">
-          <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-            <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd" />
-          </svg>
-          Rendimiento
+        <a href="#channels" data-turbo="false" class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap">
+          <i class="fa-solid fa-tower-broadcast mr-2"></i>
+          Canales
         </a>
-        <a href="#tendencias" data-turbo="false" class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap" aria-label="Ir a tendencias generales">
-          <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-            <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-          </svg>
+        <% if @alerts.any? %>
+          <a href="#alerts" data-turbo="false" class="inline-flex items-center px-3 py-2 text-sm font-medium text-red-700 hover:text-red-800 hover:bg-red-50 rounded-md transition-colors whitespace-nowrap">
+            <i class="fa-solid fa-bell mr-2 animate-pulse"></i>
+            Alertas (<%= @alerts.count %>)
+          </a>
+        <% end %>
+        <a href="#content" data-turbo="false" class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-md transition-colors whitespace-nowrap">
+          <i class="fa-solid fa-fire mr-2"></i>
+          Top Content
+        </a>
+        <!-- Phase 2 Navigation Items -->
+        <% if @sentiment_intelligence %>
+          <a href="#sentiment-intelligence" data-turbo="false" class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-pink-600 hover:bg-pink-50 rounded-md transition-colors whitespace-nowrap">
+            <i class="fa-solid fa-heart-pulse mr-2"></i>
+            Sentimiento
+          </a>
+        <% end %>
+        <% if @temporal_intelligence %>
+          <a href="#temporal-intelligence" data-turbo="false" class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors whitespace-nowrap">
+            <i class="fa-solid fa-clock mr-2"></i>
+            Temporal
+          </a>
+        <% end %>
+        <% if @competitive_intelligence %>
+          <a href="#competitive-intelligence" data-turbo="false" class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-purple-600 hover:bg-purple-50 rounded-md transition-colors whitespace-nowrap">
+            <i class="fa-solid fa-trophy mr-2"></i>
+            Competitivo
+          </a>
+        <% end %>
+        <a href="#tendencias" data-turbo="false" class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap">
+          <i class="fa-solid fa-chart-line mr-2"></i>
           Tendencias
         </a>
-        <a href="#sentimiento" data-turbo="false" class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap" aria-label="Ir a análisis de sentimiento">
-          <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 100-2 1 1 0 000 2zm7-1a1 1 0 11-2 0 1 1 0 012 0zm-.464 5.535a1 1 0 10-1.415-1.414 3 3 0 01-4.242 0 1 1 0 00-1.415 1.414 5 5 0 007.072 0z" clip-rule="evenodd" />
-          </svg>
-          Sentimiento
-        </a>
-        <a href="#palabras" data-turbo="false" class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap" aria-label="Ir a palabras clave trending">
-          <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-            <path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 715 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clip-rule="evenodd" />
-          </svg>
-          Palabras Clave
-        </a>
       </div>
-      <a id="backToTop" class="ml-4 inline-flex items-center px-3 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-md transition-colors cursor-pointer whitespace-nowrap" aria-label="Volver arriba">
-        <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-          <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd" />
-        </svg>
+      <a id="backToTop" class="ml-4 inline-flex items-center px-3 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-md transition-colors cursor-pointer whitespace-nowrap">
+        <i class="fa-solid fa-arrow-up mr-2"></i>
         Arriba
       </a>
     </div>
   </div>
 </nav>
 
-<main class="bg-gray-50 min-h-screen">
-  <div class="mx-auto py-8 px-4 sm:px-6 lg:px-8">
+<main class="bg-gradient-to-br from-gray-50 via-blue-50/20 to-purple-50/20 min-h-screen">
+  <div class="mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-8">
     
-    <% if @entry_quantities.all? { |topic_data| topic_data[:data].empty? } %>
-      <!-- Data Missing Alert -->
-      <div class="mb-8 rounded-lg bg-yellow-50 border-l-4 border-yellow-400 p-6 shadow-sm">
+    <!-- ========================================
+         PHASE 1: MULTI-TOPIC PERFORMANCE GRID
+         ======================================== -->
+    <section id="topics" class="scroll-mt-20">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-3xl font-bold text-gray-900">
+          <i class="fa-solid fa-list-check text-indigo-600 mr-3"></i>
+          Mis Temas en Monitoreo
+        </h2>
+        <span class="text-sm text-gray-500"><%= @topicos.count %> <%= @topicos.count == 1 ? 'tema activo' : 'temas activos' %></span>
+      </div>
+
+      <% if @topicos.any? %>
+        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          <% @topicos.each do |topic| %>
+            <% 
+              stats = @topic_stats[topic.id] || { mentions: 0, interactions: 0, sentiment: 0, trend_direction: 'stable' }
+              trend_data = @topic_trends[topic.id] || { data: {}, direction: 'stable' }
+            %>
+            <div class="bg-white rounded-xl shadow-lg border-2 border-gray-200 hover:border-indigo-400 hover:shadow-2xl transition-all duration-300 p-6 group">
+              <!-- Topic Header -->
+              <div class="flex justify-between items-start mb-4">
+                <h3 class="text-xl font-bold text-gray-900 group-hover:text-indigo-600 transition-colors flex-1">
+                  <%= topic.name %>
+                </h3>
+                <%= trend_badge(stats[:trend_direction]) %>
+              </div>
+
+              <!-- Mini KPIs Grid -->
+              <div class="grid grid-cols-3 gap-4 mb-4">
+                <div class="text-center">
+                  <p class="text-xs text-gray-500 mb-1">Menciones</p>
+                  <p class="text-2xl font-bold text-indigo-600"><%= format_large_number(stats[:mentions]) %></p>
+                </div>
+                <div class="text-center">
+                  <p class="text-xs text-gray-500 mb-1">Engagement</p>
+                  <p class="text-2xl font-bold text-purple-600"><%= format_large_number(stats[:interactions]) %></p>
+                </div>
+                <div class="text-center">
+                  <p class="text-xs text-gray-500 mb-1">Sentimiento</p>
+                  <p class="text-2xl font-bold <%= stats[:sentiment] >= 0 ? 'text-green-600' : 'text-red-600' %>">
+                    <%= number_with_precision(stats[:sentiment], precision: 0) %>
+                  </p>
+                </div>
+              </div>
+
+              <!-- Mini Trend Sparkline -->
+              <% if trend_data[:data].any? %>
+                <div class="mb-4 h-16 bg-gray-50 rounded-lg p-2">
+                  <%= line_chart trend_data[:data],
+                      height: '48px',
+                      colors: [stats[:trend_direction] == 'up' ? '#10B981' : (stats[:trend_direction] == 'down' ? '#EF4444' : '#6B7280')],
+                      library: {
+                        chart: {
+                          sparkline: { enabled: true }
+                        },
+                        tooltip: { enabled: false }
+                      } %>
+                </div>
+              <% else %>
+                <div class="mb-4 h-16 bg-gray-50 rounded-lg flex items-center justify-center">
+                  <span class="text-xs text-gray-400">Sin datos de tendencia</span>
+                </div>
+              <% end %>
+
+              <!-- Quick Dashboard Links -->
+              <div class="grid grid-cols-2 gap-2">
+                <%= link_to topic_path(topic), class: dashboard_button_class('digital') do %>
+                  <i class="fa-solid fa-newspaper mr-1"></i>
+                  Digital
+                <% end %>
+                <%= link_to facebook_topic_path(topic), class: dashboard_button_class('facebook') do %>
+                  <i class="fa-brands fa-facebook mr-1"></i>
+                  Facebook
+                <% end %>
+                <%= link_to twitter_topic_path(topic), class: dashboard_button_class('twitter') do %>
+                  <i class="fa-brands fa-twitter mr-1"></i>
+                  Twitter
+                <% end %>
+                <%= link_to general_dashboard_path(topic), class: dashboard_button_class('general') do %>
+                  <i class="fa-solid fa-chart-pie mr-1"></i>
+                  General
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-12 text-center">
+          <i class="fa-solid fa-inbox text-6xl text-gray-300 mb-4"></i>
+          <h3 class="text-xl font-bold text-gray-900 mb-2">No hay temas activos</h3>
+          <p class="text-gray-600">Contacta con tu administrador para que te asigne temas para monitorear.</p>
+        </div>
+      <% end %>
+    </section>
+
+    <!-- ========================================
+         PHASE 1: MULTI-CHANNEL COMPARISON
+         ======================================== -->
+    <section id="channels" class="scroll-mt-20">
+      <div class="mb-6">
+        <h2 class="text-3xl font-bold text-gray-900 flex items-center">
+          <i class="fa-solid fa-tower-broadcast text-indigo-600 mr-3"></i>
+          Rendimiento por Canal
+        </h2>
+        <p class="text-gray-600 mt-2">Comparación de métricas en todos los canales y temas</p>
+      </div>
+
+      <!-- Channel Cards Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <% @channel_stats.each do |key, channel| %>
+          <% 
+            border_color = "border-#{channel[:color]}-200"
+            header_gradient = "bg-gradient-to-r from-#{channel[:color]}-500 to-#{channel[:color]}-600"
+          %>
+          
+          <div class="bg-white rounded-xl shadow-lg border-2 border-<%= channel[:color] %>-200 overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
+            <!-- Channel Header -->
+            <div class="bg-gradient-to-r from-<%= channel[:color] %>-500 to-<%= channel[:color] %>-600 px-6 py-4">
+              <div class="flex items-center justify-between text-white">
+                <div>
+                  <h3 class="text-xl font-bold"><%= channel[:name] %></h3>
+                  <p class="text-sm text-<%= channel[:color] %>-100 mt-1"><%= channel[:share] %>% del total</p>
+                </div>
+                <i class="<%= channel[:icon] %> text-3xl text-white/80"></i>
+              </div>
+            </div>
+
+            <!-- Channel Metrics -->
+            <div class="p-6 space-y-4">
+              <!-- Mentions -->
+              <div class="flex items-center justify-between">
+                <span class="text-sm font-medium text-gray-600">Menciones</span>
+                <span class="text-lg font-bold text-<%= channel[:color] %>-600"><%= number_with_delimiter(channel[:mentions]) %></span>
+              </div>
+
+              <!-- Interactions -->
+              <div class="flex items-center justify-between">
+                <span class="text-sm font-medium text-gray-600">Interacciones</span>
+                <span class="text-lg font-bold text-<%= channel[:color] %>-600"><%= number_with_delimiter(channel[:interactions]) %></span>
+              </div>
+
+              <!-- Reach -->
+              <div class="flex items-center justify-between">
+                <span class="text-sm font-medium text-gray-600">Alcance</span>
+                <span class="text-lg font-bold text-<%= channel[:color] %>-600"><%= number_with_delimiter(channel[:reach]) %></span>
+              </div>
+
+              <!-- Engagement Rate -->
+              <div class="flex items-center justify-between pt-3 border-t border-gray-200">
+                <span class="text-sm font-medium text-gray-600">Eng. Rate</span>
+                <span class="text-xl font-bold text-<%= channel[:color] %>-600"><%= number_with_precision(channel[:engagement_rate], precision: 2) %>%</span>
+              </div>
+
+              <!-- Trend -->
+              <div class="flex items-center justify-between">
+                <span class="text-sm font-medium text-gray-600">Tendencia</span>
+                <span class="flex items-center text-sm <%= channel[:trend] > 0 ? 'text-green-600' : (channel[:trend] < 0 ? 'text-red-600' : 'text-gray-600') %>">
+                  <%= channel[:trend] > 0 ? '↑' : (channel[:trend] < 0 ? '↓' : '→') %>
+                  <%= "%+.1f" % channel[:trend] %>%
+                </span>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Channel Comparison Charts -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <i class="fa-solid fa-bullhorn text-indigo-600 mr-2"></i>
+            Menciones por Canal
+          </h3>
+          <%= pie_chart @chart_channel_mentions, 
+              donut: true, 
+              colors: ['#6366F1', '#3B82F6', '#0EA5E9'],
+              library: { chart: { height: 280 } } %>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <i class="fa-solid fa-heart text-purple-600 mr-2"></i>
+            Interacciones por Canal
+          </h3>
+          <%= pie_chart @chart_channel_interactions, 
+              donut: true, 
+              colors: ['#8B5CF6', '#EC4899', '#F97316'],
+              library: { chart: { height: 280 } } %>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <i class="fa-solid fa-users text-green-600 mr-2"></i>
+            Alcance por Canal
+          </h3>
+          <%= pie_chart @chart_channel_reach, 
+              donut: true, 
+              colors: ['#10B981', '#14B8A6', '#06B6D4'],
+              library: { chart: { height: 280 } } %>
+        </div>
+      </div>
+
+      <!-- Data Quality Disclaimer -->
+      <div class="mt-6 bg-blue-50 border-l-4 border-blue-400 p-4 rounded-lg shadow-sm">
         <div class="flex">
           <div class="flex-shrink-0">
-            <svg class="h-6 w-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-              <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-            </svg>
+            <i class="fa-solid fa-info-circle text-blue-400 text-xl"></i>
           </div>
           <div class="ml-3">
-            <h3 class="text-sm font-medium text-yellow-800">Datos estadísticos no disponibles</h3>
-            <div class="mt-2 text-sm text-yellow-700">
-              <p>
-                Las estadísticas del dashboard no están generadas. Para generar los datos, ejecuta el siguiente comando en el servidor:
-              </p>
-              <code class="mt-2 block bg-yellow-100 px-3 py-2 rounded font-mono text-xs">
-                rails topic_stat_daily
-              </code>
-              <p class="mt-2">
-                Este proceso calculará las estadísticas de los últimos <%= DAYS_RANGE %> días para todos tus temas activos.
-              </p>
-              <p class="mt-2 text-xs">
-                <strong>Nota:</strong> Este comando se puede automatizar mediante <%= link_to 'whenever gem', 'https://github.com/javan/whenever', target: '_blank', class: 'underline' %> para ejecutarse periódicamente.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    <% end %>
-    
-    <!-- Your Topics Overview Section -->
-    <section id="resumen" class="mb-8 scroll-mt-16">
-      <h2 class="text-2xl font-bold text-gray-900 mb-6">Resumen de tus Temas - Últimas 24 Horas</h2>
-      <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow border border-gray-200 hover:shadow-lg hover:border-indigo-200 transition-all duration-200">
-          <dt class="truncate text-sm font-medium text-gray-500">Nuevas Menciones</dt>
-          <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">
-            <%= number_with_delimiter(@notas_ultimo_dia_topico.values.sum, delimiter: ".") %>
-          </dd>
-          <div class="mt-2 flex items-center text-sm <%= @notas_ultimo_dia_topico.values.sum > 0 ? 'text-green-600' : 'text-gray-500' %>">
-            <% if @notas_ultimo_dia_topico.values.sum > 0 %>
-              <svg class="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-              </svg>
-              Actividad detectada
-            <% else %>
-              <svg class="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-              </svg>
-              Sin actividad reciente
-            <% end %>
-          </div>
-        </div>
-        <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow border border-gray-200 hover:shadow-lg hover:border-indigo-200 transition-all duration-200">
-          <dt class="truncate text-sm font-medium text-gray-500">Total de Interacciones</dt>
-          <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">
-            <%= number_with_delimiter(@interacciones_ultimo_dia_topico.values.sum, delimiter: ".") %>
-          </dd>
-          <div class="mt-2 flex items-center text-sm text-blue-600">
-            <svg class="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" />
-            </svg>
-            Alcance total
-          </div>
-        </div>
-        <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow border border-gray-200 hover:shadow-lg hover:border-indigo-200 transition-all duration-200">
-          <dt class="truncate text-sm font-medium text-gray-500">Tema Más Activo</dt>
-          <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">
-            <%= @notas_ultimo_dia_topico.keys.first || "N/A" %>
-          </dd>
-          <div class="mt-2 flex items-center text-sm text-purple-600">
-            <svg class="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
-            </svg>
-            <%= @notas_ultimo_dia_topico.values.first || 0 %> menciones
-          </div>
-        </div>
-        <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow border border-gray-200 hover:shadow-lg hover:border-indigo-200 transition-all duration-200">
-          <dt class="truncate text-sm font-medium text-gray-500">Engagement Promedio</dt>
-          <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">
-            <%= @notas_ultimo_dia_topico.values.sum > 0 ? number_with_delimiter((@interacciones_ultimo_dia_topico.values.sum.to_f / @notas_ultimo_dia_topico.values.sum).round, delimiter: ".") : "0" %>
-          </dd>
-          <div class="mt-2 flex items-center text-sm text-orange-600">
-            <svg class="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd" />
-            </svg>
-            Por mención
+            <p class="text-sm text-blue-700">
+              <strong>Nota sobre datos de alcance:</strong> Facebook y Twitter proporcionan datos reales de vistas vía API oficial. 
+              Para medios digitales de terceros, el alcance es una estimación conservadora (3x interacciones).
+            </p>
           </div>
         </div>
       </div>
     </section>
-    <!-- Quick Actions Section -->
-    <section class="mb-8">
-      <h2 class="text-2xl font-bold text-gray-900 mb-6">Acciones Rápidas</h2>
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <% @topicos.limit(3).each do |topic| %>
-          <div class="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm hover:shadow-lg hover:border-indigo-300 transition-all duration-200">
-            <%= link_to topic_path(topic), class: "focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 rounded-lg", 'aria-label': "Ver análisis completo del tema #{topic.name}" do %>
-              <span class="absolute inset-0" aria-hidden="true"></span>
-              <div class="flex items-center justify-between">
-                <div class="flex items-center">
-                  <div class="flex-shrink-0">
-                    <div class="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
-                      <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                        <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
-                      </svg>
-                    </div>
-                  </div>
-                  <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-900"><%= topic.name %></p>
-                    <p class="text-sm text-gray-500">Ver análisis completo</p>
+
+    <!-- ========================================
+         PHASE 1: ALERTS & WARNINGS
+         ======================================== -->
+    <% if @alerts.any? %>
+      <section id="alerts" class="scroll-mt-20">
+        <div class="mb-6">
+          <h2 class="text-3xl font-bold text-gray-900 flex items-center">
+            <i class="fa-solid fa-bell-exclamation text-red-600 mr-3 animate-pulse"></i>
+            Alertas y Avisos
+          </h2>
+          <p class="text-gray-600 mt-2">Requieren tu atención inmediata</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <% @alerts.each do |alert| %>
+            <div class="border-l-4 <%= alert_border_color(alert[:severity]) %> <%= alert_bg_color(alert[:severity]) %> p-6 rounded-r-xl shadow-md hover:shadow-lg transition-shadow">
+              <div class="flex items-start">
+                <i class="<%= alert_icon(alert[:type]) %> text-2xl <%= alert_text_color(alert[:severity]) %> mr-4"></i>
+                <div class="flex-1">
+                  <h4 class="font-bold <%= alert_heading_color(alert[:severity]) %> mb-2 text-lg">
+                    <%= alert[:message] %>
+                  </h4>
+                  <p class="text-sm <%= alert_text_secondary(alert[:severity]) %> mb-3">
+                    <%= alert[:details] %>
+                  </p>
+                  <div class="flex items-center justify-between">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-white/50">
+                      <%= alert[:topic] %>
+                    </span>
+                    <%= link_to 'Ver Detalles →', alert[:url], class: "text-sm font-medium #{alert_text_color(alert[:severity])} hover:underline" %>
                   </div>
                 </div>
-                <svg class="w-5 h-5 text-gray-400 group-hover:text-indigo-600 transition-colors" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                  <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                </svg>
               </div>
-            <% end %>
-          </div>
-        <% end %>
+            </div>
+          <% end %>
+        </div>
+      </section>
+    <% end %>
+
+    <!-- ========================================
+         PHASE 1: TOP CONTENT PREVIEW
+         ======================================== -->
+    <section id="content" class="scroll-mt-20">
+      <div class="mb-6">
+        <h2 class="text-3xl font-bold text-gray-900 flex items-center">
+          <i class="fa-solid fa-fire text-orange-500 mr-3"></i>
+          Contenido Destacado
+        </h2>
+        <p class="text-gray-600 mt-2">El contenido con mejor rendimiento en todos tus temas</p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Top Digital Entries -->
+        <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow">
+          <h3 class="text-lg font-semibold text-indigo-900 mb-4 flex items-center">
+            <i class="fa-solid fa-newspaper text-indigo-600 mr-2"></i>
+            Top Noticias Digitales
+          </h3>
+          <% if @top_content[:top_entries].any? %>
+            <div class="space-y-4">
+              <% @top_content[:top_entries].first(5).each_with_index do |entry, index| %>
+                <div class="flex items-start space-x-3 pb-3 <%= 'border-b border-gray-100' unless index == 4 %>">
+                  <span class="flex-shrink-0 w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 font-bold text-xs flex items-center justify-center">
+                    <%= index + 1 %>
+                  </span>
+                  <div class="flex-1 min-w-0">
+                    <%= link_to entry.url, target: '_blank', rel: 'noopener', class: 'text-sm font-medium text-gray-900 hover:text-indigo-600 line-clamp-2 block mb-1' do %>
+                      <%= entry.title %>
+                      <i class="fa-solid fa-external-link text-xs ml-1"></i>
+                    <% end %>
+                    <div class="flex items-center justify-between text-xs text-gray-500 mt-1">
+                      <span><%= entry.site.name %></span>
+                      <span class="font-semibold text-indigo-600"><%= number_with_delimiter(entry.total_count) %></span>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          <% else %>
+            <div class="text-center py-8 text-gray-400">
+              <i class="fa-solid fa-inbox text-4xl mb-2"></i>
+              <p class="text-sm">Sin contenido disponible</p>
+            </div>
+          <% end %>
+        </div>
+
+        <!-- Top Facebook Posts -->
+        <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow">
+          <h3 class="text-lg font-semibold text-blue-900 mb-4 flex items-center">
+            <i class="fa-brands fa-facebook text-blue-600 mr-2"></i>
+            Top Posts de Facebook
+          </h3>
+          <% if @top_content[:top_facebook_posts].any? %>
+            <div class="space-y-4">
+              <% @top_content[:top_facebook_posts].first(5).each_with_index do |post, index| %>
+                <div class="flex items-start space-x-3 pb-3 <%= 'border-b border-gray-100' unless index == 4 %>">
+                  <span class="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-600 font-bold text-xs flex items-center justify-center">
+                    <%= index + 1 %>
+                  </span>
+                  <div class="flex-1 min-w-0">
+                    <%= link_to post.permalink_url, target: '_blank', rel: 'noopener', class: 'text-sm font-medium text-gray-900 hover:text-blue-600 line-clamp-2 block mb-1' do %>
+                      <%= post.message&.truncate(60) || 'Ver publicación' %>
+                      <i class="fa-solid fa-external-link text-xs ml-1"></i>
+                    <% end %>
+                    <div class="flex items-center justify-between text-xs text-gray-500 mt-1">
+                      <span><%= post.page.name %></span>
+                      <span class="font-semibold text-blue-600"><%= number_with_delimiter(post.total_interactions) %></span>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          <% else %>
+            <div class="text-center py-8 text-gray-400">
+              <i class="fa-solid fa-inbox text-4xl mb-2"></i>
+              <p class="text-sm">Sin contenido disponible</p>
+            </div>
+          <% end %>
+        </div>
+
+        <!-- Top Tweets -->
+        <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow">
+          <h3 class="text-lg font-semibold text-sky-900 mb-4 flex items-center">
+            <i class="fa-brands fa-twitter text-sky-600 mr-2"></i>
+            Top Tweets
+          </h3>
+          <% if @top_content[:top_tweets].any? %>
+            <div class="space-y-4">
+              <% @top_content[:top_tweets].first(5).each_with_index do |tweet, index| %>
+                <div class="flex items-start space-x-3 pb-3 <%= 'border-b border-gray-100' unless index == 4 %>">
+                  <span class="flex-shrink-0 w-6 h-6 rounded-full bg-sky-100 text-sky-600 font-bold text-xs flex items-center justify-center">
+                    <%= index + 1 %>
+                  </span>
+                  <div class="flex-1 min-w-0">
+                    <%= link_to tweet.tweet_url, target: '_blank', rel: 'noopener', class: 'text-sm font-medium text-gray-900 hover:text-sky-600 line-clamp-2 block mb-1' do %>
+                      <%= tweet.text&.truncate(60) || 'Ver tweet' %>
+                      <i class="fa-solid fa-external-link text-xs ml-1"></i>
+                    <% end %>
+                    <div class="flex items-center justify-between text-xs text-gray-500 mt-1">
+                      <span>@<%= tweet.twitter_profile.username %></span>
+                      <span class="font-semibold text-sky-600"><%= number_with_delimiter(tweet.total_interactions) %></span>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          <% else %>
+            <div class="text-center py-8 text-gray-400">
+              <i class="fa-solid fa-inbox text-4xl mb-2"></i>
+              <p class="text-sm">Sin contenido disponible</p>
+            </div>
+          <% end %>
+        </div>
       </div>
     </section>
-    <!-- My Topics Performance Section -->
-    <section id="rendimiento" class="mb-8 scroll-mt-16">
-      <div class="flex items-center justify-between mb-6">
-        <h2 class="text-2xl font-bold text-gray-900">Rendimiento de tus Temas (24h)</h2>
-        <% if @topicos.count > 5 %>
-          <p class="text-sm text-gray-500">Mostrando top 5 de <%= @topicos.count %> temas</p>
-        <% end %>
-      </div>
-      <% if @notas_ultimo_dia_topico.any? %>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
-          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-indigo-200 transition-all duration-200 w-full">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="text-lg font-medium text-gray-900">Menciones por Tema</h3>
-              <div class="flex items-center text-sm text-gray-500">
-                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                </svg>
-                Solo tus temas
+
+    <!-- ========================================
+         EXISTING: CHARTS & VISUALIZATIONS
+         (Kept for backward compatibility)
+         ======================================== -->
+    <section id="tendencias" class="scroll-mt-20">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">
+        <i class="fa-solid fa-chart-line text-indigo-600 mr-2"></i>
+        Tendencias Generales - Tus Temas
+      </h2>
+      
+      <% if @entry_quantities.all? { |topic_data| topic_data[:data].empty? } %>
+        <!-- Data Missing Alert -->
+        <div class="mb-8 rounded-lg bg-yellow-50 border-l-4 border-yellow-400 p-6 shadow-sm">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <i class="fa-solid fa-triangle-exclamation text-yellow-400 text-2xl"></i>
+            </div>
+            <div class="ml-3">
+              <h3 class="text-sm font-medium text-yellow-800">Datos estadísticos no disponibles</h3>
+              <div class="mt-2 text-sm text-yellow-700">
+                <p>
+                  Las estadísticas del dashboard no están generadas. Para generar los datos, ejecuta el siguiente comando en el servidor:
+                </p>
+                <code class="mt-2 block bg-yellow-100 px-3 py-2 rounded font-mono text-xs">
+                  rails topic_stat_daily
+                </code>
+                <p class="mt-2">
+                  Este proceso calculará las estadísticas de los últimos <%= DAYS_RANGE %> días para todos tus temas activos.
+                </p>
               </div>
-            </div>
-            <div class='w-full overflow-hidden'>
-              <%= bar_chart @notas_ultimo_dia_topico.first(5).to_h, xtitle: "Tema", ytitle: "Menciones", thousands: ".", colors: ['#3B82F6'], library: {
-                  plotOptions: {
-                    series: {
-                      dataLabels: {
-                        enabled: true
-                      }
-                    }
-                  } } %>
-            </div>
-          </div>
-          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-indigo-200 transition-all duration-200 w-full">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="text-lg font-medium text-gray-900">Engagement por Tema</h3>
-              <div class="flex items-center text-sm text-gray-500">
-                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" />
-                </svg>
-                Interacciones totales
-              </div>
-            </div>
-            <div class='w-full overflow-hidden'>
-              <%= bar_chart @interacciones_ultimo_dia_topico.first(5).to_h, xtitle: "Tema", ytitle: "Interacciones", thousands: ".", colors: ['#10B981'], library: {
-                  plotOptions: {
-                    series: {
-                      dataLabels: {
-                        enabled: true
-                      }
-                    }
-                  } } %>
             </div>
           </div>
         </div>
       <% else %>
-        <!-- No Activity State -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-          <div class="text-center">
-            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-            <h3 class="mt-2 text-sm font-medium text-gray-900">Sin actividad reciente</h3>
-            <p class="mt-1 text-sm text-gray-500">No se detectaron menciones de tus temas en las últimas 24 horas.</p>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Chart Card 1: Entry Quantities -->
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-indigo-200 transition-all duration-200">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-medium text-gray-900">Notas por Día</h3>
+              <div class="flex items-center text-sm text-gray-500">
+                <i class="fa-solid fa-calendar mr-1"></i>
+                Últimos <%=DAYS_RANGE%> días
+              </div>
+            </div>
+            <div class='w-full overflow-hidden'
+              data-controller='entries-chart'
+              data-entries-chart-id-value='entryQuantitiesChart'
+              data-entries-chart-url-value='<%= entries_data_topics_path %>'>
+              <%= column_chart @entry_quantities, xtitle: "Fecha", ytitle: "Cant. Notas", thousands: ".", curve: false, 
+                    adapter: 'highcharts', id: 'entryQuantitiesChart', colors: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#6366F1', '#14B8A6'], library: {
+                    chart: {
+                      type: 'column'
+                    },
+                    plotOptions: {
+                      column: {
+                        grouping: true,
+                        shadow: false,
+                        borderWidth: 0,
+                        dataLabels: {
+                          enabled: false
+                        }
+                      }
+                    },
+                    legend: {
+                      enabled: true,
+                      align: 'center',
+                      verticalAlign: 'bottom',
+                      layout: 'horizontal'
+                    },
+                    tooltip: {
+                      shared: false,
+                      valueSuffix: ' notas'
+                    }
+                  } %>
+              <%= render partial: 'modal', locals: { graph_id: 'entryQuantitiesChart', controller_name: 'entries-chart' } %>
+            </div>
+          </div>
+          
+          <!-- Chart Card 2: Interactions -->
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-indigo-200 transition-all duration-200">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-medium text-gray-900">Interacciones por Día</h3>
+              <div class="flex items-center text-sm text-gray-500">
+                <i class="fa-solid fa-heart mr-1"></i>
+                Total de interacciones
+              </div>
+            </div>
+            <div class='w-full overflow-hidden'
+              data-controller='entries-chart'
+              data-entries-chart-id-value='entryInteractionsChart'
+              data-entries-chart-url-value='<%= entries_data_topics_path %>'>
+              <%= column_chart @entry_interactions, xtitle: "Fecha", ytitle: "Interacciones", thousands: ".", curve: false, 
+                    adapter: 'highcharts', id: 'entryInteractionsChart', colors: ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#6366F1', '#14B8A6'], library: {
+                    chart: {
+                      type: 'column'
+                    },
+                    plotOptions: {
+                      column: {
+                        grouping: true,
+                        shadow: false,
+                        borderWidth: 0,
+                        dataLabels: {
+                          enabled: false
+                        }
+                      }
+                    },
+                    legend: {
+                      enabled: true,
+                      align: 'center',
+                      verticalAlign: 'bottom',
+                      layout: 'horizontal'
+                    },
+                    tooltip: {
+                      shared: false,
+                      valueSuffix: ' interacciones'
+                    }
+                  } %>
+              <%= render partial: 'modal', locals: { graph_id: 'entryInteractionsChart', controller_name: 'entries-chart' } %>
+            </div>
           </div>
         </div>
       <% end %>
     </section>
-    <!-- Trending Overview Section -->
-    <section id="tendencias" class="mb-8 scroll-mt-16">
-      <h2 class="text-2xl font-bold text-gray-900 mb-6">Tendencias Generales - Tus Temas</h2>
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
-        <!-- Chart Card 1: Entry Quantities -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-indigo-200 transition-all duration-200 w-full">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-medium text-gray-900">Notas por Día</h3>
-            <div class="flex items-center text-sm text-gray-500">
-              <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-              </svg>
-              Últimos <%=DAYS_RANGE%> días
-            </div>
-          </div>
-          <div class='w-full overflow-hidden'
-            data-controller='entries-chart'
-            data-entries-chart-id-value='entryQuantitiesChart'
-            data-entries-chart-url-value='<%= entries_data_topics_path %>'>
-            <%= column_chart @entry_quantities, xtitle: "Fecha", ytitle: "Cant. Notas", thousands: ".", curve: false, 
-                  adapter: 'highcharts', id: 'entryQuantitiesChart', colors: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#6366F1', '#14B8A6'], library: {
-                  chart: {
-                    type: 'column'
-                  },
-                  plotOptions: {
-                    column: {
-                      grouping: true,
-                      shadow: false,
-                      borderWidth: 0,
-                      dataLabels: {
-                        enabled: false
-                      }
-                    }
-                  },
-                  legend: {
-                    enabled: true,
-                    align: 'center',
-                    verticalAlign: 'bottom',
-                    layout: 'horizontal'
-                  },
-                  tooltip: {
-                    shared: false,
-                    valueSuffix: ' notas'
-                  }
-                } %>
-            <%= render partial: 'modal', locals: { graph_id: 'entryQuantitiesChart', controller_name: 'entries-chart' } %>
-          </div>
-        </div>
-        <!-- Chart Card 2: Interactions -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-indigo-200 transition-all duration-200 w-full">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-medium text-gray-900">Interacciones por Día</h3>
-            <div class="flex items-center text-sm text-gray-500">
-              <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" />
-              </svg>
-              Total de interacciones
-            </div>
-          </div>
-          <div class='w-full overflow-hidden'
-            data-controller='entries-chart'
-            data-entries-chart-id-value='entryInteractionsChart'
-            data-entries-chart-url-value='<%= entries_data_topics_path %>'>
-            <%= column_chart @entry_interactions, xtitle: "Fecha", ytitle: "Interacciones", thousands: ".", curve: false, 
-                  adapter: 'highcharts', id: 'entryInteractionsChart', colors: ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#6366F1', '#14B8A6'], library: {
-                  chart: {
-                    type: 'column'
-                  },
-                  plotOptions: {
-                    column: {
-                      grouping: true,
-                      shadow: false,
-                      borderWidth: 0,
-                      dataLabels: {
-                        enabled: false
-                      }
-                    }
-                  },
-                  legend: {
-                    enabled: true,
-                    align: 'center',
-                    verticalAlign: 'bottom',
-                    layout: 'horizontal'
-                  },
-                  tooltip: {
-                    shared: false,
-                    valueSuffix: ' interacciones'
-                  }
-                } %>
-            <%= render partial: 'modal', locals: { graph_id: 'entryInteractionsChart', controller_name: 'entries-chart' } %>
-          </div>
-        </div>
-      </div>
-    </section>
-    <!-- Sentiment Overview Section -->
-    <section id="sentimiento" class="mb-8 scroll-mt-16">
-      <h2 class="text-2xl font-bold text-gray-900 mb-6">Estado del Sentimiento - Tus Temas</h2>
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-indigo-200 transition-all duration-200">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <!-- Sentiment Summary -->
-          <div>
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Distribución de Sentimiento (<%=DAYS_RANGE%> días)</h3>
-            <div class="space-y-3">
-              <% 
-                total_positive = @positive_quantity.map{|t| t[:data].values.sum}.sum
-                total_negative = @negative_quantity.map{|t| t[:data].values.sum}.sum
-                total_neutral = @neutral_quantity.map{|t| t[:data].values.sum}.sum
-                total_all = total_positive + total_negative + total_neutral
-              %>
-              <% if total_all > 0 %>
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center">
-                    <div class="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                    <span class="text-sm text-gray-600">Positivo</span>
-                  </div>
-                  <span class="text-sm font-medium text-gray-900">
-                    <%= total_positive %> (<%= (total_positive.to_f / total_all * 100).round(1) %>%)
-                  </span>
-                </div>
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center">
-                    <div class="w-3 h-3 bg-gray-400 rounded-full mr-2"></div>
-                    <span class="text-sm text-gray-600">Neutral</span>
-                  </div>
-                  <span class="text-sm font-medium text-gray-900">
-                    <%= total_neutral %> (<%= (total_neutral.to_f / total_all * 100).round(1) %>%)
-                  </span>
-                </div>
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center">
-                    <div class="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
-                    <span class="text-sm text-gray-600">Negativo</span>
-                  </div>
-                  <span class="text-sm font-medium text-gray-900">
-                    <%= total_negative %> (<%= (total_negative.to_f / total_all * 100).round(1) %>%)
-                  </span>
-                </div>
-                <!-- Alert for Negative Sentiment -->
-                <% if total_negative > 0 && (total_negative.to_f / total_all) > 0.3 %>
-                  <div class="mt-4 p-3 bg-red-50 border-l-4 border-red-400 rounded">
-                    <div class="flex">
-                      <svg class="h-5 w-5 text-red-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-                      </svg>
-                      <p class="text-sm text-red-700">
-                        <strong>Atención:</strong> Alto nivel de menciones negativas detectado. Considera revisar los temas en detalle.
-                      </p>
-                    </div>
-                  </div>
-                <% end %>
-              <% else %>
-                <p class="text-gray-500 text-center">Sin datos de sentimiento disponibles</p>
-              <% end %>
-            </div>
-          </div>
-          <!-- Sentiment Trend -->
-          <div>
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Tendencia General</h3>
-            <div class='w-full overflow-hidden'>
-              <%
-                combined_sentiment = {}
-                @positive_quantity.each do |topic_data|
-                  topic_data[:data].each do |date, count|
-                    combined_sentiment[date] ||= { positive: 0, negative: 0, neutral: 0 }
-                    combined_sentiment[date][:positive] += count
-                  end
-                end
-                @negative_quantity.each do |topic_data|
-                  topic_data[:data].each do |date, count|
-                    combined_sentiment[date] ||= { positive: 0, negative: 0, neutral: 0 }
-                    combined_sentiment[date][:negative] += count
-                  end
-                end
-                @neutral_quantity.each do |topic_data|
-                  topic_data[:data].each do |date, count|
-                    combined_sentiment[date] ||= { positive: 0, negative: 0, neutral: 0 }
-                    combined_sentiment[date][:neutral] += count
-                  end
-                end
-                
-                sentiment_chart_data = [
-                  {
-                    name: "Positivo",
-                    data: combined_sentiment.transform_values { |v| v[:positive] }
-                  },
-                  {
-                    name: "Neutral", 
-                    data: combined_sentiment.transform_values { |v| v[:neutral] }
-                  },
-                  {
-                    name: "Negativo",
-                    data: combined_sentiment.transform_values { |v| v[:negative] }
-                  }
-                ]
-              %>
-              <%= area_chart sentiment_chart_data, xtitle: "Fecha", ytitle: "Menciones", stacked: true, colors: ['#10B981', '#9CA3AF', '#EF4444'], library: {
-                  plotOptions: {
-                    series: {
-                      dataLabels: {
-                        enabled: false
-                      }
-                    }
-                  }
-                } %>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-    <!-- Key Insights Section -->
-    <section id="palabras" class="mb-8 scroll-mt-16">
-      <h2 class="text-2xl font-bold text-gray-900 mb-6">Palabras Clave Trending</h2>
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-indigo-200 transition-all duration-200">
-        <div class="flex items-center justify-between mb-6">
-          <h3 class="text-lg font-medium text-gray-900">Nube de Palabras</h3>
-          <div class="flex items-center space-x-4">
-            <div class="flex items-center text-xs text-gray-600">
-              <span class="inline-block w-3 h-3 rounded-full bg-green-500 mr-1.5"></span>
-              <span>Positivas</span>
-            </div>
-            <div class="flex items-center text-xs text-gray-600">
-              <span class="inline-block w-3 h-3 rounded-full bg-gray-500 mr-1.5"></span>
-              <span>Neutrales</span>
-            </div>
-            <div class="flex items-center text-xs text-gray-600">
-              <span class="inline-block w-3 h-3 rounded-full bg-red-500 mr-1.5"></span>
-              <span>Negativas</span>
-            </div>
-          </div>
-        </div>
-        <% if @word_occurrences.any? %>
-          <div>
-            <%min_max = find_max_and_min_occurrences(@word_occurrences)%>
-            <ul class="cloud">
-              <%@word_occurrences.shuffle { |a, b| a[1] <=> b[1] }.each do |word, value|%>
-                <li style='color: <%=word_color(@positive_words, @negative_words, word)%>' 
-                    data-weight="<%=normalize_to_scale(value, min_max[:max], min_max[:min])%>">
-                  <%=word%>
-                </li>
-              <%end%>
-            </ul>
-          </div>
-        <% else %>
-          <div class="flex flex-col items-center justify-center py-12 text-center">
-            <svg class="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
-            </svg>
-            <h3 class="text-lg font-medium text-gray-900 mb-1">No hay datos disponibles</h3>
-            <p class="text-sm text-gray-500">Aún no hay suficientes palabras para generar la nube</p>
-          </div>
-        <% end %>
-      </div>
-    </section>
+
     <!-- Newspapers Section -->
     <section class="mb-8">
-      <h2 class="text-2xl font-bold text-gray-900 mb-6">Portadas del Día</h2>
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">
+        <i class="fa-solid fa-newspaper text-gray-600 mr-2"></i>
+        Portadas del Día
+      </h2>
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-medium text-gray-900">Periódicos</h3>
           <div class="flex items-center text-sm text-gray-500">
-            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm0 2h12v8H4V6z" clip-rule="evenodd" />
-            </svg>
+            <i class="fa-solid fa-calendar mr-1"></i>
             <%= Date.current.strftime("%d/%m/%Y") %>
           </div>
         </div>
@@ -587,16 +805,490 @@
           <% end %>
         <% else %>
           <div class="text-center py-8 text-gray-500">
-            <svg class="mx-auto h-8 w-8 text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-            </svg>
+            <i class="fa-solid fa-inbox text-gray-300 text-4xl mb-2"></i>
             <p class="text-sm">Sin portadas disponibles para hoy</p>
           </div>
         <% end %>
       </div>
     </section>
+
+    <!-- ========================================
+         PHASE 2: ENHANCED ANALYTICS
+         ======================================== -->
+
+    <!-- Sentiment Intelligence Center -->
+    <% if @sentiment_intelligence %>
+      <section id="sentiment-intelligence" class="mb-8 scroll-mt-16">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">
+          <i class="fa-solid fa-heart-pulse text-pink-600 mr-2"></i>
+          Inteligencia de Sentimiento Avanzada
+        </h2>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          <!-- Confidence Badge -->
+          <div class="lg:col-span-3">
+            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow-sm border border-blue-200 p-4">
+              <div class="flex items-center justify-between flex-wrap gap-4">
+                <div class="flex items-center space-x-3">
+                  <i class="<%= reliability_icon(@sentiment_intelligence[:confidence_metrics][:reliability]) %> text-2xl <%= reliability_badge_class(@sentiment_intelligence[:confidence_metrics][:reliability]).split.first.gsub('bg-', 'text-') %>"></i>
+                  <div>
+                    <p class="text-sm font-medium text-gray-700">Confiabilidad del Análisis</p>
+                    <p class="text-xs text-gray-600">Basado en <%= @sentiment_intelligence[:confidence_metrics][:sample_size] %> menciones analizadas</p>
+                  </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                  <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium <%= reliability_badge_class(@sentiment_intelligence[:confidence_metrics][:reliability]) %>">
+                    <%= reliability_label(@sentiment_intelligence[:confidence_metrics][:reliability]) %> · <%= format_confidence(@sentiment_intelligence[:confidence_metrics][:confidence]) %>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sentiment by Channel -->
+          <% @sentiment_intelligence[:by_channel].each do |channel, score| %>
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-indigo-200 transition-all duration-200">
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center space-x-2">
+                  <i class="<%= channel_icon(channel) %> text-xl text-gray-600"></i>
+                  <h3 class="text-sm font-medium text-gray-900 capitalize"><%= channel %></h3>
+                </div>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= sentiment_badge_class(score) %>">
+                  <%= score.round(1) %>%
+                </span>
+              </div>
+              <div class="flex items-center space-x-2">
+                <div class="flex-1 bg-gray-200 rounded-full h-2">
+                  <% sentiment_width = [(score + 100) / 2, 0].max %>
+                  <div class="h-2 rounded-full transition-all duration-500 <%= score >= 0 ? 'bg-green-500' : 'bg-red-500' %>" 
+                       style="width: <%= sentiment_width %>%"></div>
+                </div>
+                <span class="text-xs font-medium text-gray-600"><%= score > 0 ? '+' : '' %><%= score.round(1) %></span>
+              </div>
+            </div>
+          <% end %>
+        </div>
+
+        <!-- Sentiment Evolution Chart -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6 hover:shadow-lg hover:border-indigo-200 transition-all duration-200">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">
+            <i class="fa-solid fa-chart-line text-indigo-600 mr-2"></i>
+            Evolución del Sentimiento
+          </h3>
+          <% if @sentiment_intelligence[:evolution].any? %>
+            <%= line_chart @sentiment_intelligence[:evolution], 
+                xtitle: "Fecha", 
+                ytitle: "Score de Sentimiento", 
+                min: -100,
+                max: 100,
+                colors: ['#8B5CF6'],
+                library: {
+                  chart: { height: 300 },
+                  plotOptions: {
+                    series: {
+                      marker: { enabled: true, radius: 3 }
+                    },
+                    area: {
+                      fillOpacity: 0.2
+                    }
+                  },
+                  yAxis: {
+                    plotLines: [{
+                      color: '#10B981',
+                      width: 2,
+                      value: 0,
+                      dashStyle: 'Dash',
+                      label: { text: 'Neutral' }
+                    }]
+                  }
+                } %>
+          <% else %>
+            <p class="text-center text-gray-500 py-8">Sin datos de evolución disponibles</p>
+          <% end %>
+        </div>
+
+        <!-- Sentiment by Topic -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6 hover:shadow-lg hover:border-indigo-200 transition-all duration-200">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">
+            <i class="fa-solid fa-layer-group text-indigo-600 mr-2"></i>
+            Sentimiento por Tema
+          </h3>
+          <% if @sentiment_intelligence[:by_topic].any? %>
+            <%= column_chart @sentiment_intelligence[:by_topic], 
+                xtitle: "Tema", 
+                ytitle: "Score de Sentimiento",
+                colors: ['#8B5CF6'],
+                library: {
+                  chart: { height: 350 },
+                  plotOptions: {
+                    column: {
+                      dataLabels: {
+                        enabled: true,
+                        format: '{y}%'
+                      }
+                    }
+                  },
+                  yAxis: {
+                    min: -100,
+                    max: 100,
+                    plotLines: [{
+                      color: '#9CA3AF',
+                      width: 2,
+                      value: 0,
+                      dashStyle: 'Dash',
+                      label: { text: 'Neutral' }
+                    }]
+                  }
+                } %>
+          <% else %>
+            <p class="text-center text-gray-500 py-8">Sin datos por tema disponibles</p>
+          <% end %>
+        </div>
+
+        <!-- Controversial Content Alert -->
+        <% if @sentiment_intelligence[:controversial_content].any? %>
+          <div class="bg-amber-50 rounded-lg shadow-sm border-l-4 border-amber-400 p-6">
+            <div class="flex items-start">
+              <i class="fa-solid fa-triangle-exclamation text-amber-500 text-xl mr-3 mt-1"></i>
+              <div class="flex-1">
+                <h3 class="text-lg font-medium text-amber-900 mb-3">Contenido Controversial Detectado</h3>
+                <p class="text-sm text-amber-700 mb-4">Las siguientes publicaciones tienen alto índice de controversia (reacciones polarizadas):</p>
+                <div class="space-y-3">
+                  <% @sentiment_intelligence[:controversial_content].each do |content| %>
+                    <div class="bg-white rounded-lg p-4 border border-amber-200">
+                      <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                          <p class="text-sm font-medium text-gray-900 mb-1"><%= content[:title] %></p>
+                          <p class="text-xs text-gray-600">
+                            <%= content[:source] %> · 
+                            <%= format_large_number(content[:reactions]) %> reacciones
+                          </p>
+                        </div>
+                        <div class="ml-3">
+                          <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium <%= controversy_badge_class(content[:controversy_index]) %>">
+                            <i class="fa-solid fa-fire mr-1"></i>
+                            <%= controversy_label(content[:controversy_index]) %>
+                          </span>
+                        </div>
+                      </div>
+                      <% if content[:url].present? %>
+                        <a href="<%= content[:url] %>" target="_blank" class="inline-flex items-center mt-2 text-xs text-amber-700 hover:text-amber-900 font-medium">
+                          Ver publicación <i class="fa-solid fa-arrow-up-right-from-square ml-1"></i>
+                        </a>
+                      <% end %>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </section>
+    <% end %>
+
+    <!-- Temporal Intelligence -->
+    <% if @temporal_intelligence %>
+      <section id="temporal-intelligence" class="mb-8 scroll-mt-16">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">
+          <i class="fa-solid fa-clock text-blue-600 mr-2"></i>
+          Inteligencia Temporal
+        </h2>
+
+        <!-- Best Publishing Times Card -->
+        <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg shadow-sm border border-blue-200 p-6 mb-6">
+          <div class="flex items-start space-x-4">
+            <div class="flex-shrink-0">
+              <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
+                <i class="fa-solid fa-lightbulb text-white text-xl"></i>
+              </div>
+            </div>
+            <div class="flex-1">
+              <h3 class="text-lg font-semibold text-blue-900 mb-2">Mejores Horarios para Publicar</h3>
+              <p class="text-sm text-blue-700 mb-4"><%= @temporal_intelligence[:best_publishing_times][:recommendation] %></p>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="bg-white rounded-lg p-3 border border-blue-200">
+                  <div class="flex items-center space-x-2 mb-1">
+                    <i class="fa-solid fa-trophy text-amber-500"></i>
+                    <span class="text-xs font-medium text-gray-600">Mejor Horario</span>
+                  </div>
+                  <p class="text-lg font-bold text-blue-900"><%= @temporal_intelligence[:best_publishing_times][:primary] %></p>
+                </div>
+                <div class="bg-white rounded-lg p-3 border border-blue-200">
+                  <div class="flex items-center space-x-2 mb-1">
+                    <i class="fa-solid fa-medal text-gray-400"></i>
+                    <span class="text-xs font-medium text-gray-600">Alternativo</span>
+                  </div>
+                  <p class="text-lg font-bold text-blue-900"><%= @temporal_intelligence[:best_publishing_times][:secondary] %></p>
+                </div>
+                <div class="bg-white rounded-lg p-3 border border-blue-200">
+                  <div class="flex items-center space-x-2 mb-1">
+                    <i class="fa-solid fa-award text-orange-600"></i>
+                    <span class="text-xs font-medium text-gray-600">Tercer Opción</span>
+                  </div>
+                  <p class="text-lg font-bold text-blue-900"><%= @temporal_intelligence[:best_publishing_times][:tertiary] %></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Peak Hours -->
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-indigo-200 transition-all duration-200">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">
+              <i class="fa-solid fa-clock text-blue-600 mr-2"></i>
+              Actividad por Hora del Día
+            </h3>
+            <% if @temporal_intelligence[:peak_hours].any? %>
+              <%= column_chart @temporal_intelligence[:peak_hours], 
+                  xtitle: "Hora del Día", 
+                  ytitle: "Interacciones",
+                  colors: ['#3B82F6'],
+                  library: {
+                    chart: { height: 300 },
+                    plotOptions: {
+                      column: {
+                        dataLabels: { enabled: false }
+                      }
+                    },
+                    xAxis: {
+                      title: { text: 'Hora del Día' }
+                    }
+                  } %>
+              <div class="mt-4 flex items-center justify-center space-x-4 text-xs text-gray-600">
+                <div class="flex items-center">
+                  <div class="w-3 h-3 bg-blue-100 rounded mr-1"></div>
+                  <span>Madrugada (0-5h)</span>
+                </div>
+                <div class="flex items-center">
+                  <div class="w-3 h-3 bg-blue-300 rounded mr-1"></div>
+                  <span>Mañana (6-11h)</span>
+                </div>
+                <div class="flex items-center">
+                  <div class="w-3 h-3 bg-blue-500 rounded mr-1"></div>
+                  <span>Tarde (12-17h)</span>
+                </div>
+                <div class="flex items-center">
+                  <div class="w-3 h-3 bg-blue-700 rounded mr-1"></div>
+                  <span>Noche (18-23h)</span>
+                </div>
+              </div>
+            <% else %>
+              <p class="text-center text-gray-500 py-8">Sin datos de actividad horaria disponibles</p>
+            <% end %>
+          </div>
+
+          <!-- Peak Days -->
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-indigo-200 transition-all duration-200">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">
+              <i class="fa-solid fa-calendar-week text-blue-600 mr-2"></i>
+              Actividad por Día de la Semana
+            </h3>
+            <% if @temporal_intelligence[:peak_days].any? %>
+              <%= column_chart @temporal_intelligence[:peak_days], 
+                  xtitle: "Día", 
+                  ytitle: "Interacciones",
+                  colors: ['#6366F1'],
+                  library: {
+                    chart: { height: 300 },
+                    plotOptions: {
+                      column: {
+                        dataLabels: { enabled: false }
+                      }
+                    }
+                  } %>
+              <div class="mt-4 text-xs text-center text-gray-600">
+                <p>Los días con mayor actividad indican mejor engagement de la audiencia</p>
+              </div>
+            <% else %>
+              <p class="text-center text-gray-500 py-8">Sin datos de actividad semanal disponibles</p>
+            <% end %>
+          </div>
+        </div>
+      </section>
+    <% end %>
+
+    <!-- Competitive Intelligence -->
+    <% if @competitive_intelligence %>
+      <section id="competitive-intelligence" class="mb-8 scroll-mt-16">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">
+          <i class="fa-solid fa-trophy text-purple-600 mr-2"></i>
+          Inteligencia Competitiva
+        </h2>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <!-- Share of Voice -->
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-indigo-200 transition-all duration-200">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">
+              <i class="fa-solid fa-bullhorn text-purple-600 mr-2"></i>
+              Share of Voice
+            </h3>
+            <% if @competitive_intelligence[:share_of_voice].any? %>
+              <%
+                sov_data = @competitive_intelligence[:share_of_voice].transform_values { |v| v[:percentage] }
+              %>
+              <%= pie_chart sov_data,
+                  donut: true,
+                  library: {
+                    chart: { height: 300 },
+                    plotOptions: {
+                      pie: {
+                        dataLabels: {
+                          enabled: true,
+                          format: '{point.name}: {point.percentage:.1f}%'
+                        }
+                      }
+                    }
+                  } %>
+              <div class="mt-4 space-y-2">
+                <% @competitive_intelligence[:share_of_voice].sort_by { |_k, v| -v[:percentage] }.each do |name, data| %>
+                  <div class="flex items-center justify-between text-sm">
+                    <span class="text-gray-700"><%= name %></span>
+                    <span class="font-medium text-purple-600"><%= data[:mentions] %> menciones (<%= data[:percentage] %>%)</span>
+                  </div>
+                <% end %>
+              </div>
+            <% else %>
+              <p class="text-center text-gray-500 py-8">Sin datos de share of voice disponibles</p>
+            <% end %>
+          </div>
+
+          <!-- Market Position -->
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-indigo-200 transition-all duration-200">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">
+              <i class="fa-solid fa-ranking-star text-purple-600 mr-2"></i>
+              Ranking de Temas
+            </h3>
+            <% if @competitive_intelligence[:market_position].any? %>
+              <div class="space-y-3">
+                <% @competitive_intelligence[:market_position].each do |position| %>
+                  <div class="flex items-center justify-between p-3 rounded-lg <%= position[:rank] <= 3 ? 'bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200' : 'bg-gray-50' %>">
+                    <div class="flex items-center space-x-3 flex-1">
+                      <div class="flex-shrink-0">
+                        <%= rank_badge(position[:rank]) %>
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900 truncate"><%= position[:topic] %></p>
+                        <p class="text-xs text-gray-600"><%= format_large_number(position[:interactions]) %> interacciones</p>
+                      </div>
+                    </div>
+                    <div class="ml-3 flex-shrink-0">
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                        <%= position[:share] %>%
+                      </span>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            <% else %>
+              <p class="text-center text-gray-500 py-8">Sin datos de ranking disponibles</p>
+            <% end %>
+          </div>
+        </div>
+
+        <!-- Growth Comparison -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-indigo-200 transition-all duration-200">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">
+            <i class="fa-solid fa-chart-line text-purple-600 mr-2"></i>
+            Comparación de Crecimiento
+          </h3>
+          <% if @competitive_intelligence[:growth_comparison].any? %>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              <% @competitive_intelligence[:growth_comparison].each do |topic, data| %>
+                <div class="bg-gradient-to-br from-gray-50 to-white rounded-lg p-4 border-2 <%= data[:trending] == 'up' ? 'border-green-200' : (data[:trending] == 'down' ? 'border-red-200' : 'border-gray-200') %> hover:shadow-md transition-all">
+                  <div class="flex items-start justify-between mb-2">
+                    <p class="text-sm font-medium text-gray-900 truncate flex-1 mr-2"><%= topic %></p>
+                    <i class="<%= trending_icon(data[:trending]) %> text-lg <%= data[:trending] == 'up' ? 'text-green-600' : (data[:trending] == 'down' ? 'text-red-600' : 'text-gray-400') %>"></i>
+                  </div>
+                  <div class="space-y-1">
+                    <div class="flex items-center justify-between text-xs">
+                      <span class="text-gray-600">Actual:</span>
+                      <span class="font-medium text-gray-900"><%= data[:current] %></span>
+                    </div>
+                    <div class="flex items-center justify-between text-xs">
+                      <span class="text-gray-600">Anterior:</span>
+                      <span class="font-medium text-gray-900"><%= data[:previous] %></span>
+                    </div>
+                    <div class="pt-2 mt-2 border-t border-gray-200">
+                      <span class="inline-flex items-center text-xs font-semibold <%= data[:growth] >= 0 ? 'text-green-700' : 'text-red-700' %>">
+                        <%= format_growth(data[:growth]) %>
+                      </span>
+                      <span class="text-xs text-gray-500 ml-1">· <%= trending_label(data[:trending]) %></span>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          <% else %>
+            <p class="text-center text-gray-500 py-8">Sin datos de crecimiento disponibles</p>
+          <% end %>
+        </div>
+
+        <!-- Competitive Topics -->
+        <% if @competitive_intelligence[:competitive_topics].any? %>
+          <div class="mt-6 bg-purple-50 rounded-lg shadow-sm border border-purple-200 p-6">
+            <h3 class="text-lg font-medium text-purple-900 mb-4">
+              <i class="fa-solid fa-fire text-purple-600 mr-2"></i>
+              Temas Competitivos
+            </h3>
+            <p class="text-sm text-purple-700 mb-4">Los siguientes temas tienen alto share of voice (>15%) y representan oportunidades estratégicas:</p>
+            <div class="flex flex-wrap gap-3">
+              <% @competitive_intelligence[:competitive_topics].each do |comp| %>
+                <div class="inline-flex items-center space-x-2 px-4 py-2 rounded-lg border-2 <%= competitive_status_class(comp[:status]) %>">
+                  <i class="<%= competitive_status_icon(comp[:status]) %>"></i>
+                  <div>
+                    <p class="font-medium text-sm"><%= comp[:topic] %></p>
+                    <p class="text-xs"><%= comp[:share] %>% SOV · <%= competitive_status_label(comp[:status]) %></p>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </section>
+    <% end %>
+
+    <!-- Word Cloud Section -->
+    <% if @word_occurrences.any? %>
+      <section id="palabras" class="mb-8 scroll-mt-16">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">
+          <i class="fa-solid fa-comment-dots text-indigo-600 mr-2"></i>
+          Palabras Clave Trending
+        </h2>
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-indigo-200 transition-all duration-200">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-medium text-gray-900">Nube de Palabras</h3>
+            <div class="flex items-center space-x-4">
+              <div class="flex items-center text-xs text-gray-600">
+                <span class="inline-block w-3 h-3 rounded-full bg-green-500 mr-1.5"></span>
+                <span>Positivas</span>
+              </div>
+              <div class="flex items-center text-xs text-gray-600">
+                <span class="inline-block w-3 h-3 rounded-full bg-gray-500 mr-1.5"></span>
+                <span>Neutrales</span>
+              </div>
+              <div class="flex items-center text-xs text-gray-600">
+                <span class="inline-block w-3 h-3 rounded-full bg-red-500 mr-1.5"></span>
+                <span>Negativas</span>
+              </div>
+            </div>
+          </div>
+          <div>
+            <%min_max = find_max_and_min_occurrences(@word_occurrences)%>
+            <ul class="cloud">
+              <%@word_occurrences.shuffle { |a, b| a[1] <=> b[1] }.each do |word, value|%>
+                <li style='color: <%=word_color(@positive_words, @negative_words, word)%>' 
+                    data-weight="<%=normalize_to_scale(value, min_max[:max], min_max[:min])%>">
+                  <%=word%>
+                </li>
+              <%end%>
+            </ul>
+          </div>
+        </div>
+      </section>
+    <% end %>
+
   </div>
-</div>
 </main>
 
 <script>

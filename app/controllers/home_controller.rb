@@ -6,7 +6,53 @@ class HomeController < ApplicationController
   skip_before_action :verify_authenticity_token
 
   def index
-    #-- Multiple Charts
+    # NEW: Phase 1 & 2 - Executive Dashboard Data
+    dashboard_data = HomeServices::DashboardAggregatorService.call(
+      topics: @topicos,
+      days_range: DAYS_RANGE
+    )
+
+    # Phase 1: Executive Summary
+    @executive_summary = dashboard_data[:executive_summary]
+    
+    # Channel Performance
+    @channel_stats = dashboard_data[:channel_stats]
+    
+    # Topic Statistics
+    @topic_stats = dashboard_data[:topic_stats]
+    @topic_trends = dashboard_data[:topic_trends]
+    
+    # Alerts
+    @alerts = dashboard_data[:alerts]
+    
+    # Top Content
+    @top_content = dashboard_data[:top_content]
+
+    # Phase 2: Enhanced Analytics
+    @sentiment_intelligence = dashboard_data[:sentiment_intelligence]
+    @temporal_intelligence = dashboard_data[:temporal_intelligence]
+    @competitive_intelligence = dashboard_data[:competitive_intelligence]
+
+    # Chart data for channel comparison
+    @chart_channel_mentions = {
+      'Digital' => @channel_stats[:digital][:mentions],
+      'Facebook' => @channel_stats[:facebook][:mentions],
+      'Twitter' => @channel_stats[:twitter][:mentions]
+    }
+
+    @chart_channel_interactions = {
+      'Digital' => @channel_stats[:digital][:interactions],
+      'Facebook' => @channel_stats[:facebook][:interactions],
+      'Twitter' => @channel_stats[:twitter][:interactions]
+    }
+
+    @chart_channel_reach = {
+      'Digital' => @channel_stats[:digital][:reach],
+      'Facebook' => @channel_stats[:facebook][:reach],
+      'Twitter' => @channel_stats[:twitter][:reach]
+    }
+
+    # EXISTING: Multiple Charts (kept for backward compatibility)
     @entry_quantities =
       @topicos.map do |topic|
         {
@@ -25,39 +71,12 @@ class HomeController < ApplicationController
         }
       end
 
-    @title_entry_quantities =
-      @topicos.map do |topic|
-        {
-          name: topic.name,
-          topicId: topic.id,
-          data: topic.title_topic_stat_dailies.normal_range.group_by_day(:topic_date).sum(:entry_quantity)
-        }
-      end #-- title
-
-    @title_entry_interactions =
-      @topicos.map do |topic|
-        {
-          name: topic.name,
-          topicId: topic.id,
-          data: topic.title_topic_stat_dailies.normal_range.group_by_day(:topic_date).sum(:entry_interaction)
-        }
-      end #-- title
-
     @neutral_quantity =
       @topicos.map do |topic|
         {
           name: topic.name,
           topicId: topic.id,
           data: topic.topic_stat_dailies.normal_range.group_by_day(:topic_date).sum(:neutral_quantity)
-        }
-      end
-
-    @neutral_interaction =
-      @topicos.map do |topic|
-        {
-          name: topic.name,
-          topicId: topic.id,
-          data: topic.topic_stat_dailies.normal_range.group_by_day(:topic_date).sum(:neutral_interaction)
         }
       end
 
@@ -70,30 +89,12 @@ class HomeController < ApplicationController
         }
       end
 
-    @positive_interaction =
-      @topicos.map do |topic|
-        {
-          name: topic.name,
-          topicId: topic.id,
-          data: topic.topic_stat_dailies.normal_range.group_by_day(:topic_date).sum(:positive_interaction)
-        }
-      end
-
     @negative_quantity =
       @topicos.map do |topic|
         {
           name: topic.name,
           topicId: topic.id,
           data: topic.topic_stat_dailies.normal_range.group_by_day(:topic_date).sum(:negative_quantity)
-        }
-      end
-
-    @negative_interaction =
-      @topicos.map do |topic|
-        {
-          name: topic.name,
-          topicId: topic.id,
-          data: topic.topic_stat_dailies.normal_range.group_by_day(:topic_date).sum(:negative_interaction)
         }
       end
 
