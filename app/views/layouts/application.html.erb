@@ -227,18 +227,19 @@
           // Clear any existing timeout
           if (showTimeout) clearTimeout(showTimeout);
           
-          // Only show loader after 200ms delay to avoid flashing on fast loads
-          showTimeout = setTimeout(() => {
-            if (overlay) {
-              overlay.classList.add('active');
-              currentTipIndex = 0;
-              if (tipElement) {
-                tipElement.textContent = loadingTips[0];
-              }
-              // Cycle through tips every 3 seconds
-              tipInterval = setInterval(showNextTip, 3000);
+          // Reset load start time for this navigation
+          pageLoadStartTime = Date.now();
+          
+          // Show loader IMMEDIATELY on navigation click
+          if (overlay) {
+            overlay.classList.add('active');
+            currentTipIndex = 0;
+            if (tipElement) {
+              tipElement.textContent = loadingTips[0];
             }
-          }, 200);
+            // Cycle through tips every 3 seconds
+            tipInterval = setInterval(showNextTip, 3000);
+          }
         }
         
         function hideLoader() {
@@ -248,9 +249,13 @@
             showTimeout = null;
           }
           
+          // For very fast page loads (< 300ms), hide immediately to avoid flash
+          const loadTime = Date.now() - pageLoadStartTime;
+          const hideDelay = loadTime < 300 ? 0 : 200;
+          
           // Wait for all resources to load (images, charts, etc.)
           if (document.readyState === 'complete') {
-            // Page is already fully loaded, hide immediately (with small transition delay)
+            // Page is already fully loaded
             setTimeout(() => {
               if (overlay) {
                 overlay.classList.remove('active');
@@ -259,7 +264,7 @@
                   tipInterval = null;
                 }
               }
-            }, 200);
+            }, hideDelay);
           } else {
             // Wait for complete page load
             window.addEventListener('load', function hideOnLoad() {
@@ -271,7 +276,7 @@
                     tipInterval = null;
                   }
                 }
-              }, 200);
+              }, hideDelay);
               // Remove listener after execution
               window.removeEventListener('load', hideOnLoad);
             });
