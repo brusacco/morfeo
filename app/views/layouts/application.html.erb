@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="h-full ">
+<html class="h-full" lang="es">
   <head>
     <title>Morfeo</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -153,6 +153,9 @@
     </style>
   </head>
   <body class="h-full">
+    <!-- Skip Links for Keyboard Navigation Accessibility -->
+    <%= render 'shared/skip_links' %>
+    
     <!-- Professional Loading Overlay -->
     <div id="morfeo-loading-overlay">
       <div class="morfeo-loader-container">
@@ -189,7 +192,11 @@
 
     <%= render "layouts/nav" %>
     <%= render "layouts/flash" %>
-    <%= yield %>
+    
+    <!-- Main Content Area for Skip Links -->
+    <main id="main-content" role="main" tabindex="-1">
+      <%= yield %>
+    </main>
     
     <!-- Loading Overlay Script -->
     <script>

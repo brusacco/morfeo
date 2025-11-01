@@ -1,4 +1,5 @@
 # Morfeo Platform - Comprehensive UI/UX Review
+
 **Date:** November 1, 2025  
 **Reviewer:** UI/UX Design Analysis  
 **Scope:** Complete platform interface audit
@@ -10,6 +11,7 @@
 Morfeo is a well-structured media monitoring platform with strong consistency in its dashboard layouts and a modern, professional design system. The platform demonstrates excellent attention to detail in maintaining visual coherence across different sections while providing rich data visualization capabilities.
 
 ### Current Strengths
+
 - ✅ **Excellent visual consistency** across all topic dashboards
 - ✅ **Modern, professional UI** using Tailwind CSS with thoughtful component design
 - ✅ **Strong navigation patterns** with sticky headers and "Back to Top" functionality
@@ -19,6 +21,7 @@ Morfeo is a well-structured media monitoring platform with strong consistency in
 - ✅ **Professional loading states** with branded loading overlay
 
 ### Key Findings Summary
+
 - **High marks for consistency** - Dashboard layouts follow the same structural patterns
 - **Minor inconsistencies** in navigation menu items and section ordering
 - **Opportunity** for improved mobile navigation experience
@@ -33,7 +36,9 @@ Morfeo is a well-structured media monitoring platform with strong consistency in
 All topic dashboards follow a consistent, well-defined pattern:
 
 #### Header Structure
+
 **Consistent across all dashboards:**
+
 ```erb
 <header class="bg-white shadow-sm border-b border-gray-200">
   <h1 class="text-3xl font-bold text-gray-900">
@@ -44,20 +49,23 @@ All topic dashboards follow a consistent, well-defined pattern:
 ```
 
 ✅ **Strengths:**
+
 - All headers use `text-sky-500` for icons (perfect consistency)
 - Same typography hierarchy (h1 3xl font-bold)
 - Consistent spacing and shadow styling
 - PDF export button positioned consistently in top-right
 
 #### Sticky Navigation Pattern
+
 **Consistent implementation:**
+
 ```erb
 <nav id="[unique-nav-id]" class="border-b border-gray-200 shadow-md">
   <!-- Navigation items on left -->
   <div class="flex space-x-1 md:space-x-4">
     <!-- Menu items -->
   </div>
-  
+
   <!-- "Arriba" button on right -->
   <a href="#" id="backToTop" class="ml-4 inline-flex items-center...">
     Arriba
@@ -66,16 +74,20 @@ All topic dashboards follow a consistent, well-defined pattern:
 ```
 
 ✅ **Strengths:**
+
 - Sticky positioning works correctly with `z-index: 9999`
 - "Arriba" (Back to Top) button always on right
 - Responsive spacing (`space-x-1 md:space-x-4`)
 - Smooth scroll behavior enabled
 
 ❗ **Minor Issue Found:**
+
 - Navigation menu items vary slightly between dashboards (see section 2.2)
 
 #### KPI Cards Section
+
 **Consistent 4-column grid:**
+
 ```erb
 <section id="kpis">
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -85,6 +97,7 @@ All topic dashboards follow a consistent, well-defined pattern:
 ```
 
 ✅ **Strengths:**
+
 - Same responsive breakpoints
 - Consistent hover effects (shadow-lg, scale-105)
 - Color-coded metrics (indigo, purple, green, etc.)
@@ -92,9 +105,11 @@ All topic dashboards follow a consistent, well-defined pattern:
 ### 1.2 Navigation Hierarchy ⭐⭐⭐⭐ (Very Good)
 
 #### Global Navigation (Top Nav)
+
 **Location:** `app/views/layouts/_nav.html.erb`
 
 ✅ **Strengths:**
+
 - Modern dropdown design with Alpine.js
 - Consistent indigo-600 brand color
 - Professional user profile dropdown
@@ -102,6 +117,7 @@ All topic dashboards follow a consistent, well-defined pattern:
 - Smooth transitions and hover effects
 
 📊 **Structure:**
+
 ```
 Morfeo Logo
 ├── Inicio
@@ -122,6 +138,7 @@ Morfeo Logo
 ### 1.3 Color System Consistency ⭐⭐⭐⭐⭐ (Excellent)
 
 **Brand Colors:**
+
 - Primary: `indigo-600` (navigation, primary buttons)
 - Headers: `text-sky-500` (all dashboard header icons) ✅
 - Success: `green-600`
@@ -130,6 +147,7 @@ Morfeo Logo
 - Info: `blue-600`
 
 **Channel-Specific Colors:**
+
 - Digital: `indigo-600` ✅
 - Facebook: `blue-600` ✅
 - Twitter: `sky-600` ✅
@@ -140,6 +158,7 @@ Morfeo Logo
 ### 1.4 Typography Consistency ⭐⭐⭐⭐⭐ (Excellent)
 
 **Consistent Scale:**
+
 - Page Titles: `text-3xl font-bold text-gray-900`
 - Section Headings: `text-2xl font-bold text-gray-900`
 - Card Titles: `text-lg font-medium text-gray-900`
@@ -157,6 +176,7 @@ Morfeo Logo
 **File:** `app/views/home/index.html.erb`
 
 ✅ **Strengths:**
+
 - Executive-level dashboard with rich KPI cards
 - Multi-topic overview with sparkline charts
 - Quick access buttons to all dashboard types
@@ -166,10 +186,12 @@ Morfeo Logo
 ⚠️ **Minor Issues:**
 
 1. **Too Many Sections** (14+ sections on one page)
+
    - Can be overwhelming on first visit
    - Recommendation: Consider adding a "Quick Tour" or "Getting Started" guide
 
 2. **Sticky Nav Overflow on Mobile**
+
    - Many navigation items (`scrollbar-hide` class helps but not ideal)
    - Recommendation: Consider a dropdown for sections on mobile
 
@@ -181,22 +203,24 @@ Morfeo Logo
 
 **Current Navigation Menus:**
 
-| Dashboard | Menu Items | Order |
-|-----------|-----------|-------|
-| **Home** | Mis Temas, Canales, Alertas, Top Content, Sentiment, Temporal, Competitivo, Tendencias | ✅ Comprehensive |
-| **General** | Resumen, Canales, Sentimiento, Alcance, Competitivo, Recomendaciones | ✅ Good for multi-channel |
-| **Digital (Topic)** | Métricas, Temporal, Evolución, Sentimiento, Etiquetas, Medios, Noticias | ✅ Content-focused |
-| **Facebook** | Métricas, Temporal, Sentimiento, Evolución, Etiquetas, Fanpages, Publicaciones | ✅ Social-focused |
-| **Twitter** | Métricas, Temporal, Evolución, Etiquetas, Perfiles, Tweets | ⚠️ Missing Sentimiento |
+| Dashboard           | Menu Items                                                                             | Order                     |
+| ------------------- | -------------------------------------------------------------------------------------- | ------------------------- |
+| **Home**            | Mis Temas, Canales, Alertas, Top Content, Sentiment, Temporal, Competitivo, Tendencias | ✅ Comprehensive          |
+| **General**         | Resumen, Canales, Sentimiento, Alcance, Competitivo, Recomendaciones                   | ✅ Good for multi-channel |
+| **Digital (Topic)** | Métricas, Temporal, Evolución, Sentimiento, Etiquetas, Medios, Noticias                | ✅ Content-focused        |
+| **Facebook**        | Métricas, Temporal, Sentimiento, Evolución, Etiquetas, Fanpages, Publicaciones         | ✅ Social-focused         |
+| **Twitter**         | Métricas, Temporal, Evolución, Etiquetas, Perfiles, Tweets                             | ⚠️ Missing Sentimiento    |
 
 **Issues Identified:**
 
 1. **Twitter Dashboard Missing Sentiment Link**
+
    - Twitter dashboard has sentiment analysis section but no nav link
    - Other dashboards have sentiment nav items
    - **Impact:** Users may not discover sentiment analysis on Twitter
 
 2. **"Temporal" vs "Temporal Intelligence"**
+
    - Some use "Temporal" (brief)
    - Home uses "Temporal Intelligence" (descriptive)
    - **Recommendation:** Standardize to "Temporal" for brevity in nav
@@ -209,6 +233,7 @@ Morfeo Logo
 ### 2.3 Section Ordering Consistency ⭐⭐⭐⭐ (Very Good)
 
 **Standard Section Order (Well-Maintained):**
+
 1. Header
 2. Sticky Navigation
 3. KPI Cards
@@ -225,6 +250,7 @@ Morfeo Logo
 ### 2.4 Data Table Consistency ⭐⭐⭐⭐⭐ (Excellent)
 
 **DataTables Implementation:**
+
 - Consistent use of jQuery DataTables
 - Same styling and configuration
 - Responsive tables with horizontal scroll
@@ -241,10 +267,12 @@ Morfeo Logo
 #### Issue 1: No Breadcrumbs ⭐⭐⭐ (Medium Priority)
 
 **Current State:**
+
 - Users navigate: Global Nav → Topic Dropdown → Dashboard
 - No breadcrumb trail showing current location
 
 **Recommendation:**
+
 ```erb
 <!-- Add below header, above sticky nav -->
 <div class="bg-gray-50 border-b border-gray-200 py-2 px-4">
@@ -262,6 +290,7 @@ Morfeo Logo
 ```
 
 **Benefits:**
+
 - Clear location awareness
 - Easy navigation back to parent sections
 - Better for keyboard navigation
@@ -271,6 +300,7 @@ Morfeo Logo
 #### Issue 2: Cross-Dashboard Navigation ⭐⭐⭐⭐ (High Priority)
 
 **Current State:**
+
 - To switch from "Digital" to "Facebook" for same topic, must:
   1. Go to global nav
   2. Open Facebook dropdown
@@ -281,7 +311,7 @@ Morfeo Logo
 ```erb
 <header>
   <!-- Existing header content -->
-  
+
   <!-- Add Dashboard Quick Switcher -->
   <div class="mt-4 flex items-center space-x-2">
     <span class="text-sm text-gray-500">Ver en:</span>
@@ -302,6 +332,7 @@ Morfeo Logo
 ```
 
 **Benefits:**
+
 - Much faster dashboard switching
 - Better user flow for cross-channel analysis
 - Clearer relationship between dashboards
@@ -313,6 +344,7 @@ Morfeo Logo
 #### Issue 3: KPI Card Visual Weight ⭐⭐ (Low Priority)
 
 **Current State:**
+
 - All KPI cards have same visual weight
 - Primary metrics not distinguished from secondary
 
@@ -338,6 +370,7 @@ Morfeo Logo
 ```
 
 **Benefits:**
+
 - Faster scanning of most important metrics
 - Better visual storytelling
 - More engaging dashboard experience
@@ -347,6 +380,7 @@ Morfeo Logo
 #### Issue 4: Section Spacing Inconsistency ⭐⭐ (Low Priority)
 
 **Current State:**
+
 - Most sections use `mb-8` or `mb-6`
 - Some variation throughout
 
@@ -374,6 +408,7 @@ Morfeo Logo
 #### Issue 5: Chart Interaction Feedback ⭐⭐⭐ (Medium Priority)
 
 **Current State:**
+
 - Charts have modal expansion (good!)
 - No loading states during chart rendering
 - No empty states for charts with no data
@@ -383,14 +418,14 @@ Morfeo Logo
 ```erb
 <!-- Loading State -->
 <div class="chart-container relative">
-  <div class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10" 
+  <div class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10"
        data-loading-state>
     <div class="text-center">
       <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
       <p class="text-sm text-gray-600">Cargando gráfico...</p>
     </div>
   </div>
-  
+
   <!-- Chart -->
   <%= column_chart ... %>
 </div>
@@ -410,6 +445,7 @@ Morfeo Logo
 #### Issue 6: Form Feedback & Validation ⭐⭐⭐ (Medium Priority)
 
 **Current State:**
+
 - User forms exist (login, etc.) but minimal inline validation
 - Success/error states could be more prominent
 
@@ -419,9 +455,9 @@ Morfeo Logo
 <!-- Inline Validation -->
 <div class="mb-4">
   <%= f.label :email, class: "block text-sm font-medium text-gray-700 mb-2" %>
-  <%= f.email_field :email, 
+  <%= f.email_field :email,
       class: "w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 #{@user.errors[:email].any? ? 'border-red-500' : 'border-gray-300'}",
-      data: { 
+      data: {
         controller: "validation",
         action: "blur->validation#validateEmail"
       } %>
@@ -441,6 +477,7 @@ Morfeo Logo
 #### Issue 7: Mobile Navigation Overflow ⭐⭐⭐⭐ (High Priority)
 
 **Current State:**
+
 - Sticky navs have many items that overflow horizontally
 - `scrollbar-hide` class hides scrollbar but scroll is still needed
 - Not obvious that more items exist
@@ -451,25 +488,25 @@ Morfeo Logo
 <nav id="topic-nav" class="...">
   <div class="mx-auto px-4">
     <div class="flex items-center justify-between h-12">
-      
+
       <!-- Desktop: All items -->
       <div class="hidden lg:flex space-x-4">
         <!-- Current menu items -->
       </div>
-      
+
       <!-- Mobile: Dropdown menu -->
       <div class="lg:hidden w-full" x-data="{ open: false }">
-        <button @click="open = !open" 
+        <button @click="open = !open"
                 class="flex items-center justify-between w-full px-3 py-2 text-sm font-medium text-gray-700 bg-gray-50 rounded-md">
           <span>Menú de Secciones</span>
           <svg class="w-5 h-5 transition-transform" :class="{ 'rotate-180': open }">...</svg>
         </button>
-        
+
         <div x-show="open" class="mt-2 space-y-1">
           <!-- All menu items as buttons -->
         </div>
       </div>
-      
+
       <!-- Back to top (always visible) -->
       <a href="#" id="backToTop" class="...">Arriba</a>
     </div>
@@ -478,6 +515,7 @@ Morfeo Logo
 ```
 
 **Benefits:**
+
 - Much better mobile UX
 - All sections discoverable
 - No confusing horizontal scroll
@@ -487,6 +525,7 @@ Morfeo Logo
 #### Issue 8: Table Responsiveness ⭐⭐⭐ (Medium Priority)
 
 **Current State:**
+
 - DataTables work well
 - Some columns might be too wide on mobile
 
@@ -524,6 +563,7 @@ columnDefs: [
 #### Issue 9: Keyboard Navigation ⭐⭐⭐⭐ (High Priority)
 
 **Current State:**
+
 - Good ARIA labels on navigation
 - Missing skip links
 - Modal focus trap not implemented
@@ -532,7 +572,7 @@ columnDefs: [
 
 ```erb
 <!-- Add skip link at top of layout -->
-<a href="#main-content" 
+<a href="#main-content"
    class="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 focus:z-50 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-white">
   Saltar al contenido principal
 </a>
@@ -544,13 +584,15 @@ columnDefs: [
 
 ```javascript
 // Modal focus trap
-const modal = document.getElementById('chart-modal');
-const focusableElements = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+const modal = document.getElementById("chart-modal");
+const focusableElements = modal.querySelectorAll(
+  'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+);
 const firstElement = focusableElements[0];
 const lastElement = focusableElements[focusableElements.length - 1];
 
-modal.addEventListener('keydown', function(e) {
-  if (e.key === 'Tab') {
+modal.addEventListener("keydown", function (e) {
+  if (e.key === "Tab") {
     if (e.shiftKey && document.activeElement === firstElement) {
       lastElement.focus();
       e.preventDefault();
@@ -559,8 +601,8 @@ modal.addEventListener('keydown', function(e) {
       e.preventDefault();
     }
   }
-  
-  if (e.key === 'Escape') {
+
+  if (e.key === "Escape") {
     closeModal();
   }
 });
@@ -571,6 +613,7 @@ modal.addEventListener('keydown', function(e) {
 #### Issue 10: Color Contrast ⭐⭐ (Low Priority)
 
 **Current State:**
+
 - Most text passes WCAG AA
 - Some light gray text on white might be borderline
 
@@ -578,8 +621,12 @@ modal.addEventListener('keydown', function(e) {
 
 ```scss
 // Use darker grays for body text
-.text-gray-600 { color: #4B5563; } // Current
-.text-gray-700 { color: #374151; } // Better contrast
+.text-gray-600 {
+  color: #4b5563;
+} // Current
+.text-gray-700 {
+  color: #374151;
+} // Better contrast
 
 // Review all instances
 ```
@@ -604,8 +651,14 @@ modal.addEventListener('keydown', function(e) {
 
 /* Number count-up animation for KPIs */
 @keyframes countUp {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .kpi-number {
@@ -633,11 +686,11 @@ modal.addEventListener('keydown', function(e) {
 <!-- Add to page header -->
 <div class="flex items-center space-x-2">
   <span class="text-sm text-gray-600">Densidad:</span>
-  <button class="px-2 py-1 text-xs rounded" 
+  <button class="px-2 py-1 text-xs rounded"
           data-density="comfortable">
     Cómodo
   </button>
-  <button class="px-2 py-1 text-xs rounded bg-indigo-100" 
+  <button class="px-2 py-1 text-xs rounded bg-indigo-100"
           data-density="compact">
     Compacto
   </button>
@@ -646,12 +699,12 @@ modal.addEventListener('keydown', function(e) {
 
 ```javascript
 // Adjust spacing dynamically
-document.querySelectorAll('[data-density]').forEach(btn => {
-  btn.addEventListener('click', () => {
+document.querySelectorAll("[data-density]").forEach((btn) => {
+  btn.addEventListener("click", () => {
     const density = btn.dataset.density;
-    document.body.classList.remove('density-comfortable', 'density-compact');
+    document.body.classList.remove("density-comfortable", "density-compact");
     document.body.classList.add(`density-${density}`);
-    localStorage.setItem('density', density);
+    localStorage.setItem("density", density);
   });
 });
 ```
@@ -666,9 +719,11 @@ document.querySelectorAll('[data-density]').forEach(btn => {
 
 ```html
 <!-- Add toggle in user menu -->
-<button class="flex items-center px-4 py-2 text-sm" 
-        data-controller="theme"
-        data-action="click->theme#toggle">
+<button
+  class="flex items-center px-4 py-2 text-sm"
+  data-controller="theme"
+  data-action="click->theme#toggle"
+>
   <i class="fa-solid fa-moon mr-3"></i>
   <span>Modo Oscuro</span>
 </button>
@@ -678,10 +733,10 @@ document.querySelectorAll('[data-density]').forEach(btn => {
 /* Define dark mode colors */
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg-primary: #1F2937;
+    --bg-primary: #1f2937;
     --bg-secondary: #111827;
-    --text-primary: #F9FAFB;
-    --text-secondary: #D1D5DB;
+    --text-primary: #f9fafb;
+    --text-secondary: #d1d5db;
   }
 }
 
@@ -708,6 +763,7 @@ document.querySelectorAll('[data-density]').forEach(btn => {
 ```
 
 **Features:**
+
 - Star favorite topics
 - Set default landing page
 - Remember filter preferences
@@ -722,6 +778,7 @@ document.querySelectorAll('[data-density]').forEach(btn => {
 ### 5.1 Terminology Consistency ⭐⭐⭐⭐ (Very Good)
 
 **Current Terms (Consistent):**
+
 - **Tópico** (topic)
 - **Menciones** (mentions)
 - **Interacciones** (interactions)
@@ -735,6 +792,7 @@ document.querySelectorAll('[data-density]').forEach(btn => {
 ### 5.2 Help Text & Tooltips ⭐⭐ (Needs Improvement)
 
 **Current State:**
+
 - Limited tooltips explaining metrics
 - Disclaimers present (good!) but could be more prominent
 
@@ -755,6 +813,7 @@ document.querySelectorAll('[data-density]').forEach(btn => {
 ### 5.3 Empty States ⭐⭐⭐ (Medium Priority)
 
 **Current State:**
+
 - Some empty states exist
 - Could be more helpful and action-oriented
 
@@ -793,6 +852,7 @@ document.querySelectorAll('[data-density]').forEach(btn => {
 ### 6.1 Loading Performance ⭐⭐⭐ (Good, Can Improve)
 
 **Current State:**
+
 - Professional loading overlay (excellent!)
 - All charts load simultaneously
 - Large pages with many sections
@@ -800,10 +860,11 @@ document.querySelectorAll('[data-density]').forEach(btn => {
 **Recommendations:**
 
 1. **Lazy Load Charts**
+
 ```javascript
 // Use Intersection Observer
 const chartObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
+  entries.forEach((entry) => {
     if (entry.isIntersecting) {
       const chartId = entry.target.dataset.chartId;
       loadChart(chartId);
@@ -812,16 +873,18 @@ const chartObserver = new IntersectionObserver((entries) => {
   });
 });
 
-document.querySelectorAll('[data-lazy-chart]').forEach(chart => {
+document.querySelectorAll("[data-lazy-chart]").forEach((chart) => {
   chartObserver.observe(chart);
 });
 ```
 
 2. **Code Splitting**
+
 - Load chart libraries only when needed
 - Defer non-critical JavaScript
 
 3. **Image Optimization**
+
 - Use lazy loading for images
 - Implement WebP with fallbacks
 
@@ -830,6 +893,7 @@ document.querySelectorAll('[data-lazy-chart]').forEach(chart => {
 ### 6.2 Caching Strategy ⭐⭐⭐⭐ (Very Good)
 
 **Current Implementation:**
+
 - 30-minute cache for dashboard data
 - Good balance of freshness vs. performance
 
@@ -840,6 +904,7 @@ document.querySelectorAll('[data-lazy-chart]').forEach(chart => {
 **Recommendation:** Add PWA capabilities
 
 **Benefits:**
+
 - Offline access to cached dashboards
 - Install on mobile devices
 - Push notifications for alerts
@@ -853,16 +918,19 @@ document.querySelectorAll('[data-lazy-chart]').forEach(chart => {
 ### 🔴 High Priority (Do First)
 
 1. **Add Cross-Dashboard Navigation Switcher** (Issue 2)
+
    - Impact: High - Improves core workflow
    - Effort: Medium (4-6 hours)
    - Quick win with significant UX improvement
 
 2. **Fix Mobile Navigation Overflow** (Issue 7)
+
    - Impact: High - Affects mobile users significantly
    - Effort: High (12-16 hours)
    - Essential for mobile experience
 
 3. **Add Twitter Dashboard Sentiment Link** (Issue 2.2)
+
    - Impact: Medium - Feature discoverability
    - Effort: Low (30 minutes)
    - Easy fix with immediate benefit
@@ -875,21 +943,25 @@ document.querySelectorAll('[data-lazy-chart]').forEach(chart => {
 ### 🟡 Medium Priority (Do Next)
 
 5. **Add Breadcrumb Navigation** (Issue 1)
+
    - Impact: Medium - Better wayfinding
    - Effort: Low (2-3 hours)
    - Nice UX improvement
 
 6. **Enhance Chart Loading States** (Issue 5)
+
    - Impact: Medium - Better perceived performance
    - Effort: Medium (6-8 hours)
    - Polish that users notice
 
 7. **Improve Form Validation Feedback** (Issue 6)
+
    - Impact: Medium - Reduces errors
    - Effort: Medium (8-10 hours)
    - Better user confidence
 
 8. **Add Contextual Help Tooltips** (Issue 5.2)
+
    - Impact: Medium - Reduces confusion
    - Effort: Medium (8-10 hours)
    - Especially helpful for new users
@@ -902,26 +974,31 @@ document.querySelectorAll('[data-lazy-chart]').forEach(chart => {
 ### 🟢 Low Priority (Polish & Future)
 
 10. **Add KPI Visual Hierarchy** (Issue 3)
+
     - Impact: Low - Visual improvement
     - Effort: Low (3-4 hours)
     - Nice polish
 
 11. **Standardize Section Spacing** (Issue 4)
+
     - Impact: Low - Visual consistency
     - Effort: Low (2 hours)
     - Design system refinement
 
 12. **Enhance Table Responsiveness** (Issue 8)
+
     - Impact: Low - Mobile improvement
     - Effort: Low (3-4 hours)
     - Progressive enhancement
 
 13. **Audit Color Contrast** (Issue 10)
+
     - Impact: Low - Accessibility polish
     - Effort: Low (2-3 hours)
     - Compliance improvement
 
 14. **Add Microinteractions** (Issue 4.1)
+
     - Impact: Low - Delight factor
     - Effort: Low (4-5 hours)
     - Polish that impresses
@@ -934,16 +1011,19 @@ document.querySelectorAll('[data-lazy-chart]').forEach(chart => {
 ### 🔮 Future Enhancements (Roadmap)
 
 16. **Dark Mode Support** (Issue 4.3)
+
     - Impact: Medium - User preference
     - Effort: High (20-30 hours)
     - Increasing user expectation
 
 17. **User Personalization** (Issue 4.4)
+
     - Impact: Medium - Power user feature
     - Effort: High (30-40 hours)
     - Competitive advantage
 
 18. **PWA Capabilities** (Issue 6.3)
+
     - Impact: Low - Advanced feature
     - Effort: High (20-25 hours)
     - Future-proofing
@@ -958,6 +1038,7 @@ document.querySelectorAll('[data-lazy-chart]').forEach(chart => {
 ## 8. IMPLEMENTATION PLAN
 
 ### Phase 1: Quick Wins (Week 1-2)
+
 **Estimated Total: 20-25 hours**
 
 - ✅ Add Twitter sentiment nav link (30 min)
@@ -971,6 +1052,7 @@ document.querySelectorAll('[data-lazy-chart]').forEach(chart => {
 **Impact:** Immediate improvements to core workflows
 
 ### Phase 2: Mobile & Accessibility (Week 3-4)
+
 **Estimated Total: 25-30 hours**
 
 - ✅ Fix mobile navigation overflow (12-16 hours)
@@ -980,6 +1062,7 @@ document.querySelectorAll('[data-lazy-chart]').forEach(chart => {
 **Impact:** Better mobile experience, accessibility compliance
 
 ### Phase 3: Polish & Performance (Week 5-6)
+
 **Estimated Total: 35-40 hours**
 
 - ✅ Add chart loading states (6-8 hours)
@@ -991,6 +1074,7 @@ document.querySelectorAll('[data-lazy-chart]').forEach(chart => {
 **Impact:** Polished, performant experience
 
 ### Phase 4: Future Enhancements (Month 2-3)
+
 **Estimated Total: 80-100 hours**
 
 - 🔮 Dark mode support (20-30 hours)
@@ -1007,6 +1091,7 @@ document.querySelectorAll('[data-lazy-chart]').forEach(chart => {
 ### How to Measure Improvement
 
 **Quantitative Metrics:**
+
 - Page load time (target: <2s for first view)
 - Time to interactive (target: <3s)
 - Mobile bounce rate (target: reduce by 20%)
@@ -1014,11 +1099,13 @@ document.querySelectorAll('[data-lazy-chart]').forEach(chart => {
 - Keyboard navigation usage (target: >5% of sessions)
 
 **Qualitative Metrics:**
+
 - User satisfaction surveys (target: 4.5/5)
 - Support tickets about navigation (target: reduce by 30%)
 - Feature discoverability (target: >80% users find sentiment analysis)
 
 **Accessibility Metrics:**
+
 - WCAG AA compliance (target: 100%)
 - Keyboard navigation coverage (target: 100% of features)
 - Screen reader compatibility (target: zero blocking issues)
@@ -1030,12 +1117,14 @@ document.querySelectorAll('[data-lazy-chart]').forEach(chart => {
 ### Overall Assessment: ⭐⭐⭐⭐ (4/5 Stars)
 
 Morfeo demonstrates **excellent UI/UX fundamentals** with:
+
 - Strong visual consistency
 - Professional design system
 - Well-thought-out information architecture
 - Good responsive design foundation
 
 ### Strengths to Maintain:
+
 1. ✅ Consistent dashboard layout patterns
 2. ✅ Professional color system
 3. ✅ Thoughtful data visualization
@@ -1043,6 +1132,7 @@ Morfeo demonstrates **excellent UI/UX fundamentals** with:
 5. ✅ Clean, modern aesthetic
 
 ### Key Areas for Improvement:
+
 1. 🎯 Mobile navigation experience
 2. 🎯 Cross-dashboard navigation flow
 3. 🎯 Keyboard navigation completeness
@@ -1052,17 +1142,20 @@ Morfeo demonstrates **excellent UI/UX fundamentals** with:
 ### Recommended Next Steps:
 
 **Immediate Action (This Week):**
+
 1. Add Twitter sentiment navigation link
 2. Review and approve cross-dashboard switcher design
 3. Begin Phase 1 quick wins implementation
 
 **This Month:**
+
 1. Complete Phase 1 & 2 (quick wins + mobile)
 2. Test with real users
 3. Gather feedback
 4. Adjust priorities based on usage data
 
 **This Quarter:**
+
 1. Complete Phase 3 (polish & performance)
 2. Plan Phase 4 (future enhancements)
 3. Establish ongoing UX improvement process
@@ -1072,36 +1165,39 @@ Morfeo demonstrates **excellent UI/UX fundamentals** with:
 ## Appendix A: Design System Reference
 
 ### Spacing Scale
+
 ```css
---space-1: 0.25rem;  /* 4px */
---space-2: 0.5rem;   /* 8px */
---space-3: 0.75rem;  /* 12px */
---space-4: 1rem;     /* 16px */
---space-6: 1.5rem;   /* 24px */
---space-8: 2rem;     /* 32px */
---space-12: 3rem;    /* 48px */
+--space-1: 0.25rem; /* 4px */
+--space-2: 0.5rem; /* 8px */
+--space-3: 0.75rem; /* 12px */
+--space-4: 1rem; /* 16px */
+--space-6: 1.5rem; /* 24px */
+--space-8: 2rem; /* 32px */
+--space-12: 3rem; /* 48px */
 ```
 
 ### Color Palette
+
 ```css
---indigo-600: #4F46E5;
---blue-600: #2563EB;
---sky-600: #0284C7;
---green-600: #16A34A;
---amber-600: #D97706;
---red-600: #DC2626;
---gray-600: #4B5563;
+--indigo-600: #4f46e5;
+--blue-600: #2563eb;
+--sky-600: #0284c7;
+--green-600: #16a34a;
+--amber-600: #d97706;
+--red-600: #dc2626;
+--gray-600: #4b5563;
 ```
 
 ### Typography Scale
+
 ```css
---text-xs: 0.75rem;    /* 12px */
---text-sm: 0.875rem;   /* 14px */
---text-base: 1rem;     /* 16px */
---text-lg: 1.125rem;   /* 18px */
---text-xl: 1.25rem;    /* 20px */
---text-2xl: 1.5rem;    /* 24px */
---text-3xl: 1.875rem;  /* 30px */
+--text-xs: 0.75rem; /* 12px */
+--text-sm: 0.875rem; /* 14px */
+--text-base: 1rem; /* 16px */
+--text-lg: 1.125rem; /* 18px */
+--text-xl: 1.25rem; /* 20px */
+--text-2xl: 1.5rem; /* 24px */
+--text-3xl: 1.875rem; /* 30px */
 ```
 
 ---
@@ -1110,4 +1206,3 @@ Morfeo demonstrates **excellent UI/UX fundamentals** with:
 **Date:** November 1, 2025  
 **Version:** 1.0  
 **Next Review:** December 1, 2025
-
