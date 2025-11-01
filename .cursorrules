@@ -1,0 +1,1065 @@
+# Morfeo - Media Monitoring & PR Analytics Platform
+
+# Cursor AI Rules & Project Context
+
+## 🎯 Project Overview
+
+Morfeo is a professional media monitoring platform for PR analytics and communication intelligence in Paraguay. It aggregates data from digital media, Facebook, and Twitter to provide CEO-level insights for strategic decision-making.
+
+---
+
+## 🏗️ Technical Stack
+
+### Backend
+
+- **Framework**: Ruby on Rails 7.0.8
+- **Ruby Version**: 3.1.6
+- **Database**: MySQL 8.0
+- **Background Jobs**: Sidekiq with Redis
+- **Scheduling**: Whenever gem (cron jobs)
+
+### Frontend
+
+- **CSS Framework**: Tailwind CSS 3.x
+- **JavaScript**: Alpine.js for interactivity
+- **Charts**: Chartkick + Highcharts
+- **Icons**: Font Awesome 6.x
+
+### APIs & External Services
+
+- **Meta API**: Facebook data (Graph API)
+- **Twitter API**: X/Twitter data (API v2)
+- **Web Scraping**: Nokogiri for digital media
+
+### Key Gems
+
+- `acts_as_taggable_on` - Tagging system for topics
+- `devise` - User authentication
+- `activeadmin` - Admin interface
+- `kaminari` - Pagination
+- `chartkick` - Chart generation
+
+---
+
+## 📐 Architecture Patterns
+
+### Service Objects
+
+Use service objects for complex business logic:
+
+```ruby
+class MyFeatureServices::AggregatorService < ApplicationService
+  def initialize(topic:, start_date:, end_date:)
+    # ...
+  end
+
+  def call
+    Rails.cache.fetch(cache_key, expires_in: 30.minutes) do
+      # Business logic here
+    end
+  end
+end
+```
+
+### Controllers
+
+Keep controllers thin, delegate to services:
+
+```ruby
+def show
+  @data = MyFeatureServices::AggregatorService.call(
+    topic: @topic,
+    start_date: start_date,
+    end_date: end_date
+  )
+end
+```
+
+### Database Queries
+
+- Use `includes()` to avoid N+1 queries
+- Use `count('DISTINCT table.id')` for efficient counting with `acts_as_taggable_on`
+- Wrap raw SQL with `Arel.sql()` for security
+- Add guard clauses for zero counts to prevent division by zero
+
+---
+
+## 🎨 Design System & UI Patterns
+
+### Consistent Dashboard Headers
+
+All topic dashboards use the same header pattern:
+
+```erb
+<header class="bg-white shadow-sm border-b border-gray-200">
+  <h1 class="text-3xl font-bold text-gray-900">
+    <i class="[ICON] text-sky-500 mr-2"></i> <%= @topic.name %> · [Dashboard Name]
+  </h1>
+</header>
+```
+
+**Important**: Always use `text-sky-500` for header icons (bluish color)
+
+### Sticky Navigation
+
+All dashboards have consistent sticky nav:
+
+```erb
+<nav id="[nav-id]" class="border-b border-gray-200 shadow-md">
+  <!-- Navigation items on left -->
+  <div class="flex space-x-1 md:space-x-4">
+    <!-- Menu items -->
+  </div>
+
+  <!-- "Arriba" button on right -->
+  <a href="#" id="backToTop" class="ml-4 inline-flex items-center px-3 py-2 text-sm font-medium text-indigo-600">
+    Arriba
+  </a>
+</nav>
+```
+
+Required CSS for sticky nav:
+
+```css
+html,
+body {
+  overflow-x: hidden;
+  overflow-y: auto;
+  height: 100%;
+}
+
+#[nav-id] {
+  position: sticky;
+  top: 0;
+  z-index: 9999;
+  background: white;
+}
+```
+
+### Color Palette
+
+- **Primary**: Indigo (`indigo-600`)
+- **Success**: Green (`green-600`)
+- **Warning**: Amber (`amber-600`)
+- **Danger**: Red (`red-600`)
+- **Info**: Blue (`blue-600`)
+- **Headers**: Sky blue (`sky-500`)
+
+### Responsive Breakpoints
+
+- Mobile: `< 640px`
+- Tablet: `sm: 640px`
+- Desktop: `md: 768px`, `lg: 1024px`, `xl: 1280px`
+
+---
+
+## 📊 Business Rules - Data & Metrics
+
+### Data Sources & Accuracy Levels
+
+| Source             | Accuracy | Confidence   | Notes                                      |
+| ------------------ | -------- | ------------ | ------------------------------------------ |
+| **Mentions**       | 100%     | Actual count | Direct database counts                     |
+| **Interactions**   | 100%     | Actual sum   | Direct API data                            |
+| **Facebook Reach** | 95%      | Actual views | Meta API `views_count`                     |
+| **Twitter Reach**  | 90%      | Actual views | Twitter API `views_count` (when available) |
+| **Digital Reach**  | 60%      | Estimated    | 3x multiplier (conservative)               |
+| **Sentiment**      | 85%      | AI-based     | Automated analysis                         |
+
+### Critical Reach Calculation Rules
+
+**ALWAYS follow these rules for reach estimation:**
+
+1. **Facebook**: Use actual `views_count` from Meta API
+
+   ```ruby
+   reach = FacebookEntry.sum(:views_count)
+   ```
+
+2. **Twitter**: Use actual `views_count` when available, 10x fallback
+
+   ```ruby
+   views = TwitterPost.sum(:views_count)
+   reach = views > 0 ? views : interactions * 10  # Conservative fallback
+   ```
+
+3. **Digital Media**: Use 3x multiplier (conservative estimate)
+   ```ruby
+   reach = entries.sum(:total_count) * 3  # Conservative: each interaction ≈ 3 readers
+   # Add comment explaining methodology
+   ```
+
+**NEVER**:
+
+- ❌ Use arbitrary multipliers without documentation
+- ❌ Claim "industry standard" without validation
+- ❌ Mix estimated and actual data without disclaimers
+- ❌ Use multipliers > 5x for any source
+
+**ALWAYS**:
+
+- ✅ Add comments explaining reach methodology
+- ✅ Use conservative estimates (under-promise)
+- ✅ Add disclaimers for estimated data
+- ✅ Distinguish actual vs. estimated in UI
+
+### Disclaimer Template
+
+```erb
+<div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-lg">
+  <p class="text-sm text-blue-700">
+    <strong>Nota sobre datos de alcance:</strong>
+    Facebook y Twitter proporcionan datos reales de vistas vía API oficial.
+    Para medios digitales de terceros, el alcance es una estimación conservadora basada en interacciones.
+  </p>
+</div>
+```
+
+### Sentiment Analysis Rules
+
+**Sentiment Scores**: -100 (very negative) to +100 (very positive)
+
+**Interpretation**:
+
+- `50 to 100`: Very positive 😄
+- `10 to 50`: Positive 🙂
+- `-10 to 10`: Neutral 😐
+- `-50 to -10`: Negative ☹️
+- `-100 to -50`: Very negative 😠
+
+**Confidence Levels** (based on sample size):
+
+```ruby
+def sentiment_confidence(sample_size)
+  case sample_size
+  when 0...10 then 0.20    # Very low
+  when 10...50 then 0.50   # Low
+  when 50...200 then 0.70  # Moderate
+  when 200...1000 then 0.85 # Good
+  else 0.95                 # High
+  end
+end
+```
+
+### Share of Voice Calculation
+
+```ruby
+def share_of_voice
+  return 0 if all_mentions.zero?
+  (topic_mentions.to_f / all_mentions * 100).round(1)
+end
+```
+
+**Interpretation**:
+
+- `< 5%`: Very low presence
+- `5-15%`: Below average
+- `15-30%`: Good presence
+- `30-50%`: Strong presence
+- `> 50%`: Dominant presence
+
+---
+
+## 🔒 Security & Data Validation
+
+### SQL Injection Prevention
+
+Always wrap raw SQL in `Arel.sql()`:
+
+```ruby
+# ❌ BAD
+.order('reactions_count + comments_count DESC')
+
+# ✅ GOOD
+.order(Arel.sql('reactions_count + comments_count DESC'))
+```
+
+### Division by Zero Protection
+
+Always add guard clauses:
+
+```ruby
+# ❌ BAD
+average = total / count
+
+# ✅ GOOD
+return 0 if count.zero?
+average = total / count.to_f
+```
+
+### acts_as_taggable_on Query Patterns
+
+```ruby
+# Efficient counting
+.tagged_with(tag_names, any: true)
+.count('DISTINCT table_name.id')  # Not just .count
+
+# Check for empty tags
+return { count: 0 } if tag_names.empty?
+```
+
+---
+
+## 🗄️ Database Schema & Model Relations
+
+### Core Models
+
+#### **Topic** (Central aggregation point)
+
+- **Purpose**: Represents a monitoring topic/theme (e.g., "Santiago Peña", "Corrupción")
+- **Key Fields**:
+  - `name` (string) - Topic name
+  - `positive_words` (text) - Comma-separated positive keywords
+  - `negative_words` (text) - Comma-separated negative keywords
+  - `status` (boolean) - Active/inactive
+- **Relationships**:
+  - `has_many :topic_stat_dailies` - Daily statistics
+  - `has_many :title_topic_stat_dailies` - Title-based daily stats
+  - `has_many :user_topics` - User access control
+  - `has_many :users, through: :user_topics` - Users who can access this topic
+  - `has_many :reports` - AI-generated reports
+  - `has_many :templates` - Report templates
+  - `has_and_belongs_to_many :tags` - Tag associations (many-to-many)
+- **Key Methods**:
+  - `report_entries(start_date, end_date)` - Get digital entries for date range
+  - `list_entries` - Cached list of recent entries
+  - `peak_publishing_times_by_hour` - Temporal intelligence
+  - `facebook_sentiment_summary` - Facebook sentiment analysis
+  - `twitter_trend_velocity` - Twitter trend analysis
+- **Tagging**: Topics use `tags` to match content across all channels
+- **Performance**: Heavy caching (30 min - 4 hours)
+
+#### **Tag** (Content tagging system)
+
+- **Purpose**: Keywords/phrases to identify relevant content (powered by `acts_as_taggable_on` gem)
+- **Key Fields**:
+  - `name` (string) - Tag name (e.g., "Santiago Peña", "elecciones")
+  - `variations` (string) - Alternative spellings/synonyms
+  - `taggings_count` (integer) - Counter cache
+- **Relationships**:
+  - `has_and_belongs_to_many :topics` - Topics using this tag
+  - `has_many :taggings` - Join table for polymorphic tagging
+- **Taggable Models**: `Entry`, `FacebookEntry`, `TwitterPost`
+- **Usage Pattern**:
+  ```ruby
+  Entry.tagged_with(['santiago peña', 'presidente'], any: true)
+  FacebookEntry.tagged_with(topic.tags.pluck(:name), any: true)
+  ```
+
+---
+
+### Digital Media Models (News Scraping)
+
+#### **Site** (Digital media source)
+
+- **Purpose**: News websites and digital media sources
+- **Key Fields**:
+  - `name` (string) - Site name (e.g., "ABC.com.py")
+  - `url` (string) - Base URL
+  - `filter` (string) - Content extraction CSS selector
+  - `content_filter` (string) - Additional content selectors
+  - `negative_filter` (string) - Elements to exclude
+  - `status` (boolean) - Active/inactive
+  - `is_js` (boolean) - Requires JavaScript rendering
+  - `entries_count` (integer) - Counter cache
+  - `image64` (text) - Base64 encoded logo
+- **Relationships**:
+  - `has_many :entries` - Scraped news articles
+  - `has_one :page` - Associated Facebook page
+  - `has_one :twitter_profile` - Associated Twitter profile
+  - `has_many :newspapers` - Print newspaper editions
+- **Scopes**:
+  - `enabled` - Active sites only
+  - `js_site` - Sites requiring JS rendering
+
+#### **Entry** (News article)
+
+- **Purpose**: Individual news articles scraped from digital media
+- **Key Fields**:
+  - `url` (string, unique) - Article URL
+  - `title` (string) - Article title
+  - `description` (text) - Meta description / summary
+  - `content` (text) - Full article text
+  - `published_at` (timestamp) - Publication date/time
+  - `published_date` (date) - Publication date (indexed)
+  - `image_url` (text) - Featured image URL
+  - `reaction_count` (integer) - Facebook reactions on article
+  - `comment_count` (integer) - Facebook comments
+  - `share_count` (integer) - Facebook shares
+  - `total_count` (integer) - Sum of all interactions (main metric)
+  - `polarity` (enum) - Sentiment: neutral (0), positive (1), negative (2)
+  - `enabled` (boolean) - Active/inactive
+  - `repeated` (integer) - Duplicate flag
+- **Relationships**:
+  - `belongs_to :site` - Source website
+  - `has_many :comments` - Facebook comment objects (legacy)
+  - `has_one :twitter_post` - Associated tweet (if shared)
+- **Tagging**: `acts_as_taggable_on :tags, :title_tags`
+- **Search**: Uses Searchkick for Elasticsearch integration
+- **Scopes**:
+  - `normal_range` - Last DAYS_RANGE days
+  - `enabled` - Active entries only
+  - `has_interactions` - total_count >= 10
+  - `positive/negative/neutral` - By sentiment
+- **Key Methods**:
+  - `bigram_occurrences(limit)` - Word pair frequency analysis
+  - `word_occurrences(limit)` - Single word frequency
+  - `set_polarity` - AI sentiment analysis (OpenAI)
+
+---
+
+### Facebook Models (Meta API)
+
+#### **Page** (Facebook fanpage)
+
+- **Purpose**: Facebook pages being monitored
+- **Key Fields**:
+  - `uid` (string, unique) - Facebook page ID
+  - `name` (string) - Page name
+  - `username` (string) - @username
+  - `picture` (text) - Profile picture URL
+  - `followers` (integer) - Follower count
+  - `category` (string) - Page category
+  - `description` (text) - Page description
+  - `website` (string) - Associated website
+- **Relationships**:
+  - `belongs_to :site` - Associated digital media site
+  - `has_many :facebook_entries` - Posts from this page
+- **Callbacks**: Auto-updates from Meta API on create/update
+
+#### **FacebookEntry** (Facebook post)
+
+- **Purpose**: Facebook posts from monitored pages
+- **Key Fields**:
+  - `facebook_post_id` (string, unique) - Facebook post ID
+  - `posted_at` (timestamp) - When post was published
+  - `fetched_at` (timestamp) - Last API fetch
+  - `message` (text) - Post text content
+  - `permalink_url` (string) - Direct link to post
+  - **Attachment fields**:
+    - `attachment_type` (string) - photo/video_autoplay/video_inline/album/share/event/poll
+    - `attachment_title` (text)
+    - `attachment_description` (text)
+    - `attachment_url` (string)
+    - `attachment_target_url` (string) - External link (e.g., news article)
+    - `attachment_media_src` (text) - Media URL
+    - `attachment_media_width/height` (integer)
+  - **Reaction counts** (all integers):
+    - `reactions_like_count`
+    - `reactions_love_count`
+    - `reactions_wow_count`
+    - `reactions_haha_count`
+    - `reactions_sad_count`
+    - `reactions_angry_count`
+    - `reactions_thankful_count`
+    - `reactions_total_count` - Sum of all reactions
+  - `comments_count` (integer)
+  - `share_count` (integer)
+  - `views_count` (integer) - **ACTUAL API DATA** from Meta
+  - **Sentiment fields** (auto-calculated):
+    - `sentiment_score` (decimal) - Weighted score (-2.0 to +2.0)
+    - `sentiment_label` (enum) - very_negative/negative/neutral/positive/very_positive
+    - `sentiment_positive_pct` (decimal)
+    - `sentiment_negative_pct` (decimal)
+    - `sentiment_neutral_pct` (decimal)
+    - `controversy_index` (decimal) - Polarization measure (0-1)
+    - `emotional_intensity` (decimal) - % of emotional reactions
+  - `payload` (json) - Raw API response
+- **Relationships**:
+  - `belongs_to :page` - Source Facebook page
+  - `belongs_to :entry, optional: true` - Linked news article
+- **Tagging**: `acts_as_taggable_on :tags`
+- **Scopes**:
+  - `recent` - Order by posted_at DESC
+  - `for_topic(topic, start_time, end_time)` - Tagged with topic's tags
+  - `positive_sentiment/negative_sentiment/neutral_sentiment`
+  - `controversial` - High controversy index
+  - `high_emotion` - High emotional intensity
+- **Key Methods**:
+  - `total_interactions` - Sum of reactions + comments + shares
+  - `estimated_reach` - Research-based reach estimation (organic + viral)
+  - `sentiment_text` - Human-readable sentiment with emoji
+  - `sentiment_confidence` - Statistical confidence (0-1)
+  - `find_matching_entry` - Link to Entry by URL
+- **Sentiment Calculation**: Weighted by reaction type
+  ```ruby
+  SENTIMENT_WEIGHTS = {
+    reactions_like_count: 0.5,
+    reactions_love_count: 2.0,
+    reactions_haha_count: 1.5,
+    reactions_wow_count: 1.0,
+    reactions_sad_count: -1.5,
+    reactions_angry_count: -2.0,
+    reactions_thankful_count: 2.0
+  }
+  ```
+
+---
+
+### Twitter Models (Twitter API v2)
+
+#### **TwitterProfile** (Twitter account)
+
+- **Purpose**: Twitter accounts being monitored
+- **Key Fields**:
+  - `uid` (string, unique) - Twitter user ID
+  - `name` (string) - Display name
+  - `username` (string) - @handle
+  - `picture` (text) - Profile picture URL
+  - `followers` (integer) - Follower count
+  - `description` (text) - Bio
+  - `verified` (boolean) - Verified status
+- **Relationships**:
+  - `belongs_to :site, optional: true` - Associated site
+  - `has_many :twitter_posts` - Tweets from this profile
+- **Callbacks**: Auto-updates from Twitter API on create/update
+
+#### **TwitterPost** (Tweet)
+
+- **Purpose**: Individual tweets from monitored accounts
+- **Key Fields**:
+  - `tweet_id` (string, unique) - Twitter tweet ID
+  - `posted_at` (timestamp) - When tweet was posted
+  - `fetched_at` (timestamp) - Last API fetch
+  - `text` (text) - Tweet text content
+  - `permalink_url` (string) - Direct link to tweet
+  - **Engagement metrics** (all integers):
+    - `quote_count` - Quote tweets
+    - `reply_count` - Replies
+    - `retweet_count` - Retweets
+    - `favorite_count` - Likes
+    - `views_count` - **ACTUAL API DATA** from Twitter (when available)
+    - `bookmark_count` - Bookmarks
+  - `lang` (string) - Language code (e.g., "es")
+  - `source` (string) - Posting client
+  - `is_retweet` (boolean)
+  - `is_quote` (boolean)
+  - `payload` (json) - Raw API response
+- **Relationships**:
+  - `belongs_to :twitter_profile` - Source Twitter account
+  - `belongs_to :entry, optional: true` - Linked news article
+- **Tagging**: `acts_as_taggable_on :tags`
+- **Scopes**:
+  - `recent` - Order by posted_at DESC
+  - `for_topic(topic, start_time, end_time)` - Tagged with topic's tags
+- **Key Methods**:
+  - `total_interactions` - Sum of favorites + retweets + replies + quotes
+  - `tweet_url` - Construct Twitter URL
+  - `tweet_images` - Extract images from payload
+  - `external_urls` - Extract URLs from tweet
+  - `post_type` - Retweet/Quote/Video/Imagen/Link/Tweet
+  - `find_matching_entry` - Link to Entry by URL
+
+---
+
+### User & Access Control Models
+
+#### **User**
+
+- **Purpose**: Client users with topic-based access control
+- **Key Fields**:
+  - `name` (string)
+  - `email` (string, unique)
+  - `encrypted_password` (string) - Devise authentication
+  - `status` (boolean) - Active/inactive
+- **Relationships**:
+  - `has_many :user_topics` - Topic access permissions
+  - `has_many :topics, through: :user_topics` - Accessible topics
+- **Authentication**: Devise (database_authenticatable, recoverable, rememberable, validatable)
+
+#### **AdminUser**
+
+- **Purpose**: Platform administrators (ActiveAdmin)
+- **Key Fields**:
+  - `email` (string, unique)
+  - `encrypted_password` (string)
+- **Authentication**: Devise (database_authenticatable, recoverable, rememberable)
+- **Purpose**: Full system access via ActiveAdmin interface
+
+#### **UserTopic** (Join table)
+
+- **Purpose**: Many-to-many relationship between Users and Topics
+- **Relationships**:
+  - `belongs_to :user`
+  - `belongs_to :topic`
+
+---
+
+### Statistics & Reporting Models
+
+#### **TopicStatDaily**
+
+- **Purpose**: Daily aggregated statistics for topics
+- **Key Fields**:
+  - `topic_date` (date) - Statistics date
+  - `entry_count` (integer) - Number of entries
+  - `total_count` (integer) - Sum of interactions
+  - `average` (integer) - Average interactions per entry
+  - `positive_quantity/negative_quantity/neutral_quantity` (integer)
+  - `positive_interaction/negative_interaction/neutral_interaction` (integer)
+- **Relationships**:
+  - `belongs_to :topic`
+- **Usage**: Historical trend analysis, charts
+
+#### **TitleTopicStatDaily**
+
+- **Purpose**: Daily statistics for title-based tagging
+- **Similar to TopicStatDaily but for title_tags**
+
+#### **Report**
+
+- **Purpose**: AI-generated reports for topics
+- **Key Fields**:
+  - `report_text` (text) - Generated report content
+- **Relationships**:
+  - `belongs_to :topic`
+
+#### **Template**
+
+- **Purpose**: Report templates created by admins
+- **Key Fields**:
+  - `title` (string)
+  - `sumary` (text) - Template content
+  - `start_date/end_date` (date) - Date range
+- **Relationships**:
+  - `belongs_to :topic`
+  - `belongs_to :admin_user`
+
+---
+
+### Other Models
+
+#### **Comment** (Legacy)
+
+- **Purpose**: Individual Facebook comment (legacy, mostly deprecated)
+- **Relationships**: `belongs_to :entry`
+
+#### **Newspaper** (Print editions)
+
+- **Purpose**: Represents print newspaper editions
+- **Relationships**:
+  - `belongs_to :site`
+  - `has_many :newspaper_texts`
+
+---
+
+## 🔗 Key Relationships & Data Flow
+
+### Content Aggregation Flow
+
+```
+Topic (tags)
+  ↓ (tagged_with)
+  ├─→ Entry (Digital Media) via site
+  ├─→ FacebookEntry via page → site
+  └─→ TwitterPost via twitter_profile → site
+```
+
+### Cross-Channel Linking
+
+```
+Entry (news article)
+  ↔ FacebookEntry (via attachment_target_url match)
+  ↔ TwitterPost (via external_urls match)
+```
+
+### User Access Control
+
+```
+User
+  ↔ UserTopic (join table)
+  ↔ Topic
+    → Filtered content access
+```
+
+---
+
+## 📊 Critical Model Attributes for Dashboards
+
+### Mentions (Count)
+
+- **Digital**: `Entry.count` (100% accurate)
+- **Facebook**: `FacebookEntry.count` (100% accurate)
+- **Twitter**: `TwitterPost.count` (100% accurate)
+
+### Interactions (Engagement)
+
+- **Digital**: `Entry.sum(:total_count)` (reactions + comments + shares from Facebook on article URL)
+- **Facebook**: `FacebookEntry.sum(reactions_total_count + comments_count + share_count)` (100% accurate)
+- **Twitter**: `TwitterPost.sum(favorite_count + retweet_count + reply_count + quote_count)` (100% accurate)
+
+### Reach (Audience)
+
+- **Digital**: `Entry.sum(:total_count) * 3` (⚠️ Estimated - conservative multiplier)
+- **Facebook**: `FacebookEntry.sum(:views_count)` (✅ Actual API data - 95% confidence)
+- **Twitter**:
+  ```ruby
+  views = TwitterPost.sum(:views_count)
+  reach = views > 0 ? views : interactions * 10  # ✅ Actual when available, fallback to 10x
+  ```
+
+### Sentiment
+
+- **Digital**: `Entry.polarity` (AI-analyzed via OpenAI)
+- **Facebook**: `FacebookEntry.sentiment_score` (Weighted reaction analysis - 85% confidence)
+- **Twitter**: No sentiment analysis yet (future feature)
+
+---
+
+## 🔍 Query Patterns & Performance
+
+### Efficient Counting with Tags
+
+```ruby
+# ❌ BAD - causes SQL errors
+FacebookEntry.tagged_with(tag_names, any: true).count
+
+# ✅ GOOD - use distinct count
+FacebookEntry.tagged_with(tag_names, any: true).count('DISTINCT facebook_entries.id')
+```
+
+### Eager Loading to Avoid N+1
+
+```ruby
+# ❌ BAD - N+1 queries
+@entries = Entry.all
+@entries.each { |e| puts e.site.name }
+
+# ✅ GOOD - single query
+@entries = Entry.includes(:site).all
+@entries.each { |e| puts e.site.name }
+```
+
+### Date Range Queries
+
+```ruby
+# Standard pattern across all models
+Entry.where(published_at: start_date..end_date)
+FacebookEntry.where(posted_at: start_date..end_date)
+TwitterPost.where(posted_at: start_date..end_date)
+```
+
+### Topic-Scoped Queries
+
+```ruby
+# Get all content for a topic in date range
+tag_names = topic.tags.pluck(:name)
+
+entries = Entry.where(published_at: start_date..end_date)
+               .tagged_with(tag_names, any: true)
+               .enabled
+
+fb_entries = FacebookEntry.where(posted_at: start_date..end_date)
+                         .tagged_with(tag_names, any: true)
+                         .includes(:page)
+
+tweets = TwitterPost.where(posted_at: start_date..end_date)
+                    .tagged_with(tag_names, any: true)
+                    .includes(:twitter_profile)
+```
+
+---
+
+## 🚀 Performance Optimization
+
+### Caching Strategy
+
+```ruby
+Rails.cache.fetch("cache_key_#{topic.id}_#{date}", expires_in: 30.minutes) do
+  # Expensive calculation
+end
+```
+
+### Avoid N+1 Queries
+
+```ruby
+# ❌ BAD
+Topic.all.each { |t| puts t.entries.count }
+
+# ✅ GOOD
+Topic.includes(:entries).all.each { |t| puts t.entries.size }
+```
+
+### Database Query Optimization
+
+- Use `select()` to limit columns
+- Use `pluck()` for simple arrays
+- Use `exists?` instead of `count > 0`
+- Batch large operations with `find_each`
+
+---
+
+## 📝 Code Style & Conventions
+
+### Ruby Style
+
+- Use 2 spaces for indentation
+- Max line length: 120 characters
+- Use `frozen_string_literal: true` at top of files
+- Prefer `do...end` for multi-line blocks
+- Prefer `{ }` for single-line blocks
+
+### Rails Conventions
+
+- Models in `app/models/`
+- Controllers in `app/controllers/`
+- Services in `app/services/[feature]_services/`
+- Helpers in `app/helpers/`
+- Views follow controller structure
+
+### Naming Conventions
+
+- Models: Singular, CamelCase (`Topic`, `FacebookEntry`)
+- Controllers: Plural, snake_case files (`topics_controller.rb`)
+- Services: Descriptive, ends with `Service` (`AggregatorService`)
+- Variables: snake_case (`start_date`, `total_mentions`)
+- Constants: SCREAMING_SNAKE_CASE (`DAYS_RANGE`)
+
+### Comments
+
+Add comments for:
+
+- Complex business logic
+- Non-obvious calculations (especially reach estimates)
+- API-specific behaviors
+- Temporary workarounds (with TODO)
+
+```ruby
+# Calculate digital reach using conservative 3x multiplier
+# This assumes each interaction represents ~3 unique readers
+# For precise reach, implement tracking pixels on news sites
+reach = interactions * 3
+```
+
+---
+
+## 🧪 Testing Patterns
+
+### Always Test
+
+- Division by zero scenarios
+- Empty data sets
+- API failures
+- Large datasets (performance)
+- Edge cases (negative values, nil, etc.)
+
+### Test Data Setup
+
+```ruby
+# Use factories or fixtures
+topic = Topic.create!(name: "Test Topic")
+entry = Entry.create!(topic: topic, total_count: 100)
+```
+
+---
+
+## 📊 Dashboard-Specific Rules
+
+### General Dashboard
+
+- **Purpose**: CEO-level, multi-channel strategic overview
+- **Data**: Aggregates Digital + Facebook + Twitter
+- **Status**: BETA - show `<span class="text-xs text-gray-500">(BETA)</span>`
+- **Icon**: `fa-chart-pie text-sky-500`
+- **Cache**: 30 minutes
+- **Special**: Must have disclaimers for estimated data
+
+### Facebook Dashboard
+
+- **Purpose**: Tactical Facebook-specific analysis
+- **Data**: Facebook entries only
+- **Icon**: `fa-facebook text-sky-500`
+- **Special**: Sentiment from Meta API
+
+### Twitter Dashboard
+
+- **Purpose**: Tactical Twitter-specific analysis
+- **Data**: Twitter posts only
+- **Icon**: `fa-twitter text-sky-500`
+- **Status**: BETA
+- **Special**: Views from Twitter API when available
+
+### Digital Dashboard (Topic)
+
+- **Purpose**: News media monitoring
+- **Data**: Scraped news articles
+- **Icon**: `fa-newspaper text-sky-500`
+- **Special**: Site-based grouping
+
+---
+
+## 🎯 CEO-Level Reporting Standards
+
+When creating reports or dashboards for executive viewing:
+
+1. **Be Transparent**
+
+   - Clearly mark estimated vs. actual data
+   - Show confidence levels
+   - Explain methodology
+
+2. **Be Conservative**
+
+   - Under-promise, over-deliver
+   - Use lower multipliers (3x instead of 10x)
+   - Avoid optimistic projections
+
+3. **Be Defensible**
+
+   - Every number must have a source
+   - Can explain "how is this calculated?"
+   - No "industry standard" claims without proof
+
+4. **Be Actionable**
+
+   - Provide recommendations
+   - Show trends (up/down)
+   - Highlight alerts
+
+5. **Be Professional**
+   - Clean design
+   - Consistent formatting
+   - No bugs or crashes
+
+---
+
+## 🚨 Common Pitfalls to Avoid
+
+### ❌ DON'T
+
+- Use arbitrary multipliers without documentation
+- Claim data is "industry standard" without proof
+- Mix actual and estimated data without disclaimers
+- Create N+1 queries (always use `includes`)
+- Forget guard clauses for zero counts
+- Use raw SQL without `Arel.sql()`
+- Make dashboards that crash on edge cases
+- Ignore mobile responsiveness
+- Put "Arriba" button inside scrollable menu
+- Use different icon colors per dashboard
+
+### ✅ DO
+
+- Add comments explaining methodology
+- Use conservative estimates
+- Add disclaimers for estimated data
+- Optimize database queries
+- Handle edge cases gracefully
+- Test with empty datasets
+- Keep design consistent across dashboards
+- Use `text-sky-500` for all header icons
+- Cache expensive calculations
+- Follow existing patterns from other dashboards
+
+---
+
+## 📚 Reference Files
+
+### Key Documentation
+
+- `/docs/README.md` - Documentation index
+- `/docs/DATABASE_SCHEMA.md` - Complete database schema & relationships
+- `/docs/SYSTEM_ARCHITECTURE.md` - System architecture & implementation details
+- `/docs/DATA_ANALYTICS_SUMMARY.md` - Data analytics & metrics validation
+- `/docs/COMPLETE_VALIDATION_SUMMARY.md` - Data validation report
+- `/docs/CEO_QA_PREPARATION.md` - CEO presentation guide
+- `/docs/guides/` - User guides
+
+### Example Patterns
+
+- `app/views/facebook_topic/show.html.erb` - Dashboard layout pattern
+- `app/views/twitter_topic/show.html.erb` - Sticky nav pattern
+- `app/services/general_dashboard_services/aggregator_service.rb` - Service pattern
+
+---
+
+## 🔄 When Making Changes
+
+### Before Coding
+
+1. Check similar features in facebook_topic/ and twitter_topic/
+2. Review existing service patterns
+3. Consider caching strategy
+4. Plan for edge cases
+
+### While Coding
+
+1. Follow existing patterns
+2. Add comments for complex logic
+3. Use guard clauses
+4. Optimize queries
+
+### After Coding
+
+1. Test with empty data
+2. Test with large datasets
+3. Check mobile responsiveness
+4. Verify consistent design
+5. Run linter
+6. Check for N+1 queries
+
+### For Dashboards Specifically
+
+1. Use `text-sky-500` for header icon
+2. Implement sticky nav correctly
+3. Add disclaimers for estimated data
+4. Test scroll behavior
+5. Verify "Arriba" button alignment
+6. Match color scheme of other dashboards
+
+---
+
+## 🌐 Paraguay Market Context
+
+### Language
+
+- Primary: Spanish
+- UI text in Spanish
+- Date format: DD/MM/YYYY
+- Time: 24-hour format
+
+### Media Sources
+
+- **Major news**: ABC.com.py, La Nación, Última Hora
+- **Facebook**: Public fanpages
+- **Twitter**: Public accounts
+- **Third-party sites**: Cannot implement tracking pixels
+
+### Business Hours
+
+- Reports typically viewed: 8:00-18:00 Paraguay time
+- Cache refresh during business hours
+- Background jobs run overnight
+
+---
+
+## 📞 Support & Questions
+
+When in doubt:
+
+1. Check existing dashboard implementations
+2. Review validation documentation in `/docs/`
+3. Look for similar patterns in the codebase
+4. Follow conservative approach for estimates
+5. Add clear disclaimers when uncertain
+
+---
+
+## 🎓 Success Criteria
+
+Code is production-ready when:
+
+- ✅ No linter errors
+- ✅ No N+1 queries
+- ✅ Edge cases handled (zero, nil, empty)
+- ✅ Mobile responsive
+- ✅ Consistent with existing dashboards
+- ✅ Cached appropriately
+- ✅ Documented (especially calculations)
+- ✅ Tested with real data
+- ✅ CEO would approve (transparent, professional)
+
+---
+
+**Last Updated**: October 31, 2025
+**Status**: Active - Use these rules for all code generation and modifications

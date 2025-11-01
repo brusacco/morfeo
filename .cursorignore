@@ -1,0 +1,93 @@
+# Morfeo - Cursor Ignore File
+# Files and directories that Cursor AI should NOT index or read
+
+# Dependencies
+node_modules/
+vendor/bundle/
+vendor/cache/
+
+# Logs
+log/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Temporary files
+tmp/
+.cache/
+.sass-cache/
+
+# Database files
+*.sqlite3
+*.db
+db/*.sql
+
+# Storage & Uploads
+storage/
+public/uploads/
+public/system/
+
+# Compiled assets
+public/packs/
+public/packs-test/
+public/assets/
+app/assets/builds/
+
+# Test coverage
+coverage/
+
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+config/master.key
+config/credentials/
+config/credentials.yml.enc
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# RVM / rbenv
+.ruby-version
+.ruby-gemset
+
+# Yarn
+yarn-error.log
+.yarn-integrity
+
+# Redis dumps
+dump.rdb
+
+# Sidekiq
+sidekiq.pid
+
+# Spring
+spring/
+
+# Webpack
+webpack-stats.json
+
+# Large data exports
+exports/
+reports/*.csv
+reports/*.xlsx
+
+# Backups
+*.bak
+*.backup
+*.old
+
