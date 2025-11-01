@@ -88,25 +88,39 @@ class BackfillEntryTopicsJob < ApplicationJob
   private
 
   def sync_entry_tags(entry)
-    return 0 if entry.tag_list.empty?
+    # Force reload tag_list from database
+    entry.reload
+    tags = entry.tag_list
+    return 0 if tags.empty?
 
     matching_topics = Topic.joins(:tags)
-                          .where(tags: { name: entry.tag_list })
+                          .where(tags: { name: tags })
                           .distinct
 
-    entry.topics = matching_topics
-    matching_topics.count
+    if matching_topics.any?
+      entry.topics = matching_topics
+      matching_topics.count
+    else
+      0
+    end
   end
 
   def sync_entry_title_tags(entry)
-    return 0 if entry.title_tag_list.empty?
+    # Force reload title_tag_list from database
+    entry.reload
+    title_tags = entry.title_tag_list
+    return 0 if title_tags.empty?
 
     matching_topics = Topic.joins(:tags)
-                          .where(tags: { name: entry.title_tag_list })
+                          .where(tags: { name: title_tags })
                           .distinct
 
-    entry.title_topics = matching_topics
-    matching_topics.count
+    if matching_topics.any?
+      entry.title_topics = matching_topics
+      matching_topics.count
+    else
+      0
+    end
   end
 end
 
