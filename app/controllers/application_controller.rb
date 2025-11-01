@@ -6,7 +6,8 @@ class ApplicationController < ActionController::Base
     word_occurrences = Hash.new(0)
 
     entries.each do |entry|
-      words = "#{entry.title} #{entry.content}".gsub(/[[:punct:]]/, '').split
+      # Combine title and content, handle nil content
+      words = "#{entry.title} #{entry.content || entry.description || ''}".gsub(/[[:punct:]]/, '').split
       words.each do |word|
         cleaned_word = word.downcase
         next if STOP_WORDS.include?(cleaned_word) || cleaned_word.length <= 1
@@ -15,7 +16,8 @@ class ApplicationController < ActionController::Base
       end
     end
 
-    word_occurrences.select { |_word, count| count > 10 }
+    # Lower threshold to 5 for better results with less data
+    word_occurrences.select { |_word, count| count > 5 }
                     .sort_by { |_k, v| v }
                     .reverse
                     .take(limit)
@@ -25,8 +27,9 @@ class ApplicationController < ActionController::Base
     occurrences = Hash.new(0)
 
     entries.each do |entry|
-      words = "#{entry.title} #{entry.content}".gsub(/[[:punct:]]/, '').split
-      bigrams = words.each_cons(2).map { |word1, word2| "#{word1.downcase} #{word2.downcase}" }
+      # Combine title and content, handle nil content
+      text = "#{entry.title} #{entry.content || entry.description || ''}".gsub(/[[:punct:]]/, '').split
+      bigrams = text.each_cons(2).map { |word1, word2| "#{word1.downcase} #{word2.downcase}" }
       bigrams.each do |bigram|
         next if STOP_WORDS.include?(bigram.split.first) || STOP_WORDS.include?(bigram.split.last)
 
@@ -34,7 +37,8 @@ class ApplicationController < ActionController::Base
       end
     end
 
-    occurrences.select { |_bigram, count| count > 5 }
+    # Lower threshold to 2 for better results with less data
+    occurrences.select { |_bigram, count| count > 2 }
                .sort_by { |_k, v| v }
                .reverse
                .take(limit)
