@@ -3,6 +3,7 @@
   <head>
     <title>Morfeo</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="turbo-prefetch" content="false">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     
@@ -18,10 +19,298 @@
     <%= javascript_importmap_tags %>
     <%= yield :extra_javascripts if content_for?(:extra_javascripts) %>
     <script src="https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js" integrity="sha384-GNFwBvfVxBkLMJpYMOABq3c+d3KnQxudP/mGPkzpZSTYykLBNsZEnG2D9G/X/+7D" crossorigin="anonymous" async></script>
+    
+    <!-- Professional Loading Overlay Styles -->
+    <style>
+      /* Loading Overlay */
+      #morfeo-loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        z-index: 99999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+      }
+      
+      #morfeo-loading-overlay.active {
+        opacity: 1;
+        visibility: visible;
+      }
+      
+      /* Loader Container */
+      .morfeo-loader-container {
+        text-align: center;
+        color: white;
+        max-width: 400px;
+        padding: 2rem;
+      }
+      
+      /* Animated Logo/Icon */
+      .morfeo-loader-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 2rem;
+        position: relative;
+        animation: float 3s ease-in-out infinite;
+      }
+      
+      @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-20px); }
+      }
+      
+      .morfeo-loader-icon svg {
+        width: 100%;
+        height: 100%;
+        filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.2));
+      }
+      
+      /* Spinner */
+      .morfeo-spinner {
+        width: 60px;
+        height: 60px;
+        margin: 0 auto 2rem;
+        position: relative;
+      }
+      
+      .morfeo-spinner-circle {
+        width: 100%;
+        height: 100%;
+        border: 4px solid rgba(255, 255, 255, 0.2);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      
+      /* Text */
+      .morfeo-loader-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.025em;
+        animation: pulse 2s ease-in-out infinite;
+      }
+      
+      .morfeo-loader-subtitle {
+        font-size: 1rem;
+        opacity: 0.9;
+        margin-bottom: 1.5rem;
+      }
+      
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+      }
+      
+      /* Progress Bar */
+      .morfeo-progress-bar {
+        width: 100%;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 2px;
+        overflow: hidden;
+        margin-top: 1.5rem;
+      }
+      
+      .morfeo-progress-fill {
+        height: 100%;
+        background: white;
+        border-radius: 2px;
+        animation: progress 2s ease-in-out infinite;
+      }
+      
+      @keyframes progress {
+        0% { width: 0%; }
+        50% { width: 70%; }
+        100% { width: 100%; }
+      }
+      
+      /* Loading Tips */
+      .morfeo-loading-tip {
+        font-size: 0.875rem;
+        opacity: 0.8;
+        font-style: italic;
+        margin-top: 1rem;
+        min-height: 2.5rem;
+        animation: fadeIn 0.5s ease-in;
+      }
+      
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 0.8; transform: translateY(0); }
+      }
+    </style>
   </head>
   <body class="h-full">
+    <!-- Professional Loading Overlay -->
+    <div id="morfeo-loading-overlay">
+      <div class="morfeo-loader-container">
+        <!-- Animated Icon -->
+        <div class="morfeo-loader-icon">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 2C7.89543 2 7 2.89543 7 4V20C7 21.1046 7.89543 22 9 22H15C16.1046 22 17 21.1046 17 20V4C17 2.89543 16.1046 2 15 2H9Z" fill="white" fill-opacity="0.9"/>
+            <path d="M3 6C3 4.89543 3.89543 4 5 4H6V20H5C3.89543 20 3 19.1046 3 18V6Z" fill="white" fill-opacity="0.6"/>
+            <path d="M18 4H19C20.1046 4 21 4.89543 21 6V18C21 19.1046 20.1046 20 19 20H18V4Z" fill="white" fill-opacity="0.6"/>
+            <circle cx="12" cy="12" r="2" fill="#667eea"/>
+          </svg>
+        </div>
+        
+        <!-- Spinner -->
+        <div class="morfeo-spinner">
+          <div class="morfeo-spinner-circle"></div>
+        </div>
+        
+        <!-- Text Content -->
+        <h2 class="morfeo-loader-title">Preparando tu reporte...</h2>
+        <p class="morfeo-loader-subtitle">Analizando datos de medios</p>
+        
+        <!-- Progress Bar -->
+        <div class="morfeo-progress-bar">
+          <div class="morfeo-progress-fill"></div>
+        </div>
+        
+        <!-- Loading Tip -->
+        <p class="morfeo-loading-tip" id="loading-tip">
+          💡 Estamos procesando miles de publicaciones para ti
+        </p>
+      </div>
+    </div>
+
     <%= render "layouts/nav" %>
     <%= render "layouts/flash" %>
     <%= yield %>
+    
+    <!-- Loading Overlay Script -->
+    <script>
+      (function() {
+        const overlay = document.getElementById('morfeo-loading-overlay');
+        const tipElement = document.getElementById('loading-tip');
+        let tipInterval;
+        let showTimeout;
+        let pageLoadStartTime = Date.now();
+        
+        // Loading tips to cycle through
+        const loadingTips = [
+          '💡 Estamos procesando miles de publicaciones para ti',
+          '📊 Analizando tendencias y patrones de contenido',
+          '🔍 Identificando palabras clave y temas relevantes',
+          '📈 Calculando métricas de engagement y alcance',
+          '🎯 Preparando insights accionables para tu estrategia',
+          '⚡ Optimizando la visualización de datos',
+          '🌟 Casi listo... Generando tu dashboard personalizado'
+        ];
+        let currentTipIndex = 0;
+        
+        function showNextTip() {
+          if (tipElement) {
+            currentTipIndex = (currentTipIndex + 1) % loadingTips.length;
+            tipElement.style.animation = 'none';
+            setTimeout(() => {
+              tipElement.textContent = loadingTips[currentTipIndex];
+              tipElement.style.animation = 'fadeIn 0.5s ease-in';
+            }, 50);
+          }
+        }
+        
+        function showLoader() {
+          // Clear any existing timeout
+          if (showTimeout) clearTimeout(showTimeout);
+          
+          // Only show loader after 200ms delay to avoid flashing on fast loads
+          showTimeout = setTimeout(() => {
+            if (overlay) {
+              overlay.classList.add('active');
+              currentTipIndex = 0;
+              if (tipElement) {
+                tipElement.textContent = loadingTips[0];
+              }
+              // Cycle through tips every 3 seconds
+              tipInterval = setInterval(showNextTip, 3000);
+            }
+          }, 200);
+        }
+        
+        function hideLoader() {
+          // Clear show timeout if page loads before delay
+          if (showTimeout) {
+            clearTimeout(showTimeout);
+            showTimeout = null;
+          }
+          
+          if (overlay) {
+            overlay.classList.remove('active');
+            if (tipInterval) {
+              clearInterval(tipInterval);
+              tipInterval = null;
+            }
+          }
+        }
+        
+        // Detect direct navigation (URL typed, bookmark, or shared link)
+        // Show loader immediately on page load for heavy pages
+        function checkInitialLoad() {
+          // Check if this is a fresh page load (not Turbo navigation)
+          const isDirectNavigation = !document.documentElement.hasAttribute('data-turbo-preview');
+          const isHeavyPage = window.location.pathname.match(/\/(home|topic|facebook_topic|twitter_topic|site)\//);
+          
+          // If direct navigation to a heavy page, show loader immediately
+          if (isDirectNavigation && isHeavyPage) {
+            // Show loader without delay for initial loads
+            if (overlay) {
+              overlay.classList.add('active');
+              currentTipIndex = 0;
+              if (tipElement) {
+                tipElement.textContent = loadingTips[0];
+              }
+              tipInterval = setInterval(showNextTip, 3000);
+            }
+          }
+        }
+        
+        // Check on script load (for direct navigation)
+        checkInitialLoad();
+        
+        // Show loader on Turbo navigation (prefetch is disabled globally)
+        document.addEventListener('turbo:before-visit', showLoader);
+        document.addEventListener('turbo:submit-start', showLoader);
+        
+        // Hide loader when page loads
+        document.addEventListener('turbo:load', hideLoader);
+        document.addEventListener('turbo:render', hideLoader);
+        document.addEventListener('turbo:frame-load', hideLoader);
+        document.addEventListener('DOMContentLoaded', hideLoader);
+        
+        // Handle errors
+        document.addEventListener('turbo:fetch-request-error', hideLoader);
+        
+        // Fallback: hide loader after 15 seconds max
+        let maxLoadTimeout;
+        document.addEventListener('turbo:before-visit', () => {
+          maxLoadTimeout = setTimeout(hideLoader, 15000);
+        });
+        
+        document.addEventListener('turbo:load', () => {
+          if (maxLoadTimeout) clearTimeout(maxLoadTimeout);
+        });
+        
+        // Initial page load - hide when fully loaded
+        window.addEventListener('load', function() {
+          hideLoader();
+          // Also hide after a short delay to ensure content is rendered
+          setTimeout(hideLoader, 500);
+        });
+      })();
+    </script>
   </body>
 </html>
