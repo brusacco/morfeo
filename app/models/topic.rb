@@ -34,97 +34,171 @@ class Topic < ApplicationRecord
   end
 
   def report_entries(start_date, end_date)
-    tag_list = tag_names
-    result = Entry.search(
-      where: {
-        published_at: { gte: start_date.beginning_of_day, lte: end_date.end_of_day },
-        tags: { in: tag_list }
-      },
-      fields: ['id']
-    )
-    Entry.where(id: result.map(&:id)).enabled.order(total_count: :desc).joins(:site)
-  end
-
-  def report_title_entries(start_date, end_date)
-    tag_list = tag_names
-    result = Entry.search(
-      where: {
-        published_at: { gte: start_date.beginning_of_day, lte: end_date.end_of_day },
-        title_tags: { in: tag_list }
-      },
-      fields: ['id']
-    )
-    Entry.where(id: result.map(&:id)).enabled.order(total_count: :desc).joins(:site)
-  end
-
-  def list_entries
-    Rails.cache.fetch("topic_#{id}_list_entries", expires_in: 30.minutes) do
+    if ENV['USE_DIRECT_ENTRY_TOPICS'] == 'true'
+      # NEW: Direct association (faster!)
+      entries.enabled
+             .where(published_at: start_date.beginning_of_day..end_date.end_of_day)
+             .order(total_count: :desc)
+             .joins(:site)
+    else
+      # OLD: Elasticsearch
       tag_list = tag_names
       result = Entry.search(
         where: {
-          published_at: default_date_range,
+          published_at: { gte: start_date.beginning_of_day, lte: end_date.end_of_day },
           tags: { in: tag_list }
         },
-        order: { published_at: :desc },
-        fields: ['id'], # Only return the ids to reduce payload
-        load: false # Don't load the ActiveRecord objects yet (we'll do it in the next step)
+        fields: ['id']
       )
-      entry_ids = result.map(&:id)
-      Entry.where(id: entry_ids).includes(:site, :tags).joins(:site)
+      Entry.where(id: result.map(&:id)).enabled.order(total_count: :desc).joins(:site)
+    end
+  end
+
+  def report_title_entries(start_date, end_date)
+    if ENV['USE_DIRECT_ENTRY_TOPICS'] == 'true'
+      # NEW: Direct association
+      title_entries.enabled
+                   .where(published_at: start_date.beginning_of_day..end_date.end_of_day)
+                   .order(total_count: :desc)
+                   .joins(:site)
+    else
+      # OLD: Elasticsearch
+      tag_list = tag_names
+      result = Entry.search(
+        where: {
+          published_at: { gte: start_date.beginning_of_day, lte: end_date.end_of_day },
+          title_tags: { in: tag_list }
+        },
+        fields: ['id']
+      )
+      Entry.where(id: result.map(&:id)).enabled.order(total_count: :desc).joins(:site)
+    end
+  end
+
+  def list_entries
+    cache_key = "topic_#{id}_list_entries#{ENV['USE_DIRECT_ENTRY_TOPICS'] == 'true' ? '_v2' : ''}"
+    
+    Rails.cache.fetch(cache_key, expires_in: 30.minutes) do
+      if ENV['USE_DIRECT_ENTRY_TOPICS'] == 'true'
+        # NEW: Direct association (faster!)
+        # Use joins for GROUP BY compatibility
+        entries.enabled
+               .where(published_at: default_date_range[:gte]..default_date_range[:lte])
+               .order(published_at: :desc)
+               .joins(:site)
+               .includes(:tags)
+      else
+        # OLD: Elasticsearch
+        tag_list = tag_names
+        result = Entry.search(
+          where: {
+            published_at: default_date_range,
+            tags: { in: tag_list }
+          },
+          order: { published_at: :desc },
+          fields: ['id'],
+          load: false
+        )
+        entry_ids = result.map(&:id)
+        Entry.where(id: entry_ids).includes(:site, :tags).joins(:site)
+      end
     end
   end
 
   def all_list_entries
-    Rails.cache.fetch("topic_#{id}_all_list_entries", expires_in: 30.minutes) do
-      result = Entry.search(
-        where: {
-          published_at: default_date_range
-        },
-        order: { published_at: :desc },
-        fields: ['id'], # Only return the ids to reduce payload
-        load: false # Don't load the ActiveRecord objects yet (we'll do it in the next step)
-      )
-      entry_ids = result.map(&:id)
-      Entry.where(id: entry_ids).joins(:site)
+    cache_key = "topic_#{id}_all_list_entries#{ENV['USE_DIRECT_ENTRY_TOPICS'] == 'true' ? '_v2' : ''}"
+    
+    Rails.cache.fetch(cache_key, expires_in: 30.minutes) do
+      if ENV['USE_DIRECT_ENTRY_TOPICS'] == 'true'
+        # NEW: All entries (no tag filtering, just date range)
+        Entry.enabled
+             .where(published_at: default_date_range[:gte]..default_date_range[:lte])
+             .order(published_at: :desc)
+             .joins(:site)
+      else
+        # OLD: Elasticsearch
+        result = Entry.search(
+          where: {
+            published_at: default_date_range
+          },
+          order: { published_at: :desc },
+          fields: ['id'],
+          load: false
+        )
+        entry_ids = result.map(&:id)
+        Entry.where(id: entry_ids).joins(:site)
+      end
     end
   end
 
   def title_list_entries
-    tag_list = tag_names
-    result = Entry.search(where: { published_at: default_date_range, title_tags: { in: tag_list } }, fields: ['id'])
-    Entry.where(id: result.map(&:id)).enabled.order(published_at: :desc).joins(:site)
+    cache_key = "topic_#{id}_title_list_entries#{ENV['USE_DIRECT_ENTRY_TOPICS'] == 'true' ? '_v2' : ''}"
+    
+    Rails.cache.fetch(cache_key, expires_in: 30.minutes) do
+      if ENV['USE_DIRECT_ENTRY_TOPICS'] == 'true'
+        # NEW: Direct association for title tags
+        title_entries.enabled
+                     .where(published_at: default_date_range[:gte]..default_date_range[:lte])
+                     .order(published_at: :desc)
+                     .joins(:site)
+      else
+        # OLD: Elasticsearch
+        tag_list = tag_names
+        result = Entry.search(where: { published_at: default_date_range, title_tags: { in: tag_list } }, fields: ['id'])
+        Entry.where(id: result.map(&:id)).enabled.order(published_at: :desc).joins(:site)
+      end
+    end
   end
 
   def chart_entries(date)
-    cache_key = "topic_#{id}_chart_entries_#{date.to_date}"
+    cache_key = "topic_#{id}_chart_entries_#{date.to_date}#{ENV['USE_DIRECT_ENTRY_TOPICS'] == 'true' ? '_v2' : ''}"
+    
     Rails.cache.fetch(cache_key, expires_in: 30.minutes) do
-      tag_list = tag_names
-      result = Entry.search(
-        where: {
-          published_at: { gte: date.beginning_of_day, lte: date.end_of_day },
-          tags: { in: tag_list }
-        },
-        fields: [:id],
-        load: false # Don't load the ActiveRecord objects yet (we'll do it in the next step)
-      )
-      Entry.where(id: result.map(&:id)).enabled.order(total_count: :desc).joins(:site)
-      # Entry.where(id: result.map(&:id), total_count: 1..Float::INFINITY).enabled.order(total_count: :desc).joins(:site)
+      if ENV['USE_DIRECT_ENTRY_TOPICS'] == 'true'
+        # NEW: Direct association
+        entries.enabled
+               .where(published_at: date.beginning_of_day..date.end_of_day)
+               .order(total_count: :desc)
+               .joins(:site)
+      else
+        # OLD: Elasticsearch
+        tag_list = tag_names
+        result = Entry.search(
+          where: {
+            published_at: { gte: date.beginning_of_day, lte: date.end_of_day },
+            tags: { in: tag_list }
+          },
+          fields: [:id],
+          load: false
+        )
+        Entry.where(id: result.map(&:id)).enabled.order(total_count: :desc).joins(:site)
+      end
     end
   end
 
   def title_chart_entries(date)
-    cache_key = "topic_#{id}_title_chart_entries_#{date.to_date}"
+    cache_key = "topic_#{id}_title_chart_entries_#{date.to_date}#{ENV['USE_DIRECT_ENTRY_TOPICS'] == 'true' ? '_v2' : ''}"
+    
     Rails.cache.fetch(cache_key, expires_in: 30.minutes) do
-      tag_list = tag_names
-      result = Entry.search(
-        where: {
-          published_at: { gte: date.beginning_of_day, lte: date.end_of_day },
-          title_tags: { in: tag_list }
-        },
-        fields: [:id],
-        load: false # Don't load the ActiveRecord objects yet (we'll do it in the next step)
-      )
-      Entry.where(id: result.map(&:id)).enabled.order(total_count: :desc).joins(:site)
+      if ENV['USE_DIRECT_ENTRY_TOPICS'] == 'true'
+        # NEW: Direct association for title tags
+        title_entries.enabled
+                     .where(published_at: date.beginning_of_day..date.end_of_day)
+                     .order(total_count: :desc)
+                     .joins(:site)
+      else
+        # OLD: Elasticsearch
+        tag_list = tag_names
+        result = Entry.search(
+          where: {
+            published_at: { gte: date.beginning_of_day, lte: date.end_of_day },
+            title_tags: { in: tag_list }
+          },
+          fields: [:id],
+          load: false
+        )
+        Entry.where(id: result.map(&:id)).enabled.order(total_count: :desc).joins(:site)
+      end
     end
   end
 

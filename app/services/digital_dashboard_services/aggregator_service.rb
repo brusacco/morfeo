@@ -68,8 +68,10 @@ module DigitalDashboardServices
       entries_total_sum = entries.sum(:total_count)
 
       # Combine polarity aggregations into a single query
+      # Use reorder(nil) to remove any existing ORDER BY before GROUP BY
       polarity_data = entries
                        .where.not(polarity: nil)
+                       .reorder(nil)
                        .group(:polarity)
                        .pluck(
                          :polarity,
@@ -96,12 +98,13 @@ module DigitalDashboardServices
 
     def calculate_site_data(entries)
       # Cache site queries for better performance
+      # Use reorder(nil) to remove ORDER BY before GROUP BY
       site_counts = Rails.cache.fetch("topic_#{@topic.id}_site_counts_#{Date.current}", expires_in: CACHE_EXPIRATION) do
-        entries.group('sites.name').count
+        entries.reorder(nil).group('sites.name').count
       end
       
       site_sums = Rails.cache.fetch("topic_#{@topic.id}_site_sums_#{Date.current}", expires_in: CACHE_EXPIRATION) do
-        entries.group('sites.name').sum(:total_count)
+        entries.reorder(nil).group('sites.name').sum(:total_count)
       end
 
       {
@@ -259,8 +262,8 @@ module DigitalDashboardServices
 
       tags_count = tags.each_with_object({}) { |tag, hash| hash[tag.name] = tag.count }
 
-      # Top sites
-      site_top_counts = entries.group('site_id').order(Arel.sql('COUNT(*) DESC')).limit(12).count
+      # Top sites - remove ORDER BY before GROUP BY
+      site_top_counts = entries.reorder(nil).group('site_id').order(Arel.sql('COUNT(*) DESC')).limit(12).count
 
       {
         tags: tags,
