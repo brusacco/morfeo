@@ -248,12 +248,33 @@
             showTimeout = null;
           }
           
-          if (overlay) {
-            overlay.classList.remove('active');
-            if (tipInterval) {
-              clearInterval(tipInterval);
-              tipInterval = null;
-            }
+          // Wait for all resources to load (images, charts, etc.)
+          if (document.readyState === 'complete') {
+            // Page is already fully loaded, hide immediately (with small transition delay)
+            setTimeout(() => {
+              if (overlay) {
+                overlay.classList.remove('active');
+                if (tipInterval) {
+                  clearInterval(tipInterval);
+                  tipInterval = null;
+                }
+              }
+            }, 200);
+          } else {
+            // Wait for complete page load
+            window.addEventListener('load', function hideOnLoad() {
+              setTimeout(() => {
+                if (overlay) {
+                  overlay.classList.remove('active');
+                  if (tipInterval) {
+                    clearInterval(tipInterval);
+                    tipInterval = null;
+                  }
+                }
+              }, 200);
+              // Remove listener after execution
+              window.removeEventListener('load', hideOnLoad);
+            });
           }
         }
         
@@ -262,7 +283,14 @@
         function checkInitialLoad() {
           // Check if this is a fresh page load (not Turbo navigation)
           const isDirectNavigation = !document.documentElement.hasAttribute('data-turbo-preview');
-          const isHeavyPage = window.location.pathname.match(/\/(home|topic|facebook_topic|twitter_topic|site)\//);
+          const path = window.location.pathname;
+          const isHeavyPage = path === '/' || 
+                             path === '/home' || 
+                             path === '/home/index' ||
+                             path.match(/\/topic\//) ||
+                             path.match(/\/facebook_topic\//) ||
+                             path.match(/\/twitter_topic\//) ||
+                             path.match(/\/site\//);
           
           // If direct navigation to a heavy page, show loader immediately
           if (isDirectNavigation && isHeavyPage) {
@@ -281,43 +309,55 @@
         // Check on script load (for direct navigation)
         checkInitialLoad();
         
+        // For direct/initial page loads, also listen to window.load
+        window.addEventListener('load', function() {
+          // Hide loader when page is fully loaded (initial loads)
+          if (overlay && overlay.classList.contains('active')) {
+            setTimeout(() => {
+              overlay.classList.remove('active');
+              if (tipInterval) {
+                clearInterval(tipInterval);
+                tipInterval = null;
+              }
+            }, 200);
+          }
+        });
+        
         // Show loader on Turbo navigation (prefetch is disabled globally)
         document.addEventListener('turbo:before-visit', showLoader);
         document.addEventListener('turbo:submit-start', showLoader);
         
-        // Hide loader when page loads - synchronized with Turbo progress bar
-        document.addEventListener('turbo:load', hideLoader);
+        // Hide loader when page loads - now waits for complete page load inside hideLoader()
         document.addEventListener('turbo:render', hideLoader);
-        document.addEventListener('turbo:frame-load', hideLoader);
         
-        // IMPORTANT: Also listen to when Turbo finishes rendering the page
-        // This ensures our loader stays visible until Turbo is completely done
-        document.addEventListener('turbo:frame-render', hideLoader);
-        document.addEventListener('turbo:morph', hideLoader);
-        
-        // For initial page loads (direct navigation)
-        document.addEventListener('DOMContentLoaded', function() {
-          // Give it a moment to ensure everything is rendered
-          setTimeout(hideLoader, 300);
+        // Handle errors - hide immediately on error
+        document.addEventListener('turbo:fetch-request-error', function() {
+          if (overlay) {
+            overlay.classList.remove('active');
+            if (tipInterval) {
+              clearInterval(tipInterval);
+              tipInterval = null;
+            }
+          }
         });
-        
-        // Handle errors
-        document.addEventListener('turbo:fetch-request-error', hideLoader);
         
         // Fallback: hide loader after 15 seconds max
         let maxLoadTimeout;
         document.addEventListener('turbo:before-visit', () => {
-          maxLoadTimeout = setTimeout(hideLoader, 15000);
-        });
-        
-        document.addEventListener('turbo:load', () => {
           if (maxLoadTimeout) clearTimeout(maxLoadTimeout);
+          maxLoadTimeout = setTimeout(() => {
+            if (overlay) {
+              overlay.classList.remove('active');
+              if (tipInterval) {
+                clearInterval(tipInterval);
+                tipInterval = null;
+              }
+            }
+          }, 15000);
         });
         
-        // Initial page load - hide when fully loaded
-        window.addEventListener('load', function() {
-          // Wait a bit to ensure Turbo has finished all rendering
-          setTimeout(hideLoader, 500);
+        document.addEventListener('turbo:render', () => {
+          if (maxLoadTimeout) clearTimeout(maxLoadTimeout);
         });
       })();
     </script>

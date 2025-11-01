@@ -101,16 +101,14 @@ class TopicController < ApplicationController
                          alert: 'El Tópico al que intentaste acceder no está asignado a tu usuario o se encuentra deshabilitado'
     end
 
-    # Use service to load all data
-    dashboard_data = DigitalDashboardServices::AggregatorService.call(topic: @topic)
+    # Use dedicated PDF service
+    pdf_data = DigitalDashboardServices::PdfService.call(topic: @topic)
 
-    # Assign data to instance variables for the view
-    assign_topic_data(dashboard_data[:topic_data])
-    assign_chart_data(dashboard_data[:chart_data])
-    assign_tags_and_words(dashboard_data[:tags_and_words])
-    
-    # For PDF, calculate percentages differently
-    calculate_percentages_for_pdf
+    # Assign data to instance variables for the PDF view
+    assign_topic_data(pdf_data[:topic_data])
+    assign_chart_data(pdf_data[:chart_data])
+    assign_tags_and_words(pdf_data[:tags_and_words])
+    assign_percentages(pdf_data[:percentages])
 
     # Render with specific layout for PDF
     render layout: false
@@ -122,6 +120,26 @@ class TopicController < ApplicationController
   end
 
   private
+
+  # Helper class for grouped data in PDF
+  class GroupProxy
+    attr_reader :count_data, :sum_data, :id_data, :column
+    
+    def initialize(count_data, sum_data, id_data, column)
+      @count_data = count_data
+      @sum_data = sum_data
+      @id_data = id_data
+      @column = column
+    end
+    
+    def count(*)
+      column == 'sites.id' ? id_data : count_data
+    end
+    
+    def sum(field)
+      sum_data
+    end
+  end
 
   # Assignment methods for service data
   def assign_topic_data(data)
@@ -135,6 +153,40 @@ class TopicController < ApplicationController
     @site_sums = data[:site_sums]
     @total_entries = data[:total_entries]
     @total_interactions = data[:total_interactions]
+    
+    # For PDF - wrap @entries to provide pre-calculated grouped data
+    if data[:entries_by_site_count] && data[:entries_by_site_sum] && data[:entries_by_site_id]
+      entries_original = @entries
+      by_site_count = data[:entries_by_site_count]
+      by_site_sum = data[:entries_by_site_sum]
+      by_site_id = data[:entries_by_site_id]
+      total_sum = data[:entries_total_sum]
+      
+      @entries = Struct.new(:relation, :by_site_count, :by_site_sum, :by_site_id, :total_sum) do
+        # Delegate most methods to the original relation
+        def method_missing(method, *args, &block)
+          relation.send(method, *args, &block)
+        end
+        
+        def respond_to_missing?(method, include_private = false)
+          relation.respond_to?(method, include_private) || super
+        end
+        
+        # Override group to return pre-calculated data
+        def group(column)
+          TopicController::GroupProxy.new(by_site_count, by_site_sum, by_site_id, column)
+        end
+        
+        # Override sum to return pre-calculated total when called directly
+        def sum(field = nil)
+          if field == :total_count || field == 'total_count'
+            total_sum
+          else
+            relation.sum(field)
+          end
+        end
+      end.new(entries_original, by_site_count, by_site_sum, by_site_id, total_sum)
+    end
   end
 
   def assign_chart_data(data)
@@ -144,6 +196,33 @@ class TopicController < ApplicationController
     @chart_entries_sentiments_sums = data[:chart_entries_sentiments_sums]
     @title_chart_entries_counts = data[:title_chart_entries_counts]
     @title_chart_entries_sums = data[:title_chart_entries_sums]
+    
+    # For PDF - create objects that respond to count and sum methods for chartkick
+    if data[:title_chart_entries_count_data] && data[:title_chart_entries_sum_data]
+      @title_chart_entries = create_chart_object(
+        data[:title_chart_entries_count_data], 
+        data[:title_chart_entries_sum_data]
+      )
+    end
+    
+    if data[:chart_entries_sentiments_count_data] && data[:chart_entries_sentiments_sum_data]
+      @chart_entries_sentiments = create_chart_object(
+        data[:chart_entries_sentiments_count_data],
+        data[:chart_entries_sentiments_sum_data]
+      )
+    end
+  end
+  
+  def create_chart_object(count_data, sum_data)
+    Struct.new(:count_data, :sum_data) do
+      def count(*)
+        count_data
+      end
+      
+      def sum(*)
+        sum_data
+      end
+    end.new(count_data, sum_data)
   end
 
   def assign_percentages(data)
@@ -186,27 +265,5 @@ class TopicController < ApplicationController
     @peak_hours = data[:peak_hours]
     @peak_days = data[:peak_days]
     @heatmap_data = data[:heatmap_data]
-  end
-
-  # Special calculation for PDF (exclude current topic entries)
-  def calculate_percentages_for_pdf
-    # Calculate all entries stats differently for PDF
-    @all_entries_size = Entry.enabled.normal_range.where.not(id: @entries.ids).count
-    @all_entries_interactions = Entry.enabled.normal_range.where.not(id: @entries.ids).sum(:total_count)
-
-    # Recalculate based on PDF requirements
-    if @entries_count > 0
-      total_count = @entries_count + @all_entries_size
-      if total_count > 0
-        @topic_percentage = (Float(@entries_count) / total_count * 100).round(0)
-        @all_percentage = (Float(@all_entries_size) / total_count * 100).round(0)
-      end
-
-      total_interactions = @entries_total_sum + @all_entries_interactions
-      if total_interactions > 0
-        @topic_interactions_percentage = (Float(@entries_total_sum) / total_interactions * 100).round(1)
-        @all_intereactions_percentage = (Float(@all_entries_interactions) / total_interactions * 100).round(1)
-      end
-    end
   end
 end
