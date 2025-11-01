@@ -270,22 +270,24 @@
         // This fires as soon as content appears, even during slow loads
         document.addEventListener('turbo:render', hideLoader);
         
-        // IMPORTANT: Hide loader before caching current page
-        // This prevents the loader from appearing when navigating back
-        document.addEventListener('turbo:before-cache', hideLoader);
-        
         // Handle errors - hide immediately on error
         document.addEventListener('turbo:fetch-request-error', hideLoader);
         
-        // Fallback: hide loader after 15 seconds max
+        // Fallback: hide loader after 20 seconds max (safety feature)
         let maxLoadTimeout;
         document.addEventListener('turbo:before-visit', () => {
           if (maxLoadTimeout) clearTimeout(maxLoadTimeout);
-          maxLoadTimeout = setTimeout(hideLoader, 15000);
+          maxLoadTimeout = setTimeout(() => {
+            console.log('⚠️ Loading timeout - forcing loader hide after 20 seconds');
+            hideLoader();
+          }, 20000); // 20 seconds
         });
         
         document.addEventListener('turbo:render', () => {
-          if (maxLoadTimeout) clearTimeout(maxLoadTimeout);
+          if (maxLoadTimeout) {
+            clearTimeout(maxLoadTimeout);
+            maxLoadTimeout = null;
+          }
         });
       })();
     </script>

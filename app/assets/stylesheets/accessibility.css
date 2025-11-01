@@ -40,8 +40,12 @@
    FOCUS INDICATORS
    ================================== */
 
-/* Enhanced focus visibility */
+/* Enhanced focus visibility - only for keyboard navigation */
 *:focus {
+  outline: none; /* Remove default outline */
+}
+
+*:focus-visible {
   outline: 2px solid #4F46E5; /* indigo-600 */
   outline-offset: 2px;
 }
@@ -51,9 +55,9 @@
   outline: none;
 }
 
-/* Specific focus styles for interactive elements */
-a:focus,
-button:focus,
+/* Specific focus styles for interactive elements - keyboard only */
+a:focus-visible,
+button:focus-visible,
 input:focus,
 select:focus,
 textarea:focus {
@@ -62,10 +66,10 @@ textarea:focus {
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 
-/* Custom focus for cards and interactive panels */
-.card:focus,
-.panel:focus,
-[role="button"]:focus {
+/* Custom focus for cards and interactive panels - keyboard only */
+.card:focus-visible,
+.panel:focus-visible,
+[role="button"]:focus-visible {
   outline: 2px solid #4F46E5;
   outline-offset: 4px;
   box-shadow: 0 0 0 6px rgba(79, 70, 229, 0.1);
@@ -98,7 +102,8 @@ textarea:focus {
   transition: top 0.3s ease-in-out;
 }
 
-.skip-to-content:focus {
+.skip-to-content:focus,
+.skip-to-content:focus-visible {
   top: 0;
 }
 
@@ -162,8 +167,8 @@ textarea:focus {
     border-width: 2px;
   }
 
-  /* Stronger focus indicators */
-  *:focus {
+  /* Stronger focus indicators for keyboard navigation */
+  *:focus-visible {
     outline-width: 3px;
     outline-offset: 3px;
   }
