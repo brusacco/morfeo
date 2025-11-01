@@ -13,6 +13,9 @@ task tagger: :environment do
     puts '---------------------------------------------------'
 
     entry.save!
+    
+    # Force sync even if tags didn't change
+    entry.sync_topics_from_tags if entry.respond_to?(:sync_topics_from_tags)
   rescue StandardError => e
     puts e.message
     sleep 1
