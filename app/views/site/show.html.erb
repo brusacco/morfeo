@@ -189,40 +189,26 @@
 
     <!-- Word Analysis Section -->
     <section id="palabras" class="mb-8 scroll-mt-16">
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-        <h2 class="text-2xl font-bold text-gray-900 mb-6">
-          <i class="fa-solid fa-spell-check text-green-600 mr-2"></i>
-          Análisis de Palabras
-        </h2>
-        <% if @word_occurrences.any? %>
-          <%= render partial: "tag/tag_pill_array", collection: @word_occurrences %>
-          <p class="text-xs text-gray-500 mt-4 italic">
-            <i class="fa-solid fa-info-circle mr-1"></i>
-            Cantidad de veces que aparecen las palabras en las notas
-          </p>
-        <% else %>
-          <p class="text-center text-gray-500 py-8">Sin palabras analizadas</p>
-        <% end %>
-      </div>
+      <%= render partial: "tag/word_cloud_modern", 
+                 locals: { 
+                   title: "Análisis de Palabras",
+                   icon: "fa-spell-check",
+                   icon_color: "text-green-600",
+                   word_data: @word_occurrences,
+                   description: "Análisis de frecuencia de palabras clave que aparecen en los títulos y contenido de las noticias"
+                 } %>
     </section>
 
     <!-- Bigrams Analysis Section -->
     <section id="bigramas" class="mb-8 scroll-mt-16">
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-        <h2 class="text-2xl font-bold text-gray-900 mb-6">
-          <i class="fa-solid fa-comments text-blue-600 mr-2"></i>
-          Análisis de Bigramas
-        </h2>
-        <% if @bigram_occurrences.any? %>
-          <%= render partial: "tag/tag_pill_array", collection: @bigram_occurrences %>
-          <p class="text-xs text-gray-500 mt-4 italic">
-            <i class="fa-solid fa-info-circle mr-1"></i>
-            Cantidad de veces que aparecen pares de palabras consecutivas en las notas
-          </p>
-        <% else %>
-          <p class="text-center text-gray-500 py-8">Sin bigramas analizados</p>
-        <% end %>
-      </div>
+      <%= render partial: "tag/word_cloud_modern", 
+                 locals: { 
+                   title: "Análisis de Bigramas",
+                   icon: "fa-comments",
+                   icon_color: "text-blue-600",
+                   word_data: @bigram_occurrences,
+                   description: "Análisis de pares de palabras consecutivas (bigramas) más frecuentes en el contenido"
+                 } %>
     </section>
 
   </div>

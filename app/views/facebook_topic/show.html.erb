@@ -618,14 +618,23 @@
     
     <!-- Word clouds -->
     <section class="space-y-6">
-      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h3 class="text-lg font-medium text-gray-900 mb-4">Palabras más frecuentes</h3>
-        <%= render partial: 'tag/tag_pill_array', collection: @word_occurrences %>
-      </div>
-      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h3 class="text-lg font-medium text-gray-900 mb-4">Bigramas más frecuentes</h3>
-        <%= render partial: 'tag/tag_pill_array', collection: @bigram_occurrences %>
-      </div>
+      <%= render partial: "tag/word_cloud_modern", 
+                 locals: { 
+                   title: "Palabras más frecuentes",
+                   icon: "fa-spell-check",
+                   icon_color: "text-green-600",
+                   word_data: @word_occurrences,
+                   description: "Análisis de frecuencia de palabras clave en las publicaciones de Facebook"
+                 } %>
+      
+      <%= render partial: "tag/word_cloud_modern", 
+                 locals: { 
+                   title: "Bigramas más frecuentes",
+                   icon: "fa-comments",
+                   icon_color: "text-blue-600",
+                   word_data: @bigram_occurrences,
+                   description: "Análisis de pares de palabras consecutivas (bigramas) más frecuentes en Facebook"
+                 } %>
     </section>
     
     <!-- Pages insights -->

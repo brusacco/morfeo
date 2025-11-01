@@ -255,38 +255,28 @@ module GeneralDashboardServices
           return { count: 0, interactions: 0, reach: 0, trend: 0 }
         end
         
-        # Efficient counting without loading all records
-        entries_count = FacebookEntry
+        # Single combined query for all aggregations (more efficient)
+        current_stats = FacebookEntry
           .where(posted_at: start_date..end_date)
           .tagged_with(tag_names, any: true)
-          .count('DISTINCT facebook_entries.id')
+          .pluck(
+            Arel.sql('COUNT(DISTINCT facebook_entries.id)'),
+            Arel.sql('SUM(reactions_total_count + comments_count + share_count)'),
+            Arel.sql('SUM(views_count)')
+          )
+          .first || [0, 0, 0]
         
+        # Single query for previous period count
         previous_entries_count = FacebookEntry
           .where(posted_at: (start_date - (end_date - start_date))..start_date)
           .tagged_with(tag_names, any: true)
           .count('DISTINCT facebook_entries.id')
         
-        # Calculate aggregates only if we have entries
-        if entries_count > 0
-          interactions = FacebookEntry
-            .where(posted_at: start_date..end_date)
-            .tagged_with(tag_names, any: true)
-            .sum(Arel.sql('reactions_total_count + comments_count + share_count'))
-          
-          reach = FacebookEntry
-            .where(posted_at: start_date..end_date)
-            .tagged_with(tag_names, any: true)
-            .sum(:views_count)
-        else
-          interactions = 0
-          reach = 0
-        end
-        
         {
-          count: entries_count,
-          interactions: interactions,
-          reach: reach,
-          trend: calculate_trend(entries_count, previous_entries_count)
+          count: current_stats[0],
+          interactions: current_stats[1] || 0,
+          reach: current_stats[2] || 0,
+          trend: calculate_trend(current_stats[0], previous_entries_count)
         }
       end
     end
@@ -299,36 +289,30 @@ module GeneralDashboardServices
           return { count: 0, interactions: 0, reach: 0, trend: 0 }
         end
         
-        # Efficient counting without loading all records
-        posts_count = TwitterPost
+        # Single combined query for all aggregations (more efficient)
+        current_stats = TwitterPost
           .where(posted_at: start_date..end_date)
           .tagged_with(tag_names, any: true)
-          .count('DISTINCT twitter_posts.id')
+          .pluck(
+            Arel.sql('COUNT(DISTINCT twitter_posts.id)'),
+            Arel.sql('SUM(favorite_count + retweet_count + reply_count + quote_count)'),
+            Arel.sql('SUM(views_count)')
+          )
+          .first || [0, 0, 0]
         
+        # Single query for previous period count
         previous_posts_count = TwitterPost
           .where(posted_at: (start_date - (end_date - start_date))..start_date)
           .tagged_with(tag_names, any: true)
           .count('DISTINCT twitter_posts.id')
         
-        # Calculate aggregates only if we have posts
-        if posts_count > 0
-          interactions = TwitterPost
-            .where(posted_at: start_date..end_date)
-            .tagged_with(tag_names, any: true)
-            .sum(Arel.sql('favorite_count + retweet_count + reply_count + quote_count'))
-          
-          views = TwitterPost
-            .where(posted_at: start_date..end_date)
-            .tagged_with(tag_names, any: true)
-            .sum(:views_count)
-          
-          # Reach estimation: Use actual views when available, otherwise conservative 10x multiplier
-          # 10x is conservative estimate (industry typical is 15-30x for Twitter)
-          reach = views > 0 ? views : interactions * 10
-        else
-          interactions = 0
-          reach = 0
-        end
+        posts_count = current_stats[0]
+        interactions = current_stats[1] || 0
+        views = current_stats[2] || 0
+        
+        # Reach estimation: Use actual views when available, otherwise conservative 10x multiplier
+        # 10x is conservative estimate (industry typical is 15-30x for Twitter)
+        reach = views > 0 ? views : interactions * 10
         
         {
           count: posts_count,

@@ -809,30 +809,39 @@
     <% end %>
     <!-- Word Analysis Section -->
     <section class="mb-8">
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h2 class="text-2xl font-bold text-gray-900 mb-6">Análisis de Palabras en Notas</h2>
-        <%= render partial: "tag/tag_pill_array", collection: @word_occurrences, cached: true %>
-        <p class="text-sm text-gray-500 mt-4">*Cantidad de veces que aparecen las palabras en las notas</p>
-      </div>
+      <%= render partial: "tag/word_cloud_modern", 
+                 locals: { 
+                   title: "Análisis de Palabras en Notas",
+                   icon: "fa-spell-check",
+                   icon_color: "text-green-600",
+                   word_data: @word_occurrences,
+                   description: "Análisis de frecuencia de palabras clave que aparecen en los títulos y contenido de las noticias"
+                 } %>
     </section>
     <!-- Bigram Analysis Section -->
     <section class="mb-8">
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h2 class="text-2xl font-bold text-gray-900 mb-6">Análisis de Bigramas en Notas</h2>
-        <%= render partial: "tag/tag_pill_array", collection: @bigram_occurrences, cached: true %>
-        <p class="text-sm text-gray-500 mt-4">*Cantidad de veces que aparecen bigramas en las notas</p>
-      </div>
+      <%= render partial: "tag/word_cloud_modern", 
+                 locals: { 
+                   title: "Análisis de Bigramas en Notas",
+                   icon: "fa-comments",
+                   icon_color: "text-blue-600",
+                   word_data: @bigram_occurrences,
+                   description: "Análisis de pares de palabras consecutivas (bigramas) más frecuentes en las noticias"
+                 } %>
     </section>
     <% if @comments.any? %>
       <!-- Comments Analysis Section -->
       <section class="mb-8">
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 class="text-2xl font-bold text-gray-900 mb-6">Análisis de Palabras en Comentarios</h2>
-          <%= render partial: "tag/tag_pill_array", collection: @comments_word_occurrences, cached: true %>
-          <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
-            <p class="text-sm text-gray-500">*Cantidad de veces que aparecen las palabras en los comentarios</p>
-            <%=link_to 'Ver comentarios', topic_comments_path(@topic), class: 'inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500' %>
-          </div>
+        <%= render partial: "tag/word_cloud_modern", 
+                   locals: { 
+                     title: "Análisis de Palabras en Comentarios",
+                     icon: "fa-comment-dots",
+                     icon_color: "text-purple-600",
+                     word_data: @comments_word_occurrences,
+                     description: "Análisis de frecuencia de palabras que aparecen en los comentarios de Facebook"
+                   } %>
+        <div class="mt-4 text-right">
+          <%=link_to 'Ver comentarios', topic_comments_path(@topic), class: 'inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500' %>
         </div>
       </section>
     <% end %>

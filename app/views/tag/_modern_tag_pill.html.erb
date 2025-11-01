@@ -1,0 +1,73 @@
+<%
+  # Calculate relative size based on frequency (for visual hierarchy)
+  max_count = @max_word_count || modern_tag_pill[1]
+  min_count = @min_word_count || 1
+  
+  # Normalize to 1-5 scale for size classes
+  if max_count > min_count
+    normalized = ((modern_tag_pill[1] - min_count).to_f / (max_count - min_count) * 4 + 1).round
+  else
+    normalized = 3
+  end
+  
+  # Size classes for visual weight
+  size_classes = {
+    1 => 'text-xs px-2 py-1',
+    2 => 'text-sm px-2.5 py-1.5',
+    3 => 'text-base px-3 py-2',
+    4 => 'text-lg px-4 py-2.5 font-medium',
+    5 => 'text-xl px-5 py-3 font-semibold'
+  }
+  
+  word = modern_tag_pill[0]
+  count = modern_tag_pill[1]
+  
+  # Determine sentiment styling
+  if @positive_words && @positive_words.include?(word)
+    bg_class = 'bg-gradient-to-r from-green-50 to-emerald-50'
+    border_class = 'border-green-300'
+    text_class = 'text-green-800'
+    badge_class = 'bg-green-600 text-white'
+    icon_class = 'fa-smile text-green-600'
+    sentiment_label = 'Positiva'
+  elsif @negative_words && @negative_words.include?(word)
+    bg_class = 'bg-gradient-to-r from-red-50 to-rose-50'
+    border_class = 'border-red-300'
+    text_class = 'text-red-800'
+    badge_class = 'bg-red-600 text-white'
+    icon_class = 'fa-frown text-red-600'
+    sentiment_label = 'Negativa'
+  else
+    bg_class = 'bg-gradient-to-r from-indigo-50 to-blue-50'
+    border_class = 'border-indigo-200'
+    text_class = 'text-indigo-900'
+    badge_class = 'bg-indigo-600 text-white'
+    icon_class = 'fa-tag text-indigo-500'
+    sentiment_label = nil
+  end
+%>
+
+<div class="tag-pill-wrapper inline-block m-1" data-word="<%= word.downcase %>" data-count="<%= count %>">
+  <div class="<%= size_classes[normalized] %> <%= bg_class %> <%= text_class %> border <%= border_class %> rounded-lg 
+              inline-flex items-center gap-2 transition-shadow duration-200 
+              hover:shadow-md cursor-pointer">
+    
+    <!-- Word -->
+    <span class="font-medium leading-none select-all">
+      <%= word %>
+    </span>
+    
+    <!-- Count Badge -->
+    <span class="<%= badge_class %> rounded-md px-2 py-1 text-xs font-bold shadow-sm">
+      <%= number_with_delimiter(count) %>
+    </span>
+    
+    <!-- Sentiment Label (if applicable) -->
+    <% if sentiment_label %>
+      <span class="text-xs opacity-75 font-medium ml-1">
+        <%= sentiment_label %>
+      </span>
+    <% end %>
+  </div>
+</div>
+
