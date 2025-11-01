@@ -5,7 +5,7 @@
       
       <!-- Left: Logo & Brand -->
       <div class="flex items-center flex-shrink-0">
-        <%= link_to root_path, class: "flex items-center space-x-3 group", data: {turbo: false} do %>
+        <%= link_to root_path, class: "flex items-center space-x-3 group" do %>
           <%= image_tag 'moopio-logo.png', class: 'h-10 w-10 transition-transform duration-200 group-hover:scale-110', alt: 'Morfeo Analytics' %>
           <div class="hidden lg:block">
             <span class="text-white text-xl font-bold tracking-tight">Morfeo</span>
@@ -19,7 +19,6 @@
         
         <!-- Home Link -->
         <%= link_to "Inicio", root_path, 
-            data: {turbo: false}, 
             class: [
               "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
               (request.path == root_path ? "bg-indigo-700 text-white" : "text-indigo-100 hover:bg-indigo-700 hover:text-white")
@@ -324,7 +323,6 @@
       
       <div class="space-y-1">
         <%= link_to "Inicio", root_path, 
-            data: {turbo: false},
             class: [
               "block px-4 py-2 text-sm font-medium rounded-lg transition-colors",
               (request.path == root_path ? "bg-indigo-700 text-white" : "text-indigo-100 hover:bg-indigo-700 hover:text-white")

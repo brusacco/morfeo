@@ -40,6 +40,7 @@ Entry.where(current_period: true)
 ```
 
 **Stats on 2M entries:**
+
 - Rows matching `current_period: true`: ~50,000 (2.5%)
 - Index size: ~8MB (boolean index)
 - Query time: 20-30ms
@@ -60,6 +61,7 @@ Entry.where('published_at >= ?', 30.days.ago)
 ```
 
 **Stats on 2M entries:**
+
 - Rows matching date filter: ~50,000 (2.5%)
 - Index size: ~12MB (B-tree date index)
 - Query time: 15-25ms ⚡ **FASTER**
@@ -84,6 +86,7 @@ SELECT * FROM entries WHERE published_at >= '2024-10-01'
 ```
 
 **Why B-tree is faster:**
+
 - B-tree indexes are **sorted** by value (dates are chronologically ordered)
 - MySQL can **seek directly** to the date, not scan all true values
 - **Range queries** (>=, BETWEEN) are optimized for B-tree, not boolean
@@ -123,23 +126,23 @@ INDEX(published_at, enabled)
 
 ```sql
 -- Run this in production:
-EXPLAIN SELECT * FROM entries 
-WHERE current_period = true 
+EXPLAIN SELECT * FROM entries
+WHERE current_period = true
   AND enabled = true;
 
 -- vs
 
-EXPLAIN SELECT * FROM entries 
+EXPLAIN SELECT * FROM entries
 WHERE published_at >= '2024-10-01'
   AND enabled = true;
 ```
 
 **Predicted results:**
 
-| Query Type | Index Used | Rows Scanned | Extra |
-|------------|-----------|--------------|-------|
-| Boolean flag | idx_current_period | ~50,000 | Using where |
-| Date range | idx_published_at_enabled | ~45,000 | Using index condition |
+| Query Type   | Index Used               | Rows Scanned | Extra                 |
+| ------------ | ------------------------ | ------------ | --------------------- |
+| Boolean flag | idx_current_period       | ~50,000      | Using where           |
+| Date range   | idx_published_at_enabled | ~45,000      | Using index condition |
 
 Date index will have **"Using index condition"** = faster!
 
@@ -150,6 +153,7 @@ Date index will have **"Using index condition"** = faster!
 ### Boolean Flag Approach (Your Proposal)
 
 **Costs:**
+
 - ❌ Add new column (migration)
 - ❌ Add new index (~8MB disk)
 - ❌ Daily rake task to update flags
@@ -159,15 +163,18 @@ Date index will have **"Using index condition"** = faster!
 - ❌ Slower queries (low cardinality index)
 
 **Benefits:**
+
 - ✅ Slightly simpler WHERE clause (`current_period: true` vs date range)
 - ⚠️ **That's it!**
 
 ### Date Index Approach (Recommended)
 
 **Costs:**
+
 - ✅ Nothing! (index probably already exists)
 
 **Benefits:**
+
 - ✅ Faster queries (B-tree range optimization)
 - ✅ Higher cardinality (better index selectivity)
 - ✅ Zero maintenance
@@ -224,19 +231,19 @@ desc "Update current_period flags"
 task update_current_period: :environment do
   # Problem 1: Race conditions
   # What if entries are added WHILE this runs?
-  
+
   # Problem 2: Expensive updates
   Entry.where('published_at >= ?', 30.days.ago)
        .where(current_period: false)
        .update_all(current_period: true)
   # Updates 50,000 rows = 2-5 seconds = table locks!
-  
+
   # Problem 3: Clearing old flags
   Entry.where('published_at < ?', 30.days.ago)
        .where(current_period: true)
        .update_all(current_period: false)
   # Updates 1,500 rows daily (entries that aged out)
-  
+
   # Problem 4: What if rake task fails?
   # Data is now WRONG until next run!
 end
@@ -272,16 +279,16 @@ class OptimizeEntryIndexes < ActiveRecord::Migration[7.0]
   def change
     # 1. Basic date index (if missing)
     add_index :entries, :published_at unless index_exists?(:entries, :published_at)
-    
+
     # 2. Composite index for your most common query
     # This is THE MAGIC that makes queries fast!
-    add_index :entries, [:published_at, :enabled], 
+    add_index :entries, [:published_at, :enabled],
               name: 'index_entries_on_date_and_enabled'
-    
+
     # 3. If you filter by site often:
     add_index :entries, [:published_at, :site_id, :enabled],
               name: 'index_entries_on_date_site_enabled'
-    
+
     # 4. Published date (for daily grouping)
     add_index :entries, :published_date unless index_exists?(:entries, :published_date)
   end
@@ -313,11 +320,13 @@ Entry.where('published_at >= ?', 30.days.ago)
 ### When to Use Boolean Flags
 
 Boolean flags are useful for:
+
 - ✅ **Stable states** that rarely change (e.g., `deleted`, `archived`)
 - ✅ **High selectivity** (< 1% true, > 99% false)
 - ✅ **No maintenance** required
 
 Example:
+
 ```ruby
 # Good use of boolean flag:
 Entry.where(deleted: false)  # 99.9% false, 0.1% true
@@ -327,12 +336,14 @@ Entry.where(deleted: false)  # 99.9% false, 0.1% true
 ### When to Use Date Indexes
 
 Date indexes are better for:
+
 - ✅ **Time-based queries** (which you have!)
 - ✅ **Range queries** (`>=`, `BETWEEN`, etc.)
 - ✅ **Sliding windows** (last 7 days, last 30 days)
 - ✅ **Self-maintaining** data
 
 Example:
+
 ```ruby
 # Perfect use of date index:
 Entry.where('published_at >= ?', 30.days.ago)
@@ -359,12 +370,14 @@ PARTITION BY RANGE (YEAR(published_at) * 100 + MONTH(published_at)) (
 ```
 
 **Benefits of partitioning:**
+
 - MySQL **physically separates** old data from recent data
 - Queries on recent data **never touch** old partitions
 - Can **archive/drop** old partitions easily
 - **Maintenance-free** (MySQL handles it)
 
 **When to use:**
+
 - ✅ 5M+ rows
 - ✅ Clear time-based access patterns (you have this!)
 - ✅ Need to archive old data regularly
@@ -378,6 +391,7 @@ PARTITION BY RANGE (YEAR(published_at) * 100 + MONTH(published_at)) (
 ### ❌ DON'T Add `current_period` Boolean Flag
 
 **Why:**
+
 1. Slower queries (low cardinality)
 2. Requires daily rake task
 3. Maintenance overhead
@@ -387,6 +401,7 @@ PARTITION BY RANGE (YEAR(published_at) * 100 + MONTH(published_at)) (
 ### ✅ DO Use Optimized Date Indexes
 
 **Why:**
+
 1. Faster queries (B-tree optimization)
 2. Zero maintenance
 3. Self-maintaining
@@ -400,23 +415,24 @@ PARTITION BY RANGE (YEAR(published_at) * 100 + MONTH(published_at)) (
 class Entry < ApplicationRecord
   # Remove searchkick
   acts_as_taggable_on :tags, :title_tags
-  
+
   # Optimized scope
   scope :current_period, -> { where('published_at >= ?', DAYS_RANGE.days.ago) }
   scope :last_week, -> { where('published_at >= ?', 7.days.ago) }
   scope :last_30_days, -> { where('published_at >= ?', 30.days.ago) }
-  
+
   # Usage:
   # Entry.current_period.enabled.tagged_with(tags)
 end
 ```
 
 **Migration:**
+
 ```ruby
 class OptimizeEntryIndexes < ActiveRecord::Migration[7.0]
   def change
     # Composite index - THE KEY to fast queries
-    add_index :entries, [:published_at, :enabled], 
+    add_index :entries, [:published_at, :enabled],
               name: 'index_entries_on_date_and_enabled',
               unless: index_exists?(:entries, [:published_at, :enabled])
   end
@@ -424,6 +440,7 @@ end
 ```
 
 **Performance:**
+
 - 2M entries total
 - Query last 30 days: **20-40ms** (fast!)
 - Query last 7 days: **10-20ms** (very fast!)
@@ -458,18 +475,18 @@ Entry.where('published_at >= ?', DAYS_RANGE.days.ago)
 
 ## 🎓 Summary Table
 
-| Factor | Boolean Flag | Date Index | Winner |
-|--------|-------------|------------|--------|
-| **Query Speed** | 20-40ms | 15-30ms | ✅ Date |
-| **Index Size** | 8MB | 12MB | ⚖️ Tie |
-| **Cardinality** | Low (2 values) | High (millions) | ✅ Date |
-| **Maintenance** | Daily rake task | None | ✅ Date |
-| **Race Conditions** | Yes | No | ✅ Date |
-| **Complexity** | High | Low | ✅ Date |
-| **Update Cost** | 50K rows/day | 0 rows/day | ✅ Date |
-| **Failure Risk** | Task fails = wrong data | No failure point | ✅ Date |
-| **Composite Index** | Limited | Excellent | ✅ Date |
-| **Proven at Scale** | No | Yes (FB/Twitter) | ✅ Date |
+| Factor              | Boolean Flag            | Date Index       | Winner  |
+| ------------------- | ----------------------- | ---------------- | ------- |
+| **Query Speed**     | 20-40ms                 | 15-30ms          | ✅ Date |
+| **Index Size**      | 8MB                     | 12MB             | ⚖️ Tie  |
+| **Cardinality**     | Low (2 values)          | High (millions)  | ✅ Date |
+| **Maintenance**     | Daily rake task         | None             | ✅ Date |
+| **Race Conditions** | Yes                     | No               | ✅ Date |
+| **Complexity**      | High                    | Low              | ✅ Date |
+| **Update Cost**     | 50K rows/day            | 0 rows/day       | ✅ Date |
+| **Failure Risk**    | Task fails = wrong data | No failure point | ✅ Date |
+| **Composite Index** | Limited                 | Excellent        | ✅ Date |
+| **Proven at Scale** | No                      | Yes (FB/Twitter) | ✅ Date |
 
 **Winner:** 🏆 **Date Index (10-0)**
 
@@ -493,4 +510,3 @@ add_index :entries, [:published_at, :enabled]
 ```
 
 **Save your engineering time for features, not maintaining boolean flags!** 😊
-

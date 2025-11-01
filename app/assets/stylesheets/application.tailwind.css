@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import focus fix AFTER Tailwind to override all default behaviors */
+@import "focus_fix.css";
+
 /* active menu */
 @layer components {
   a.current { @apply bg-indigo-700; }

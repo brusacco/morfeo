@@ -1,0 +1,63 @@
+/* ==================================
+   FOCUS BEHAVIOR FIX
+   Removes blue border on mouse clicks,
+   keeps it for keyboard navigation (accessibility)
+   ================================== */
+
+/* Remove ALL default focus outlines on mouse click */
+*:focus:not(:focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+  border-color: inherit !important;
+}
+
+/* Only show focus indicators for keyboard navigation */
+*:focus-visible {
+  outline: 2px solid #4F46E5 !important; /* indigo-600 */
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1) !important;
+}
+
+/* Navigation links - NO focus styles on mouse click */
+nav a:focus:not(:focus-visible),
+.nav-link:focus:not(:focus-visible),
+[role="navigation"] a:focus:not(:focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+/* Navigation links - ONLY keyboard focus */
+nav a:focus-visible,
+.nav-link:focus-visible,
+[role="navigation"] a:focus-visible {
+  outline: 2px solid #4F46E5 !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1) !important;
+}
+
+/* Buttons - no focus ring on mouse click */
+button:focus:not(:focus-visible),
+[role="button"]:focus:not(:focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Buttons - keyboard focus only */
+button:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid #4F46E5 !important;
+  outline-offset: 2px !important;
+}
+
+/* Override Tailwind forms plugin focus styles */
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="search"]:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid #4F46E5 !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1) !important;
+}
