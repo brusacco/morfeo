@@ -8,6 +8,17 @@ class Entry < ApplicationRecord
   has_many :comments, dependent: :destroy
   has_one :twitter_post, dependent: :nullify
 
+  # NEW: Direct topic associations for performance optimization
+  has_many :entry_topics, dependent: :destroy
+  has_many :topics, through: :entry_topics
+
+  has_many :entry_title_topics, dependent: :destroy
+  has_many :title_topics, through: :entry_title_topics, source: :topic
+
+  # NEW: Auto-sync callbacks (critical for keeping associations up to date)
+  after_save :sync_topics_from_tags, if: :saved_change_to_tag_list?
+  after_save :sync_title_topics_from_tags, if: :saved_change_to_title_tag_list?
+
   alias_attribute :habilitar_Deshabilitar_Notas, :enabled
   alias_attribute :notas_Repetidas, :repeated
 
@@ -343,6 +354,52 @@ class Entry < ApplicationRecord
     BAD_WORDS.any? { |word| string.include?(word) }
   end
 
+  # NEW: Sync regular tags to topics
+  def sync_topics_from_tags
+    return if tag_list.empty?
+
+    # Find all topics that have tags matching this entry's tags
+    matching_topics = Topic.joins(:tags)
+                          .where(tags: { name: tag_list })
+                          .distinct
+
+    # Update the association (Rails handles the join table)
+    self.topics = matching_topics
+
+    Rails.logger.info "Entry #{id}: Synced #{matching_topics.count} topics from tags"
+  rescue => e
+    Rails.logger.error "Entry #{id}: Failed to sync topics - #{e.message}"
+    # Don't raise - this shouldn't break entry creation
+  end
+
+  # NEW: Sync title tags to topics
+  def sync_title_topics_from_tags
+    return if title_tag_list.empty?
+
+    # Find all topics that have tags matching this entry's title tags
+    matching_topics = Topic.joins(:tags)
+                          .where(tags: { name: title_tag_list })
+                          .distinct
+
+    # Update the association
+    self.title_topics = matching_topics
+
+    Rails.logger.info "Entry #{id}: Synced #{matching_topics.count} title topics from tags"
+  rescue => e
+    Rails.logger.error "Entry #{id}: Failed to sync title topics - #{e.message}"
+  end
+
   # For TopicStatDaily
   scope :tagged_date, ->(date) { where(published_at: date.all_day) }
+
+  # NEW: Scoped queries for direct topic lookups
+  scope :for_topic, ->(topic) {
+    topic_id = topic.is_a?(Topic) ? topic.id : topic
+    joins(:entry_topics).where(entry_topics: { topic_id: topic_id })
+  }
+
+  scope :for_topic_title, ->(topic) {
+    topic_id = topic.is_a?(Topic) ? topic.id : topic
+    joins(:entry_title_topics).where(entry_title_topics: { topic_id: topic_id })
+  }
 end

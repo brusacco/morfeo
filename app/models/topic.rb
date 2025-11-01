@@ -14,6 +14,13 @@ class Topic < ApplicationRecord
   has_and_belongs_to_many :tags
   accepts_nested_attributes_for :tags
 
+  # NEW: Direct entry associations for performance optimization
+  has_many :entry_topics, dependent: :destroy
+  has_many :entries, through: :entry_topics
+
+  has_many :entry_title_topics, dependent: :destroy
+  has_many :title_entries, through: :entry_title_topics, source: :entry
+
   before_update :remove_words_spaces
 
   scope :active, -> { where(status: true) }

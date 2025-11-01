@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_10_31_140720) do
+ActiveRecord::Schema[7.0].define(version: 2025_11_01_215140) do
   create_table "active_admin_comments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "namespace"
     t.text "body"
@@ -109,6 +109,28 @@ ActiveRecord::Schema[7.0].define(version: 2025_10_31_140720) do
     t.index ["site_id"], name: "index_entries_on_site_id"
     t.index ["total_count"], name: "index_entries_on_total_count"
     t.index ["url"], name: "index_entries_on_url", unique: true
+  end
+
+  create_table "entry_title_topics", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "entry_id", null: false
+    t.bigint "topic_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["entry_id", "topic_id"], name: "idx_entry_title_topics_unique", unique: true
+    t.index ["entry_id"], name: "index_entry_title_topics_on_entry_id"
+    t.index ["topic_id", "entry_id"], name: "idx_topic_title_entries"
+    t.index ["topic_id"], name: "index_entry_title_topics_on_topic_id"
+  end
+
+  create_table "entry_topics", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "entry_id", null: false
+    t.bigint "topic_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["entry_id", "topic_id"], name: "idx_entry_topics_unique", unique: true
+    t.index ["entry_id"], name: "index_entry_topics_on_entry_id"
+    t.index ["topic_id", "entry_id"], name: "idx_topic_entries"
+    t.index ["topic_id"], name: "index_entry_topics_on_topic_id"
   end
 
   create_table "facebook_entries", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -399,6 +421,10 @@ ActiveRecord::Schema[7.0].define(version: 2025_10_31_140720) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "entry_title_topics", "entries"
+  add_foreign_key "entry_title_topics", "topics"
+  add_foreign_key "entry_topics", "entries"
+  add_foreign_key "entry_topics", "topics"
   add_foreign_key "facebook_entries", "entries"
   add_foreign_key "facebook_entries", "pages"
   add_foreign_key "newspaper_texts", "newspapers"
