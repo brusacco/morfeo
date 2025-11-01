@@ -314,6 +314,34 @@
         // Check on script load (for direct navigation)
         checkInitialLoad();
         
+        // Intercept all navigation link clicks to show loader immediately
+        document.addEventListener('click', function(e) {
+          // Find the closest anchor tag
+          const link = e.target.closest('a[href]');
+          
+          if (link && !link.hasAttribute('data-turbo-confirm') && 
+              !link.hasAttribute('target') && 
+              !link.hasAttribute('download') &&
+              !link.href.includes('#') &&
+              link.href.startsWith(window.location.origin)) {
+            
+            // Check if it's a navigation to a heavy page
+            const href = link.getAttribute('href') || link.href;
+            const isHeavyPage = href === '/' || 
+                               href === '/home' || 
+                               href.includes('/home/index') ||
+                               href.match(/\/topic\/\d/) ||
+                               href.match(/\/facebook_topic/) ||
+                               href.match(/\/twitter_topic/) ||
+                               href.match(/\/site\/\d/);
+            
+            if (isHeavyPage) {
+              // Show loader immediately on click
+              showLoader();
+            }
+          }
+        }, true); // Use capture phase to catch event early
+        
         // For direct/initial page loads, also listen to window.load
         window.addEventListener('load', function() {
           // Hide loader when page is fully loaded (initial loads)
