@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_11_01_215140) do
+ActiveRecord::Schema[7.0].define(version: 2025_11_01_230906) do
   create_table "active_admin_comments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "namespace"
     t.text "body"
@@ -116,8 +116,10 @@ ActiveRecord::Schema[7.0].define(version: 2025_11_01_215140) do
     t.bigint "topic_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["entry_id", "topic_id", "created_at"], name: "idx_entry_title_topics_reverse_covering", comment: "Covering index for entry->topic title lookups"
     t.index ["entry_id", "topic_id"], name: "idx_entry_title_topics_unique", unique: true
     t.index ["entry_id"], name: "index_entry_title_topics_on_entry_id"
+    t.index ["topic_id", "entry_id", "created_at"], name: "idx_entry_title_topics_covering", comment: "Covering index for topic->entry title lookups"
     t.index ["topic_id", "entry_id"], name: "idx_topic_title_entries"
     t.index ["topic_id"], name: "index_entry_title_topics_on_topic_id"
   end
@@ -127,8 +129,10 @@ ActiveRecord::Schema[7.0].define(version: 2025_11_01_215140) do
     t.bigint "topic_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["entry_id", "topic_id", "created_at"], name: "idx_entry_topics_reverse_covering", comment: "Covering index for entry->topic lookups"
     t.index ["entry_id", "topic_id"], name: "idx_entry_topics_unique", unique: true
     t.index ["entry_id"], name: "index_entry_topics_on_entry_id"
+    t.index ["topic_id", "entry_id", "created_at"], name: "idx_entry_topics_covering", comment: "Covering index for topic->entry lookups"
     t.index ["topic_id", "entry_id"], name: "idx_topic_entries"
     t.index ["topic_id"], name: "index_entry_topics_on_topic_id"
   end
