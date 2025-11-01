@@ -224,3 +224,4 @@ RAILS_ENV=production bin/rails runner scripts/verify_production_indexes.rb > /tm
 cat /tmp/index_report.txt
 ```
 
+
