@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 class Entry < ApplicationRecord
-  searchkick
+  # Disable Elasticsearch indexing since we're using direct associations now
+  searchkick callbacks: false
   acts_as_taggable_on :tags, :title_tags
   validates :url, uniqueness: true
   belongs_to :site, touch: true
