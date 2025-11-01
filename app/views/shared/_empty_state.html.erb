@@ -1,0 +1,43 @@
+<%
+  # Default values
+  icon ||= 'fa-inbox'
+  icon_color ||= 'text-gray-400'
+  title ||= 'Sin datos disponibles'
+  description ||= 'No hay información para mostrar en este momento.'
+  actions ||= []
+%>
+
+<div class="flex flex-col items-center justify-center py-16 px-4 sm:px-6 lg:px-8 bg-white rounded-lg border border-gray-200">
+  <!-- Icon -->
+  <div class="flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 mb-6">
+    <i class="<%= icon %> text-4xl <%= icon_color %>"></i>
+  </div>
+  
+  <!-- Content -->
+  <div class="text-center max-w-md">
+    <h3 class="text-xl font-semibold text-gray-900 mb-2"><%= title %></h3>
+    <p class="text-sm text-gray-600 mb-6"><%= description %></p>
+    
+    <!-- Actions -->
+    <% if actions.any? %>
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <% actions.each do |action| %>
+          <% button_classes = case action[:style]
+                              when 'primary'
+                                'inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors'
+                              when 'secondary'
+                                'inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors'
+                              else
+                                'inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors'
+                              end %>
+          <%= link_to action[:url], class: button_classes do %>
+            <% if action[:icon] %>
+              <i class="<%= action[:icon] %> mr-2"></i>
+            <% end %>
+            <%= action[:label] %>
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>

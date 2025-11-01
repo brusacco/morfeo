@@ -76,6 +76,16 @@
   </div>
 </header>
 
+<!-- Breadcrumbs -->
+<%= render 'shared/breadcrumbs', items: [
+  { label: 'Inicio', path: root_path, icon: 'fa-solid fa-home' },
+  { label: 'Facebook', path: nil },
+  { label: @topic.name, path: nil, current: true }
+] %>
+
+<!-- Dashboard Switcher -->
+<%= render 'shared/dashboard_switcher', topic: @topic %>
+
 <!-- Sticky Navigation -->
 <nav class="border-b border-gray-200 shadow-md" id="facebook-nav">
   <div class="mx-auto px-4 sm:px-6 lg:px-8 bg-white">

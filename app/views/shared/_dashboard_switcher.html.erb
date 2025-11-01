@@ -1,0 +1,101 @@
+<% 
+  # Define dashboard configurations
+  dashboards = [
+    {
+      name: 'Digital',
+      path: topic_path(topic),
+      icon: 'fa-solid fa-newspaper',
+      color: 'indigo',
+      active: request.path == topic_path(topic)
+    },
+    {
+      name: 'Facebook',
+      path: facebook_topic_path(topic),
+      icon: 'fa-brands fa-facebook',
+      color: 'blue',
+      active: request.path.include?('facebook_topic')
+    },
+    {
+      name: 'Twitter',
+      path: twitter_topic_path(topic),
+      icon: 'fa-brands fa-twitter',
+      color: 'sky',
+      active: request.path.include?('twitter_topic'),
+      badge: 'BETA'
+    },
+    {
+      name: 'General',
+      path: general_dashboard_path(topic),
+      icon: 'fa-solid fa-chart-pie',
+      color: 'purple',
+      active: request.path.include?('general_dashboard'),
+      badge: 'BETA'
+    }
+  ]
+%>
+
+<!-- Dashboard Switcher - Horizontal Buttons -->
+<div class="flex items-center space-x-2 py-4 border-b border-gray-200 bg-gray-50 px-4 sm:px-6 lg:px-8">
+  <span class="text-sm font-medium text-gray-600 mr-2">
+    <i class="fa-solid fa-layer-group mr-1"></i>
+    Ver en:
+  </span>
+  
+  <% dashboards.each do |dashboard| %>
+    <%= link_to dashboard[:path], 
+        {
+          class: "#{dashboard[:active] ? "bg-#{dashboard[:color]}-100 text-#{dashboard[:color]}-700 ring-2 ring-#{dashboard[:color]}-500" : "bg-white text-gray-600 hover:bg-gray-100 hover:text-#{dashboard[:color]}-600"} inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm",
+          "aria-label" => "Ver dashboard #{dashboard[:name]}",
+          "aria-current" => (dashboard[:active] ? 'page' : nil)
+        } do %>
+      <i class="<%= dashboard[:icon] %> mr-2"></i>
+      <span class="hidden sm:inline"><%= dashboard[:name] %></span>
+      <% if dashboard[:badge] %>
+        <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-<%= dashboard[:color] %>-500 text-white">
+          <%= dashboard[:badge] %>
+        </span>
+      <% end %>
+    <% end %>
+  <% end %>
+  
+  <!-- Quick Stats Badge (optional) -->
+  <div class="flex-1"></div>
+  <div class="hidden lg:flex items-center text-xs text-gray-500">
+    <i class="fa-solid fa-clock mr-1"></i>
+    Últimos <%= DAYS_RANGE %> días
+  </div>
+</div>
+
+<style>
+  /* Scoped styles for dashboard switcher */
+  
+  /* Active state styles need to work with dynamic colors */
+  .bg-indigo-100 { background-color: rgb(224 231 255); }
+  .text-indigo-700 { color: rgb(67 56 202); }
+  .ring-indigo-500 { --tw-ring-color: rgb(99 102 241); }
+  .bg-indigo-50 { background-color: rgb(238 242 255); }
+  .text-indigo-600 { color: rgb(79 70 229); }
+  
+  .bg-blue-100 { background-color: rgb(219 234 254); }
+  .text-blue-700 { color: rgb(29 78 216); }
+  .ring-blue-500 { --tw-ring-color: rgb(59 130 246); }
+  .bg-blue-50 { background-color: rgb(239 246 255); }
+  .text-blue-600 { color: rgb(37 99 235); }
+  
+  .bg-sky-100 { background-color: rgb(224 242 254); }
+  .text-sky-700 { color: rgb(3 105 161); }
+  .ring-sky-500 { --tw-ring-color: rgb(14 165 233); }
+  .bg-sky-50 { background-color: rgb(240 249 255); }
+  .text-sky-600 { color: rgb(2 132 199); }
+  
+  .bg-purple-100 { background-color: rgb(243 232 255); }
+  .text-purple-700 { color: rgb(126 34 206); }
+  .ring-purple-500 { --tw-ring-color: rgb(168 85 247); }
+  .bg-purple-50 { background-color: rgb(250 245 255); }
+  .text-purple-600 { color: rgb(147 51 234); }
+  
+  .bg-purple-500 { background-color: rgb(168 85 247); }
+  .bg-indigo-500 { background-color: rgb(99 102 241); }
+  .bg-blue-500 { background-color: rgb(59 130 246); }
+  .bg-sky-500 { background-color: rgb(14 165 233); }
+</style>

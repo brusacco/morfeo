@@ -1,0 +1,108 @@
+<%
+  # Defaults
+  title ||= 'Metric'
+  value ||= '0'
+  icon ||= 'fa-chart-line'
+  color ||= 'indigo'
+  size ||= 'primary'
+  trend ||= nil
+  subtitle ||= nil
+  
+  # Size variations
+  value_size_class = size == 'primary' ? 'text-4xl' : 'text-3xl'
+  card_padding = size == 'primary' ? 'p-8' : 'p-6'
+%>
+
+<div class="relative bg-white rounded-xl shadow-lg <%= card_padding %> border border-gray-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+  <!-- Decorative background element -->
+  <div class="absolute top-0 right-0 w-32 h-32 bg-<%= color %>-50 rounded-full -mr-16 -mt-16 opacity-40"></div>
+  
+  <div class="relative">
+    <!-- Header -->
+    <div class="flex items-start justify-between mb-4">
+      <div class="flex-1">
+        <p class="text-sm font-semibold uppercase tracking-wider text-<%= color %>-700 mb-1">
+          <%= title %>
+        </p>
+        <% if subtitle %>
+          <p class="text-xs text-gray-500"><%= subtitle %></p>
+        <% end %>
+      </div>
+      <div class="flex-shrink-0 w-12 h-12 bg-<%= color %>-100 rounded-xl flex items-center justify-center">
+        <i class="<%= icon %> text-2xl text-<%= color %>-600"></i>
+      </div>
+    </div>
+    
+    <!-- Value -->
+    <div class="<%= value_size_class %> font-bold text-<%= color %>-800 mb-2">
+      <%= value %>
+    </div>
+    
+    <!-- Trend indicator -->
+    <% if trend %>
+      <div class="flex items-center text-sm">
+        <% if trend[:direction] == 'up' %>
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+            <i class="fa-solid fa-arrow-up mr-1"></i>
+            <%= trend[:value] %>
+          </span>
+        <% elsif trend[:direction] == 'down' %>
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+            <i class="fa-solid fa-arrow-down mr-1"></i>
+            <%= trend[:value] %>
+          </span>
+        <% else %>
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+            <%= trend[:value] %>
+          </span>
+        <% end %>
+        <span class="ml-2 text-gray-500">vs. período anterior</span>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<style>
+  /* Color variations for KPI cards */
+  .bg-indigo-50 { background-color: rgb(238 242 255); }
+  .bg-indigo-100 { background-color: rgb(224 231 255); }
+  .text-indigo-600 { color: rgb(79 70 229); }
+  .text-indigo-700 { color: rgb(67 56 202); }
+  .text-indigo-800 { color: rgb(55 48 163); }
+  
+  .bg-blue-50 { background-color: rgb(239 246 255); }
+  .bg-blue-100 { background-color: rgb(219 234 254); }
+  .text-blue-600 { color: rgb(37 99 235); }
+  .text-blue-700 { color: rgb(29 78 216); }
+  .text-blue-800 { color: rgb(30 64 175); }
+  
+  .bg-green-50 { background-color: rgb(240 253 244); }
+  .bg-green-100 { background-color: rgb(220 252 231); }
+  .text-green-600 { color: rgb(22 163 74); }
+  .text-green-700 { color: rgb(21 128 61); }
+  .text-green-800 { color: rgb(22 101 52); }
+  
+  .bg-amber-50 { background-color: rgb(255 251 235); }
+  .bg-amber-100 { background-color: rgb(254 243 199); }
+  .text-amber-600 { color: rgb(217 119 6); }
+  .text-amber-700 { color: rgb(180 83 9); }
+  .text-amber-800 { color: rgb(146 64 14); }
+  
+  .bg-red-50 { background-color: rgb(254 242 242); }
+  .bg-red-100 { background-color: rgb(254 226 226); }
+  .text-red-600 { color: rgb(220 38 38); }
+  .text-red-700 { color: rgb(185 28 28); }
+  .text-red-800 { color: rgb(153 27 27); }
+  
+  .bg-purple-50 { background-color: rgb(250 245 255); }
+  .bg-purple-100 { background-color: rgb(243 232 255); }
+  .text-purple-600 { color: rgb(147 51 234); }
+  .text-purple-700 { color: rgb(126 34 206); }
+  .text-purple-800 { color: rgb(107 33 168); }
+  
+  .bg-sky-50 { background-color: rgb(240 249 255); }
+  .bg-sky-100 { background-color: rgb(224 242 254); }
+  .text-sky-600 { color: rgb(2 132 199); }
+  .text-sky-700 { color: rgb(3 105 161); }
+  .text-sky-800 { color: rgb(7 89 133); }
+</style>

@@ -1,0 +1,184 @@
+/* Color Contrast Audit & Fixes for WCAG AA Compliance
+
+   This file contains color contrast fixes to ensure all text meets WCAG AA standards:
+   - Normal text: 4.5:1 contrast ratio minimum
+   - Large text (18px+ or 14px+ bold): 3:1 contrast ratio minimum
+   
+   Last audit: November 1, 2025
+*/
+
+/* Fix: Light gray text that may fail contrast checks */
+.text-gray-500 {
+  color: #6B7280; /* Upgraded from #9CA3AF for better contrast */
+}
+
+.text-gray-600 {
+  color: #4B5563; /* Already good, keeping */
+}
+
+/* Fix: Ensure secondary text has sufficient contrast */
+.text-secondary {
+  @apply text-gray-600; /* Use gray-600 instead of gray-500 for body text */
+}
+
+/* Fix: Link colors should have good contrast */
+.text-link {
+  @apply text-indigo-600 hover:text-indigo-700;
+}
+
+/* Fix: Disabled text should still be readable (though lighter) */
+.text-disabled {
+  color: #9CA3AF; /* gray-400, acceptable for disabled states */
+}
+
+/* Fix: Ensure icon colors have good contrast */
+.text-muted-icon {
+  @apply text-gray-500; /* Acceptable for decorative icons */
+}
+
+/* Fix: Placeholder text */
+::placeholder {
+  color: #9CA3AF; /* gray-400, acceptable for placeholders */
+  opacity: 1;
+}
+
+/* Badge text contrast */
+.badge-text {
+  font-weight: 500; /* Increase weight for small text */
+}
+
+/* Ensure all status colors meet contrast requirements */
+.status-success {
+  @apply bg-green-100 text-green-800 border-green-200;
+}
+
+.status-warning {
+  @apply bg-amber-100 text-amber-900 border-amber-200;
+}
+
+.status-error {
+  @apply bg-red-100 text-red-800 border-red-200;
+}
+
+.status-info {
+  @apply bg-blue-100 text-blue-900 border-blue-200;
+}
+
+/* Fix: Small text in cards */
+.card-meta {
+  @apply text-sm text-gray-600; /* Use gray-600 for better contrast */
+}
+
+/* Fix: Footer text */
+.footer-text {
+  @apply text-gray-600; /* Upgrade from gray-500 */
+}
+
+/* Fix: Navigation text */
+.nav-link {
+  @apply text-gray-700 hover:text-gray-900;
+}
+
+.nav-link-light {
+  @apply text-indigo-100 hover:text-white;
+}
+
+/* Fix: Form labels */
+label {
+  @apply text-gray-700 font-medium;
+}
+
+/* Fix: Helper text */
+.help-text {
+  @apply text-sm text-gray-600;
+}
+
+/* Fix: Error messages */
+.error-text {
+  @apply text-sm text-red-700 font-medium;
+}
+
+/* Ensure sufficient contrast for all button styles */
+.btn-primary {
+  @apply bg-indigo-600 text-white hover:bg-indigo-700;
+}
+
+.btn-secondary {
+  @apply bg-white text-gray-700 border border-gray-300 hover:bg-gray-50;
+}
+
+.btn-success {
+  @apply bg-green-600 text-white hover:bg-green-700;
+}
+
+.btn-danger {
+  @apply bg-red-600 text-white hover:bg-red-700;
+}
+
+/* Focus indicators for accessibility */
+.focus-visible:focus {
+  @apply outline-none ring-2 ring-indigo-600 ring-offset-2;
+}
+
+/* Ensure chart labels have good contrast */
+.chart-label {
+  @apply text-gray-700 text-sm;
+}
+
+.chart-value {
+  @apply text-gray-900 font-semibold;
+}
+
+/* Table text contrast */
+.table-header {
+  @apply text-gray-900 font-semibold bg-gray-50;
+}
+
+.table-cell {
+  @apply text-gray-700;
+}
+
+.table-cell-muted {
+  @apply text-gray-600;
+}
+
+/* Alert text contrast */
+.alert-info {
+  @apply bg-blue-50 border-l-4 border-blue-400 text-blue-900;
+}
+
+.alert-success {
+  @apply bg-green-50 border-l-4 border-green-400 text-green-900;
+}
+
+.alert-warning {
+  @apply bg-amber-50 border-l-4 border-amber-400 text-amber-900;
+}
+
+.alert-error {
+  @apply bg-red-50 border-l-4 border-red-400 text-red-900;
+}
+
+/* Tooltip text */
+.tooltip {
+  @apply bg-gray-900 text-white text-sm px-3 py-2 rounded shadow-lg;
+}
+
+/* Modal text */
+.modal-title {
+  @apply text-gray-900 text-xl font-semibold;
+}
+
+.modal-content {
+  @apply text-gray-700;
+}
+
+/* Breadcrumb text */
+.breadcrumb-link {
+  @apply text-gray-700 hover:text-indigo-600;
+}
+
+.breadcrumb-current {
+  @apply text-gray-900 font-medium;
+}
+

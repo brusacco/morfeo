@@ -70,6 +70,13 @@
   </div>
 </header>
 
+<!-- Breadcrumbs -->
+<%= render 'shared/breadcrumbs', items: [
+  { label: 'Inicio', path: root_path, icon: 'fa-solid fa-home' },
+  { label: 'Reportes', path: nil },
+  { label: 'Noticias Populares', path: nil, current: true }
+] %>
+
 <!-- Sticky Navigation -->
 <nav id="popular-nav" class="bg-white border-b border-gray-200 shadow-sm">
   <div class="mx-auto px-4 sm:px-6 lg:px-8">
