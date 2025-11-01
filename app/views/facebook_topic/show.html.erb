@@ -441,7 +441,7 @@
               <i class="fa-solid fa-smile text-green-600 mr-2"></i>
               Más Positivas
             </h3>
-            <% if @top_positive_posts.any? %>
+            <% if @top_positive_posts.present? && @top_positive_posts.any? %>
               <div class="space-y-3">
                 <% @top_positive_posts.first(3).each do |post| %>
                     <div class="bg-white rounded-lg border border-green-200 p-3">
@@ -530,7 +530,7 @@
               <i class="fa-solid fa-frown text-red-600 mr-2"></i>
               Más Negativas
             </h3>
-            <% if @top_negative_posts.any? %>
+            <% if @top_negative_posts.present? && @top_negative_posts.any? %>
               <div class="space-y-3">
                 <% @top_negative_posts.first(3).each do |post| %>
                     <div class="bg-white rounded-lg border border-red-200 p-3">
