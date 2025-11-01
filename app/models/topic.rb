@@ -63,7 +63,7 @@ class Topic < ApplicationRecord
         load: false # Don't load the ActiveRecord objects yet (we'll do it in the next step)
       )
       entry_ids = result.map(&:id)
-      Entry.where(id: entry_ids).joins(:site)
+      Entry.where(id: entry_ids).includes(:site, :tags).joins(:site)
     end
   end
 
@@ -134,7 +134,9 @@ class Topic < ApplicationRecord
   # Returns hash with average engagement by hour of day
   def peak_publishing_times_by_hour
     Rails.cache.fetch("topic_#{id}_peak_times_hour", expires_in: 2.hours) do
-      entries_with_engagement = list_entries.where('entries.total_count > 0')
+      # Get entry IDs without joins to avoid GROUP BY issues
+      entry_ids = list_entries.pluck(:id)
+      entries_with_engagement = Entry.where(id: entry_ids).where('entries.total_count > 0')
       
       hourly_data = entries_with_engagement
         .group("HOUR(entries.published_at)")
@@ -156,7 +158,9 @@ class Topic < ApplicationRecord
   # Returns hash with average engagement by day of week (0=Sunday, 6=Saturday)
   def peak_publishing_times_by_day
     Rails.cache.fetch("topic_#{id}_peak_times_day", expires_in: 2.hours) do
-      entries_with_engagement = list_entries.where('entries.total_count > 0')
+      # Get entry IDs without joins to avoid GROUP BY issues
+      entry_ids = list_entries.pluck(:id)
+      entries_with_engagement = Entry.where(id: entry_ids).where('entries.total_count > 0')
       
       daily_data = entries_with_engagement
         .group("DAYOFWEEK(entries.published_at)")
@@ -181,7 +185,9 @@ class Topic < ApplicationRecord
   # Combined heatmap data: hour x day of week
   def engagement_heatmap_data
     Rails.cache.fetch("topic_#{id}_engagement_heatmap", expires_in: 2.hours) do
-      entries_with_engagement = list_entries.where('entries.total_count > 0')
+      # Get entry IDs without joins to avoid GROUP BY issues
+      entry_ids = list_entries.pluck(:id)
+      entries_with_engagement = Entry.where(id: entry_ids).where('entries.total_count > 0')
       
       heatmap_data = entries_with_engagement
         .group("DAYOFWEEK(entries.published_at)", "HOUR(entries.published_at)")
@@ -346,7 +352,9 @@ class Topic < ApplicationRecord
   # Peak Activity Hours (when most content is published)
   def publishing_frequency_by_hour
     Rails.cache.fetch("topic_#{id}_publishing_frequency", expires_in: 2.hours) do
-      hourly_frequency = list_entries
+      # Get entry IDs without joins to avoid GROUP BY issues
+      entry_ids = list_entries.pluck(:id)
+      hourly_frequency = Entry.where(id: entry_ids)
         .group("HOUR(entries.published_at)")
         .count
       

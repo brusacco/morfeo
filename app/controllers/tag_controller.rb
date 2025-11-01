@@ -54,7 +54,7 @@ class TagController < ApplicationController
 
   def show
     @tag = Tag.find(params[:id])
-    @entries = @tag.list_entries
+    @entries = @tag.list_entries.includes(:site, :tags)
 
     @total_entries = @entries.size
     @total_interactions = @entries.sum(:total_count)
@@ -103,7 +103,7 @@ class TagController < ApplicationController
 
   def comments
     @tag = Tag.find(params[:id])
-    @entries = Entry.enabled.normal_range.joins(:site).tagged_with(@tag.name).has_image.order(published_at: :desc)
+    @entries = Entry.enabled.includes(:site, :tags).normal_range.joins(:site).tagged_with(@tag.name).has_image.order(published_at: :desc)
 
     @comments = Comment.where(entry_id: @entries.select(:id)).order(created_time: :desc)
     @comments_word_occurrences = @comments.word_occurrences
@@ -114,7 +114,7 @@ class TagController < ApplicationController
 
   def report
     @tag = Tag.find(params[:id])
-    @entries = Entry.enabled.normal_range.joins(:site).tagged_with(@tag.name).has_image.order(published_at: :desc)
+    @entries = Entry.enabled.includes(:site, :tags).normal_range.joins(:site).tagged_with(@tag.name).has_image.order(published_at: :desc)
     @tags = @entries.tag_counts_on(:tags).order('count desc').limit(20)
 
     @tags_interactions = Entry.joins(:tags)

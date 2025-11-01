@@ -6,7 +6,7 @@ class SiteController < ApplicationController
   def show
     @site = Site.find(params[:id])
     @entries_stats = @site.entries.enabled.normal_range.group_by_day(:published_at)
-    @entries = @site.entries.enabled.normal_range.order(published_at: :desc)
+    @entries = @site.entries.includes(:tags).enabled.normal_range.order(published_at: :desc)
 
     # Ensure entries are loaded for word/bigram analysis
     loaded_entries = @entries.to_a

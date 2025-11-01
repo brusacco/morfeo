@@ -24,7 +24,7 @@ module Api
 
       def similar
         @entry = Entry.find_by(url: params[:url])
-        @entries = Entry.tagged_with(@entry.tags, any: true).order(published_at: :desc).limit(25) if @entry.present?
+        @entries = Entry.includes(:site, :tags).tagged_with(@entry.tags, any: true).order(published_at: :desc).limit(25) if @entry.present?
       end
 
       private

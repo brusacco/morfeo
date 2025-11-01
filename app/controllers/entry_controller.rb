@@ -20,7 +20,7 @@ class EntryController < ApplicationController
   end
 
   def popular
-    @entries = Entry.enabled.joins(:site).where(total_count: 1..).a_day_ago.order(total_count: :desc).limit(POPULAR_ENTRIES_LIMIT)
+    @entries = Entry.enabled.includes(:site, :tags).where(total_count: 1..).a_day_ago.order(total_count: :desc).limit(POPULAR_ENTRIES_LIMIT)
     # Separate query for grouping operations to avoid MySQL strict mode issues
     @entries_for_grouping = Entry.enabled.joins(:site).where(total_count: 1..).a_day_ago
     
@@ -60,7 +60,7 @@ class EntryController < ApplicationController
   end
 
   def twitter
-    @entries = Entry.enabled.joins(:site).a_day_ago.where.not(image_url: nil).order(tw_total: :desc)
+    @entries = Entry.enabled.includes(:site, :tags).a_day_ago.where.not(image_url: nil).order(tw_total: :desc)
     @entries_for_grouping = Entry.enabled.joins(:site).a_day_ago.where.not(image_url: nil)
     @tags = @entries.tag_counts_on(:tags).order(count: :desc)
 
@@ -78,7 +78,7 @@ class EntryController < ApplicationController
   end
 
   def commented
-    @entries = Entry.enabled.joins(:site).a_day_ago.where.not(image_url: nil).order(comment_count: :desc).limit(COMMENTED_ENTRIES_LIMIT)
+    @entries = Entry.enabled.includes(:site, :tags).a_day_ago.where.not(image_url: nil).order(comment_count: :desc).limit(COMMENTED_ENTRIES_LIMIT)
     # Separate query for grouping operations to avoid MySQL strict mode issues
     @entries_for_grouping = Entry.enabled.joins(:site).a_day_ago.where.not(image_url: nil)
 
@@ -116,19 +116,19 @@ class EntryController < ApplicationController
   end
 
   def week
-    @entries = Entry.enabled.joins(:site).a_week_ago.where.not(image_url: nil).order(published_at: :desc)
+    @entries = Entry.enabled.includes(:site, :tags).a_week_ago.where.not(image_url: nil).order(published_at: :desc)
     @today = Time.zone.today
     @a_week_ago = @today - 7
   end
 
   def similar
     @entry = Entry.find_by(url: params[:url])
-    @entries = Entry.enabled.tagged_with(@entry.tags, any: true).order(published_at: :desc).limit(10)
+    @entries = Entry.enabled.includes(:site, :tags).tagged_with(@entry.tags, any: true).order(published_at: :desc).limit(10)
     render json: @entries
   end
 
   def search
     tag = params[:query]
-    @entries = Entry.enabled.includes(:site).tagged_with(tag).order(published_at: :desc).limit(SEARCH_LIMIT)
+    @entries = Entry.enabled.includes(:site, :tags).tagged_with(tag).order(published_at: :desc).limit(SEARCH_LIMIT)
   end
 end

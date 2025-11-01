@@ -130,7 +130,7 @@ class HomeController < ApplicationController
 
   def topic
     tags = 'Horacio Cartes, santiago Peña'
-    @entries = Entries.enabled.tagged_with(tags).limit(250)
+    @entries = Entries.enabled.includes(:site, :tags).tagged_with(tags).limit(250)
     @tags = @entries.tag_counts_on(:tags).order('count desc')
 
     @tags_interactions = Entry.joins(:tags)

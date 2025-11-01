@@ -32,7 +32,7 @@ class Tag < ApplicationRecord
       order: { published_at: :desc },
       fields: ['id'] # Only return the ids to reduce payload
     )
-    Entry.enabled.where(id: result.map(&:id)).joins(:site)
+    Entry.enabled.where(id: result.map(&:id)).includes(:site, :tags).joins(:site)
   end
 
   def title_list_entries
