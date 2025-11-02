@@ -9,7 +9,7 @@ class GeneralDashboardController < ApplicationController
   before_action :set_topic
   before_action :authorize_topic_access!, only: [:show, :pdf]
 
-  caches_action :show, expires_in: 30.minutes
+  caches_action :show, :pdf, expires_in: 30.minutes
 
   def show
     @start_date = start_date
