@@ -19,6 +19,7 @@ end
 every 3.hours do
   rake 'facebook:fanpage_crawler'
   rake 'twitter:profile_crawler_full'
+  rake 'social_crawler'
   # rake 'facebook:comment_crawler'
 end
 
