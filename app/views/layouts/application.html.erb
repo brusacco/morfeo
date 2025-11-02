@@ -246,19 +246,85 @@
           }
         }
         
-        function hideLoader() {
-          if (overlay) {
-            overlay.classList.remove('active');
-            
-            // Restore normal page behavior
-            document.body.style.overflow = '';              // restore scroll
-            document.body.style.pointerEvents = '';         // restore interaction
-            document.body.style.userSelect = '';            // allow selection
-            
-            if (tipInterval) {
-              clearInterval(tipInterval);
-              tipInterval = null;
+        // Check if charts are loaded (for heavy dashboard pages)
+        function checkChartsLoaded(callback, attempts = 0, maxAttempts = 30) {
+          // Don't wait indefinitely - after 3 seconds, proceed anyway
+          if (attempts >= maxAttempts) {
+            console.log('⚠️ Chart loading timeout - proceeding to hide loader');
+            callback();
+            return;
+          }
+          
+          // Check if there are any chart containers on the page
+          const chartContainers = document.querySelectorAll('[data-highcharts-chart]');
+          
+          // If no charts, proceed immediately
+          if (chartContainers.length === 0) {
+            callback();
+            return;
+          }
+          
+          // Check if all charts have been rendered
+          let allChartsReady = true;
+          chartContainers.forEach(container => {
+            // Check if chart has actual content (SVG with paths/shapes)
+            const svg = container.querySelector('svg.highcharts-root');
+            if (!svg || svg.querySelectorAll('path, rect, circle').length < 3) {
+              allChartsReady = false;
             }
+          });
+          
+          if (allChartsReady) {
+            console.log('✅ All charts loaded successfully');
+            callback();
+          } else {
+            // Wait 100ms and check again
+            setTimeout(() => {
+              checkChartsLoaded(callback, attempts + 1, maxAttempts);
+            }, 100);
+          }
+        }
+        
+        function hideLoader() {
+          if (!overlay) return;
+          
+          const performHide = () => {
+            // Additional check: wait for charts to render if they exist
+            checkChartsLoaded(() => {
+              // Small delay to ensure smooth transition
+              setTimeout(() => {
+                if (overlay) {
+                  overlay.classList.remove('active');
+                  
+                  // Restore normal page behavior
+                  document.body.style.overflow = '';              // restore scroll
+                  document.body.style.pointerEvents = '';         // restore interaction
+                  document.body.style.userSelect = '';            // allow selection
+                  
+                  if (tipInterval) {
+                    clearInterval(tipInterval);
+                    tipInterval = null;
+                  }
+                }
+              }, 150); // 150ms delay for smooth transition
+            });
+          };
+          
+          // Wait for document to be fully ready
+          if (document.readyState === 'complete') {
+            performHide();
+          } else {
+            // Use both load and readystatechange for maximum compatibility
+            const checkComplete = () => {
+              if (document.readyState === 'complete') {
+                performHide();
+                window.removeEventListener('load', checkComplete);
+                document.removeEventListener('readystatechange', checkComplete);
+              }
+            };
+            
+            window.addEventListener('load', checkComplete);
+            document.addEventListener('readystatechange', checkComplete);
           }
         }
         
@@ -266,8 +332,8 @@
         document.addEventListener('turbo:before-visit', showLoader);
         document.addEventListener('turbo:submit-start', showLoader);
         
-        // Hide loader RIGHT AFTER DOM is replaced with new page
-        // This fires as soon as content appears, even during slow loads
+        // Hide loader AFTER page is fully rendered (not just DOM replaced)
+        // turbo:render fires when DOM is replaced, but we wait for full page load
         document.addEventListener('turbo:render', hideLoader);
         
         // Handle errors - hide immediately on error
@@ -279,7 +345,16 @@
           if (maxLoadTimeout) clearTimeout(maxLoadTimeout);
           maxLoadTimeout = setTimeout(() => {
             console.log('⚠️ Loading timeout - forcing loader hide after 20 seconds');
-            hideLoader();
+            if (overlay) {
+              overlay.classList.remove('active');
+              document.body.style.overflow = '';
+              document.body.style.pointerEvents = '';
+              document.body.style.userSelect = '';
+              if (tipInterval) {
+                clearInterval(tipInterval);
+                tipInterval = null;
+              }
+            }
           }, 20000); // 20 seconds
         });
         
