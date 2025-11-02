@@ -732,9 +732,11 @@ module GeneralDashboardServices
 
     def best_publishing_time_recommendation
       optimal = calculate_combined_optimal_time
+      avg_engagement = optimal[:avg_engagement] || 0
+      
       {
         recommendation: optimal[:recommendation],
-        reasoning: "Basado en análisis de engagement promedio más alto (#{optimal[:avg_engagement].round(1)}) en #{optimal[:day]} a las #{optimal[:hour]}:00"
+        reasoning: "Basado en análisis de engagement promedio más alto (#{avg_engagement.round(1)}) en #{optimal[:day]} a las #{optimal[:hour]}:00"
       }
     end
 
@@ -802,10 +804,13 @@ module GeneralDashboardServices
       
       # Underperforming channels
       channels = build_channel_performance
-      avg_engagement = channels.values.map { |c| c[:engagement_rate] }.sum / channels.size
+      engagement_rates = channels.values.map { |c| c[:engagement_rate] }.compact
+      return opportunities if engagement_rates.empty?
+      
+      avg_engagement = engagement_rates.sum / engagement_rates.size.to_f
       
       channels.each do |key, data|
-        if data[:engagement_rate] < avg_engagement * 0.7
+        if data[:engagement_rate] && data[:engagement_rate] < avg_engagement * 0.7
           opportunities << {
             area: data[:name],
             current: "#{data[:engagement_rate]}% engagement",
