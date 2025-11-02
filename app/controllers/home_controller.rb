@@ -164,8 +164,7 @@ class HomeController < ApplicationController
       # Update cron jobs
       system('whenever -i')
 
-      # Warm the cache
-      system('RAILS_ENV=production rails cache:warm')
+      # Warm the dashboards
       system('RAILS_ENV=production rails cache:warm_dashboards')
     end
 
