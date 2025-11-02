@@ -11,6 +11,7 @@ module GeneralDashboardServices
       @topic = topic
       @start_date = start_date
       @end_date = end_date
+      @tag_names = @topic.tags.pluck(:name) # Cache tag names to avoid multiple pluck calls
     end
 
     def call
@@ -249,16 +250,14 @@ module GeneralDashboardServices
 
     def facebook_data
       @facebook_data ||= begin
-        tag_names = topic.tags.pluck(:name)
-        
-        if tag_names.empty?
+        if @tag_names.empty?
           return { count: 0, interactions: 0, reach: 0, trend: 0 }
         end
         
         # Single combined query for all aggregations (more efficient)
         current_stats = FacebookEntry
           .where(posted_at: start_date..end_date)
-          .tagged_with(tag_names, any: true)
+          .tagged_with(@tag_names, any: true)
           .pluck(
             Arel.sql('COUNT(DISTINCT facebook_entries.id)'),
             Arel.sql('SUM(reactions_total_count + comments_count + share_count)'),
@@ -269,7 +268,7 @@ module GeneralDashboardServices
         # Single query for previous period count
         previous_entries_count = FacebookEntry
           .where(posted_at: (start_date - (end_date - start_date))..start_date)
-          .tagged_with(tag_names, any: true)
+          .tagged_with(@tag_names, any: true)
           .count('DISTINCT facebook_entries.id')
         
         {
@@ -283,16 +282,14 @@ module GeneralDashboardServices
 
     def twitter_data
       @twitter_data ||= begin
-        tag_names = topic.tags.pluck(:name)
-        
-        if tag_names.empty?
+        if @tag_names.empty?
           return { count: 0, interactions: 0, reach: 0, trend: 0 }
         end
         
         # Single combined query for all aggregations (more efficient)
         current_stats = TwitterPost
           .where(posted_at: start_date..end_date)
-          .tagged_with(tag_names, any: true)
+          .tagged_with(@tag_names, any: true)
           .pluck(
             Arel.sql('COUNT(DISTINCT twitter_posts.id)'),
             Arel.sql('SUM(favorite_count + retweet_count + reply_count + quote_count)'),
@@ -303,7 +300,7 @@ module GeneralDashboardServices
         # Single query for previous period count
         previous_posts_count = TwitterPost
           .where(posted_at: (start_date - (end_date - start_date))..start_date)
-          .tagged_with(tag_names, any: true)
+          .tagged_with(@tag_names, any: true)
           .count('DISTINCT twitter_posts.id')
         
         posts_count = current_stats[0]
@@ -359,10 +356,15 @@ module GeneralDashboardServices
     def digital_sentiment
       @digital_sentiment ||= begin
         entries = topic.report_entries(start_date, end_date)
-        # Use size instead of count for tagged scopes
-        positive = entries.where(polarity: :positive).size
-        neutral = entries.where(polarity: :neutral).size
-        negative = entries.where(polarity: :negative).size
+        
+        # Single query with GROUP BY instead of 3 separate queries
+        # Use reorder(nil) to remove ORDER BY clause before GROUP BY
+        polarities = entries.reorder(nil).group(:polarity).count
+        
+        # Handle both string and integer polarity values
+        positive = polarities['positive'] || polarities[1] || 0
+        neutral = polarities['neutral'] || polarities[0] || 0
+        negative = polarities['negative'] || polarities[2] || 0
         total = positive + neutral + negative
         
         {
@@ -505,18 +507,20 @@ module GeneralDashboardServices
     end
 
     def market_position
-      # Rank this topic against others
-      all_topics = Topic.active
-      ranked = all_topics.map do |t|
-        service = self.class.new(topic: t, start_date: start_date, end_date: end_date)
-        [t.id, service.send(:total_mentions)]
-      end.sort_by { |_id, count| -count }
-      
-      position = ranked.index { |id, _count| id == topic.id }
+      # PERFORMANCE FIX: Disabled expensive N+1 calculation
+      # The original implementation created a new service instance for EVERY topic,
+      # causing 300+ database queries and taking 10-15 seconds.
+      # 
+      # TODO: Implement batch calculation if market position is needed:
+      # - Use single queries to get mentions for all topics at once
+      # - Group by topic_id and aggregate
+      # - Rank based on aggregated results
+      #
+      # For now, return basic info without expensive ranking
       {
-        rank: position ? position + 1 : nil,
-        total_topics: ranked.size,
-        percentile: position ? ((1 - position.to_f / ranked.size) * 100).round(0) : nil
+        rank: nil,
+        total_topics: Topic.active.count,
+        percentile: nil
       }
     end
 
@@ -619,22 +623,20 @@ module GeneralDashboardServices
     end
 
     def top_facebook_posts
-      tag_names = topic.tags.pluck(:name)
-      return FacebookEntry.none if tag_names.empty?
+      return FacebookEntry.none if @tag_names.empty?
       
       FacebookEntry.where(posted_at: start_date..end_date)
-                   .tagged_with(tag_names, any: true)
+                   .tagged_with(@tag_names, any: true)
                    .order(Arel.sql('reactions_total_count + comments_count + share_count DESC'))
                    .limit(5)
                    .includes(:page) # Eager load to avoid N+1
     end
 
     def top_tweets
-      tag_names = topic.tags.pluck(:name)
-      return TwitterPost.none if tag_names.empty?
+      return TwitterPost.none if @tag_names.empty?
       
       TwitterPost.where(posted_at: start_date..end_date)
-                 .tagged_with(tag_names, any: true)
+                 .tagged_with(@tag_names, any: true)
                  .order(Arel.sql('favorite_count + retweet_count + reply_count + quote_count DESC'))
                  .limit(5)
                  .includes(:twitter_profile) # Eager load to avoid N+1
@@ -851,8 +853,7 @@ module GeneralDashboardServices
 
     def unique_sources_count
       # Optimized counting with DISTINCT at database level
-      tag_names = topic.tags.pluck(:name)
-      return 0 if tag_names.empty?
+      return 0 if @tag_names.empty?
       
       digital_sources = topic.report_entries(start_date, end_date)
                             .joins(:site)
@@ -860,12 +861,12 @@ module GeneralDashboardServices
                             .count('DISTINCT sites.id')
       
       facebook_sources = FacebookEntry.where(posted_at: start_date..end_date)
-                                      .tagged_with(tag_names, any: true)
+                                      .tagged_with(@tag_names, any: true)
                                       .joins(:page)
                                       .count('DISTINCT pages.id')
       
       twitter_sources = TwitterPost.where(posted_at: start_date..end_date)
-                                   .tagged_with(tag_names, any: true)
+                                   .tagged_with(@tag_names, any: true)
                                    .joins(:twitter_profile)
                                    .count('DISTINCT twitter_profiles.id')
       
