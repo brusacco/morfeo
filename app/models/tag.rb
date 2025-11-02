@@ -23,29 +23,50 @@ class Tag < ApplicationRecord
   end
 
   def list_entries
-    tag_list = name
-    result = Entry.search(
-      where: {
-        published_at: { gte: DAYS_RANGE.days.ago },
-        tags: { in: tag_list }
-      },
-      order: { published_at: :desc },
-      fields: ['id'] # Only return the ids to reduce payload
-    )
-    Entry.enabled.where(id: result.map(&:id)).includes(:site, :tags).joins(:site)
+    if ENV['USE_DIRECT_ENTRY_TOPICS'] == 'true'
+      # NEW: Direct database query (faster, no Elasticsearch required)
+      Entry.enabled
+           .includes(:site, :tags)
+           .joins(:site)
+           .where('published_at >= ?', DAYS_RANGE.days.ago)
+           .tagged_with(name)
+           .order(published_at: :desc)
+    else
+      # OLD: Elasticsearch
+      tag_list = name
+      result = Entry.search(
+        where: {
+          published_at: { gte: DAYS_RANGE.days.ago },
+          tags: { in: tag_list }
+        },
+        order: { published_at: :desc },
+        fields: ['id'] # Only return the ids to reduce payload
+      )
+      Entry.enabled.where(id: result.map(&:id)).includes(:site, :tags).joins(:site)
+    end
   end
 
   def title_list_entries
-    tag_list = name
-    result = Entry.search(
-      where: {
-        published_at: { gte: DAYS_RANGE.days.ago },
-        title_tags: { in: tag_list }
-      },
-      order: { published_at: :desc },
-      fields: ['id']
-    )
-    Entry.enabled.where(id: result.map(&:id)).joins(:site)
+    if ENV['USE_DIRECT_ENTRY_TOPICS'] == 'true'
+      # NEW: Direct database query (faster, no Elasticsearch required)
+      Entry.enabled
+           .joins(:site)
+           .where('published_at >= ?', DAYS_RANGE.days.ago)
+           .tagged_with(name, on: :title_tags)
+           .order(published_at: :desc)
+    else
+      # OLD: Elasticsearch
+      tag_list = name
+      result = Entry.search(
+        where: {
+          published_at: { gte: DAYS_RANGE.days.ago },
+          title_tags: { in: tag_list }
+        },
+        order: { published_at: :desc },
+        fields: ['id']
+      )
+      Entry.enabled.where(id: result.map(&:id)).joins(:site)
+    end
   end
 
   private

@@ -65,7 +65,8 @@ class TagController < ApplicationController
     @word_occurrences = @entries.word_occurrences
     @bigram_occurrences = @entries.bigram_occurrences
 
-    polarity_counts = @entries.group(:polarity).count
+    # Remove ORDER BY clause before GROUP BY to avoid MySQL ONLY_FULL_GROUP_BY error
+    polarity_counts = @entries.reorder(nil).group(:polarity).count
     @neutrals = polarity_counts['neutral'] || 0
     @positives = polarity_counts['positive'] || 0
     @negatives = polarity_counts['negative'] || 0
@@ -79,13 +80,15 @@ class TagController < ApplicationController
     @most_interactions = @entries.order(total_count: :desc).limit(20)
 
     @title_entries = @tag.title_list_entries
-    @title_chart_entries = @title_entries.group_by_day(:published_at)
+    # Remove ORDER BY clause before GROUP BY to avoid MySQL ONLY_FULL_GROUP_BY error
+    @title_chart_entries = @title_entries.reorder(nil).group_by_day(:published_at)
     @title_chart_entries_counts = @title_chart_entries.count
     @title_chart_entries_sums = @title_chart_entries.sum(:total_count)
 
-    @site_top_counts = @entries.group('site_id').order(Arel.sql('COUNT(*) DESC')).limit(12).count
-    @site_counts = @entries.group('sites.name').count('*')
-    @site_sums = @entries.group('sites.name').sum(:total_count)
+    # Remove ORDER BY clause before GROUP BY to avoid MySQL ONLY_FULL_GROUP_BY error
+    @site_top_counts = @entries.reorder(nil).group('site_id').order(Arel.sql('COUNT(*) DESC')).limit(12).count
+    @site_counts = @entries.reorder(nil).group('sites.name').count
+    @site_sums = @entries.reorder(nil).group('sites.name').sum(:total_count)
 
     @tags = @entries.tag_counts_on(:tags).where.not(id: @tag.id).order('count desc').limit(50)
 

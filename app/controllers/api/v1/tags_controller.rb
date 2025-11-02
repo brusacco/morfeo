@@ -16,7 +16,13 @@ module Api
       end
 
       def search
-        @tags = Tag.search(params[:q]).order('count desc')
+        if ENV['USE_DIRECT_ENTRY_TOPICS'] == 'true'
+          # NEW: Direct database query (no Elasticsearch required)
+          @tags = Tag.where('name LIKE ?', "%#{params[:q]}%").order('taggings_count DESC')
+        else
+          # OLD: Elasticsearch
+          @tags = Tag.search(params[:q]).order('count desc')
+        end
       end
 
       private

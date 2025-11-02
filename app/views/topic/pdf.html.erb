@@ -428,7 +428,7 @@
             <div class="pdf-chart-card">
               <h3 class="pdf-chart-title">Notas en Títulos por Día</h3>
               <div class="pdf-chart-canvas">
-                <%= column_chart @title_chart_entries.count('*'), xtitle: "Fecha", ytitle: "Cant. Notas en Titulo", label: "Cant. Notas en Titulo", thousands: ".", curve: false, 
+                <%= column_chart @title_chart_entries.count, xtitle: "Fecha", ytitle: "Cant. Notas en Titulo", label: "Cant. Notas en Titulo", thousands: ".", curve: false, 
                       colors: ['blue'], height: "200px", library: {
                       plotOptions: {
                         series: {
@@ -486,7 +486,7 @@
             <div class="pdf-chart-card">
               <h3 class="pdf-chart-title">Notas por Sentimiento</h3>
               <div class="pdf-chart-canvas">
-                <%= column_chart @chart_entries_sentiments.count('*'), xtitle: 'Fecha', ytitle: 'Cant. Notas', thousands: '.', 
+                <%= column_chart @chart_entries_sentiments.count, xtitle: 'Fecha', ytitle: 'Cant. Notas', thousands: '.', 
                       stacked: true, colors: ['red', 'lightgrey', 'lightgreen'], height: "200px", library: {
                       plotOptions: {
                         series: {
@@ -500,7 +500,7 @@
             <div class="pdf-chart-card">
               <h3 class="pdf-chart-title">Interacciones por Sentimiento</h3>
               <div class="pdf-chart-canvas">
-                <%= column_chart @chart_entries_sentiments.sum('total_count'), xtitle: 'Fecha', ytitle: 'Cant. Interacciones', 
+                <%= column_chart @chart_entries_sentiments.sum(:total_count), xtitle: 'Fecha', ytitle: 'Cant. Interacciones', 
                       thousands: '.', stacked: true, colors: ['red', 'lightgrey', 'lightgreen'], height: "200px", library: {
                       plotOptions: {
                         series: {
@@ -558,7 +558,7 @@
             <div class="pdf-chart-card">
               <h3 class="pdf-chart-title">Notas por Medio</h3>
               <div class="pdf-chart-canvas">
-                <%= pie_chart @entries.group("sites.name").count('*'), donut: true, height: "200px" %>
+                <%= pie_chart @entries.reorder(nil).group("sites.name").count, donut: true, height: "200px" %>
               </div>
             </div>
           </div>
@@ -574,7 +574,7 @@
         <!-- Top Media Sources -->
         <h3>Medios que Más Han Mencionado</h3>
         <div class="pdf-media-list">
-          <% @entries.group("sites.id").count('*').sort_by { |site, count| -count }.take(12).each do |site_id, count| %>
+          <% @entries.reorder(nil).group("sites.id").count.sort_by { |site, count| -count }.take(12).each do |site_id, count| %>
             <% site = Site.find(site_id) %>
             <div class="pdf-media-item">
               <div class="pdf-media-name"><%=site.name%></div>

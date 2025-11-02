@@ -28,7 +28,8 @@ class TemplatesController < ApplicationController
     # Precompute pluck values to avoid SQL queries in views
     @top_entries_counts = @top_entries.pluck(:total_count)
 
-    @chart_entries = @entries.group_by_day(:published_at)
+    # Remove ORDER BY clause before GROUP BY to avoid MySQL ONLY_FULL_GROUP_BY error
+    @chart_entries = @entries.reorder(nil).group_by_day(:published_at)
     @total_entries = @entries.size
     @total_interactions = @entries.sum(&:total_count)
 
@@ -47,7 +48,7 @@ class TemplatesController < ApplicationController
     @negatives = polarity_counts['negative'] || 0
 
     # Medios
-    @top_sites = @entries.group('sites.name').count('*').sort_by { |_, v| -v }
+    @top_sites = @entries.reorder(nil).group('sites.name').count.sort_by { |_, v| -v }
                          .first(3)
     @top_sites_interactions = @entries.group('sites.name').sum(:total_count).sort_by { |_, v| -v }
                                       .first(3)
@@ -70,7 +71,7 @@ class TemplatesController < ApplicationController
       @all_intereactions_percentage = (Float(@other_entries_interactions) / total_interactions_count * 100).round(1)
     end
 
-    polarities_entries_counts = @entries.where.not(polarity: nil).group(:polarity).count('*').sort_by do |key, _value|
+    polarities_entries_counts = @entries.where.not(polarity: nil).reorder(nil).group(:polarity).count.sort_by do |key, _value|
       key
     end
 .to_h

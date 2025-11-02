@@ -70,7 +70,7 @@
         { icon: '→', color: '#6b7280', text: "El sentimiento es mayormente neutral (#{neutral_pct}%), indicando una percepción balanceada" }
       end
       
-      top_site = @entries.group("sites.name").count('*').max_by { |_k, v| v } rescue nil
+      top_site = @entries.reorder(nil).group("sites.name").count.max_by { |_k, v| v } rescue nil
       top_entry = @most_interactions&.first
       
       key_findings = [sentiment_finding]
@@ -332,7 +332,7 @@
             <div class="pdf-chart-card">
               <h3 class="pdf-chart-title">Notas por Medio</h3>
               <div class="pdf-chart-canvas">
-                <%= pie_chart @entries.group("sites.name").count('*'), donut: true, height: "200px", colors: ['#1e40af', '#059669', '#d97706', '#7c3aed', '#0ea5e9', '#dc2626'] %>
+                <%= pie_chart @entries.reorder(nil).group("sites.name").count, donut: true, height: "200px", colors: ['#1e40af', '#059669', '#d97706', '#7c3aed', '#0ea5e9', '#dc2626'] %>
               </div>
             </div>
           </div>
@@ -349,7 +349,7 @@
         <!-- Top Media Sources -->
         <h3 style="margin-top: 24pt;">Medios que Más Han Mencionado</h3>
         <div class="pdf-media-list">
-          <% @entries.group("sites.id").count('*').sort_by { |site, count| -count }.take(12).each do |site_id, count| %>
+          <% @entries.reorder(nil).group("sites.id").count.sort_by { |site, count| -count }.take(12).each do |site_id, count| %>
             <% site = Site.find(site_id) rescue next %>
             <div class="pdf-media-item">
               <div class="pdf-media-name"><%=site.name%></div>

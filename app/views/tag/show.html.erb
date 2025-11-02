@@ -249,7 +249,7 @@
               data-tags-id-value='entryQuantitiesChart'
               data-tags-url-value='<%= entries_data_tags_path %>'
               data-tags-tag-id-value='<%= @tag.id %>'>
-            <%= column_chart @entries.group_by_day(:published_at).count, xtitle: "Fecha", ytitle: "Cant. Notas", label: "Notas", thousands: ".", curve: false, 
+            <%= column_chart @entries.reorder(nil).group_by_day(:published_at).count, xtitle: "Fecha", ytitle: "Cant. Notas", label: "Notas", thousands: ".", curve: false, 
                     adapter: 'highcharts', id: 'entryQuantitiesChart', colors: ['#3B82F6'], library: {
                     plotOptions: {
                       series: {
@@ -277,7 +277,7 @@
               data-tags-id-value='entryInteractionsChart'
               data-tags-url-value='<%= entries_data_tags_path %>'
               data-tags-tag-id-value='<%= @tag.id %>'>
-            <%= column_chart @entries.group_by_day(:published_at).sum(:total_count), xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones", thousands: ".", curve: false, 
+            <%= column_chart @entries.reorder(nil).group_by_day(:published_at).sum(:total_count), xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones", thousands: ".", curve: false, 
                     adapter: 'highcharts', id: 'entryInteractionsChart', colors: ['#10B981'], library: {
                     plotOptions: {
                       series: {
@@ -446,13 +446,13 @@
           <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow w-full">
             <h3 class="text-lg font-medium text-gray-900 mb-4">Cantidad de Notas por Sentimiento</h3>
             <div class='w-full overflow-hidden'>
-              <%= area_chart @entries.where.not(polarity: nil).group(:polarity).group_by_day(:published_at).count('*').sort_by { |key, _value| key }.to_h, xtitle: "Fecha", ytitle: "Cant. Notas", label: "Notas", stacked: false, curve: false, colors: ["#EF4444", "#9CA3AF", '#10B981'] %>
+              <%= area_chart @entries.where.not(polarity: nil).reorder(nil).group(:polarity).group_by_day(:published_at).count.sort_by { |key, _value| key }.to_h, xtitle: "Fecha", ytitle: "Cant. Notas", label: "Notas", stacked: false, curve: false, colors: ["#EF4444", "#9CA3AF", '#10B981'] %>
             </div>
           </div>
           <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow w-full">
             <h3 class="text-lg font-medium text-gray-900 mb-4">Cantidad de Interacciones por Sentimiento</h3>
             <div class='w-full overflow-hidden'>
-              <%= area_chart @entries.where.not(polarity: nil).group(:polarity).group_by_day(:published_at).sum('total_count').sort_by { |key, _value| key }.to_h, xtitle: "Fecha", ytitle: "Cant. Interacciones", label: "Interacciones", stacked: false, curve: false, colors: ["#EF4444", "#9CA3AF", '#10B981'] %>
+              <%= area_chart @entries.where.not(polarity: nil).reorder(nil).group(:polarity).group_by_day(:published_at).sum(:total_count).sort_by { |key, _value| key }.to_h, xtitle: "Fecha", ytitle: "Cant. Interacciones", label: "Interacciones", stacked: false, curve: false, colors: ["#EF4444", "#9CA3AF", '#10B981'] %>
             </div>
           </div>
         </div>
@@ -467,13 +467,13 @@
           <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow w-full">
             <h3 class="text-lg font-medium text-gray-900 mb-4">Cantidad de Notas por Sentimiento</h3>
             <div class='w-full overflow-hidden'>
-              <%= pie_chart polarity_percentages(@entries.where.not(polarity: nil).group(:polarity).count('*').sort_by { |key, _value| key }.to_h), colors: ["#EF4444", "#9CA3AF", '#10B981'], donut: true, suffix: "%" %>
+              <%= pie_chart polarity_percentages(@entries.where.not(polarity: nil).reorder(nil).group(:polarity).count.sort_by { |key, _value| key }.to_h), colors: ["#EF4444", "#9CA3AF", '#10B981'], donut: true, suffix: "%" %>
             </div>
           </div>
           <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow w-full">
             <h3 class="text-lg font-medium text-gray-900 mb-4">Cantidad de Interacciones por Sentimiento</h3>
             <div class='w-full overflow-hidden'>
-              <%= pie_chart polarity_percentages(@entries.where.not(polarity: nil).group(:polarity).sum('total_count').sort_by { |key, _value| key }.to_h), colors: ["#EF4444", "#9CA3AF", '#10B981'], donut: true, suffix: "%" %>
+              <%= pie_chart polarity_percentages(@entries.where.not(polarity: nil).reorder(nil).group(:polarity).sum(:total_count).sort_by { |key, _value| key }.to_h), colors: ["#EF4444", "#9CA3AF", '#10B981'], donut: true, suffix: "%" %>
             </div>
           </div>
         </div>

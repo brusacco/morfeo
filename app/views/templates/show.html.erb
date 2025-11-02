@@ -20,7 +20,7 @@
   <!-- Grafico 1 -->
   <div class="mx-auto w-full max-w-3xl bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
     <h2 class="text-lg font-semibold text-gray-700 mb-2">Notas x DIA</h2>
-    <%= line_chart @chart_entries.count('*'), 
+    <%= line_chart @chart_entries.count, 
         label: "Cant. Notas", 
         thousands: ".", 
         curve: false, 
@@ -183,7 +183,7 @@
   <div class="mx-auto w-full max-w-3xl bg-gray-100 border border-gray-200 rounded p-2 shadow print:bg-white">
     <h2 class="text-lg font-semibold text-gray-700 mb-2">Notas x Medio</h2>
     <div id="chart-5">
-      <%= pie_chart @entries.group("sites.name").count('*'), donut: true, 
+      <%= pie_chart @entries.reorder(nil).group("sites.name").count, donut: true, 
             library: {
               #chart: { height: 350 },
               plotOptions: {

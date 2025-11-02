@@ -7,8 +7,8 @@
 </nav>
 
 <h3>Análisis de los últimos 30 días</h3>
-<%= column_chart @entries.a_month_ago.group_by_day(:published_at).count, xtitle: "Fecha", ytitle: "Cant. Notas", label: "Notas", colors: ['blue'] %>
-<%= column_chart @entries.a_month_ago.group_by_day(:published_at).sum(:total_count), xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones", colors: ['green']%>
+<%= column_chart @entries.a_month_ago.reorder(nil).group_by_day(:published_at).count, xtitle: "Fecha", ytitle: "Cant. Notas", label: "Notas", colors: ['blue'] %>
+<%= column_chart @entries.a_month_ago.reorder(nil).group_by_day(:published_at).sum(:total_count), xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones", colors: ['green']%>
 
 <hr>
 
@@ -16,11 +16,11 @@
   <div class="row">
     <div class="col">
     <h3>Cantidad de Notas por medio</h3>
-      <%= pie_chart @entries.group("sites.name").count, donut: true %>
+      <%= pie_chart @entries.reorder(nil).group("sites.name").count, donut: true %>
     </div>
     <div class="col">
       <h3>Cantidad de Interacciones por medio</h3>    
-      <%= pie_chart @entries.group("sites.name").sum(:total_count), donut: true %>
+      <%= pie_chart @entries.reorder(nil).group("sites.name").sum(:total_count), donut: true %>
     </div>
   </div>
 </div>
