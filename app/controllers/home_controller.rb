@@ -108,18 +108,28 @@ class HomeController < ApplicationController
                                        .group('topics.name').order('sum_topic_stat_dailies_entry_count DESC').limit(10)
                                        .sum('topic_stat_dailies.entry_count')
 
-    # Tags Cloud - Using exact same method as topic pages for accuracy
-    all_entry_ids = []
-    @topicos.each do |topic|
-      # Use the exact same method as topic controller
-      topic_entries = topic.list_entries
-      all_entry_ids.concat(topic_entries.pluck(:id))
+    # Tags Cloud - Using direct associations for optimal performance
+    # Single query instead of N+1 (one query per topic)
+    if ENV['USE_DIRECT_ENTRY_TOPICS'] == 'true'
+      # NEW: Use direct associations (single query for all topics)
+      combined_entries = Entry.joins(:entry_topics, :site)
+                              .where(entry_topics: { topic_id: @topicos.pluck(:id) })
+                              .where(published_at: DAYS_RANGE.days.ago.beginning_of_day..Time.zone.now.end_of_day)
+                              .where(enabled: true)
+                              .distinct
+      @word_occurrences = combined_entries.word_occurrences
+    else
+      # OLD: Fallback to old method (N+1 queries)
+      all_entry_ids = []
+      @topicos.each do |topic|
+        topic_entries = topic.list_entries
+        all_entry_ids.concat(topic_entries.pluck(:id))
+      end
+      
+      unique_entry_ids = all_entry_ids.uniq
+      combined_entries = Entry.where(id: unique_entry_ids).joins(:site)
+      @word_occurrences = combined_entries.word_occurrences
     end
-
-    # Remove duplicates and create the same type of relation as topic pages
-    unique_entry_ids = all_entry_ids.uniq
-    combined_entries = Entry.where(id: unique_entry_ids).joins(:site)
-    @word_occurrences = combined_entries.word_occurrences
 
     @positive_words = @topicos.all.map(&:positive_words).flatten.join(',')
     @negative_words = @topicos.all.map(&:negative_words).flatten.join(',')
