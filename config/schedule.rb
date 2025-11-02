@@ -2,6 +2,11 @@
 
 set :environment, 'production'
 
+# Cache warming - runs every 30 minutes to keep dashboard fast
+every 30.minutes do
+  rake 'cache:warm'
+end
+
 every :hour do
   rake 'crawler'
   # rake 'headless_crawler'

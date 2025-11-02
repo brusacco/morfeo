@@ -37,48 +37,56 @@ class Tag < ApplicationRecord
   end
 
   def list_entries
-    if ENV['USE_DIRECT_ENTRY_TOPICS'] == 'true'
-      # NEW: Use direct association through taggings (much faster!)
-      # This avoids the overhead of acts_as_taggable_on's .tagged_with() method
-      entries.enabled
-             .includes(:site, :tags)
-             .joins(:site)
-             .where('entries.published_at >= ?', DAYS_RANGE.days.ago)
-             .order('entries.published_at DESC')
-    else
-      # OLD: Elasticsearch
-      tag_list = name
-      result = Entry.search(
-        where: {
-          published_at: { gte: DAYS_RANGE.days.ago },
-          tags: { in: tag_list }
-        },
-        order: { published_at: :desc },
-        fields: ['id'] # Only return the ids to reduce payload
-      )
-      Entry.enabled.where(id: result.map(&:id)).includes(:site, :tags).joins(:site)
+    cache_key = "tag_#{id}_list_entries_#{ENV['USE_DIRECT_ENTRY_TOPICS'] == 'true' ? 'v2' : 'v1'}"
+    
+    Rails.cache.fetch(cache_key, expires_in: 30.minutes) do
+      if ENV['USE_DIRECT_ENTRY_TOPICS'] == 'true'
+        # NEW: Use direct association through taggings (much faster!)
+        # This avoids the overhead of acts_as_taggable_on's .tagged_with() method
+        entries.enabled
+               .includes(:site, :tags)
+               .joins(:site)
+               .where('entries.published_at >= ?', DAYS_RANGE.days.ago)
+               .order('entries.published_at DESC')
+      else
+        # OLD: Elasticsearch
+        tag_list = name
+        result = Entry.search(
+          where: {
+            published_at: { gte: DAYS_RANGE.days.ago },
+            tags: { in: tag_list }
+          },
+          order: { published_at: :desc },
+          fields: ['id'] # Only return the ids to reduce payload
+        )
+        Entry.enabled.where(id: result.map(&:id)).includes(:site, :tags).joins(:site)
+      end
     end
   end
 
   def title_list_entries
-    if ENV['USE_DIRECT_ENTRY_TOPICS'] == 'true'
-      # NEW: Use direct association through taggings (much faster!)
-      title_entries.enabled
-                   .joins(:site)
-                   .where('entries.published_at >= ?', DAYS_RANGE.days.ago)
-                   .order('entries.published_at DESC')
-    else
-      # OLD: Elasticsearch
-      tag_list = name
-      result = Entry.search(
-        where: {
-          published_at: { gte: DAYS_RANGE.days.ago },
-          title_tags: { in: tag_list }
-        },
-        order: { published_at: :desc },
-        fields: ['id']
-      )
-      Entry.enabled.where(id: result.map(&:id)).joins(:site)
+    cache_key = "tag_#{id}_title_list_entries_#{ENV['USE_DIRECT_ENTRY_TOPICS'] == 'true' ? 'v2' : 'v1'}"
+    
+    Rails.cache.fetch(cache_key, expires_in: 30.minutes) do
+      if ENV['USE_DIRECT_ENTRY_TOPICS'] == 'true'
+        # NEW: Use direct association through taggings (much faster!)
+        title_entries.enabled
+                     .joins(:site)
+                     .where('entries.published_at >= ?', DAYS_RANGE.days.ago)
+                     .order('entries.published_at DESC')
+      else
+        # OLD: Elasticsearch
+        tag_list = name
+        result = Entry.search(
+          where: {
+            published_at: { gte: DAYS_RANGE.days.ago },
+            title_tags: { in: tag_list }
+          },
+          order: { published_at: :desc },
+          fields: ['id']
+        )
+        Entry.enabled.where(id: result.map(&:id)).joins(:site)
+      end
     end
   end
 
