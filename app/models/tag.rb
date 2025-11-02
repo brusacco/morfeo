@@ -5,6 +5,20 @@ class Tag < ApplicationRecord
   accepts_nested_attributes_for :topics
 
   has_many :taggings, dependent: :destroy
+  
+  # NEW: Direct entry associations through taggings (optimized query)
+  # This provides a faster alternative to .tagged_with() for performance-critical queries
+  has_many :entries, -> { where(taggings: { taggable_type: 'Entry', context: 'tags' }) },
+           through: :taggings,
+           source: :taggable,
+           source_type: 'Entry'
+  
+  has_many :title_entries, -> { where(taggings: { taggable_type: 'Entry', context: 'title_tags' }) },
+           through: :taggings,
+           source: :taggable,
+           source_type: 'Entry',
+           class_name: 'Entry'
+  
   validates :name, uniqueness: true
 
   after_create :tag_entries
@@ -24,13 +38,13 @@ class Tag < ApplicationRecord
 
   def list_entries
     if ENV['USE_DIRECT_ENTRY_TOPICS'] == 'true'
-      # NEW: Direct database query (faster, no Elasticsearch required)
-      Entry.enabled
-           .includes(:site, :tags)
-           .joins(:site)
-           .where('published_at >= ?', DAYS_RANGE.days.ago)
-           .tagged_with(name)
-           .order(published_at: :desc)
+      # NEW: Use direct association through taggings (much faster!)
+      # This avoids the overhead of acts_as_taggable_on's .tagged_with() method
+      entries.enabled
+             .includes(:site, :tags)
+             .joins(:site)
+             .where('entries.published_at >= ?', DAYS_RANGE.days.ago)
+             .order('entries.published_at DESC')
     else
       # OLD: Elasticsearch
       tag_list = name
@@ -48,12 +62,11 @@ class Tag < ApplicationRecord
 
   def title_list_entries
     if ENV['USE_DIRECT_ENTRY_TOPICS'] == 'true'
-      # NEW: Direct database query (faster, no Elasticsearch required)
-      Entry.enabled
-           .joins(:site)
-           .where('published_at >= ?', DAYS_RANGE.days.ago)
-           .tagged_with(name, on: :title_tags)
-           .order(published_at: :desc)
+      # NEW: Use direct association through taggings (much faster!)
+      title_entries.enabled
+                   .joins(:site)
+                   .where('entries.published_at >= ?', DAYS_RANGE.days.ago)
+                   .order('entries.published_at DESC')
     else
       # OLD: Elasticsearch
       tag_list = name
