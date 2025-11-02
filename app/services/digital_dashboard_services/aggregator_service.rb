@@ -96,12 +96,13 @@ module DigitalDashboardServices
     def calculate_site_data(entries)
       # Cache site queries for better performance
       # Use reorder(nil) to remove ORDER BY before GROUP BY
+      # Use distinct to avoid counting duplicate rows from joins
       site_counts = Rails.cache.fetch("topic_#{@topic.id}_site_counts_#{Date.current}", expires_in: CACHE_EXPIRATION) do
-        entries.reorder(nil).group('sites.name').count
+        entries.distinct.reorder(nil).group('sites.name').count
       end
       
       site_sums = Rails.cache.fetch("topic_#{@topic.id}_site_sums_#{Date.current}", expires_in: CACHE_EXPIRATION) do
-        entries.reorder(nil).group('sites.name').sum(:total_count)
+        entries.distinct.reorder(nil).group('sites.name').sum(:total_count)
       end
 
       {
@@ -240,11 +241,12 @@ module DigitalDashboardServices
 
     def load_tag_analysis(entries)
       # Optimized tag query with single join
+      # Use distinct to avoid duplicate counts from entry_topics join
       tags = Tag.joins(:taggings)
                 .where(taggings: {
                          taggable_type: Entry.base_class.name,
                          context: 'tags',
-                         taggable_id: entries.select(:id)
+                         taggable_id: entries.distinct.select(:id)
                        })
                 .group('tags.id', 'tags.name')
                 .order(Arel.sql('COUNT(DISTINCT taggings.taggable_id) DESC'))
@@ -253,14 +255,17 @@ module DigitalDashboardServices
 
       # Batch tag interactions query
       tags_interactions = Entry.joins(:tags)
-                               .where(id: entries.select(:id), tags: { id: tags.map(&:id) })
+                               .where(id: entries.distinct.select(:id), tags: { id: tags.map(&:id) })
                                .group('tags.name')
                                .sum(:total_count)
 
       tags_count = tags.each_with_object({}) { |tag, hash| hash[tag.name] = tag.count }
 
-      # Top sites - remove ORDER BY before GROUP BY
-      site_top_counts = entries.reorder(nil).group('site_id').order(Arel.sql('COUNT(*) DESC')).limit(12).count
+      # Convert site_counts (by name) to site_top_counts (by id) for view compatibility
+      # View expects { site_id => count } format
+      site_name_counts = topic_data[:site_counts].sort_by { |_, count| -count }.first(12).to_h
+      site_id_map = Site.where(name: site_name_counts.keys).pluck(:name, :id).to_h
+      site_top_counts = site_name_counts.transform_keys { |name| site_id_map[name] }.compact
 
       {
         tags: tags,

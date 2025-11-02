@@ -63,15 +63,14 @@ module DigitalDashboardServices
     def load_topic_data
       return empty_topic_data if @tag_names.empty?
 
-      # Single base query with all necessary includes
-      base_entries = Entry.enabled
-                          .normal_range
-                          .tagged_with(@tag_names, any: true)
+      # Use direct association (optimized with entry_topics)
+      # This matches the aggregator service pattern for consistency
+      base_entries = @topic.report_entries(@start_date, @end_date)
                           .includes(:tags, :site)
 
-      # Execute aggregations in parallel using multiple queries (more efficient than N+1)
-      entries_count = base_entries.distinct.count(:id)
-      entries_total_sum = base_entries.sum(:total_count)
+      # Execute aggregations with DISTINCT to avoid duplicate counts
+      entries_count = base_entries.distinct.count
+      entries_total_sum = base_entries.distinct.sum(:total_count)
       
       # Batch polarity queries
       polarity_data = calculate_polarity_data(base_entries)
@@ -92,9 +91,10 @@ module DigitalDashboardServices
     end
 
     def calculate_polarity_data(entries)
-      base_query = entries.reorder(nil)
+      # Use distinct to avoid counting duplicate rows from joins
+      base_query = entries.distinct.reorder(nil)
       
-      polarity_counts_raw = base_query.group(:polarity).distinct.count(:id)
+      polarity_counts_raw = base_query.group(:polarity).count
       polarity_sums_raw = base_query.group(:polarity).sum(:total_count)
 
       {
@@ -104,9 +104,10 @@ module DigitalDashboardServices
     end
 
     def calculate_site_data(entries)
-      base_query = entries.reorder(nil).group('sites.name')
+      # Use distinct to avoid counting duplicate rows from joins
+      base_query = entries.distinct.reorder(nil).group('sites.name')
       
-      site_counts = base_query.distinct.count(:id)
+      site_counts = base_query.count
       site_sums = base_query.sum(:total_count)
       site_top_counts = site_counts.sort_by { |_, count| -count }.first(10).to_h
 
@@ -227,8 +228,9 @@ module DigitalDashboardServices
       tags = @topic.tags.to_a
       return empty_tag_data if tags.empty?
 
-      # Pre-load entries by tag in single query
-      entries_by_tag = entries.group_by { |entry| (entry.tags.pluck(:name) & @tag_names).first }.compact
+      # Pre-load entries by tag in single pass
+      # Use .map(&:name) instead of .pluck(:name) to use preloaded associations
+      entries_by_tag = entries.group_by { |entry| (entry.tags.map(&:name) & @tag_names).first }.compact
 
       tags_interactions = {}
       tags_count = {}
