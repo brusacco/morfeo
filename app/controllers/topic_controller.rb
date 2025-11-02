@@ -7,7 +7,7 @@ class TopicController < ApplicationController
   before_action :set_topic, only: [:show, :pdf, :comments, :history]
   before_action :authorize_topic_access!, only: [:show, :pdf]
 
-  # caches_action :show, expires_in: 1.hour
+  caches_action :show, expires_in: 30.minutes
 
   def entries_data
     topic_id = params[:topic_id]

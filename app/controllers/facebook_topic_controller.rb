@@ -12,7 +12,7 @@ class FacebookTopicController < ApplicationController
   TOP_POSTS_PDF_LIMIT = 10
   TAG_LIMIT = 20
   SITE_LIMIT = 12
-  CACHE_DURATION = 1.hour
+  CACHE_DURATION = 30.minutes
 
   caches_action :show, :pdf, expires_in: CACHE_DURATION,
                 cache_path: proc { |c| { topic_id: c.params[:id], user_id: c.current_user.id } }
