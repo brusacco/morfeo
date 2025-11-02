@@ -64,23 +64,20 @@ module DigitalDashboardServices
 
     def calculate_entry_aggregations(entries)
       # Precompute aggregates to avoid multiple SQL queries
-      entries_count = entries.size
-      entries_total_sum = entries.sum(:total_count)
+      # IMPORTANT: Use distinct to avoid counting duplicates from joins
+      entries_count = entries.distinct.count
+      entries_total_sum = entries.distinct.sum(:total_count)
 
       # Combine polarity aggregations into a single query
       # Use reorder(nil) to remove any existing ORDER BY before GROUP BY
+      # Use DISTINCT to avoid duplicate rows from joins
       polarity_data = entries
                        .where.not(polarity: nil)
                        .reorder(nil)
                        .group(:polarity)
-                       .pluck(
-                         :polarity,
-                         Arel.sql('COUNT(*)'),
-                         Arel.sql('SUM(entries.total_count)')
-                       )
-                       .each_with_object({}) do |(polarity, count, sum), hash|
-                         hash[polarity] = { count: count, sum: sum }
-                       end
+                       .select('polarity, COUNT(DISTINCT entries.id) as count, SUM(DISTINCT entries.total_count) as sum')
+                       .map { |row| [row.polarity, { count: row.count, sum: row.sum }] }
+                       .to_h
 
       # Extract counts and sums from the combined data
       entries_polarity_counts = polarity_data.transform_values { |v| v[:count] }
