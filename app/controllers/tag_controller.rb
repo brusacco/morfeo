@@ -1,7 +1,17 @@
 # frozen_string_literal: true
 
 class TagController < ApplicationController
+  include TagAuthorizable
+  
   before_action :authenticate_user!
+  before_action :set_tag, only: [:show, :comments, :report]
+  before_action :authorize_tag_access!, only: [:show, :comments, :report]
+
+  # Constants
+  CACHE_DURATION = 30.minutes
+
+  caches_action :show, :report, expires_in: CACHE_DURATION,
+                cache_path: proc { |c| { tag_id: c.params[:id], user_id: c.current_user.id } }
 
   def entries_data
     tag_id = params[:tag_id]
@@ -53,7 +63,8 @@ class TagController < ApplicationController
   end
 
   def show
-    @tag = Tag.find(params[:id])
+    # @tag is set by set_tag before_action
+    # Authorization checked by authorize_tag_access!
     @entries = @tag.list_entries.includes(:site, :tags)
 
     @total_entries = @entries.size
@@ -105,7 +116,8 @@ class TagController < ApplicationController
   end
 
   def comments
-    @tag = Tag.find(params[:id])
+    # @tag is set by set_tag before_action
+    # Authorization checked by authorize_tag_access!
     @entries = Entry.enabled.includes(:site, :tags).normal_range.joins(:site).tagged_with(@tag.name).has_image.order(published_at: :desc)
 
     @comments = Comment.where(entry_id: @entries.select(:id)).order(created_time: :desc)
@@ -116,7 +128,8 @@ class TagController < ApplicationController
   end
 
   def report
-    @tag = Tag.find(params[:id])
+    # @tag is set by set_tag before_action
+    # Authorization checked by authorize_tag_access!
     @entries = Entry.enabled.includes(:site, :tags).normal_range.joins(:site).tagged_with(@tag.name).has_image.order(published_at: :desc)
     @tags = @entries.tag_counts_on(:tags).order('count desc').limit(20)
 
@@ -138,6 +151,12 @@ class TagController < ApplicationController
   end
 
   private
+
+  def set_tag
+    @tag = Tag.find(params[:id])
+  rescue ActiveRecord::RecordNotFound
+    redirect_to root_path, alert: 'Tag no encontrado.'
+  end
 
   def safe_percentage(numerator, denominator)
     denominator.positive? ? (Float(numerator) / denominator * 100).round(0) : 0
