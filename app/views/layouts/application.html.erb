@@ -7,6 +7,10 @@
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     
+    <!-- Favicons -->
+    <%= favicon_link_tag asset_path('moopio-logo.png'), type: 'image/png' %>
+    <%= favicon_link_tag asset_path('moopio-logo.png'), rel: 'apple-touch-icon', type: 'image/png' %>
+    
     <!-- Alpine.js - Load early to prevent FOUC -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     
