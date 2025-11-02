@@ -77,7 +77,21 @@ if new_entries_count > 0
   samples.each do |entry|
     tags_str = entry.tag_list.any? ? entry.tag_list.join(', ') : 'No tags'
     assoc = entry.entry_topics.count
-    status = assoc > 0 ? '✅ Synced' : (entry.tag_list.any? ? '⚠️ Not synced' : 'ℹ️  No tags')
+    
+    # Determine status
+    if assoc > 0
+      status = '✅ Synced with topics'
+    elsif entry.tag_list.any?
+      # Check if tags COULD match any topic
+      matching_topics = Topic.joins(:tags).where(tags: { name: entry.tag_list }).distinct.count
+      if matching_topics > 0
+        status = '⚠️ Has matching topics but not synced!'
+      else
+        status = 'ℹ️  No matching topics (expected)'
+      end
+    else
+      status = 'ℹ️  No tags'
+    end
     
     puts ''
     puts "  ID: #{entry.id}"
