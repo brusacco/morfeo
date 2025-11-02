@@ -10,9 +10,12 @@ class EntryController < ApplicationController
   SEARCH_LIMIT = 50
   CACHE_DURATION = 1.hour
 
-  caches_action :popular, expires_in: CACHE_DURATION
-  caches_action :commented, expires_in: CACHE_DURATION
-  caches_action :week, expires_in: CACHE_DURATION
+  caches_action :popular, expires_in: CACHE_DURATION,
+                cache_path: proc { |c| { user_id: c.current_user.id } }
+  caches_action :commented, expires_in: CACHE_DURATION,
+                cache_path: proc { |c| { user_id: c.current_user.id } }
+  caches_action :week, expires_in: CACHE_DURATION,
+                cache_path: proc { |c| { user_id: c.current_user.id } }
   
   def show
     # Renders default template - no additional logic needed

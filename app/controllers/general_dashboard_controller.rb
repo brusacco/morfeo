@@ -9,7 +9,8 @@ class GeneralDashboardController < ApplicationController
   before_action :set_topic
   before_action :authorize_topic_access!, only: [:show, :pdf]
 
-  caches_action :show, :pdf, expires_in: 30.minutes
+  caches_action :show, :pdf, expires_in: 30.minutes,
+                cache_path: proc { |c| { topic_id: c.params[:id], user_id: c.current_user.id } }
 
   def show
     @start_date = start_date
