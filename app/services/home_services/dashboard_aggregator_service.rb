@@ -129,12 +129,14 @@ module HomeServices
 
       base_scope = -> { Entry.enabled.where(published_at: @start_date..@end_date).tagged_with(tag_names, any: true) }
 
-      mentions = base_scope.call.distinct.count(:id)
-      interactions = base_scope.call.sum(:total_count)
+      # Use distinct to avoid duplicate counts from polymorphic joins
+      mentions = base_scope.call.count('DISTINCT entries.id')
+      interactions = base_scope.call.distinct.sum(:total_count)
       reach = interactions * DIGITAL_REACH_MULTIPLIER
       prev_interactions = Entry.enabled
                                .where(published_at: (@start_date - @days_range.days)..@start_date)
                                .tagged_with(tag_names, any: true)
+                               .distinct
                                .sum(:total_count)
 
       {
@@ -153,11 +155,13 @@ module HomeServices
       base_scope = -> { FacebookEntry.where(posted_at: @start_date..@end_date).tagged_with(tag_names, any: true) }
       interaction_sql = Arel.sql('reactions_total_count + comments_count + share_count')
 
-      mentions = base_scope.call.distinct.count(:id)
-      interactions = base_scope.call.sum(interaction_sql)
-      reach = base_scope.call.sum(:views_count) # Actual API data
+      # Use distinct to avoid duplicate counts from polymorphic joins
+      mentions = base_scope.call.count('DISTINCT facebook_entries.id')
+      interactions = base_scope.call.distinct.sum(interaction_sql)
+      reach = base_scope.call.distinct.sum(:views_count) # Actual API data
       prev_interactions = FacebookEntry.where(posted_at: (@start_date - @days_range.days)..@start_date)
                                       .tagged_with(tag_names, any: true)
+                                      .distinct
                                       .sum(interaction_sql)
 
       {
@@ -176,12 +180,14 @@ module HomeServices
       base_scope = -> { TwitterPost.where(posted_at: @start_date..@end_date).tagged_with(tag_names, any: true) }
       interaction_sql = Arel.sql('favorite_count + retweet_count + reply_count + quote_count')
 
-      mentions = base_scope.call.distinct.count(:id)
-      interactions = base_scope.call.sum(interaction_sql)
-      views = base_scope.call.sum(:views_count)
+      # Use distinct to avoid duplicate counts from polymorphic joins
+      mentions = base_scope.call.count('DISTINCT twitter_posts.id')
+      interactions = base_scope.call.distinct.sum(interaction_sql)
+      views = base_scope.call.distinct.sum(:views_count)
       reach = views > 0 ? views : interactions * TWITTER_REACH_FALLBACK
       prev_interactions = TwitterPost.where(posted_at: (@start_date - @days_range.days)..@start_date)
                                      .tagged_with(tag_names, any: true)
+                                     .distinct
                                      .sum(interaction_sql)
 
       {
