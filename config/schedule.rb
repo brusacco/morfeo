@@ -2,8 +2,8 @@
 
 set :environment, 'production'
 
-# Cache warming - runs every 30 minutes to keep dashboard fast
-every 30.minutes do
+# Cache warming - runs every 10 minutes to keep dashboard fast
+every 10.minutes do
   rake 'cache:warm'
 end
 

@@ -160,6 +160,9 @@ class HomeController < ApplicationController
 
       # Restart the Puma server
       system('touch tmp/restart.txt')
+
+      # Update cron jobs
+      system('whenever -i')
     end
 
     render plain: 'Deployment complete!'
