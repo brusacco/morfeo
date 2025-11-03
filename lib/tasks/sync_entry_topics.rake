@@ -10,6 +10,7 @@ namespace :entries do
     total_entries = 0
     synced_entries = 0
     failed_entries = 0
+    DAYS_RANGE = 60
     
     # Process entries in batches for better memory usage
     Entry.enabled.where(published_at: DAYS_RANGE.days.ago..Time.current).find_in_batches(batch_size: 500) do |batch|
