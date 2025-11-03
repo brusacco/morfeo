@@ -9,7 +9,7 @@ module DigitalDashboardServices
   #   data[:topic_data][:total_entries]  # => Total entries count
   class AggregatorService < ApplicationService
     # Cache expiration time for dashboard data
-    CACHE_EXPIRATION = 1.hour
+    CACHE_EXPIRATION = 30.minutes
     
     def initialize(topic:, days_range: DAYS_RANGE)
       @topic = topic

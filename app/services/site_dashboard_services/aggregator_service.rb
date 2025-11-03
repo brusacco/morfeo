@@ -4,7 +4,7 @@ module SiteDashboardServices
   # Service for aggregating site dashboard data
   # Optimized for performance with caching and limiting
   class AggregatorService < ApplicationService
-    CACHE_EXPIRATION = 1.hour
+    CACHE_EXPIRATION = 30.minutes
     MAX_ENTRIES_FOR_TEXT_ANALYSIS = 500 # Limit to prevent slow analysis
 
     def initialize(site:)

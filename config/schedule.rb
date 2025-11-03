@@ -2,8 +2,9 @@
 
 set :environment, 'production'
 
-# Cache warming - runs every 10 minutes to keep dashboards fast
+# Cache warming - runs every 5 minutes to keep dashboards fast
 # Warms Digital, Facebook, Twitter, and General dashboards for all active topics
+# All caches are set to 30min expiration, ensuring data is always fresh
 every 5.minutes do
   rake 'cache:warm_dashboards'
 end

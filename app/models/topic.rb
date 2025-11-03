@@ -214,7 +214,7 @@ class Topic < ApplicationRecord
   # Peak Publishing Times Analysis
   # Returns hash with average engagement by hour of day
   def peak_publishing_times_by_hour
-    Rails.cache.fetch("topic_#{id}_peak_times_hour", expires_in: 2.hours) do
+    Rails.cache.fetch("topic_#{id}_peak_times_hour", expires_in: 30.minutes) do
       # Get entry IDs without joins to avoid GROUP BY issues
       entry_ids = list_entries.pluck(:id)
       entries_with_engagement = Entry.where(id: entry_ids).where('entries.total_count > 0')
@@ -238,7 +238,7 @@ class Topic < ApplicationRecord
 
   # Returns hash with average engagement by day of week (0=Sunday, 6=Saturday)
   def peak_publishing_times_by_day
-    Rails.cache.fetch("topic_#{id}_peak_times_day", expires_in: 2.hours) do
+    Rails.cache.fetch("topic_#{id}_peak_times_day", expires_in: 30.minutes) do
       # Get entry IDs without joins to avoid GROUP BY issues
       entry_ids = list_entries.pluck(:id)
       entries_with_engagement = Entry.where(id: entry_ids).where('entries.total_count > 0')
@@ -265,7 +265,7 @@ class Topic < ApplicationRecord
 
   # Combined heatmap data: hour x day of week
   def engagement_heatmap_data
-    Rails.cache.fetch("topic_#{id}_engagement_heatmap", expires_in: 2.hours) do
+    Rails.cache.fetch("topic_#{id}_engagement_heatmap", expires_in: 30.minutes) do
       # Get entry IDs without joins to avoid GROUP BY issues
       entry_ids = list_entries.pluck(:id)
       entries_with_engagement = Entry.where(id: entry_ids).where('entries.total_count > 0')
@@ -300,7 +300,7 @@ class Topic < ApplicationRecord
 
   # Best time to publish (highest average engagement)
   def optimal_publishing_time
-    Rails.cache.fetch("topic_#{id}_optimal_time", expires_in: 2.hours) do
+    Rails.cache.fetch("topic_#{id}_optimal_time", expires_in: 30.minutes) do
       heatmap = engagement_heatmap_data
       return nil if heatmap.empty?
       
@@ -317,7 +317,7 @@ class Topic < ApplicationRecord
   # Content Half-Life Analysis
   # Estimates how long content stays relevant based on engagement patterns
   def content_half_life
-    Rails.cache.fetch("topic_#{id}_content_half_life", expires_in: 4.hours) do
+    Rails.cache.fetch("topic_#{id}_content_half_life", expires_in: 30.minutes) do
       recent_entries = list_entries.where('entries.published_at > ?', 30.days.ago)
                                    .where('entries.total_count > 0')
                                    .order('entries.published_at DESC')
@@ -362,7 +362,7 @@ class Topic < ApplicationRecord
   # Trend Velocity
   # Rate of change in mentions over time (positive = growing, negative = declining)
   def trend_velocity
-    Rails.cache.fetch("topic_#{id}_trend_velocity", expires_in: 1.hour) do
+    Rails.cache.fetch("topic_#{id}_trend_velocity", expires_in: 30.minutes) do
       recent_count = list_entries.where(published_at: 24.hours.ago..Time.current).count
       previous_count = list_entries.where(published_at: 48.hours.ago..24.hours.ago).count
       
@@ -389,7 +389,7 @@ class Topic < ApplicationRecord
 
   # Engagement Velocity (not just volume, but interaction rate)
   def engagement_velocity
-    Rails.cache.fetch("topic_#{id}_engagement_velocity", expires_in: 1.hour) do
+    Rails.cache.fetch("topic_#{id}_engagement_velocity", expires_in: 30.minutes) do
       recent_interactions = list_entries.where(published_at: 24.hours.ago..Time.current).sum(:total_count)
       previous_interactions = list_entries.where(published_at: 48.hours.ago..24.hours.ago).sum(:total_count)
       
@@ -417,7 +417,7 @@ class Topic < ApplicationRecord
   # Engagement Decay Analysis
   # Shows how quickly engagement drops over time
   def engagement_decay_curve
-    Rails.cache.fetch("topic_#{id}_decay_curve", expires_in: 4.hours) do
+    Rails.cache.fetch("topic_#{id}_decay_curve", expires_in: 30.minutes) do
       entries_with_data = list_entries.where('entries.published_at > ?', 7.days.ago)
                                       .where('entries.total_count > 0')
       
@@ -446,7 +446,7 @@ class Topic < ApplicationRecord
 
   # Peak Activity Hours (when most content is published)
   def publishing_frequency_by_hour
-    Rails.cache.fetch("topic_#{id}_publishing_frequency", expires_in: 2.hours) do
+    Rails.cache.fetch("topic_#{id}_publishing_frequency", expires_in: 30.minutes) do
       # Get entry IDs without joins to avoid GROUP BY issues
       entry_ids = list_entries.pluck(:id)
       hourly_frequency = Entry.where(id: entry_ids)
@@ -474,7 +474,7 @@ class Topic < ApplicationRecord
   # ============================================
 
   def facebook_peak_publishing_times_by_hour
-    Rails.cache.fetch("topic_#{id}_fb_peak_times_hour", expires_in: 2.hours) do
+    Rails.cache.fetch("topic_#{id}_fb_peak_times_hour", expires_in: 30.minutes) do
       tag_names = tags.pluck(:name)
       return {} if tag_names.empty?
       
@@ -500,7 +500,7 @@ class Topic < ApplicationRecord
   end
 
   def facebook_peak_publishing_times_by_day
-    Rails.cache.fetch("topic_#{id}_fb_peak_times_day", expires_in: 2.hours) do
+    Rails.cache.fetch("topic_#{id}_fb_peak_times_day", expires_in: 30.minutes) do
       tag_names = tags.pluck(:name)
       return {} if tag_names.empty?
       
@@ -529,7 +529,7 @@ class Topic < ApplicationRecord
   end
 
   def facebook_engagement_heatmap_data
-    Rails.cache.fetch("topic_#{id}_fb_engagement_heatmap", expires_in: 2.hours) do
+    Rails.cache.fetch("topic_#{id}_fb_engagement_heatmap", expires_in: 30.minutes) do
       tag_names = tags.pluck(:name)
       return [] if tag_names.empty?
       
@@ -567,7 +567,7 @@ class Topic < ApplicationRecord
   end
 
   def facebook_optimal_publishing_time
-    Rails.cache.fetch("topic_#{id}_fb_optimal_time", expires_in: 2.hours) do
+    Rails.cache.fetch("topic_#{id}_fb_optimal_time", expires_in: 30.minutes) do
       heatmap = facebook_engagement_heatmap_data
       return nil if heatmap.empty?
       
@@ -582,7 +582,7 @@ class Topic < ApplicationRecord
   end
 
   def facebook_trend_velocity
-    Rails.cache.fetch("topic_#{id}_fb_trend_velocity", expires_in: 1.hour) do
+    Rails.cache.fetch("topic_#{id}_fb_trend_velocity", expires_in: 30.minutes) do
       tag_names = tags.pluck(:name)
       return { velocity_percent: 0, direction: 'stable' } if tag_names.empty?
       
@@ -613,7 +613,7 @@ class Topic < ApplicationRecord
   end
 
   def facebook_engagement_velocity
-    Rails.cache.fetch("topic_#{id}_fb_engagement_velocity", expires_in: 1.hour) do
+    Rails.cache.fetch("topic_#{id}_fb_engagement_velocity", expires_in: 30.minutes) do
       tag_names = tags.pluck(:name)
       return { velocity_percent: 0, direction: 'stable' } if tag_names.empty?
       
@@ -644,7 +644,7 @@ class Topic < ApplicationRecord
   end
 
   def facebook_content_half_life
-    Rails.cache.fetch("topic_#{id}_fb_content_half_life", expires_in: 4.hours) do
+    Rails.cache.fetch("topic_#{id}_fb_content_half_life", expires_in: 30.minutes) do
       tag_names = tags.pluck(:name)
       return nil if tag_names.empty?
       
@@ -704,7 +704,7 @@ class Topic < ApplicationRecord
   # ============================================
 
   def twitter_peak_publishing_times_by_hour
-    Rails.cache.fetch("topic_#{id}_tw_peak_times_hour", expires_in: 2.hours) do
+    Rails.cache.fetch("topic_#{id}_tw_peak_times_hour", expires_in: 30.minutes) do
       tag_names = tags.pluck(:name)
       return {} if tag_names.empty?
       
@@ -730,7 +730,7 @@ class Topic < ApplicationRecord
   end
 
   def twitter_peak_publishing_times_by_day
-    Rails.cache.fetch("topic_#{id}_tw_peak_times_day", expires_in: 2.hours) do
+    Rails.cache.fetch("topic_#{id}_tw_peak_times_day", expires_in: 30.minutes) do
       tag_names = tags.pluck(:name)
       return {} if tag_names.empty?
       
@@ -759,7 +759,7 @@ class Topic < ApplicationRecord
   end
 
   def twitter_engagement_heatmap_data
-    Rails.cache.fetch("topic_#{id}_tw_engagement_heatmap", expires_in: 2.hours) do
+    Rails.cache.fetch("topic_#{id}_tw_engagement_heatmap", expires_in: 30.minutes) do
       tag_names = tags.pluck(:name)
       return [] if tag_names.empty?
       
@@ -797,7 +797,7 @@ class Topic < ApplicationRecord
   end
 
   def twitter_optimal_publishing_time
-    Rails.cache.fetch("topic_#{id}_tw_optimal_time", expires_in: 2.hours) do
+    Rails.cache.fetch("topic_#{id}_tw_optimal_time", expires_in: 30.minutes) do
       heatmap = twitter_engagement_heatmap_data
       return nil if heatmap.empty?
       
@@ -812,7 +812,7 @@ class Topic < ApplicationRecord
   end
 
   def twitter_trend_velocity
-    Rails.cache.fetch("topic_#{id}_tw_trend_velocity", expires_in: 1.hour) do
+    Rails.cache.fetch("topic_#{id}_tw_trend_velocity", expires_in: 30.minutes) do
       tag_names = tags.pluck(:name)
       return { velocity_percent: 0, direction: 'stable' } if tag_names.empty?
       
@@ -843,7 +843,7 @@ class Topic < ApplicationRecord
   end
 
   def twitter_engagement_velocity
-    Rails.cache.fetch("topic_#{id}_tw_engagement_velocity", expires_in: 1.hour) do
+    Rails.cache.fetch("topic_#{id}_tw_engagement_velocity", expires_in: 30.minutes) do
       tag_names = tags.pluck(:name)
       return { velocity_percent: 0, direction: 'stable' } if tag_names.empty?
       
@@ -874,7 +874,7 @@ class Topic < ApplicationRecord
   end
 
   def twitter_content_half_life
-    Rails.cache.fetch("topic_#{id}_tw_content_half_life", expires_in: 4.hours) do
+    Rails.cache.fetch("topic_#{id}_tw_content_half_life", expires_in: 30.minutes) do
       tag_names = tags.pluck(:name)
       return nil if tag_names.empty?
       
@@ -934,7 +934,7 @@ class Topic < ApplicationRecord
   # ============================================
 
   def facebook_sentiment_summary(start_time: DAYS_RANGE.days.ago, end_time: Time.zone.now)
-    Rails.cache.fetch("topic_#{id}_fb_sentiment_v2_#{start_time.to_date}_#{end_time.to_date}", expires_in: 2.hours) do
+    Rails.cache.fetch("topic_#{id}_fb_sentiment_v2_#{start_time.to_date}_#{end_time.to_date}", expires_in: 30.minutes) do
       entries = FacebookEntry.for_topic(self, start_time:, end_time:)
                             .where('reactions_total_count > 0')
       
@@ -977,7 +977,7 @@ class Topic < ApplicationRecord
   end
 
   def facebook_sentiment_trend
-    Rails.cache.fetch("topic_#{id}_fb_sentiment_trend", expires_in: 1.hour) do
+    Rails.cache.fetch("topic_#{id}_fb_sentiment_trend", expires_in: 30.minutes) do
       recent = FacebookEntry.for_topic(self, start_time: 24.hours.ago)
                            .where('reactions_total_count > 0')
                            .average(:sentiment_score).to_f

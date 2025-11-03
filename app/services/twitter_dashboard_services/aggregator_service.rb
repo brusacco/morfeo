@@ -10,7 +10,7 @@ module TwitterDashboardServices
   #   data[:temporal_intelligence]        # => Temporal analysis data
   class AggregatorService < ApplicationService
     # Cache expiration time for dashboard data
-    CACHE_EXPIRATION = 1.hour
+    CACHE_EXPIRATION = 30.minutes
 
     def initialize(topic:, top_posts_limit: 20)
       @topic = topic

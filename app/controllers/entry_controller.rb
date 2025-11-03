@@ -8,7 +8,7 @@ class EntryController < ApplicationController
   COMMENTED_ENTRIES_LIMIT = 50
   TAG_LIMIT = 20
   SEARCH_LIMIT = 50
-  CACHE_DURATION = 1.hour
+  CACHE_DURATION = 30.minutes
 
   caches_action :popular, expires_in: CACHE_DURATION,
                 cache_path: proc { |c| { user_id: c.current_user.id } }
