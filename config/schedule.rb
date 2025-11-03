@@ -56,14 +56,25 @@ every 6.hours do
   rake 'tagger' # Re-tag entries from last 7 days (default)
 end
 # =============================================================================
-# 🆕 DAILY at 3:00 AM - Deep re-tagging & sync (NEW!)
+# 🆕 DAILY at 3:00 AM - Deep re-tagging (NEW!)
 # =============================================================================
-# Comprehensive re-tagging of last 60 days + sync all topics
+# Comprehensive re-tagging of last 60 days
 # Runs at 3am when server load is lowest
-# This is the "deep clean" that ensures everything stays in sync
+# NOTE: tagger already syncs entries to topics via sync_topics_from_tags
 every 1.day, at: '3:00 am' do
-  rake 'tagger[60]'           # Deep re-tag: last 60 days
-  rake 'topic:sync_all[60]'   # Sync all topics after tagging
+  rake 'tagger[60]' # Deep re-tag last 60 days (includes automatic sync)
+end
+
+# =============================================================================
+# 🆕 WEEKLY - Full sync safety check (TEMPORARY - Remove after Jan 2026)
+# =============================================================================
+# ⚠️ TEMPORARY: Keep for 2-4 weeks after sync_topics_from_tags fix deployed
+# This is a safety net while we verify the bug fix works correctly in production
+# TODO: Remove after verifying daily tagger[60] is sufficient
+# Weekly comprehensive sync as safety net to catch any missed entries
+# Runs Sundays at 4am after the daily tagger completes
+every :sunday, at: '4:00 am' do
+  rake 'topic:sync_all[60]' # Weekly safety sync for all topics
 end
 
 # =============================================================================
