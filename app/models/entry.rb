@@ -213,7 +213,8 @@ class Entry < ApplicationRecord
   end
 
   def set_polarity(force: false)
-    # return polarity unless polarity.nil?
+    # Skip if polarity already set (unless forced)
+    return polarity if polarity.present? && !force
 
     sleep 5
 
