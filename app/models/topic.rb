@@ -22,6 +22,21 @@ class Topic < ApplicationRecord
   has_many :title_entries, through: :entry_title_topics, source: :entry
 
   before_update :remove_words_spaces
+  
+  # NEW: Auto-sync entries when tags change
+  # This ensures that when an admin adds/removes tags from a topic,
+  # existing entries with those tags are automatically linked
+  after_commit :queue_entry_sync, if: :saved_change_to_tag_ids?
+
+  def queue_entry_sync
+    # Queue background job to avoid blocking admin UI
+    # Syncs entries from last 60 days
+    SyncTopicEntriesJob.perform_later(id, 60)
+    Rails.logger.info "Topic #{id}: Queued entry sync job (tags changed)"
+  rescue => e
+    Rails.logger.error "Topic #{id}: Failed to queue entry sync - #{e.message}"
+    # Don't raise - this shouldn't break topic saving
+  end
 
   scope :active, -> { where(status: true) }
 

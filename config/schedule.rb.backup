@@ -1,0 +1,50 @@
+# frozen_string_literal: true
+
+set :environment, 'production'
+
+# Cache warming - runs every 5 minutes to keep dashboards fast
+# Warms Digital, Facebook, Twitter, and General dashboards for all active topics
+# All caches are set to 30min expiration, ensuring data is always fresh
+every 5.minutes do
+  rake 'cache:warm_dashboards'
+end
+
+every :hour do
+  rake 'crawler'
+  # rake 'headless_crawler'
+  rake 'proxy_crawler'
+  rake 'update_stats'
+  # rake 'update_api'
+  rake 'update_site_stats'
+  rake 'update_dates'
+  rake 'clean_site_content'
+  rake 'category'
+  rake 'topic_stat_daily'
+  rake 'title_topic_stat_daily'
+end
+
+every 3.hours do
+  rake 'facebook:fanpage_crawler'
+  rake 'twitter:profile_crawler_full'
+  rake 'social_crawler'
+  # rake 'facebook:comment_crawler'
+end
+
+every 4.hours do
+  rake 'repeated_notes'
+  rake 'title_tagger'
+end
+
+every 6.hours do
+  rake 'crawler_deep'
+  rake 'ai:generate_ai_reports'
+  rake 'ai:set_topic_polarity'
+  rake 'facebook:update_fanpages'
+end
+
+# every 12.hours do
+#   rake 'twitter:link_to_entries'
+#   rake 'facebook:link_to_entries'
+#   rake 'twitter:post_tagger'
+#   rake 'facebook:entry_tagger'
+# end
