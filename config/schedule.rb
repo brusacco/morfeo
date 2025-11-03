@@ -53,25 +53,17 @@ every 6.hours do
   rake 'ai:generate_ai_reports'    # Generate AI-powered topic reports
   rake 'ai:set_topic_polarity'     # Set sentiment/polarity for topics
   rake 'facebook:update_fanpages'  # Update Facebook page metadata
+  rake 'tagger' # Re-tag entries from last 7 days (default)
 end
-
 # =============================================================================
-# 🆕 EVERY 12 HOURS - Comprehensive re-tagging (NEW!)
+# 🆕 DAILY at 3:00 AM - Deep re-tagging & sync (NEW!)
 # =============================================================================
-# This ensures entries from the last 60 days are re-tagged with any new tags
-# Runs at 2:00 AM and 2:00 PM to catch changes made during business hours
-every 12.hours, at: ['2:00 am', '2:00 pm'] do
-  rake 'tagger'  # Re-tag ALL entries from last 60 days
-end
-
-# =============================================================================
-# 🆕 DAILY at 3:00 AM - Sync all topics (NEW!)
-# =============================================================================
-# This syncs the entry_topics association table for all topics
-# Ensures PDF reports and association-based queries have correct data
-# Runs after the 2:00 AM tagger task completes
+# Comprehensive re-tagging of last 60 days + sync all topics
+# Runs at 3am when server load is lowest
+# This is the "deep clean" that ensures everything stays in sync
 every 1.day, at: '3:00 am' do
-  rake 'topic:sync_all[60]'  # Sync entry_topics for all topics (60 days)
+  rake 'tagger[60]'           # Deep re-tag: last 60 days
+  rake 'topic:sync_all[60]'   # Sync all topics after tagging
 end
 
 # =============================================================================
@@ -80,7 +72,7 @@ end
 # Audits sync health and alerts if issues are detected
 # Runs after sync completes, before business hours start
 every 1.day, at: '6:00 am' do
-  rake 'audit:sync_health'  # Check for sync issues and log/alert
+  rake 'audit:sync_health' # Check for sync issues and log/alert
 end
 
 # =============================================================================
