@@ -22,22 +22,36 @@ task :tagger, [:days] => :environment do |_t, args|
   puts
   
   entries.find_each do |entry|
+    # Extract regular tags
     result = WebExtractorServices::ExtractTags.call(entry.id)
-    next unless result.success?
+    if result.success?
+      entry.tag_list = result.data
+      puts "TAGS: #{result.data}"
+    else
+      puts "ERROR TAGGER: #{result&.error}"
+    end
 
-    entry.tag_list = result.data
+    # Extract title tags
+    title_result = WebExtractorServices::ExtractTitleTags.call(entry.id)
+    if title_result.success?
+      entry.title_tag_list = title_result.data
+      puts "TITLE TAGS: #{title_result.data}"
+    else
+      puts "ERROR TITLE TAGGER: #{title_result&.error}"
+    end
+
     puts entry.url
-    puts entry.tag_list
     puts entry.published_at
     puts '---------------------------------------------------'
 
     entry.save!
     
-    # Force sync even if tags didn't change
+    # Explicitly sync both regular tags and title tags to topics
     entry.sync_topics_from_tags if entry.respond_to?(:sync_topics_from_tags)
+    entry.sync_title_topics_from_tags if entry.respond_to?(:sync_title_topics_from_tags)
     
     processed += 1
-    synced += 1 if entry.tags.any?
+    synced += 1 if entry.tags.any? || entry.title_tags.any?
     
     print "\rProcessed: #{processed}/#{total} (#{synced} tagged)" if processed % 50 == 0
   rescue StandardError => e
@@ -66,16 +80,33 @@ task :retagger, [:days] => :environment do |_t, args|
   Entry.enabled.where(published_at: days.days.ago..Time.current).find_each do |entry|
     next if entry.tags.any?
 
+    # Extract regular tags
     result = WebExtractorServices::ExtractTags.call(entry.id)
-    next unless result.success?
+    if result.success?
+      entry.tag_list = result.data
+      puts "TAGS: #{result.data}"
+    else
+      puts "ERROR TAGGER: #{result&.error}"
+    end
 
-    entry.tag_list = result.data
+    # Extract title tags
+    title_result = WebExtractorServices::ExtractTitleTags.call(entry.id)
+    if title_result.success?
+      entry.title_tag_list = title_result.data
+      puts "TITLE TAGS: #{title_result.data}"
+    else
+      puts "ERROR TITLE TAGGER: #{title_result&.error}"
+    end
+
     puts entry.url
-    puts entry.tag_list
     puts entry.published_at
     puts '---------------------------------------------------'
 
     entry.save!
+    
+    # Explicitly sync both regular tags and title tags to topics
+    entry.sync_topics_from_tags if entry.respond_to?(:sync_topics_from_tags)
+    entry.sync_title_topics_from_tags if entry.respond_to?(:sync_title_topics_from_tags)
   rescue StandardError => e
     puts e.message
     sleep 1

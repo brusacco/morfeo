@@ -93,6 +93,7 @@ class Tag < ApplicationRecord
   private
 
   def tag_entries
-    Tags::TagEntriesJob.perform_later(id, 1.month.ago..Time.current)
+    # Tag entries from last 60 days to match PDF report requirements
+    Tags::TagEntriesJob.perform_later(id, 60.days.ago..Time.current)
   end
 end
