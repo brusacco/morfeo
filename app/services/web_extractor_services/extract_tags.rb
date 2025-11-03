@@ -19,12 +19,18 @@ module WebExtractorServices
       end
 
       tags.each do |tag|
+        # Skip tags with blank names
+        next if tag.name.blank?
+        
         tags_found << tag.name if content.match(/\b#{tag.name}\b/)
         if tag.variations
-          alts = tag.variations.split(',')
+          alts = tag.variations.split(',').map(&:strip).reject(&:blank?)
           alts.each { |alt_tag| tags_found << tag.name if content.match(/\b#{alt_tag}\b/) }
         end
       end
+
+      # Remove duplicates and filter out any blank entries
+      tags_found = tags_found.uniq.reject(&:blank?)
 
       if tags_found.empty?
         handle_error('No tags found')
