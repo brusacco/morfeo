@@ -295,6 +295,49 @@ After adding new tags to topic?
 
 ---
 
+## 🔍 Audit & Diagnostics
+
+### Tag Presence Audit
+
+Verify that tags are properly associated with content across different time periods. These tasks bypass all caches and use only `acts_as_taggable_on` methods for accurate auditing.
+
+```bash
+# Audit a specific tag across all time periods (7, 15, 30, 60 days)
+rake 'audit:tag:presence[TAG_ID]'
+
+# Example: Audit tag ID 5
+rake 'audit:tag:presence[5]'
+
+# Bulk audit all tags for a specific period
+rake 'audit:tag:bulk_presence'              # Last 30 days (default)
+rake 'audit:tag:bulk_presence[7]'           # Last 7 days
+rake 'audit:tag:bulk_presence[60]'          # Last 60 days
+```
+
+**What it checks:**
+- Mentions across Digital Media, Facebook, and Twitter
+- Interactions and reach for each channel
+- Sample entries from each channel
+- Topics using the tag
+- Active vs inactive tags (bulk mode)
+
+**Output includes:**
+- ✅ Detailed breakdown by time period (7, 15, 30, 60 days)
+- 📰 Digital Media counts and sample entries
+- 📘 Facebook counts, interactions, and reach
+- 🐦 Twitter counts, interactions, and views
+- 📊 Period summaries and overall statistics
+- 🏷️  Topics associated with the tag
+
+**Use cases:**
+- Verify dashboard data before client presentations
+- Debug missing content in topic dashboards
+- Identify tags that need retagging
+- Find inactive tags that can be cleaned up
+- Validate tag associations after bulk operations
+
+---
+
 ## 📝 Environment Variables
 
 Make sure these are set in `.env`:
