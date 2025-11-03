@@ -156,7 +156,7 @@ class HomeController < ApplicationController
       system('RAILS_ENV=production rake assets:precompile')
 
       # Clear Rails cache to see changes immediately
-      system('RAILS_ENV=production rails cache:clear')
+      # system('RAILS_ENV=production rails cache:clear')
 
       # Restart the Puma server
       system('touch tmp/restart.txt')
@@ -165,7 +165,7 @@ class HomeController < ApplicationController
       system('whenever -i')
 
       # Warm the dashboards
-      system('RAILS_ENV=production rails cache:warm_dashboards')
+      # system('RAILS_ENV=production rails cache:warm_dashboards')
     end
 
     render plain: 'Deployment complete!'

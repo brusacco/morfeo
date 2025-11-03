@@ -366,7 +366,14 @@ class Topic < ApplicationRecord
       recent_count = list_entries.where(published_at: 24.hours.ago..Time.current).count
       previous_count = list_entries.where(published_at: 48.hours.ago..24.hours.ago).count
       
-      return 0 if previous_count.zero?
+      # Return hash structure even when there is no previous count
+      return {
+        velocity_percent: 0,
+        recent_count: recent_count,
+        previous_count: 0,
+        trend: 'estable',
+        direction: 'stable'
+      } if previous_count.zero?
       
       velocity = ((recent_count - previous_count).to_f / previous_count * 100).round(1)
       
