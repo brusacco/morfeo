@@ -20,6 +20,10 @@ rake 'topic:update_multiple[1,2,3,60]'         # Last 60 days (RECOMMENDED)
 rake 'topic:update_all'                        # All topics, 7 days
 rake 'topic:update_all[30]'                    # All topics, 30 days
 rake 'topic:update_all[60]'                    # All topics, 60 days (RECOMMENDED)
+
+# Update topics by tag (useful when you know the tag ID, not topic ID)
+rake 'topic:list_by_tag[TAG_ID]'              # List topics using a tag
+rake 'topic:update_by_tag[TAG_ID,60]'         # Update all topics using a tag
 ```
 
 > **💡 Best Practice**: For production systems with PDF reports, update at least 60 days of data to support all report ranges (7, 15, 30, 60 days).
