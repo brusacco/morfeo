@@ -68,7 +68,8 @@ rake 'entries:sync_entry[ENTRY_ID]'            # Single entry
 rake 'entries:check_topic_sync[TOPIC_ID]'      # Check sync status
 
 # Update statistics
-rake topic_stat_daily                          # Update daily stats
+rake topic_stat_daily                          # Update daily stats (last 7 days)
+rake 'topic_stat_daily[60]'                    # Update daily stats (last 60 days)
 rake title_topic_stat_daily                    # Update title stats
 ```
 
@@ -111,14 +112,15 @@ rake tagger
 rake facebook:entry_tagger
 rake twitter:post_tagger
 rake entries:sync_topics
-rake topic_stat_daily
+rake topic_stat_daily                          # Daily stats (7 days)
 ```
 
 ### Weekly
 
 ```bash
 # Sunday at 3 AM - Full topic update (60 days for PDF reports)
-rake topic:update_all[60]
+rake 'topic:update_all[60]'                    # Full update
+rake 'topic_stat_daily[60]'                    # Update 60-day stats for PDF reports
 ```
 
 ### As Needed
@@ -165,7 +167,8 @@ rake 'entries:check_topic_sync[TOPIC_ID]'
 
 ```bash
 # Regenerate stats for all topics
-rake topic_stat_daily
+rake topic_stat_daily                          # Last 7 days (default)
+rake 'topic_stat_daily[60]'                    # Last 60 days (for PDF reports)
 
 # Check specific date
 rails console

@@ -78,6 +78,15 @@ every :sunday, at: '4:00 am' do
 end
 
 # =============================================================================
+# 🆕 WEEKLY - Update 60-day statistics for PDF reports
+# =============================================================================
+# Updates topic_stat_dailies for last 60 days to support all PDF report ranges
+# Runs Sundays at 5am after the weekly sync completes
+every :sunday, at: '5:00 am' do
+  rake 'topic_stat_daily[60]' # Update 60-day daily statistics for all topics
+end
+
+# =============================================================================
 # 🆕 DAILY at 6:00 AM - Health check (NEW!)
 # =============================================================================
 # Audits sync health and alerts if issues are detected
