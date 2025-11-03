@@ -70,7 +70,8 @@ rake 'entries:check_topic_sync[TOPIC_ID]'      # Check sync status
 # Update statistics
 rake topic_stat_daily                          # Update daily stats (last 7 days)
 rake 'topic_stat_daily[60]'                    # Update daily stats (last 60 days)
-rake title_topic_stat_daily                    # Update title stats
+rake title_topic_stat_daily                    # Update title stats (last 7 days)
+rake 'title_topic_stat_daily[60]'              # Update title stats (last 60 days)
 ```
 
 ### Data Collection (Crawlers)
