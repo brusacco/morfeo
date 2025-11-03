@@ -512,3 +512,4 @@ add_index :entries, [:published_at, :enabled]
 **Save your engineering time for features, not maintaining boolean flags!** 😊
 
 
+

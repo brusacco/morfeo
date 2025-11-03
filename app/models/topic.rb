@@ -386,7 +386,14 @@ class Topic < ApplicationRecord
       recent_interactions = list_entries.where(published_at: 24.hours.ago..Time.current).sum(:total_count)
       previous_interactions = list_entries.where(published_at: 48.hours.ago..24.hours.ago).sum(:total_count)
       
-      return 0 if previous_interactions.zero?
+      # Return hash structure even when there are no previous interactions
+      return {
+        velocity_percent: 0,
+        recent_interactions: recent_interactions,
+        previous_interactions: 0,
+        trend: 'moderado',
+        direction: 'stable'
+      } if previous_interactions.zero?
       
       velocity = ((recent_interactions - previous_interactions).to_f / previous_interactions * 100).round(1)
       
