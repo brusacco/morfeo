@@ -315,6 +315,7 @@ rake 'audit:tag:bulk_presence[60]'          # Last 60 days
 ```
 
 **What it checks:**
+
 - Mentions across Digital Media, Facebook, and Twitter
 - Interactions and reach for each channel
 - Sample entries from each channel
@@ -322,19 +323,50 @@ rake 'audit:tag:bulk_presence[60]'          # Last 60 days
 - Active vs inactive tags (bulk mode)
 
 **Output includes:**
+
 - ✅ Detailed breakdown by time period (7, 15, 30, 60 days)
 - 📰 Digital Media counts and sample entries
 - 📘 Facebook counts, interactions, and reach
 - 🐦 Twitter counts, interactions, and views
 - 📊 Period summaries and overall statistics
-- 🏷️  Topics associated with the tag
+- 🏷️ Topics associated with the tag
 
 **Use cases:**
+
 - Verify dashboard data before client presentations
 - Debug missing content in topic dashboards
 - Identify tags that need retagging
 - Find inactive tags that can be cleaned up
 - Validate tag associations after bulk operations
+
+### Entry-Topics Sync Diagnostic
+
+Diagnose issues with PDF reports showing incomplete data. Checks if the `entry_topics` table is synced properly with tagged entries.
+
+```bash
+# Check if entry_topics is synced for a topic
+rake 'audit:entry_topics:check[TOPIC_ID]'
+
+# Example: Check topic 32
+rake 'audit:entry_topics:check[32]'
+```
+
+**What it checks:**
+
+- Compares `acts_as_taggable_on` (direct, always accurate) vs `entry_topics` association (cached, used by PDFs)
+- Shows differences for 7, 15, 30, and 60-day periods
+- Identifies missing entries that would cause incomplete PDF reports
+- Provides exact command to fix sync issues
+
+**Output includes:**
+
+- 🏷️ Direct tag query counts (ground truth)
+- 🔗 Association table counts (what PDFs use)
+- ⚠️ Sync status and missing entry counts
+- 💡 Recommended fix command
+
+**Common issue:**
+If PDF reports only show 7 days of data but audit shows more, it means `entry_topics` was only synced for 7 days. Solution: `rake 'topic:update[ID,60]'`
 
 ---
 
