@@ -83,7 +83,8 @@ end
 # Updates topic_stat_dailies for last 60 days to support all PDF report ranges
 # Runs Sundays at 5am after the weekly sync completes
 every :sunday, at: '5:00 am' do
-  rake 'topic_stat_daily[60]' # Update 60-day daily statistics for all topics
+  rake 'topic_stat_daily[60]'       # Update 60-day daily statistics for all topics
+  rake 'title_topic_stat_daily[60]' # Update 60-day title-based statistics for all topics
 end
 
 # =============================================================================
