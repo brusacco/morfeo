@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
 class ApplicationController < ActionController::Base
+  # Protect from CSRF attacks - CRITICAL for security and form submissions
+  protect_from_forgery with: :exception
+  
   before_action :set_paper_trail_whodunnit
   def word_occurrences(entries, limit = 50)
     word_occurrences = Hash.new(0)

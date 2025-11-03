@@ -4,7 +4,8 @@ class HomeController < ApplicationController
   caches_action :index, expires_in: 30.minutes,
                 cache_path: proc { |c| { user_id: c.current_user&.id } }
   before_action :authenticate_user!, except: %i[deploy check]
-  skip_before_action :verify_authenticity_token
+  # Only skip CSRF for webhook endpoints (deploy, check)
+  skip_before_action :verify_authenticity_token, only: %i[deploy check]
 
   def index
     # NEW: Phase 1 & 2 - Executive Dashboard Data
