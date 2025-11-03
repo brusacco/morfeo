@@ -288,10 +288,7 @@
             <div class="pdf-chart-card">
               <h3 class="pdf-chart-title">Distribución de Notas por Sentimiento</h3>
               <div class="pdf-chart-canvas">
-                <% polarities_counts = @entries_polarity_counts.sort_by { |key, _value| key }.to_h %>
-                <% total_count = polarities_counts.values.sum.to_f %>
-                <% polarities_percentages = polarities_counts.transform_values { |count| (count / total_count * 100).round(1) } %>
-                <%= pie_chart polarities_percentages, colors: ["#ef4444", "#9ca3af", '#10b981'], donut: true, suffix: "%", height: "200px" %>
+                <%= pie_chart polarity_pie_data(@entries_polarity_counts), colors: ['#10b981', '#9ca3af', '#ef4444'], donut: true, suffix: "%", height: "200px" %>
               </div>
             </div>
           </div>
@@ -299,10 +296,7 @@
             <div class="pdf-chart-card">
               <h3 class="pdf-chart-title">Distribución de Interacciones por Sentimiento</h3>
               <div class="pdf-chart-canvas">
-                <% polarities_sums = @entries_polarity_sums.sort_by { |key, _value| key }.to_h %>
-                <% total_sum = polarities_sums.values.sum.to_f %>
-                <% polarities_sum_percentages = polarities_sums.transform_values { |sum| (sum / total_sum * 100).round(1) } %>
-                <%= pie_chart polarities_sum_percentages, colors: ["#ef4444", "#9ca3af", '#10b981'], donut: true, suffix: "%", height: "200px" %>
+                <%= pie_chart polarity_pie_data(@entries_polarity_sums), colors: ['#10b981', '#9ca3af', '#ef4444'], donut: true, suffix: "%", height: "200px" %>
               </div>
             </div>
           </div>
