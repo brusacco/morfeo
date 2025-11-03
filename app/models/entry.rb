@@ -276,6 +276,51 @@ class Entry < ApplicationRecord
     # trigram_list
   end
 
+  # NEW: Sync regular tags to topics
+  # This is PUBLIC so it can be called from rake tasks and background jobs
+  def sync_topics_from_tags
+    return if tag_list.empty?
+
+    # Convert TagList to array of strings for SQL query
+    tag_names = tag_list.map(&:to_s)
+    
+    # Find all topics that have tags matching this entry's tags
+    # Using explicit IN query to ensure compatibility with acts_as_taggable_on
+    matching_topics = Topic.joins(:tags)
+                          .where('tags.name IN (?)', tag_names)
+                          .distinct
+
+    # Update the association (Rails handles the join table)
+    self.topics = matching_topics
+
+    Rails.logger.info "Entry #{id}: Synced #{matching_topics.count} topics from #{tag_names.size} tags"
+  rescue => e
+    Rails.logger.error "Entry #{id}: Failed to sync topics - #{e.message}"
+    # Don't raise - this shouldn't break entry creation
+  end
+
+  # NEW: Sync title tags to topics
+  # This is PUBLIC so it can be called from rake tasks and background jobs
+  def sync_title_topics_from_tags
+    return if title_tag_list.empty?
+
+    # Convert TagList to array of strings for SQL query
+    title_tag_names = title_tag_list.map(&:to_s)
+    
+    # Find all topics that have tags matching this entry's title tags
+    # Using explicit IN query to ensure compatibility with acts_as_taggable_on
+    matching_topics = Topic.joins(:tags)
+                          .where('tags.name IN (?)', title_tag_names)
+                          .distinct
+
+    # Update the association
+    self.title_topics = matching_topics
+
+    Rails.logger.info "Entry #{id}: Synced #{matching_topics.count} title topics from #{title_tag_names.size} title tags"
+  rescue => e
+    Rails.logger.error "Entry #{id}: Failed to sync title topics - #{e.message}"
+  end
+
   private
 
   def call_ai(text)
@@ -354,49 +399,6 @@ class Entry < ApplicationRecord
 
   def contains_substring?(string)
     BAD_WORDS.any? { |word| string.include?(word) }
-  end
-
-  # NEW: Sync regular tags to topics
-  def sync_topics_from_tags
-    return if tag_list.empty?
-
-    # Convert TagList to array of strings for SQL query
-    tag_names = tag_list.map(&:to_s)
-    
-    # Find all topics that have tags matching this entry's tags
-    # Using explicit IN query to ensure compatibility with acts_as_taggable_on
-    matching_topics = Topic.joins(:tags)
-                          .where('tags.name IN (?)', tag_names)
-                          .distinct
-
-    # Update the association (Rails handles the join table)
-    self.topics = matching_topics
-
-    Rails.logger.info "Entry #{id}: Synced #{matching_topics.count} topics from #{tag_names.size} tags"
-  rescue => e
-    Rails.logger.error "Entry #{id}: Failed to sync topics - #{e.message}"
-    # Don't raise - this shouldn't break entry creation
-  end
-
-  # NEW: Sync title tags to topics
-  def sync_title_topics_from_tags
-    return if title_tag_list.empty?
-
-    # Convert TagList to array of strings for SQL query
-    title_tag_names = title_tag_list.map(&:to_s)
-    
-    # Find all topics that have tags matching this entry's title tags
-    # Using explicit IN query to ensure compatibility with acts_as_taggable_on
-    matching_topics = Topic.joins(:tags)
-                          .where('tags.name IN (?)', title_tag_names)
-                          .distinct
-
-    # Update the association
-    self.title_topics = matching_topics
-
-    Rails.logger.info "Entry #{id}: Synced #{matching_topics.count} title topics from #{title_tag_names.size} title tags"
-  rescue => e
-    Rails.logger.error "Entry #{id}: Failed to sync title topics - #{e.message}"
   end
 
   # For TopicStatDaily
