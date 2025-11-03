@@ -382,7 +382,7 @@
       <!-- Header -->
       <div class="pdf-header">
         <h1>Reporte de Análisis: <%=@topic.name%></h1>
-        <p>Período: Últimos <%=DAYS_RANGE%> días | Generado: <%=Time.current.strftime("%d/%m/%Y %H:%M")%></p>
+        <p>Período: Últimos <%=@days_range%> días | Generado: <%=Time.current.strftime("%d/%m/%Y %H:%M")%></p>
       </div>
       <!-- Main Charts Section -->
       <div class="pdf-section">
@@ -465,7 +465,7 @@
         <div class="pdf-stats-grid">
           <div class="pdf-stats-card">
             <div class="pdf-stats-label">Total Noticias</div>
-            <div class="pdf-stats-value"><%=number_with_delimiter(@entries.size, delimiter: ".")%></div>
+            <div class="pdf-stats-value"><%=number_with_delimiter(@total_entries || @entries_count, delimiter: ".")%></div>
           </div>
           <div class="pdf-stats-card">
             <div class="pdf-stats-label">Positivas</div>
@@ -590,7 +590,7 @@
         <div class="pdf-stats-grid">
           <div class="pdf-stats-card">
             <div class="pdf-stats-label">Notas del Tópico</div>
-            <div class="pdf-stats-value"><%=number_with_delimiter(@entries.size, delimiter: ".")%></div>
+            <div class="pdf-stats-value"><%=number_with_delimiter(@total_entries || @entries_count, delimiter: ".")%></div>
           </div>
           <div class="pdf-stats-card">
             <div class="pdf-stats-label">Otras Notas</div>

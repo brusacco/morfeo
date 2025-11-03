@@ -12,9 +12,12 @@ module TwitterDashboardServices
     # Cache expiration time for dashboard data
     CACHE_EXPIRATION = 30.minutes
 
-    def initialize(topic:, top_posts_limit: 20)
+    def initialize(topic:, top_posts_limit: 20, days_range: DAYS_RANGE)
       @topic = topic
       @top_posts_limit = top_posts_limit
+      @days_range = (days_range || DAYS_RANGE || 7).to_i # Default to 7 days if not provided
+      @start_time = @days_range.days.ago.beginning_of_day
+      @end_time = Time.zone.now.end_of_day
       @tag_names = @topic.tags.pluck(:name) # Cache tag names
       @twitter_data_cache = nil # Memoization
     end
@@ -32,7 +35,7 @@ module TwitterDashboardServices
     private
 
     def cache_key
-      "twitter_dashboard_#{@topic.id}_#{@top_posts_limit}_#{Date.current}"
+      "twitter_dashboard_#{@topic.id}_#{@top_posts_limit}_#{@days_range}_#{Date.current}"
     end
 
     # Memoized twitter data to avoid reloading posts multiple times
@@ -44,7 +47,7 @@ module TwitterDashboardServices
       return empty_twitter_data if @tag_names.empty?
 
       # Single base query with all necessary includes
-      posts = TwitterPost.for_topic(@topic)
+      posts = TwitterPost.for_topic(@topic, start_time: @start_time, end_time: @end_time)
       
       # Execute aggregations efficiently
       chart_data = calculate_chart_data(posts)

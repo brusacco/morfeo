@@ -36,9 +36,10 @@ module DigitalDashboardServices
     MIN_WORD_FREQUENCY = 5
     MIN_BIGRAM_FREQUENCY = 2
 
-    def initialize(topic:)
+    def initialize(topic:, days_range: DAYS_RANGE)
       @topic = topic
-      @start_date = DAYS_RANGE.days.ago.beginning_of_day
+      @days_range = (days_range || DAYS_RANGE || 7).to_i # Default to 7 days if not provided
+      @start_date = @days_range.days.ago.beginning_of_day
       @end_date = Time.zone.now.end_of_day
       @tag_names = @topic.tags.pluck(:name) # Cache tag names
       @topic_data_cache = nil # Memoization for topic_data
@@ -127,14 +128,18 @@ module DigitalDashboardServices
     end
 
     def load_chart_data
-      # Load pre-aggregated stats (single query)
-      stats = @topic.topic_stat_dailies.normal_range.order(:topic_date).to_a
+      # Load pre-aggregated stats for the specified date range (single query)
+      stats = @topic.topic_stat_dailies
+                    .where(topic_date: @start_date.to_date..@end_date.to_date)
+                    .order(:topic_date).to_a
 
       # Build all chart data structures in one pass
       chart_data = build_chart_data_from_stats(stats)
       
-      # Load title stats (single query)
-      title_stats = @topic.title_topic_stat_dailies.normal_range.order(:topic_date)
+      # Load title stats for the specified date range (single query)
+      title_stats = @topic.title_topic_stat_dailies
+                          .where(topic_date: @start_date.to_date..@end_date.to_date)
+                          .order(:topic_date)
       title_data = {
         title_chart_entries_counts: title_stats.pluck(:topic_date, :entry_quantity).to_h,
         title_chart_entries_sums: title_stats.pluck(:topic_date, :entry_interaction).to_h
@@ -278,7 +283,9 @@ module DigitalDashboardServices
     def calculate_share_of_voice(entries_count, entries_total_sum)
       # Efficient query: count/sum in single query with exclusion
       topic_entry_ids = topic_data[:entries].pluck(:id)
-      other_entries = Entry.enabled.normal_range.where.not(id: topic_entry_ids)
+      other_entries = Entry.enabled
+                           .where(published_at: @start_date..@end_date)
+                           .where.not(id: topic_entry_ids)
       
       all_entries_size = other_entries.count
       all_entries_interactions = other_entries.sum(:total_count)

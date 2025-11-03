@@ -8,7 +8,7 @@ class TopicController < ApplicationController
   before_action :authorize_topic_access!, only: [:show, :pdf]
 
   caches_action :show, :pdf, expires_in: 30.minutes,
-                cache_path: proc { |c| { topic_id: c.params[:id], user_id: c.current_user.id } }
+                cache_path: proc { |c| { topic_id: c.params[:id], user_id: c.current_user.id, days_range: c.params[:days_range] } }
 
   def entries_data
     topic_id = params[:topic_id]
@@ -92,7 +92,7 @@ class TopicController < ApplicationController
 
   def show
     # Use service to load all data
-    dashboard_data = DigitalDashboardServices::AggregatorService.call(topic: @topic)
+    dashboard_data = DigitalDashboardServices::AggregatorService.call(topic: @topic, days_range: DAYS_RANGE)
 
     # Assign data to instance variables for the view
     assign_topic_data(dashboard_data[:topic_data])
@@ -117,8 +117,11 @@ class TopicController < ApplicationController
   end
 
   def pdf
+    # Get days_range from params, default to 7 days if not provided or invalid
+    @days_range = (params[:days_range].presence&.to_i || DAYS_RANGE || 7)
+    
     # Use dedicated PDF service
-    pdf_data = DigitalDashboardServices::PdfService.call(topic: @topic)
+    pdf_data = DigitalDashboardServices::PdfService.call(topic: @topic, days_range: @days_range)
 
     # Assign data to instance variables for the PDF view
     assign_topic_data(pdf_data[:topic_data])

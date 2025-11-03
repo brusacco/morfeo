@@ -240,10 +240,10 @@ module GeneralDashboardServices
         # This is defensible as a conservative estimate (much lower than typical 8-15x)
         # For precise reach, implement tracking pixels on news sites
         {
-          count: entries.count,
-          interactions: entries.sum(:total_count),
-          reach: entries.sum(:total_count) * 3, # Conservative estimate
-          trend: calculate_trend(entries.count, previous_entries.count)
+          count: entries.distinct.count,
+          interactions: entries.distinct.sum(:total_count),
+          reach: entries.distinct.sum(:total_count) * 3, # Conservative estimate
+          trend: calculate_trend(entries.distinct.count, previous_entries.distinct.count)
         }
       end
     end

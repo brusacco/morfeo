@@ -15,13 +15,14 @@ class TwitterTopicController < ApplicationController
   CACHE_DURATION = 30.minutes
 
   caches_action :show, :pdf, expires_in: CACHE_DURATION,
-                cache_path: proc { |c| { topic_id: c.params[:id], user_id: c.current_user.id } }
+                cache_path: proc { |c| { topic_id: c.params[:id], user_id: c.current_user.id, days_range: c.params[:days_range] } }
 
   def show
     # Use service to load all data
     dashboard_data = TwitterDashboardServices::AggregatorService.call(
       topic: @topic,
-      top_posts_limit: TOP_POSTS_SHOW_LIMIT
+      top_posts_limit: TOP_POSTS_SHOW_LIMIT,
+      days_range: DAYS_RANGE
     )
 
     # Assign data to instance variables for the view
@@ -62,10 +63,14 @@ class TwitterTopicController < ApplicationController
   end
 
   def pdf
+    # Get days_range from params, default to 7 days if not provided or invalid
+    @days_range = (params[:days_range].presence&.to_i || DAYS_RANGE || 7)
+    
     # Use service to load data for PDF
     dashboard_data = TwitterDashboardServices::AggregatorService.call(
       topic: @topic,
-      top_posts_limit: TOP_POSTS_PDF_LIMIT
+      top_posts_limit: TOP_POSTS_PDF_LIMIT,
+      days_range: @days_range
     )
 
     # Assign data to instance variables for the view

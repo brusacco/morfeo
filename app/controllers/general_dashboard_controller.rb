@@ -10,7 +10,7 @@ class GeneralDashboardController < ApplicationController
   before_action :authorize_topic_access!, only: [:show, :pdf]
 
   caches_action :show, :pdf, expires_in: 30.minutes,
-                cache_path: proc { |c| { topic_id: c.params[:id], user_id: c.current_user.id } }
+                cache_path: proc { |c| { topic_id: c.params[:id], user_id: c.current_user.id, days_range: c.params[:days_range] } }
 
   def show
     @start_date = start_date
@@ -38,8 +38,11 @@ class GeneralDashboardController < ApplicationController
   end
 
   def pdf
-    @start_date = start_date
-    @end_date = end_date
+    # Get days_range from params, default to 7 days if not provided or invalid
+    days_range = (params[:days_range].presence&.to_i || DAYS_RANGE || 7)
+    
+    @start_date = days_range.days.ago.beginning_of_day
+    @end_date = Time.zone.now.end_of_day
     
     @dashboard_data = GeneralDashboardServices::AggregatorService.call(
       topic: @topic,

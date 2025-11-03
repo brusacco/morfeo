@@ -351,7 +351,7 @@
       <!-- Header -->
       <div class="pdf-header">
         <h1>Reporte Twitter: <%=@topic.name%></h1>
-        <p>Período: Últimos <%=DAYS_RANGE%> días | Generado: <%=Time.current.strftime("%d/%m/%Y %H:%M")%></p>
+        <p>Período: Últimos <%=@days_range%> días | Generado: <%=Time.current.strftime("%d/%m/%Y %H:%M")%></p>
       </div>
       <!-- KPI Section -->
       <div class="pdf-section">

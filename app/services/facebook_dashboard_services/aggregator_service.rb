@@ -12,9 +12,12 @@ module FacebookDashboardServices
     # Cache expiration time for dashboard data
     CACHE_EXPIRATION = 30.minutes
 
-    def initialize(topic:, top_posts_limit: 20)
+    def initialize(topic:, top_posts_limit: 20, days_range: DAYS_RANGE)
       @topic = topic
       @top_posts_limit = top_posts_limit
+      @days_range = (days_range || DAYS_RANGE || 7).to_i # Default to 7 days if not provided
+      @start_time = @days_range.days.ago.beginning_of_day
+      @end_time = Time.zone.now.end_of_day
       @tag_names = @topic.tags.pluck(:name) # Cache tag names
       @facebook_data_cache = nil # Memoization
     end
@@ -33,7 +36,7 @@ module FacebookDashboardServices
     private
 
     def cache_key
-      "facebook_dashboard_#{@topic.id}_#{@top_posts_limit}_#{Date.current}"
+      "facebook_dashboard_#{@topic.id}_#{@top_posts_limit}_#{@days_range}_#{Date.current}"
     end
 
     # Memoized facebook data to avoid reloading entries multiple times
@@ -45,7 +48,7 @@ module FacebookDashboardServices
       return empty_facebook_data if @tag_names.empty?
 
       # Single base query with all necessary includes
-      entries = FacebookEntry.for_topic(@topic)
+      entries = FacebookEntry.for_topic(@topic, start_time: @start_time, end_time: @end_time)
       
       # Execute aggregations efficiently
       chart_data = calculate_chart_data(entries)

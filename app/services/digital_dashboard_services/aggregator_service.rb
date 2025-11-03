@@ -13,8 +13,8 @@ module DigitalDashboardServices
     
     def initialize(topic:, days_range: DAYS_RANGE)
       @topic = topic
-      @days_range = days_range
-      @start_date = days_range.days.ago.beginning_of_day
+      @days_range = (days_range || DAYS_RANGE || 7).to_i # Default to 7 days if not provided
+      @start_date = @days_range.days.ago.beginning_of_day
       @end_date = Time.current
       @tag_names = @topic.tags.pluck(:name) # Cache tag names
       @topic_data_cache = nil # Memoization
@@ -113,13 +113,17 @@ module DigitalDashboardServices
 
     def load_chart_data
       # Use pre-aggregated daily stats for performance - single query
-      topic_stats = @topic.topic_stat_dailies.normal_range.order(:topic_date).to_a
+      topic_stats = @topic.topic_stat_dailies
+                          .where(topic_date: @start_date.to_date..@end_date.to_date)
+                          .order(:topic_date).to_a
 
       # Build all chart data in one pass
       chart_data = build_chart_data_from_stats(topic_stats)
       
       # Load title stats - single query
-      title_stats = @topic.title_topic_stat_dailies.normal_range.order(:topic_date)
+      title_stats = @topic.title_topic_stat_dailies
+                          .where(topic_date: @start_date.to_date..@end_date.to_date)
+                          .order(:topic_date)
       
       chart_data.merge(
         title_chart_entries_counts: title_stats.pluck(:topic_date, :entry_quantity).to_h,
