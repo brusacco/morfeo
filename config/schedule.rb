@@ -16,7 +16,7 @@ end
 # =============================================================================
 # These tasks run every hour to collect and process data from various sources
 every :hour do
-  rake 'crawler'              # Crawl websites for new articles
+  rake 'crawler'              # Crawl websites for new articles (depth: 2)
   rake 'proxy_crawler'        # JS-rendered sites via proxy
   rake 'update_stats'         # Update Facebook stats for articles
   rake 'update_site_stats'    # Aggregate site-level statistics
@@ -49,7 +49,7 @@ end
 # EVERY 6 HOURS - Deep processing and AI
 # =============================================================================
 every 6.hours do
-  rake 'crawler_deep'              # Deep crawl for missed content
+  rake 'crawler[3]'                # Deep crawl for missed content (depth: 3)
   rake 'ai:generate_ai_reports'    # Generate AI-powered topic reports
   rake 'ai:set_topic_polarity'     # Set sentiment/polarity for topics
   rake 'facebook:update_fanpages'  # Update Facebook page metadata

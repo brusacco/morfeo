@@ -1,8 +1,9 @@
 AllCops:
   EnabledByDefault: true
 
-require:
+plugins:
   - rubocop-rails
+
 Style/Copyright:
   Enabled: false
   AutocorrectNotice: "Copyright 2022 Mind"

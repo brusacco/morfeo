@@ -6,7 +6,7 @@
 #
 default: &default
   adapter: mysql2
-  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 10 } %>
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 20 } %>
   timeout: 5000
 
 development:
@@ -36,7 +36,7 @@ test:
 production:
   adapter: mysql2
   database: morfeo
-  pool: 10
+  pool: 20
   username: admin
   password: admin
   host: localhost
