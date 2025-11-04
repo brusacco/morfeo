@@ -23,6 +23,24 @@ module HomeServices
     ENGAGEMENT_CRITICAL_THRESHOLD = -20  # Critical drop
     ENGAGEMENT_WARNING_THRESHOLD = -10   # Moderate drop
 
+    # Viral content thresholds
+    VIRAL_MULTIPLIER = 5  # Content engagement > 5x average
+    VIRAL_MINIMUM_ENGAGEMENT = 100  # Minimum interactions to be considered viral
+
+    # Controversy thresholds (Facebook)
+    CONTROVERSY_CRITICAL_THRESHOLD = 0.7  # 70% polarization
+    CONTROVERSY_WARNING_THRESHOLD = 0.5   # 50% polarization
+
+    # Reach decline thresholds
+    REACH_CRITICAL_DECLINE = -20  # 20% drop
+    REACH_WARNING_DECLINE = -15   # 15% drop
+    REACH_MINIMUM = 1000  # Minimum reach to alert
+
+    # Share of Voice thresholds
+    SOV_CRITICAL_DROP = 5.0  # 5 percentage points drop
+    SOV_WARNING_DROP = 3.0   # 3 percentage points drop
+    SOV_MINIMUM = 5.0  # Minimum SoV to monitor (5%)
+
     # Competitive intelligence thresholds
     COMPETITIVE_SOV_THRESHOLD = 15
     STRONG_SOV_THRESHOLD = 20
@@ -322,6 +340,18 @@ module HomeServices
 
         # Engagement velocity alerts (interactions)
         alerts << generate_engagement_alert(topic, stats, engagement_velocity) if engagement_velocity[:velocity] < 0
+
+        # NEW: Viral content alerts
+        alerts.concat(generate_viral_content_alerts(topic))
+
+        # NEW: Controversy alerts (Facebook)
+        alerts.concat(generate_controversy_alerts(topic))
+
+        # NEW: Reach decline alerts
+        alerts << generate_reach_decline_alert(topic, stats)
+
+        # NEW: Share of Voice alerts
+        alerts << generate_sov_alert(topic, stats)
       end
 
       alerts.compact.sort_by { |a| ['high', 'medium', 'low'].index(a[:severity]) }
@@ -407,6 +437,239 @@ module HomeServices
         topic: topic.name,
         url: Rails.application.routes.url_helpers.topic_path(topic)
       }
+    end
+
+    # ========================================
+    # NEW ALERTS - PR CRITICAL
+    # ========================================
+
+    # Alert 1: Viral Content Detection
+    def generate_viral_content_alerts(topic)
+      alerts = []
+      tag_names = topic.tags.pluck(:name)
+      return alerts if tag_names.empty?
+
+      # Check digital media
+      digital_entries = Entry.enabled
+                             .where(published_at: 6.hours.ago..Time.current)
+                             .tagged_with(tag_names, any: true)
+
+      if digital_entries.any?
+        avg_engagement = digital_entries.average(:total_count).to_f
+        viral_threshold = avg_engagement * VIRAL_MULTIPLIER
+
+        viral_entries = digital_entries.where('total_count > ?', [viral_threshold, VIRAL_MINIMUM_ENGAGEMENT].max)
+
+        if viral_entries.any?
+          top_viral = viral_entries.order(total_count: :desc).first
+          alerts << create_alert(
+            severity: 'high',
+            type: 'viral',
+            topic: topic,
+            message: "🔥 Contenido Viral Detectado: #{topic.name}",
+            details: "Artículo con #{top_viral.total_count} interacciones (#{(top_viral.total_count / avg_engagement).round(1)}x el promedio). ¡Oportunidad para amplificar! URL: #{top_viral.url}"
+          )
+        end
+      end
+
+      # Check Facebook
+      fb_entries = FacebookEntry.where(posted_at: 6.hours.ago..Time.current)
+                                .tagged_with(tag_names, any: true)
+
+      if fb_entries.any?
+        avg_fb_engagement = fb_entries.average('reactions_total_count + comments_count + share_count').to_f
+        viral_fb_threshold = avg_fb_engagement * VIRAL_MULTIPLIER
+
+        viral_fb = fb_entries.where('reactions_total_count + comments_count + share_count > ?',
+                                    [viral_fb_threshold, VIRAL_MINIMUM_ENGAGEMENT].max)
+
+        if viral_fb.any?
+          top_fb = viral_fb.order(Arel.sql('reactions_total_count + comments_count + share_count DESC')).first
+          total_fb_engagement = top_fb.reactions_total_count + top_fb.comments_count + top_fb.share_count
+          alerts << create_alert(
+            severity: 'high',
+            type: 'viral',
+            topic: topic,
+            message: "🔥 Post Viral en Facebook: #{topic.name}",
+            details: "Post con #{total_fb_engagement} interacciones (#{(total_fb_engagement / avg_fb_engagement).round(1)}x el promedio). ¡Momento para push paid! URL: #{top_fb.permalink_url}"
+          )
+        end
+      end
+
+      # Check Twitter
+      tw_posts = TwitterPost.where(posted_at: 6.hours.ago..Time.current)
+                           .tagged_with(tag_names, any: true)
+
+      if tw_posts.any?
+        avg_tw_engagement = tw_posts.average('favorite_count + retweet_count + reply_count + quote_count').to_f
+        viral_tw_threshold = avg_tw_engagement * VIRAL_MULTIPLIER
+
+        viral_tw = tw_posts.where('favorite_count + retweet_count + reply_count + quote_count > ?',
+                                  [viral_tw_threshold, VIRAL_MINIMUM_ENGAGEMENT].max)
+
+        if viral_tw.any?
+          top_tw = viral_tw.order(Arel.sql('favorite_count + retweet_count + reply_count + quote_count DESC')).first
+          total_tw_engagement = top_tw.favorite_count + top_tw.retweet_count + top_tw.reply_count + top_tw.quote_count
+          alerts << create_alert(
+            severity: 'high',
+            type: 'viral',
+            topic: topic,
+            message: "🔥 Tweet Viral: #{topic.name}",
+            details: "Tweet con #{total_tw_engagement} interacciones (#{(total_tw_engagement / avg_tw_engagement).round(1)}x el promedio). ¡Amplificar ahora! URL: #{top_tw.tweet_url}"
+          )
+        end
+      end
+
+      alerts
+    end
+
+    # Alert 2: Controversy Detection (Facebook)
+    def generate_controversy_alerts(topic)
+      alerts = []
+      tag_names = topic.tags.pluck(:name)
+      return alerts if tag_names.empty?
+
+      # Check for controversial posts in last 24 hours
+      controversial_posts = FacebookEntry.where(posted_at: 24.hours.ago..Time.current)
+                                        .tagged_with(tag_names, any: true)
+                                        .where('controversy_index > ?', CONTROVERSY_WARNING_THRESHOLD)
+                                        .order(controversy_index: :desc)
+
+      if controversial_posts.any?
+        top_controversial = controversial_posts.first
+        controversy_level = top_controversial.controversy_index
+
+        if controversy_level >= CONTROVERSY_CRITICAL_THRESHOLD
+          severity = 'high'
+          icon = '⚠️'
+          message_text = "Crisis de Controversia: #{topic.name}"
+          details_text = "Post altamente polarizado detectado (#{(controversy_level * 100).round}% controversia). Audiencia dividida. Requiere monitoreo inmediato y posible respuesta. URL: #{top_controversial.permalink_url}"
+        else
+          severity = 'medium'
+          icon = '⚡'
+          message_text = "Contenido Controversial: #{topic.name}"
+          details_text = "Post con polarización moderada (#{(controversy_level * 100).round}% controversia). Monitorear de cerca. URL: #{top_controversial.permalink_url}"
+        end
+
+        alerts << create_alert(
+          severity: severity,
+          type: 'controversy',
+          topic: topic,
+          message: "#{icon} #{message_text}",
+          details: details_text
+        )
+      end
+
+      alerts
+    end
+
+    # Alert 3: Reach Decline Detection
+    def generate_reach_decline_alert(topic, stats)
+      tag_names = topic.tags.pluck(:name)
+      return nil if tag_names.empty?
+
+      # Calculate reach velocity (24h vs 24h)
+      recent_stats = stats.select { |s| s.topic_date >= 1.day.ago.to_date }
+      previous_stats = stats.select { |s| s.topic_date.between?(2.days.ago.to_date, 1.day.ago.to_date) }
+
+      # Approximate reach from stats (interactions * multiplier)
+      recent_reach = recent_stats.sum { |s| (s.total_count || 0) * DIGITAL_REACH_MULTIPLIER }
+      previous_reach = previous_stats.sum { |s| (s.total_count || 0) * DIGITAL_REACH_MULTIPLIER }
+
+      # Add Facebook actual reach (views_count)
+      fb_recent_reach = FacebookEntry.where(posted_at: 24.hours.ago..Time.current)
+                                     .tagged_with(tag_names, any: true)
+                                     .sum(:views_count)
+      fb_previous_reach = FacebookEntry.where(posted_at: 48.hours.ago..24.hours.ago)
+                                       .tagged_with(tag_names, any: true)
+                                       .sum(:views_count)
+
+      recent_reach += fb_recent_reach
+      previous_reach += fb_previous_reach
+
+      # Add Twitter reach if available
+      tw_recent_reach = TwitterPost.where(posted_at: 24.hours.ago..Time.current)
+                                   .tagged_with(tag_names, any: true)
+                                   .sum(:views_count)
+      tw_previous_reach = TwitterPost.where(posted_at: 48.hours.ago..24.hours.ago)
+                                     .tagged_with(tag_names, any: true)
+                                     .sum(:views_count)
+
+      recent_reach += tw_recent_reach
+      previous_reach += tw_previous_reach
+
+      return nil if previous_reach.zero? || recent_reach < REACH_MINIMUM
+
+      reach_change = ((recent_reach - previous_reach).to_f / previous_reach * 100).round(1)
+
+      if reach_change <= REACH_CRITICAL_DECLINE
+        create_alert(
+          severity: 'high',
+          type: 'reach',
+          topic: topic,
+          message: "📉 Caída Crítica de Alcance: #{topic.name}",
+          details: "El alcance cayó #{reach_change}% en las últimas 24 horas (de #{number_with_delimiter(previous_reach)} a #{number_with_delimiter(recent_reach)}). Problemas de visibilidad detectados. Revisar algoritmos y estrategia de distribución."
+        )
+      elsif reach_change <= REACH_WARNING_DECLINE
+        create_alert(
+          severity: 'medium',
+          type: 'reach',
+          topic: topic,
+          message: "⚠️ Alcance en Descenso: #{topic.name}",
+          details: "El alcance disminuyó #{reach_change}% en las últimas 24 horas. Monitorear tendencia y considerar ajustes en la estrategia."
+        )
+      end
+    end
+
+    # Alert 4: Share of Voice Decline
+    def generate_sov_alert(topic, stats)
+      # Calculate current SoV
+      recent_topic_mentions = stats.select { |s| s.topic_date >= 7.days.ago.to_date }
+                                  .sum { |s| s.entry_count || 0 }
+
+      recent_all_mentions = TopicStatDaily.where(topic_date: 7.days.ago.to_date..Date.current)
+                                         .sum(:entry_count)
+
+      return nil if recent_all_mentions.zero? || recent_topic_mentions < ALERT_MINIMUM_COUNT
+
+      current_sov = (recent_topic_mentions.to_f / recent_all_mentions * 100).round(1)
+
+      # Calculate previous SoV (7-14 days ago)
+      previous_topic_mentions = stats.select { |s| s.topic_date.between?(14.days.ago.to_date, 7.days.ago.to_date) }
+                                    .sum { |s| s.entry_count || 0 }
+
+      previous_all_mentions = TopicStatDaily.where(topic_date: 14.days.ago.to_date..7.days.ago.to_date)
+                                           .sum(:entry_count)
+
+      return nil if previous_all_mentions.zero?
+
+      previous_sov = (previous_topic_mentions.to_f / previous_all_mentions * 100).round(1)
+      sov_change = current_sov - previous_sov
+
+      return nil if current_sov < SOV_MINIMUM # Too small to monitor
+
+      if sov_change <= -SOV_CRITICAL_DROP
+        create_alert(
+          severity: 'high',
+          type: 'market_share',
+          topic: topic,
+          message: "🎯 Share of Voice en Caída Crítica: #{topic.name}",
+          details: "SoV cayó #{sov_change.abs} puntos porcentuales (de #{previous_sov}% a #{current_sov}%). Perdiendo terreno vs competencia. Revisar budget y estrategia inmediatamente."
+        )
+      elsif sov_change <= -SOV_WARNING_DROP
+        create_alert(
+          severity: 'medium',
+          type: 'market_share',
+          topic: topic,
+          message: "⚡ Share of Voice Descendiendo: #{topic.name}",
+          details: "SoV disminuyó #{sov_change.abs} puntos porcentuales (de #{previous_sov}% a #{current_sov}%). Monitorear competencia y considerar ajustes."
+        )
+      end
+    end
+
+    # Helper method for number formatting in alerts
+    def number_with_delimiter(number)
+      number.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse
     end
 
     # ========================================
