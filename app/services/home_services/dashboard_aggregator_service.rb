@@ -13,12 +13,12 @@ module HomeServices
     CACHE_EXPIRATION = 30.minutes
     DIGITAL_REACH_MULTIPLIER = 3  # Conservative estimate for digital media
     TWITTER_REACH_FALLBACK = 10   # Fallback multiplier when views_count unavailable
-    
+
     # Alert thresholds
     CRISIS_SENTIMENT_THRESHOLD = -40
     WARNING_SENTIMENT_THRESHOLD = -20
     ALERT_MINIMUM_COUNT = 10
-    
+
     # Competitive intelligence thresholds
     COMPETITIVE_SOV_THRESHOLD = 15
     STRONG_SOV_THRESHOLD = 20
@@ -221,7 +221,7 @@ module HomeServices
 
       @topics.each_with_object({}) do |topic, hash|
         stats = stats_by_topic[topic.id] || []
-        
+
         hash[topic.id] = {
           mentions: stats.sum { |s| s.entry_count || 0 },
           interactions: stats.sum { |s| s.total_count || 0 },
@@ -265,8 +265,10 @@ module HomeServices
     end
 
     def calculate_topic_trend_direction_from_stats(stats)
-      recent_stats = stats.select { |s| s.topic_date >= 3.days.ago.to_date }
-      previous_stats = stats.select { |s| s.topic_date.between?(6.days.ago.to_date, 3.days.ago.to_date) }
+      # Use 24h vs 24h window to match individual dashboard velocity calculations
+      # This ensures consistency across all dashboards (Digital, Facebook, Twitter)
+      recent_stats = stats.select { |s| s.topic_date >= 1.day.ago.to_date }
+      previous_stats = stats.select { |s| s.topic_date.between?(2.days.ago.to_date, 1.day.ago.to_date) }
 
       recent_count = recent_stats.sum { |s| s.entry_count || 0 }
       previous_count = previous_stats.sum { |s| s.entry_count || 0 }
@@ -290,7 +292,7 @@ module HomeServices
 
         # Sentiment alerts
         alerts.concat(generate_sentiment_alerts(topic, sentiment))
-        
+
         # Trend alerts
         alerts << generate_trend_alert(topic, stats, trend) if trend == 'down'
       end
@@ -323,8 +325,9 @@ module HomeServices
     end
 
     def generate_trend_alert(topic, stats, trend)
-      recent_count = stats.select { |s| s.topic_date >= 3.days.ago.to_date }.sum { |s| s.entry_count || 0 }
-      
+      # Use 24h window to match individual dashboard calculations
+      recent_count = stats.select { |s| s.topic_date >= 1.day.ago.to_date }.sum { |s| s.entry_count || 0 }
+
       return nil unless recent_count > ALERT_MINIMUM_COUNT
 
       create_alert(
@@ -332,7 +335,7 @@ module HomeServices
         type: 'info',
         topic: topic,
         message: "📉 Disminución de Menciones: #{topic.name}",
-        details: "Las menciones están disminuyendo en los últimos días. Considere aumentar actividad."
+        details: "Las menciones están disminuyendo en las últimas 24 horas comparado con el día anterior. Considere aumentar actividad."
       )
     end
 
@@ -413,7 +416,7 @@ module HomeServices
 
       # Use .size instead of .count after tagged_with for efficiency
       base_scope = Entry.enabled.where(published_at: @start_date..@end_date).tagged_with(tag_names, any: true)
-      
+
       positive = base_scope.where(polarity: :positive).size
       negative = base_scope.where(polarity: :negative).size
       total = base_scope.size
@@ -426,7 +429,7 @@ module HomeServices
       return 0 if tag_names.empty?
 
       base_scope = FacebookEntry.where(posted_at: @start_date..@end_date).tagged_with(tag_names, any: true)
-      
+
       total_score = base_scope.sum(:sentiment_score)
       count = base_scope.where.not(sentiment_score: nil).size
 
@@ -477,12 +480,12 @@ module HomeServices
 
       (@start_date.to_date..@end_date.to_date).each_with_object({}) do |date, hash|
         stats = all_stats[date] || []
-        
+
         positive = stats.sum { |s| s.positive_quantity || 0 }
         negative = stats.sum { |s| s.negative_quantity || 0 }
         neutral = stats.sum { |s| s.neutral_quantity || 0 }
         total = positive + negative + neutral
-        
+
         score = total > 0 ? ((positive - negative).to_f / total * 100).round(1) : 0
         hash[date.strftime('%Y-%m-%d')] = score
       end
@@ -687,13 +690,13 @@ module HomeServices
 
     def calculate_share_of_voice
       stats_by_topic = load_topic_stats_batch
-      
+
       total_mentions = stats_by_topic.values.flatten.sum { |s| s.entry_count || 0 }
       return {} if total_mentions.zero?
 
       @topics.each_with_object({}) do |topic, hash|
         topic_mentions = (stats_by_topic[topic.id] || []).sum { |s| s.entry_count || 0 }
-        
+
         hash[topic.name] = {
           mentions: topic_mentions,
           percentage: safe_percentage(topic_mentions, total_mentions, decimals: 1)
@@ -758,7 +761,7 @@ module HomeServices
 
     def identify_competitive_topics
       sov = calculate_share_of_voice
-      
+
       # Topics with > 15% SOV are competitive
       competitive = sov.select { |_name, data| data[:percentage] > COMPETITIVE_SOV_THRESHOLD }
 
