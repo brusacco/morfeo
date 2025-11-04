@@ -455,20 +455,34 @@ module HomeServices
                              .where(published_at: 6.hours.ago..Time.current)
                              .tagged_with(tag_names, any: true)
 
+      # Use .size instead of .count to avoid SQL issues with acts_as_taggable_on
       if digital_entries.any?
-        avg_engagement = digital_entries.average(:total_count).to_f
-        viral_threshold = avg_engagement * VIRAL_MULTIPLIER
-
-        viral_entries = digital_entries.where('total_count > ?', [viral_threshold, VIRAL_MINIMUM_ENGAGEMENT].max)
+        # Simple approach: Any entry with > 100 interactions in last 6h is considered viral
+        entries_array = digital_entries.to_a
+        viral_entries = entries_array.select { |e| e.total_count > VIRAL_MINIMUM_ENGAGEMENT }
+                                    .sort_by { |e| -e.total_count }
 
         if viral_entries.any?
-          top_viral = viral_entries.order(total_count: :desc).first
+          # Calculate baseline (median/average of non-zero values)
+          engagement_values = entries_array.map(&:total_count)
+          non_zero_values = engagement_values.select { |v| v > 0 }
+
+          baseline = if non_zero_values.size >= 3
+            sorted = non_zero_values.sort
+            calculate_median(sorted)
+          elsif non_zero_values.any?
+            non_zero_values.sum / non_zero_values.size.to_f
+          else
+            1.0
+          end
+
+          top_viral = viral_entries.first
           alerts << create_alert(
             severity: 'high',
             type: 'viral',
             topic: topic,
             message: "🔥 Contenido Viral Detectado: #{topic.name}",
-            details: "Artículo con #{top_viral.total_count} interacciones (#{(top_viral.total_count / avg_engagement).round(1)}x el promedio). ¡Oportunidad para amplificar! URL: #{top_viral.url}"
+            details: "Artículo con #{top_viral.total_count} interacciones (#{(top_viral.total_count / baseline).round(1)}x la mediana de #{baseline.round(0)}). ¡Oportunidad para amplificar! URL: #{top_viral.url}"
           )
         end
       end
@@ -477,23 +491,32 @@ module HomeServices
       fb_entries = FacebookEntry.where(posted_at: 6.hours.ago..Time.current)
                                 .tagged_with(tag_names, any: true)
 
-      if fb_entries.any?
-        avg_fb_engagement = fb_entries.average('reactions_total_count + comments_count + share_count').to_f
-        viral_fb_threshold = avg_fb_engagement * VIRAL_MULTIPLIER
+      if fb_entries.size >= 3  # Minimum sample for median
+        # Load to array to avoid re-querying
+        fb_array = fb_entries.to_a
+        # Calculate total engagement for each post
+        fb_engagements = fb_array.map { |fb| fb.reactions_total_count + fb.comments_count + fb.share_count }.sort
+        median_fb_engagement = calculate_median(fb_engagements)
 
-        viral_fb = fb_entries.where('reactions_total_count + comments_count + share_count > ?',
-                                    [viral_fb_threshold, VIRAL_MINIMUM_ENGAGEMENT].max)
+        # Only generate alert if median is not zero
+        unless median_fb_engagement.zero?
+          viral_fb_threshold = [median_fb_engagement * VIRAL_MULTIPLIER, VIRAL_MINIMUM_ENGAGEMENT].max
 
-        if viral_fb.any?
-          top_fb = viral_fb.order(Arel.sql('reactions_total_count + comments_count + share_count DESC')).first
-          total_fb_engagement = top_fb.reactions_total_count + top_fb.comments_count + top_fb.share_count
-          alerts << create_alert(
-            severity: 'high',
-            type: 'viral',
-            topic: topic,
-            message: "🔥 Post Viral en Facebook: #{topic.name}",
-            details: "Post con #{total_fb_engagement} interacciones (#{(total_fb_engagement / avg_fb_engagement).round(1)}x el promedio). ¡Momento para push paid! URL: #{top_fb.permalink_url}"
-          )
+          viral_fb = fb_array.select do |fb|
+            (fb.reactions_total_count + fb.comments_count + fb.share_count) > viral_fb_threshold
+          end
+
+          if viral_fb.any?
+            top_fb = viral_fb.max_by { |fb| fb.reactions_total_count + fb.comments_count + fb.share_count }
+            total_fb_engagement = top_fb.reactions_total_count + top_fb.comments_count + top_fb.share_count
+            alerts << create_alert(
+              severity: 'high',
+              type: 'viral',
+              topic: topic,
+              message: "🔥 Post Viral en Facebook: #{topic.name}",
+              details: "Post con #{total_fb_engagement} interacciones (#{(total_fb_engagement / median_fb_engagement).round(1)}x la mediana de #{median_fb_engagement.round(0)}). ¡Momento para push paid! URL: #{top_fb.permalink_url}"
+            )
+          end
         end
       end
 
@@ -501,23 +524,32 @@ module HomeServices
       tw_posts = TwitterPost.where(posted_at: 6.hours.ago..Time.current)
                            .tagged_with(tag_names, any: true)
 
-      if tw_posts.any?
-        avg_tw_engagement = tw_posts.average('favorite_count + retweet_count + reply_count + quote_count').to_f
-        viral_tw_threshold = avg_tw_engagement * VIRAL_MULTIPLIER
+      if tw_posts.size >= 3  # Minimum sample for median
+        # Load to array to avoid re-querying
+        tw_array = tw_posts.to_a
+        # Calculate total engagement for each tweet
+        tw_engagements = tw_array.map { |tw| tw.favorite_count + tw.retweet_count + tw.reply_count + tw.quote_count }.sort
+        median_tw_engagement = calculate_median(tw_engagements)
 
-        viral_tw = tw_posts.where('favorite_count + retweet_count + reply_count + quote_count > ?',
-                                  [viral_tw_threshold, VIRAL_MINIMUM_ENGAGEMENT].max)
+        # Only generate alert if median is not zero
+        unless median_tw_engagement.zero?
+          viral_tw_threshold = [median_tw_engagement * VIRAL_MULTIPLIER, VIRAL_MINIMUM_ENGAGEMENT].max
 
-        if viral_tw.any?
-          top_tw = viral_tw.order(Arel.sql('favorite_count + retweet_count + reply_count + quote_count DESC')).first
-          total_tw_engagement = top_tw.favorite_count + top_tw.retweet_count + top_tw.reply_count + top_tw.quote_count
-          alerts << create_alert(
-            severity: 'high',
-            type: 'viral',
-            topic: topic,
-            message: "🔥 Tweet Viral: #{topic.name}",
-            details: "Tweet con #{total_tw_engagement} interacciones (#{(total_tw_engagement / avg_tw_engagement).round(1)}x el promedio). ¡Amplificar ahora! URL: #{top_tw.tweet_url}"
-          )
+          viral_tw = tw_array.select do |tw|
+            (tw.favorite_count + tw.retweet_count + tw.reply_count + tw.quote_count) > viral_tw_threshold
+          end
+
+          if viral_tw.any?
+            top_tw = viral_tw.max_by { |tw| tw.favorite_count + tw.retweet_count + tw.reply_count + tw.quote_count }
+            total_tw_engagement = top_tw.favorite_count + top_tw.retweet_count + top_tw.reply_count + top_tw.quote_count
+            alerts << create_alert(
+              severity: 'high',
+              type: 'viral',
+              topic: topic,
+              message: "🔥 Tweet Viral: #{topic.name}",
+              details: "Tweet con #{total_tw_engagement} interacciones (#{(total_tw_engagement / median_tw_engagement).round(1)}x la mediana de #{median_tw_engagement.round(0)}). ¡Amplificar ahora! URL: #{top_tw.tweet_url}"
+            )
+          end
         end
       end
 
@@ -671,6 +703,19 @@ module HomeServices
     # Helper method for number formatting in alerts
     def number_with_delimiter(number)
       number.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse
+    end
+
+    # Calculate median from sorted array
+    # More robust than mean for viral detection (not affected by outliers)
+    def calculate_median(sorted_values)
+      return 0 if sorted_values.empty?
+
+      size = sorted_values.size
+      if size.odd?
+        sorted_values[size / 2].to_f
+      else
+        (sorted_values[size / 2 - 1] + sorted_values[size / 2]) / 2.0
+      end
     end
 
     # ========================================

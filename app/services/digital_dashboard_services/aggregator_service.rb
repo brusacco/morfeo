@@ -332,28 +332,58 @@ module DigitalDashboardServices
                             .tagged_with(@tag_names, any: true)
                             .includes(:site)
 
-      return [] if recent_entries.none?
+      # Use .to_a.size instead of .count to avoid SQL issues with acts_as_taggable_on
+      entries_array = recent_entries.to_a
+      return [] if entries_array.empty?
 
-      # Calculate average engagement
-      avg_engagement = recent_entries.average(:total_count).to_f
-      return [] if avg_engagement.zero?
-
-      # Viral threshold: 5x average, minimum 100 interactions
-      viral_threshold = [avg_engagement * 5, 100].max
-
+      # Simple approach: Any entry with > 100 interactions in last 6h is considered viral
+      # This is more practical than statistical analysis for short time windows
+      viral_threshold = 100
+      
       # Get viral entries
-      viral_entries = recent_entries
-                        .where('total_count > ?', viral_threshold)
-                        .order(total_count: :desc)
-                        .limit(10)
+      viral_entries = entries_array.select { |e| e.total_count > viral_threshold }
+                                  .sort_by { |e| -e.total_count }
+                                  .take(10)
+
+      return [] if viral_entries.empty?
+
+      # Calculate baseline for comparison (median of non-zero values, or 1 if none)
+      engagement_values = entries_array.map(&:total_count)
+      non_zero_values = engagement_values.select { |v| v > 0 }
+      
+      baseline = if non_zero_values.size >= 3
+        # Use median of non-zero values if we have enough data
+        sorted = non_zero_values.sort
+        calculate_median(sorted)
+      elsif non_zero_values.any?
+        # Use average of non-zero values if we have 1-2 values
+        non_zero_values.sum / non_zero_values.size.to_f
+      else
+        # All zeros, use 1 to avoid division by zero
+        1.0
+      end
 
       viral_entries.map do |entry|
         {
           entry: entry,
-          multiplier: (entry.total_count / avg_engagement).round(1),
+          multiplier: (entry.total_count / baseline).round(1),
           engagement: entry.total_count,
-          published_at: entry.published_at
+          published_at: entry.published_at,
+          baseline: baseline.round(0)  # For transparency
         }
+      end
+    end
+
+    # Calculate median from sorted array
+    # More robust than mean for viral detection
+    def calculate_median(sorted_values)
+      return 0 if sorted_values.empty?
+      
+      size = sorted_values.size
+      if size.odd?
+        sorted_values[size / 2].to_f
+      else
+        (sorted_values[size / 2 - 1] + sorted_values[size / 2]) / 2.0
       end
     end
 
