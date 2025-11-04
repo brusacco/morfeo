@@ -27,7 +27,8 @@ module DigitalDashboardServices
           chart_data: load_chart_data,
           percentages: calculate_percentages,
           tags_and_words: load_tags_and_word_data,
-          temporal_intelligence: load_temporal_intelligence
+          temporal_intelligence: load_temporal_intelligence,
+          viral_content: detect_viral_content
         }
       end
     end
@@ -317,6 +318,43 @@ module DigitalDashboardServices
 
     def default_velocity
       { velocity_percent: 0, direction: 'stable' }
+    end
+
+    # ========================================
+    # VIRAL CONTENT DETECTION
+    # ========================================
+    def detect_viral_content
+      return [] if @tag_names.empty?
+
+      # Get entries from last 6 hours
+      recent_entries = Entry.enabled
+                            .where(published_at: 6.hours.ago..Time.current)
+                            .tagged_with(@tag_names, any: true)
+                            .includes(:site)
+
+      return [] if recent_entries.none?
+
+      # Calculate average engagement
+      avg_engagement = recent_entries.average(:total_count).to_f
+      return [] if avg_engagement.zero?
+
+      # Viral threshold: 5x average, minimum 100 interactions
+      viral_threshold = [avg_engagement * 5, 100].max
+
+      # Get viral entries
+      viral_entries = recent_entries
+                        .where('total_count > ?', viral_threshold)
+                        .order(total_count: :desc)
+                        .limit(10)
+
+      viral_entries.map do |entry|
+        {
+          entry: entry,
+          multiplier: (entry.total_count / avg_engagement).round(1),
+          engagement: entry.total_count,
+          published_at: entry.published_at
+        }
+      end
     end
 
     def empty_topic_data

@@ -100,6 +100,7 @@ class TopicController < ApplicationController
     assign_percentages(dashboard_data[:percentages])
     assign_tags_and_words(dashboard_data[:tags_and_words])
     assign_temporal_intelligence(dashboard_data[:temporal_intelligence])
+    @viral_content = dashboard_data[:viral_content]
   end
 
   def comments
