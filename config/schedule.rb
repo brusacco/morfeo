@@ -42,7 +42,7 @@ end
 # =============================================================================
 every 4.hours do
   rake 'repeated_notes'  # Detect and mark duplicate articles
-  rake 'title_tagger'    # Tag entries based on title (last 7 days)
+  # rake 'title_tagger' removed - tagger already handles both tags and title_tags
 end
 
 # =============================================================================
