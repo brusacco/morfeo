@@ -138,7 +138,10 @@ end
 
 def call_api(page_uid, cursor = nil)
   api_url = 'https://graph.facebook.com/v17.0/'
-  token = '&access_token=1442100149368278|KS0hVFPE6HgqQ2eMYG_kBpfwjyo'
+  token = ENV.fetch('FACEBOOK_API_TOKEN') do
+    raise ArgumentError, 'FACEBOOK_API_TOKEN environment variable is not set. Please add it to your .env file.'
+  end
+  token_param = "&access_token=#{token}"
   reactions = '%2Creactions.type(LIKE).limit(0).summary(total_count).as(reactions_like)%2Creactions.type(LOVE).limit(0).summary(total_count).as(reactions_love)%2Creactions.type(WOW).limit(0).summary(total_count).as(reactions_wow)%2Creactions.type(HAHA).limit(0).summary(total_count).as(reactions_haha)%2Creactions.type(SAD).limit(0).summary(total_count).as(reactions_sad)%2Creactions.type(ANGRY).limit(0).summary(total_count).as(reactions_angry)%2Creactions.type(THANKFUL).limit(0).summary(total_count).as(reactions_thankful)'
   comments = '%2Ccomments.limit(0).summary(total_count)'
   shares = '%2Cshares'
@@ -146,7 +149,7 @@ def call_api(page_uid, cursor = nil)
   next_page = cursor ? "&after=#{cursor}" : ''
 
   url = "#{page_uid}/posts?fields=id%2Cattachments%2Ccreated_time%2Cmessage"
-  request = "#{api_url}#{url}#{shares}#{comments}#{reactions}#{limit}#{token}#{next_page}"
+  request = "#{api_url}#{url}#{shares}#{comments}#{reactions}#{limit}#{token_param}#{next_page}"
 
   # Retry logic for API calls
   max_retries = 3

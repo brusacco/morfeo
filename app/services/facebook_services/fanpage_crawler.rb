@@ -7,7 +7,26 @@ require 'cgi'
 
 module FacebookServices
   class FanpageCrawler < ApplicationService
+    # Reaction types supported by Facebook
     REACTION_TYPES = %w[like love wow haha sad angry thankful].freeze
+
+    # API Configuration
+    API_VERSION = 'v8.0'
+    API_BASE_URL = 'https://graph.facebook.com'
+
+    # Timeout settings (in seconds)
+    TIMEOUT_SECONDS = 30        # Read timeout: how long to wait for response
+    OPEN_TIMEOUT_SECONDS = 10   # Connection timeout: how long to wait for connection
+
+    # Pagination
+    API_PAGE_SIZE = 100         # Number of posts per API request
+
+    # Rate limiting
+    DEFAULT_WAIT_TIME = 60      # Default wait time when rate limited (seconds)
+    RATE_LIMIT_ERROR_CODES = [4, 17, 32, 613].freeze
+
+    # Authentication errors
+    AUTH_ERROR_CODES = [190, 102].freeze
 
     def initialize(page_uid, cursor = nil)
       @page_uid = page_uid
@@ -34,6 +53,8 @@ module FacebookServices
 
     def persist_entry(page, post)
       facebook_entry = FacebookEntry.find_or_initialize_by(facebook_post_id: post['id'])
+      is_new_entry = facebook_entry.new_record?
+
       attachments_data = post.dig('attachments', 'data') || []
       main_attachment = attachments_data.first || {}
 
@@ -46,6 +67,7 @@ module FacebookServices
 
       reaction_counts = build_reaction_counts(post)
 
+      # ALWAYS update stats and data (for existing entries)
       facebook_entry.assign_attributes(
         page: page,
         posted_at: parse_timestamp(post['created_time']),
@@ -70,13 +92,19 @@ module FacebookServices
       facebook_entry.reactions_total_count = reaction_counts.values.sum
 
       facebook_entry.save!
-      
-      # Link to Entry if matching URL is found
+
+      if is_new_entry
+        Rails.logger.info("[FacebookServices::FanpageCrawler] ✓ Created new post: #{facebook_entry.facebook_post_id}")
+      else
+        Rails.logger.debug("[FacebookServices::FanpageCrawler] ✓ Updated existing post: #{facebook_entry.facebook_post_id}")
+      end
+
+      # Link to Entry if matching URL is found (only for new or unlinked entries)
       link_to_entry(facebook_entry)
-      
-      # Tag the entry immediately after saving
-      tag_entry(facebook_entry)
-      
+
+      # ALWAYS re-tag (to catch new tags added to system)
+      tag_entry(facebook_entry, is_new: is_new_entry)
+
       facebook_entry
     rescue ActiveRecord::RecordInvalid => e
       Rails.logger.error("[FacebookServices::FanpageCrawler] Unable to persist post #{post['id']}: #{e.message}")
@@ -99,7 +127,7 @@ module FacebookServices
 
       # Try to find matching entry
       entry = find_entry_by_url(url)
-      
+
       if entry
         facebook_entry.update(entry: entry)
         Rails.logger.info("[FacebookServices::FanpageCrawler] Linked post #{facebook_entry.facebook_post_id} to entry #{entry.id} (#{entry.url})")
@@ -114,12 +142,12 @@ module FacebookServices
     def find_entry_by_url(url)
       # Try different URL variations
       variations = normalize_url(url)
-      
+
       variations.each do |variation|
         entry = Entry.find_by(url: variation)
         return entry if entry
       end
-      
+
       nil
     end
 
@@ -153,7 +181,8 @@ module FacebookServices
       variations.compact.uniq
     end
 
-    def tag_entry(facebook_entry)
+    def tag_entry(facebook_entry, is_new: false)
+      # Extract tags from Facebook post text
       result = WebExtractorServices::ExtractFacebookEntryTags.call(facebook_entry.id)
 
       # If no tags found through text matching, try to inherit from linked entry
@@ -161,10 +190,18 @@ module FacebookServices
         entry_tags = facebook_entry.entry.tag_list.dup
         entry_tags.delete('Facebook')
         entry_tags.delete('WhatsApp')
-        
-        facebook_entry.tag_list = entry_tags
-        facebook_entry.save!
-        Rails.logger.info("[FacebookServices::FanpageCrawler] Tagged post #{facebook_entry.facebook_post_id} with inherited tags: #{entry_tags.join(', ')}")
+
+        # Smart tag change detection
+        new_tags = entry_tags.sort
+        current_tags = facebook_entry.tag_list.sort
+
+        if new_tags != current_tags
+          facebook_entry.tag_list = entry_tags
+          facebook_entry.save!
+          Rails.logger.info("[FacebookServices::FanpageCrawler] Tagged post #{facebook_entry.facebook_post_id} with inherited tags: #{entry_tags.join(', ')}")
+        else
+          Rails.logger.debug("[FacebookServices::FanpageCrawler] Tags unchanged for post #{facebook_entry.facebook_post_id}")
+        end
         return
       end
 
@@ -172,10 +209,22 @@ module FacebookServices
         tags = result.data.dup
         tags.delete('Facebook')
         tags.delete('WhatsApp')
-        
-        facebook_entry.tag_list = tags
-        facebook_entry.save!
-        Rails.logger.info("[FacebookServices::FanpageCrawler] Tagged post #{facebook_entry.facebook_post_id} with tags: #{tags.join(', ')}")
+
+        # Smart tag change detection
+        new_tags = tags.sort
+        current_tags = facebook_entry.tag_list.sort
+
+        if new_tags != current_tags
+          facebook_entry.tag_list = tags
+          facebook_entry.save!
+          if is_new
+            Rails.logger.info("[FacebookServices::FanpageCrawler] Tagged new post #{facebook_entry.facebook_post_id} with tags: #{tags.join(', ')}")
+          else
+            Rails.logger.info("[FacebookServices::FanpageCrawler] Re-tagged post #{facebook_entry.facebook_post_id} with updated tags: #{tags.join(', ')}")
+          end
+        else
+          Rails.logger.debug("[FacebookServices::FanpageCrawler] Tags unchanged for post #{facebook_entry.facebook_post_id}: #{tags.join(', ')}")
+        end
       else
         Rails.logger.debug("[FacebookServices::FanpageCrawler] No tags found for post #{facebook_entry.facebook_post_id}: #{result.error}")
       end
@@ -230,19 +279,91 @@ module FacebookServices
     end
 
     def call_api(page_uid, cursor = nil)
-      api_url = 'https://graph.facebook.com/v8.0/'
-      token = '&access_token=1442100149368278|KS0hVFPE6HgqQ2eMYG_kBpfwjyo'
+      # Validate token is present
+      token = ENV.fetch('FACEBOOK_API_TOKEN') do
+        raise ArgumentError, 'FACEBOOK_API_TOKEN environment variable is not set. Please add it to your .env file.'
+      end
+
+      api_url = "#{API_BASE_URL}/#{API_VERSION}/"
+      token_param = "&access_token=#{token}"
       reactions = '%2Creactions.type(LIKE).limit(0).summary(total_count).as(reactions_like)%2Creactions.type(LOVE).limit(0).summary(total_count).as(reactions_love)%2Creactions.type(WOW).limit(0).summary(total_count).as(reactions_wow)%2Creactions.type(HAHA).limit(0).summary(total_count).as(reactions_haha)%2Creactions.type(SAD).limit(0).summary(total_count).as(reactions_sad)%2Creactions.type(ANGRY).limit(0).summary(total_count).as(reactions_angry)%2Creactions.type(THANKFUL).limit(0).summary(total_count).as(reactions_thankful)'
       comments = '%2Ccomments.limit(0).summary(total_count)'
       shares = '%2Cshares'
-      limit = '&limit=100'
+      limit = "&limit=#{API_PAGE_SIZE}"
       next_page = cursor ? "&after=#{cursor}" : ''
 
       url = "/#{page_uid}/posts?fields=id%2Cattachments%2Ccreated_time%2Cmessage%2Cpermalink_url"
-      request = "#{api_url}#{url}#{shares}#{comments}#{reactions}#{limit}#{token}#{next_page}"
+      request = "#{api_url}#{url}#{shares}#{comments}#{reactions}#{limit}#{token_param}#{next_page}"
 
-      response = HTTParty.get(request)
-      JSON.parse(response.body)
+      # Make API call with timeout and error handling
+      response = HTTParty.get(
+        request,
+        timeout: TIMEOUT_SECONDS,
+        open_timeout: OPEN_TIMEOUT_SECONDS,
+        headers: {
+          'User-Agent' => 'Morfeo/1.0',
+          'Accept' => 'application/json'
+        }
+      )
+
+      # Parse response
+      data = JSON.parse(response.body)
+
+      # Check for API-level errors
+      if data['error']
+        error_code = data['error']['code']
+        error_message = data['error']['message']
+        error_type = data['error']['type']
+
+        # Handle rate limiting
+        if RATE_LIMIT_ERROR_CODES.include?(error_code)
+          wait_time = extract_wait_time(data['error']) || DEFAULT_WAIT_TIME
+          Rails.logger.warn("[FacebookServices::FanpageCrawler] Rate limit hit (code: #{error_code}), waiting #{wait_time}s...")
+          sleep(wait_time)
+          return call_api(page_uid, cursor) # Retry after waiting
+        end
+
+        # Handle invalid/expired token
+        if AUTH_ERROR_CODES.include?(error_code)
+          Rails.logger.error("[FacebookServices::FanpageCrawler] Invalid access token: #{error_message}")
+          raise ApiError, "Facebook API authentication failed: #{error_message}"
+        end
+
+        # Other API errors
+        Rails.logger.error("[FacebookServices::FanpageCrawler] Facebook API error (code: #{error_code}, type: #{error_type}): #{error_message}")
+        raise ApiError, "Facebook API error: #{error_message}"
+      end
+
+      # Check HTTP response status
+      unless response.success?
+        Rails.logger.error("[FacebookServices::FanpageCrawler] HTTP #{response.code}: #{response.body[0..500]}")
+        raise ApiError, "Facebook API returned HTTP #{response.code}"
+      end
+
+      data
+    rescue Net::OpenTimeout => e
+      Rails.logger.error("[FacebookServices::FanpageCrawler] Connection timeout for page #{page_uid}: #{e.message}")
+      raise ApiError, "Facebook API connection timeout"
+    rescue Net::ReadTimeout => e
+      Rails.logger.error("[FacebookServices::FanpageCrawler] Read timeout for page #{page_uid}: #{e.message}")
+      raise ApiError, "Facebook API read timeout"
+    rescue JSON::ParserError
+      Rails.logger.error("[FacebookServices::FanpageCrawler] Invalid JSON response: #{response&.body&.[](0..500)}")
+      raise ApiError, "Invalid JSON from Facebook API"
+    rescue SocketError, Errno::ECONNREFUSED, Errno::EHOSTUNREACH => e
+      Rails.logger.error("[FacebookServices::FanpageCrawler] Network error: #{e.class} - #{e.message}")
+      raise ApiError, "Network error connecting to Facebook API"
     end
+
+    # Extract wait time from rate limit error
+    def extract_wait_time(error_data)
+      # Try to extract wait time from error message (e.g., "Please retry your request in 60 seconds")
+      message = error_data['error_user_msg'] || error_data['message'] || ''
+      match = message.match(/(\d+)\s*seconds?/i)
+      match ? match[1].to_i : nil
+    end
+
+    # Custom error class for API errors
+    class ApiError < StandardError; end
   end
 end

@@ -31,7 +31,7 @@ end
 # EVERY 3 HOURS - Social media crawling
 # =============================================================================
 every 3.hours do
-  rake 'facebook:fanpage_crawler'      # Crawl Facebook pages for new posts
+  rake 'facebook:fanpage_crawler[3]'   # Crawl Facebook pages (3 pages = ~300 posts per page)
   rake 'twitter:profile_crawler_full'  # Crawl Twitter profiles for new tweets
   rake 'social_crawler'                # General social media crawler
   # rake 'facebook:comment_crawler'    # Disabled: too heavy
