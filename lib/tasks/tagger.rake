@@ -26,10 +26,10 @@ task :tagger, [:days] => :environment do |_t, args|
     result = WebExtractorServices::ExtractTags.call(entry.id)
     if result.success?
       if entry.tag_list == result.data
+        puts "TAGS: #{result.data} (no change)"
+      else
         entry.tag_list = result.data
         puts "TAGS: #{result.data}"
-      else
-        puts "TAGS: #{result.data} (no change)"
       end
     else
       puts "ERROR TAGGER: #{result&.error}"
@@ -39,10 +39,10 @@ task :tagger, [:days] => :environment do |_t, args|
     title_result = WebExtractorServices::ExtractTitleTags.call(entry.id)
     if title_result.success?
       if entry.title_tag_list == title_result.data
+        puts "TITLE TAGS: #{title_result.data} (no change)"
+      else
         entry.title_tag_list = title_result.data
         puts "TITLE TAGS: #{title_result.data}"
-      else
-        puts "TITLE TAGS: #{title_result.data} (no change)"
       end
     else
       puts "ERROR TITLE TAGGER: #{title_result&.error}"
