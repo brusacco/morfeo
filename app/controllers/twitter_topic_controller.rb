@@ -29,6 +29,7 @@ class TwitterTopicController < ApplicationController
     assign_twitter_data(dashboard_data[:twitter_data])
     assign_profiles_data(dashboard_data[:profiles_data])
     assign_temporal_intelligence(dashboard_data[:temporal_intelligence])
+    @viral_content = dashboard_data[:viral_content]
   end
 
   def entries_data

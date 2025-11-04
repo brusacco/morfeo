@@ -28,7 +28,8 @@ module FacebookDashboardServices
           facebook_data: facebook_data,
           pages_data: load_pages_data,
           temporal_intelligence: load_temporal_intelligence,
-          sentiment_analysis: load_sentiment_analysis
+          sentiment_analysis: load_sentiment_analysis,
+          viral_content: detect_viral_content
         }
       end
     end
@@ -270,6 +271,66 @@ module FacebookDashboardServices
         site_counts: {},
         site_sums: {}
       }
+    end
+
+    # ========================================
+    # VIRAL CONTENT DETECTION
+    # ========================================
+    def detect_viral_content
+      return [] if @tag_names.empty?
+
+      # Get Facebook posts from last 6 hours
+      recent_posts = FacebookEntry.for_topic(@topic, start_time: 6.hours.ago, end_time: Time.current)
+                                  .includes(:page)
+
+      # Use .to_a.size instead of .count to avoid SQL issues with acts_as_taggable_on
+      posts_array = recent_posts.to_a
+      return [] if posts_array.empty?
+
+      # Calculate baseline for comparison (median of non-zero values, or 1 if none)
+      engagement_values = posts_array.map(&:total_interactions)
+      non_zero_values = engagement_values.select { |v| v > 0 }
+      
+      baseline = if non_zero_values.size >= 3
+        # Use median of non-zero values if we have enough data
+        sorted = non_zero_values.sort
+        calculate_median(sorted)
+      elsif non_zero_values.any?
+        # Use average of non-zero values if we have 1-2 values
+        non_zero_values.sum / non_zero_values.size.to_f
+      else
+        # All zeros, use 1 to avoid division by zero
+        1.0
+      end
+
+      # Dynamic threshold: Content is viral if it's 5x above median OR has >100 interactions
+      # This adapts to the topic's typical engagement levels
+      dynamic_threshold = [baseline * 5, 100].min
+      
+      # Get viral posts
+      viral_posts = posts_array.select { |p| p.total_interactions > dynamic_threshold }
+                              .sort_by { |p| -p.total_interactions }
+                              .take(10)
+
+      return [] if viral_posts.empty?
+
+      viral_posts.map do |post|
+        {
+          post: post,
+          multiplier: (post.total_interactions / baseline).round(1),
+          engagement: post.total_interactions,
+          posted_at: post.posted_at
+        }
+      end
+    end
+
+    def calculate_median(sorted_array)
+      size = sorted_array.size
+      if size.odd?
+        sorted_array[size / 2].to_f
+      else
+        (sorted_array[size / 2 - 1] + sorted_array[size / 2]) / 2.0
+      end
     end
   end
 end

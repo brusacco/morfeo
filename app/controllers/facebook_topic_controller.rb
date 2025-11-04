@@ -30,6 +30,7 @@ class FacebookTopicController < ApplicationController
     assign_pages_data(dashboard_data[:pages_data])
     assign_temporal_intelligence(dashboard_data[:temporal_intelligence])
     assign_sentiment_analysis(dashboard_data[:sentiment_analysis])
+    @viral_content = dashboard_data[:viral_content]
   end
 
   def entries_data
