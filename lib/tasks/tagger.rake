@@ -3,7 +3,7 @@
 desc 'Tagger - Re-tag entries (default: 7 days)'
 task :tagger, [:days] => :environment do |_t, args|
   days = args[:days].presence ? Integer(args[:days]) : 7
-  
+
   puts "=" * 80
   puts "🏷️  TAGGER - Re-tagging entries"
   puts "=" * 80
@@ -11,22 +11,26 @@ task :tagger, [:days] => :environment do |_t, args|
   puts "Time: #{Time.current.strftime('%Y-%m-%d %H:%M:%S')}"
   puts "=" * 80
   puts
-  
+
   start_date = days.days.ago
   entries = Entry.enabled.where(published_at: start_date..Time.current)
   total = entries.count
   processed = 0
   synced = 0
-  
+
   puts "Total entries to process: #{total}"
   puts
-  
+
   entries.find_each do |entry|
     # Extract regular tags
     result = WebExtractorServices::ExtractTags.call(entry.id)
     if result.success?
-      entry.tag_list = result.data
-      puts "TAGS: #{result.data}"
+      if entry.tag_list == result.data
+        entry.tag_list = result.data
+        puts "TAGS: #{result.data}"
+      else
+        puts "TAGS: #{result.data} (no change)"
+      end
     else
       puts "ERROR TAGGER: #{result&.error}"
     end
@@ -34,8 +38,12 @@ task :tagger, [:days] => :environment do |_t, args|
     # Extract title tags
     title_result = WebExtractorServices::ExtractTitleTags.call(entry.id)
     if title_result.success?
-      entry.title_tag_list = title_result.data
-      puts "TITLE TAGS: #{title_result.data}"
+      if entry.title_tag_list == title_result.data
+        entry.title_tag_list = title_result.data
+        puts "TITLE TAGS: #{title_result.data}"
+      else
+        puts "TITLE TAGS: #{title_result.data} (no change)"
+      end
     else
       puts "ERROR TITLE TAGGER: #{title_result&.error}"
     end
@@ -45,14 +53,14 @@ task :tagger, [:days] => :environment do |_t, args|
     puts '---------------------------------------------------'
 
     entry.save!
-    
+
     # Explicitly sync both regular tags and title tags to topics
     entry.sync_topics_from_tags if entry.respond_to?(:sync_topics_from_tags)
     entry.sync_title_topics_from_tags if entry.respond_to?(:sync_title_topics_from_tags)
-    
+
     processed += 1
     synced += 1 if entry.tags.any? || entry.title_tags.any?
-    
+
     print "\rProcessed: #{processed}/#{total} (#{synced} tagged)" if processed % 50 == 0
   rescue StandardError => e
     puts "\nError processing entry #{entry.id}: #{e.message}"
@@ -60,7 +68,7 @@ task :tagger, [:days] => :environment do |_t, args|
     sleep 1
     next
   end
-  
+
   puts "\r" + (" " * 80) # Clear progress line
   puts
   puts "=" * 80
@@ -76,7 +84,7 @@ end
 desc 'Retagger - Only entries without tags'
 task :retagger, [:days] => :environment do |_t, args|
   days = args[:days].presence ? Integer(args[:days]) : 30
-  
+
   Entry.enabled.where(published_at: days.days.ago..Time.current).find_each do |entry|
     next if entry.tags.any?
 
@@ -103,7 +111,7 @@ task :retagger, [:days] => :environment do |_t, args|
     puts '---------------------------------------------------'
 
     entry.save!
-    
+
     # Explicitly sync both regular tags and title tags to topics
     entry.sync_topics_from_tags if entry.respond_to?(:sync_topics_from_tags)
     entry.sync_title_topics_from_tags if entry.respond_to?(:sync_title_topics_from_tags)

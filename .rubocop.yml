@@ -6,7 +6,7 @@ plugins:
 
 Style/Copyright:
   Enabled: false
-  AutocorrectNotice: "Copyright 2022 Mind"
+  AutocorrectNotice: "Copyright 2025 Mind"
 Lint/ConstantResolution:
   Enabled: false
 Style/MissingElse:
