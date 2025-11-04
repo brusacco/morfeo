@@ -287,10 +287,10 @@ module HomeServices
     end
 
     def calculate_topic_trend_direction_from_stats(stats)
-      # Use 24h vs 24h window to match individual dashboard velocity calculations
-      # This ensures consistency across all dashboards (Digital, Facebook, Twitter)
-      recent_stats = stats.select { |s| s.topic_date >= 1.day.ago.to_date }
-      previous_stats = stats.select { |s| s.topic_date.between?(2.days.ago.to_date, 1.day.ago.to_date) }
+      # Use 3-day window for more stable trend detection
+      # 24h is too volatile for mentions, 3-day smooths out daily fluctuations
+      recent_stats = stats.select { |s| s.topic_date >= 3.days.ago.to_date }
+      previous_stats = stats.select { |s| s.topic_date.between?(6.days.ago.to_date, 3.days.ago.to_date) }
 
       recent_count = recent_stats.sum { |s| s.entry_count || 0 }
       previous_count = previous_stats.sum { |s| s.entry_count || 0 }
@@ -300,9 +300,10 @@ module HomeServices
     end
 
     def calculate_topic_engagement_velocity_from_stats(stats)
-      # Calculate engagement (interactions) velocity using 24h vs 24h window
-      recent_stats = stats.select { |s| s.topic_date >= 1.day.ago.to_date }
-      previous_stats = stats.select { |s| s.topic_date.between?(2.days.ago.to_date, 1.day.ago.to_date) }
+      # Use 3-day window for more stable engagement trend detection
+      # 24h is too volatile for interactions, 3-day smooths out daily fluctuations
+      recent_stats = stats.select { |s| s.topic_date >= 3.days.ago.to_date }
+      previous_stats = stats.select { |s| s.topic_date.between?(6.days.ago.to_date, 3.days.ago.to_date) }
 
       recent_interactions = recent_stats.sum { |s| s.total_count || 0 }
       previous_interactions = previous_stats.sum { |s| s.total_count || 0 }
@@ -382,8 +383,8 @@ module HomeServices
     end
 
     def generate_trend_alert(topic, stats, _trend)
-      # Use 24h window to match individual dashboard calculations
-      recent_count = stats.select { |s| s.topic_date >= 1.day.ago.to_date }.sum { |s| s.entry_count || 0 }
+      # Use 3-day window for more stable trend detection
+      recent_count = stats.select { |s| s.topic_date >= 3.days.ago.to_date }.sum { |s| s.entry_count || 0 }
 
       return nil unless recent_count > ALERT_MINIMUM_COUNT
 
@@ -392,12 +393,12 @@ module HomeServices
         type: 'info',
         topic: topic,
         message: "📉 Disminución de Menciones: #{topic.name}",
-        details: "Las menciones están disminuyendo en las últimas 24 horas comparado con el día anterior. Considere aumentar actividad."
+        details: "Las menciones están disminuyendo en los últimos 3 días comparado con los 3 días anteriores. Considere aumentar actividad."
       )
     end
 
     def generate_engagement_alert(topic, _stats, engagement_data)
-      # Use 24h window to match individual dashboard calculations
+      # Use 3-day window for more stable engagement trend detection
       velocity = engagement_data[:velocity]
       recent_interactions = engagement_data[:recent]
 
@@ -409,12 +410,12 @@ module HomeServices
         severity = 'medium'
         icon = '⚠️'
         message_text = "Caída Crítica de Interacciones: #{topic.name}"
-        details_text = "Las interacciones cayeron #{velocity}% en las últimas 24 horas. El contenido está perdiendo engagement significativamente."
+        details_text = "Las interacciones cayeron #{velocity}% en los últimos 3 días comparado con los 3 días anteriores. El contenido está perdiendo engagement significativamente."
       elsif velocity <= ENGAGEMENT_WARNING_THRESHOLD
         severity = 'low'
         icon = '⚡'
         message_text = "Caída de Interacciones: #{topic.name}"
-        details_text = "Las interacciones disminuyeron #{velocity}% en las últimas 24 horas. Considere revisar la estrategia de contenido."
+        details_text = "Las interacciones disminuyeron #{velocity}% en los últimos 3 días comparado con los 3 días anteriores. Considere revisar la estrategia de contenido."
       else
         return nil # No alert for minor drops
       end
