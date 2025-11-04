@@ -19,6 +19,10 @@ module HomeServices
     WARNING_SENTIMENT_THRESHOLD = -20
     ALERT_MINIMUM_COUNT = 10
 
+    # Engagement velocity thresholds (percentage decline)
+    ENGAGEMENT_CRITICAL_THRESHOLD = -20  # Critical drop
+    ENGAGEMENT_WARNING_THRESHOLD = -10   # Moderate drop
+
     # Competitive intelligence thresholds
     COMPETITIVE_SOV_THRESHOLD = 15
     STRONG_SOV_THRESHOLD = 20
@@ -277,6 +281,25 @@ module HomeServices
       recent_count > previous_count ? 'up' : 'down'
     end
 
+    def calculate_topic_engagement_velocity_from_stats(stats)
+      # Calculate engagement (interactions) velocity using 24h vs 24h window
+      recent_stats = stats.select { |s| s.topic_date >= 1.day.ago.to_date }
+      previous_stats = stats.select { |s| s.topic_date.between?(2.days.ago.to_date, 1.day.ago.to_date) }
+
+      recent_interactions = recent_stats.sum { |s| s.total_count || 0 }
+      previous_interactions = previous_stats.sum { |s| s.total_count || 0 }
+
+      return { velocity: 0, recent: recent_interactions, previous: 0 } if previous_interactions.zero?
+
+      velocity_percent = ((recent_interactions - previous_interactions).to_f / previous_interactions * 100).round(1)
+
+      {
+        velocity: velocity_percent,
+        recent: recent_interactions,
+        previous: previous_interactions
+      }
+    end
+
     # ========================================
     # ALERTS
     # ========================================
@@ -289,12 +312,16 @@ module HomeServices
         stats = stats_by_topic[topic.id] || []
         sentiment = calculate_topic_sentiment_from_stats(stats)
         trend = calculate_topic_trend_direction_from_stats(stats)
+        engagement_velocity = calculate_topic_engagement_velocity_from_stats(stats)
 
         # Sentiment alerts
         alerts.concat(generate_sentiment_alerts(topic, sentiment))
 
-        # Trend alerts
+        # Trend alerts (mentions)
         alerts << generate_trend_alert(topic, stats, trend) if trend == 'down'
+
+        # Engagement velocity alerts (interactions)
+        alerts << generate_engagement_alert(topic, stats, engagement_velocity) if engagement_velocity[:velocity] < 0
       end
 
       alerts.compact.sort_by { |a| ['high', 'medium', 'low'].index(a[:severity]) }
@@ -324,7 +351,7 @@ module HomeServices
       alerts
     end
 
-    def generate_trend_alert(topic, stats, trend)
+    def generate_trend_alert(topic, stats, _trend)
       # Use 24h window to match individual dashboard calculations
       recent_count = stats.select { |s| s.topic_date >= 1.day.ago.to_date }.sum { |s| s.entry_count || 0 }
 
@@ -336,6 +363,38 @@ module HomeServices
         topic: topic,
         message: "📉 Disminución de Menciones: #{topic.name}",
         details: "Las menciones están disminuyendo en las últimas 24 horas comparado con el día anterior. Considere aumentar actividad."
+      )
+    end
+
+    def generate_engagement_alert(topic, _stats, engagement_data)
+      # Use 24h window to match individual dashboard calculations
+      velocity = engagement_data[:velocity]
+      recent_interactions = engagement_data[:recent]
+
+      # Don't alert if there's very little engagement (not meaningful)
+      return nil unless recent_interactions > ALERT_MINIMUM_COUNT
+
+      # Determine severity based on velocity drop
+      if velocity <= ENGAGEMENT_CRITICAL_THRESHOLD
+        severity = 'medium'
+        icon = '⚠️'
+        message_text = "Caída Crítica de Interacciones: #{topic.name}"
+        details_text = "Las interacciones cayeron #{velocity}% en las últimas 24 horas. El contenido está perdiendo engagement significativamente."
+      elsif velocity <= ENGAGEMENT_WARNING_THRESHOLD
+        severity = 'low'
+        icon = '⚡'
+        message_text = "Caída de Interacciones: #{topic.name}"
+        details_text = "Las interacciones disminuyeron #{velocity}% en las últimas 24 horas. Considere revisar la estrategia de contenido."
+      else
+        return nil # No alert for minor drops
+      end
+
+      create_alert(
+        severity: severity,
+        type: 'engagement',
+        topic: topic,
+        message: "#{icon} #{message_text}",
+        details: details_text
       )
     end
 
