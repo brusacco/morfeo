@@ -326,9 +326,9 @@ module DigitalDashboardServices
     def detect_viral_content
       return [] if @tag_names.empty?
 
-      # Get entries from last 6 hours
+      # Get entries from last 24 hours
       recent_entries = Entry.enabled
-                            .where(published_at: 6.hours.ago..Time.current)
+                            .where(published_at: 24.hours.ago..Time.current)
                             .tagged_with(@tag_names, any: true)
                             .includes(:site)
 

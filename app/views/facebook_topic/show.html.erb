@@ -233,7 +233,7 @@
                 </h2>
                 <p class="text-sm text-gray-600 mt-2 ml-13">
                   <i class="fa-solid fa-clock mr-1"></i>
-                  Últimas 6 horas • Engagement > 5x mediana
+                  Últimas 24 horas • Engagement > 5x mediana
                 </p>
               </div>
             </div>
@@ -469,39 +469,6 @@
         </div>
       </div>
     </section>
-    
-    <% if @word_occurrences.any? %>
-      <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-        <div class="flex items-center justify-between mb-6">
-          <h2 class="text-2xl font-bold text-gray-900">Nube de Palabras - Publicaciones</h2>
-          <div class="flex items-center space-x-4">
-            <div class="flex items-center text-xs text-gray-600">
-              <span class="inline-block w-3 h-3 rounded-full bg-green-500 mr-1.5"></span>
-              <span>Positivas</span>
-            </div>
-            <div class="flex items-center text-xs text-gray-600">
-              <span class="inline-block w-3 h-3 rounded-full bg-gray-500 mr-1.5"></span>
-              <span>Neutrales</span>
-            </div>
-            <div class="flex items-center text-xs text-gray-600">
-              <span class="inline-block w-3 h-3 rounded-full bg-red-500 mr-1.5"></span>
-              <span>Negativas</span>
-            </div>
-          </div>
-        </div>
-        <div>
-          <ul class="cloud">
-            <% prepare_word_cloud_data(@word_occurrences, @positive_words, @negative_words).each do |word_data| %>
-              <li style='color: <%= word_data[:color] %>' 
-                  data-weight="<%= word_data[:weight] %>"
-                  data-sentiment="<%= word_data[:sentiment] || 'neutral' %>">
-                <%= word_data[:word] %>
-              </li>
-            <% end %>
-          </ul>
-        </div>
-      </section>
-    <% end %>
     
     <!-- Sentiment Analysis Section -->
     <% if @sentiment_summary %>
@@ -940,27 +907,6 @@
       </section>
     <% end %>
     
-    <!-- Word clouds -->
-    <section class="space-y-6">
-      <%= render partial: "tag/word_cloud_modern", 
-                 locals: { 
-                   title: "Palabras más frecuentes",
-                   icon: "fa-spell-check",
-                   icon_color: "text-green-600",
-                   word_data: @word_occurrences,
-                   description: "Análisis de frecuencia de palabras clave en las publicaciones de Facebook"
-                 } %>
-      
-      <%= render partial: "tag/word_cloud_modern", 
-                 locals: { 
-                   title: "Bigramas más frecuentes",
-                   icon: "fa-comments",
-                   icon_color: "text-blue-600",
-                   word_data: @bigram_occurrences,
-                   description: "Análisis de pares de palabras consecutivas (bigramas) más frecuentes en Facebook"
-                 } %>
-    </section>
-    
     <!-- Pages insights -->
     <section id="pages">
       <h2 class="text-2xl font-bold text-gray-900 mb-6">
@@ -987,6 +933,63 @@
     <!-- All posts -->
     <section id="posts">
       <%= render partial: 'facebook_topic/posts_table', locals: { entries: @entries, title: "Todas las publicaciones etiquetadas con #{@topic.name}" } %>
+    </section>
+    
+    <!-- Word Cloud Section -->
+    <% if @word_occurrences.any? %>
+      <section class="mb-8">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-bold text-gray-900">Nube de Palabras - Publicaciones</h2>
+            <div class="flex items-center space-x-4">
+              <div class="flex items-center text-xs text-gray-600">
+                <span class="inline-block w-3 h-3 rounded-full bg-green-500 mr-1.5"></span>
+                <span>Positivas</span>
+              </div>
+              <div class="flex items-center text-xs text-gray-600">
+                <span class="inline-block w-3 h-3 rounded-full bg-gray-500 mr-1.5"></span>
+                <span>Neutrales</span>
+              </div>
+              <div class="flex items-center text-xs text-gray-600">
+                <span class="inline-block w-3 h-3 rounded-full bg-red-500 mr-1.5"></span>
+                <span>Negativas</span>
+              </div>
+            </div>
+          </div>
+          <div>
+            <ul class="cloud">
+              <% prepare_word_cloud_data(@word_occurrences, @positive_words, @negative_words).each do |word_data| %>
+                <li style='color: <%= word_data[:color] %>' 
+                    data-weight="<%= word_data[:weight] %>"
+                    data-sentiment="<%= word_data[:sentiment] || 'neutral' %>">
+                  <%= word_data[:word] %>
+                </li>
+              <% end %>
+            </ul>
+          </div>
+        </div>
+      </section>
+    <% end %>
+    
+    <!-- Word Analysis Tables -->
+    <section class="space-y-6">
+      <%= render partial: "tag/word_cloud_modern", 
+                 locals: { 
+                   title: "Análisis de Palabras en Publicaciones",
+                   icon: "fa-spell-check",
+                   icon_color: "text-green-600",
+                   word_data: @word_occurrences,
+                   description: "Análisis de frecuencia de palabras clave que aparecen en las publicaciones de Facebook"
+                 } %>
+      
+      <%= render partial: "tag/word_cloud_modern", 
+                 locals: { 
+                   title: "Análisis de Bigramas en Publicaciones",
+                   icon: "fa-comments",
+                   icon_color: "text-blue-600",
+                   word_data: @bigram_occurrences,
+                   description: "Análisis de pares de palabras consecutivas (bigramas) en las publicaciones de Facebook"
+                 } %>
     </section>
     
     <!-- Top posts cards -->

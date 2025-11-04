@@ -243,8 +243,8 @@ module TwitterDashboardServices
     def detect_viral_content
       return [] if @tag_names.empty?
 
-      # Get Twitter posts from last 6 hours
-      recent_posts = TwitterPost.for_topic(@topic, start_time: 6.hours.ago, end_time: Time.current)
+      # Get Twitter posts from last 24 hours
+      recent_posts = TwitterPost.for_topic(@topic, start_time: 24.hours.ago, end_time: Time.current)
                                 .includes(:twitter_profile)
 
       # Use .to_a.size instead of .count to avoid SQL issues with acts_as_taggable_on
