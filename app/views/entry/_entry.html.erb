@@ -47,6 +47,32 @@
           <% end %>
         </div>
       <% end %>
+      <% if entry.facebook_entry.present? %>
+        <div class="pt-2 pb-2 border-t border-gray-100">
+          <%= link_to entry.facebook_entry.permalink_url, 
+              target: '_blank',
+              rel: 'noopener noreferrer',
+              class: "inline-flex items-center px-3 py-1.5 rounded-md text-xs font-medium bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 border border-blue-200 hover:from-blue-100 hover:to-indigo-100 hover:border-blue-300 hover:shadow-sm transition-all duration-200 group/link w-full justify-center",
+              title: "Ver publicación en Facebook: #{entry.facebook_entry.message.to_s.truncate(60)}" do %>
+            <i class="fa-brands fa-facebook text-blue-600 mr-1.5 group-hover/link:scale-110 transition-transform" aria-hidden="true"></i>
+            <span class="font-semibold">Facebook</span>
+            <i class="fa-solid fa-external-link text-blue-500 ml-1.5 group-hover/link:translate-x-1 transition-transform text-xs" aria-hidden="true"></i>
+          <% end %>
+        </div>
+      <% end %>
+      <% if entry.twitter_post.present? %>
+        <div class="pt-2 pb-2 border-t border-gray-100">
+          <%= link_to entry.twitter_post.tweet_url, 
+              target: '_blank',
+              rel: 'noopener noreferrer',
+              class: "inline-flex items-center px-3 py-1.5 rounded-md text-xs font-medium bg-gradient-to-r from-sky-50 to-blue-50 text-sky-700 border border-sky-200 hover:from-sky-100 hover:to-blue-100 hover:border-sky-300 hover:shadow-sm transition-all duration-200 group/link w-full justify-center",
+              title: "Ver tweet: #{entry.twitter_post.text.to_s.truncate(60)}" do %>
+            <i class="fa-brands fa-twitter text-sky-600 mr-1.5 group-hover/link:scale-110 transition-transform" aria-hidden="true"></i>
+            <span class="font-semibold">Twitter</span>
+            <i class="fa-solid fa-external-link text-sky-500 ml-1.5 group-hover/link:translate-x-1 transition-transform text-xs" aria-hidden="true"></i>
+          <% end %>
+        </div>
+      <% end %>
     </div>
     <div class="mt-auto pt-4 border-t border-gray-200 flex-shrink-0">
       <div class="grid grid-cols-4 gap-2 text-center">

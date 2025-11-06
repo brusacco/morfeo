@@ -8,6 +8,7 @@ class Entry < ApplicationRecord
   belongs_to :site, touch: true
   has_many :comments, dependent: :destroy
   has_one :twitter_post, dependent: :nullify
+  has_one :facebook_entry, dependent: :nullify
 
   # NEW: Direct topic associations for performance optimization
   has_many :entry_topics, dependent: :destroy
