@@ -33,13 +33,13 @@ namespace :facebook do
 
         response = FacebookServices::FanpageCrawler.call(page.uid, cursor)
         unless response.success?
-          error_msg = response.error
+          error_msg = response.error.to_s
           Rails.logger.error "[FacebookCrawler] Error crawling #{page.name}: #{error_msg}"
 
           # Provide more context for common errors
-          if error_msg.include?('timeout')
+          if error_msg.include?('timeout') || error_msg.include?('Connection reset')
             puts "  ❌ Error: #{error_msg}"
-            puts "     💡 La conexión con Facebook API tardó demasiado. Los reintentos ya se intentaron."
+            puts "     💡 La conexión con Facebook API fue interrumpida. Los reintentos ya se intentaron."
             puts "     💡 Puede reintentar esta página más tarde con: rake facebook:fanpage_crawler[1]"
           elsif error_msg.include?('authentication')
             puts "  ❌ Error: #{error_msg}"

@@ -127,6 +127,7 @@ rescue Errno::ETIMEDOUT => e
 - `Net::ReadTimeout` - Response read timeout
 - `Timeout::Error` - Generic timeout
 - `Errno::ETIMEDOUT` - System-level timeout
+- `Errno::ECONNRESET` - Connection reset by peer (SSL/network interruption)
 - `SocketError` - DNS/network issues
 - `Errno::ECONNREFUSED` - Connection refused
 - `Errno::EHOSTUNREACH` - Host unreachable
@@ -167,6 +168,7 @@ end
 ### Retryable Errors (with exponential backoff)
 - ✅ Connection timeouts (`Net::OpenTimeout`, `Errno::ETIMEDOUT`)
 - ✅ Read timeouts (`Net::ReadTimeout`, `Timeout::Error`)
+- ✅ Connection reset (`Errno::ECONNRESET`) - SSL/network interruption
 - ✅ Network errors (`SocketError`, `ECONNREFUSED`, `EHOSTUNREACH`)
 - ✅ Rate limit errors (already had retry, now unified)
 

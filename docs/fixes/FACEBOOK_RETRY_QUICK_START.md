@@ -55,8 +55,9 @@ Estos errores se reintentarán automáticamente:
 
 1. **Connection timeout** - La conexión tarda mucho en establecerse
 2. **Read timeout** - La API tarda mucho en responder
-3. **Network errors** - Problemas temporales de red
-4. **Socket errors** - Errores de conexión a nivel de sistema
+3. **Connection reset** - La conexión se interrumpe (SSL/red)
+4. **Network errors** - Problemas temporales de red
+5. **Socket errors** - Errores de conexión a nivel de sistema
 
 **Estrategia de espera:**
 - Intento 1: Espera 2 segundos

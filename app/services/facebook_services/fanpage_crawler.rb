@@ -296,10 +296,11 @@ module FacebookServices
         rescue ApiError => e
           last_error = e
 
-          # Check if it's a retryable error (timeout or network error)
+          # Check if it's a retryable error (timeout, network error, or connection reset)
           retryable = e.message.include?('timeout') ||
                       e.message.include?('Network error') ||
-                      e.message.include?('connection')
+                      e.message.include?('connection') ||
+                      e.message.include?('Connection reset')
 
           unless retryable
             # Non-retryable errors (auth errors, etc.) should fail immediately
@@ -405,6 +406,9 @@ module FacebookServices
     rescue Errno::ETIMEDOUT => e
       Rails.logger.error("[FacebookServices::FanpageCrawler] Connection timed out for page #{page_uid}: #{e.message}")
       raise ApiError, "Facebook API connection timeout"
+    rescue Errno::ECONNRESET => e
+      Rails.logger.error("[FacebookServices::FanpageCrawler] Connection reset by peer for page #{page_uid}: #{e.message}")
+      raise ApiError, "Facebook API connection reset"
     end
 
     # Extract wait time from rate limit error
