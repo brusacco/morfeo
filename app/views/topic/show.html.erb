@@ -31,7 +31,7 @@
       width: 100%;
     }
     /* Lower z-index for chart containers and all Highcharts elements */
-    .chart-container, 
+    .chart-container,
     .highcharts-container,
     .highcharts-container *,
     .highcharts-root,
@@ -40,7 +40,7 @@
     div[class*="w-full"][class*="overflow-hidden"] {
       z-index: 1 !important;
     }
-    
+
     /* Ensure chart parent cards don't interfere */
     section .bg-white {
       isolation: auto;
@@ -63,7 +63,7 @@
         <p class="mt-1 text-sm text-gray-600">Análisis completo del tópico - Últimos <%=DAYS_RANGE%> días</p>
       </div>
       <div class="mt-4 flex flex-col sm:flex-row gap-2 md:mt-0 md:ml-4">
-        <%= link_to topic_pdf_path(@topic, days_range: 7), target: '_blank', 
+        <%= link_to topic_pdf_path(@topic, days_range: 7), target: '_blank',
             rel: 'noopener noreferrer',
             class: 'inline-flex items-center justify-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors',
             'aria-label': "Generar PDF - 7 días" do %>
@@ -72,19 +72,19 @@
           </svg>
           PDF 7d
         <% end %>
-        <%= link_to topic_pdf_path(@topic, days_range: 15), target: '_blank', 
+        <%= link_to topic_pdf_path(@topic, days_range: 15), target: '_blank',
             rel: 'noopener noreferrer',
             class: 'inline-flex items-center justify-center px-3 py-2 border border-indigo-600 text-sm font-medium rounded-md text-indigo-600 bg-white hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors',
             'aria-label': "Generar PDF - 15 días" do %>
           15d
         <% end %>
-        <%= link_to topic_pdf_path(@topic, days_range: 30), target: '_blank', 
+        <%= link_to topic_pdf_path(@topic, days_range: 30), target: '_blank',
             rel: 'noopener noreferrer',
             class: 'inline-flex items-center justify-center px-3 py-2 border border-indigo-600 text-sm font-medium rounded-md text-indigo-600 bg-white hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors',
             'aria-label': "Generar PDF - 30 días" do %>
           30d
         <% end %>
-        <%= link_to topic_pdf_path(@topic, days_range: 60), target: '_blank', 
+        <%= link_to topic_pdf_path(@topic, days_range: 60), target: '_blank',
             rel: 'noopener noreferrer',
             class: 'inline-flex items-center justify-center px-3 py-2 border border-indigo-600 text-sm font-medium rounded-md text-indigo-600 bg-white hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors',
             'aria-label': "Generar PDF - 60 días" do %>
@@ -110,49 +110,49 @@
   <div class="mx-auto px-4 sm:px-6 lg:px-8 bg-white">
     <div class="flex items-center justify-between h-12 overflow-x-auto scrollbar-hide">
       <div class="flex space-x-1 md:space-x-4">
-        <a href="#kpis" 
+        <a href="#kpis"
            data-turbo="false"
            class="px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1"
            aria-label="Ir a sección de métricas clave">
           <i class="fa-solid fa-gauge-high mr-1 md:mr-2" aria-hidden="true"></i>
           <span class="hidden sm:inline">Métricas</span>
         </a>
-        <a href="#temporal-intelligence" 
+        <a href="#temporal-intelligence"
            data-turbo="false"
            class="px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1"
            aria-label="Ir a inteligencia temporal">
           <i class="fa-solid fa-clock mr-1 md:mr-2" aria-hidden="true"></i>
           <span class="hidden sm:inline">Temporal</span>
         </a>
-        <a href="#charts" 
+        <a href="#charts"
            data-turbo="false"
            class="px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1"
            aria-label="Ir a evolución temporal">
           <i class="fa-solid fa-chart-line mr-1 md:mr-2" aria-hidden="true"></i>
           <span class="hidden sm:inline">Evolución</span>
         </a>
-        <a href="#sentiment" 
+        <a href="#sentiment"
            data-turbo="false"
            class="px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1"
            aria-label="Ir a análisis de sentimiento">
           <i class="fa-solid fa-heart-pulse mr-1 md:mr-2" aria-hidden="true"></i>
           <span class="hidden sm:inline">Sentimiento</span>
         </a>
-        <a href="#tags" 
+        <a href="#tags"
            data-turbo="false"
            class="px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1"
            aria-label="Ir a etiquetas">
           <i class="fa-solid fa-tags mr-1 md:mr-2" aria-hidden="true"></i>
           <span class="hidden sm:inline">Etiquetas</span>
         </a>
-        <a href="#media" 
+        <a href="#media"
            data-turbo="false"
            class="px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1"
            aria-label="Ir a distribución por medios">
           <i class="fa-solid fa-building mr-1 md:mr-2" aria-hidden="true"></i>
           <span class="hidden sm:inline">Medios</span>
         </a>
-        <a href="#entries" 
+        <a href="#entries"
            data-turbo="false"
            class="px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1"
            aria-label="Ir a tabla de noticias">
@@ -160,7 +160,7 @@
           <span class="hidden sm:inline">Noticias</span>
         </a>
         <% if @viral_content&.any? %>
-          <a href="#viral-content" 
+          <a href="#viral-content"
              data-turbo="false"
              class="inline-flex items-center px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-red-700 hover:text-red-800 hover:bg-red-50 rounded-md transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
              aria-label="Ir a contenido viral">
@@ -171,8 +171,8 @@
         <% end %>
       </div>
       <!-- Back to Top Button (visible on scroll) -->
-      <a href="#" 
-         id="backToTop" 
+      <a href="#"
+         id="backToTop"
          class="ml-4 inline-flex items-center px-3 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-md transition-colors cursor-pointer whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1"
          aria-label="Volver arriba">
         <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
@@ -195,7 +195,7 @@
         this.blur(); // Remove focus to prevent border
       });
     }
-    
+
     // Remove focus from all navigation links after click to prevent border
     const navLinks = document.querySelectorAll('#topic-nav a');
     navLinks.forEach(link => {
@@ -207,7 +207,7 @@
       });
     });
   });
-  
+
   document.addEventListener('turbo:load', function() {
     const backToTopLink = document.getElementById('backToTop');
     if (backToTopLink) {
@@ -218,7 +218,7 @@
         this.blur(); // Remove focus to prevent border
       });
     }
-    
+
     // Remove focus from all navigation links after click to prevent border
     const navLinks = document.querySelectorAll('#topic-nav a');
     navLinks.forEach(link => {
@@ -233,7 +233,7 @@
 </script>
 <main class="bg-gray-50 min-h-screen">
   <div class="mx-auto py-8 px-4 sm:px-6 lg:px-8">
-    
+
     <!-- KPI cards -->
     <section class="mb-8" id="kpis">
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -249,7 +249,7 @@
           </div>
           <p class="mt-2 text-sm text-gray-500">Noticias etiquetadas con este tópico en los últimos <%= DAYS_RANGE %> días.</p>
         </div>
-        
+
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-indigo-300 transition-all duration-200 cursor-default group">
           <div class="flex items-center justify-between mb-2">
             <div class="text-sm font-medium text-gray-500 uppercase tracking-wide">Interacciones</div>
@@ -262,7 +262,7 @@
           </div>
           <p class="mt-2 text-sm text-gray-500">Likes + Comentarios + Compartidos.</p>
         </div>
-        
+
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-green-300 transition-all duration-200 cursor-default group">
           <div class="flex items-center justify-between mb-2">
             <div class="text-sm font-medium text-gray-500 uppercase tracking-wide">Promedio</div>
@@ -275,7 +275,7 @@
           </div>
           <p class="mt-2 text-sm text-gray-500">Interacciones promedio por noticia.</p>
         </div>
-        
+
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-gray-300 transition-all duration-200 cursor-default group">
           <div class="flex items-center justify-between mb-2">
             <div class="text-sm font-medium text-gray-500 uppercase tracking-wide">Sentimiento</div>
@@ -302,10 +302,7 @@
         </div>
       </div>
     </section>
-    
-    <!-- TEMPORAL INTELLIGENCE SECTION -->
-    <%= render 'temporal_intelligence' %>
-    
+
     <!-- Tags Section -->
     <section class="mb-8" id="tags">
       <div class="bg-white rounded-lg shadow p-6">
@@ -315,6 +312,10 @@
         </div>
       </div>
     </section>
+
+    <!-- TEMPORAL INTELLIGENCE SECTION -->
+    <%= render 'temporal_intelligence' %>
+
     <!-- Charts Grid Section -->
     <section class="mb-8" id="charts">
       <h2 class="text-2xl font-bold text-gray-900 mb-6">
@@ -338,7 +339,7 @@
               data-topics-id-value='entryQuantitiesChart'
               data-topics-url-value='<%= entries_data_topics_path %>'
               data-topics-topic-id-value='<%= @topic.id %>'>
-            <%= column_chart @chart_entries_counts, xtitle: "Fecha", ytitle: "Cant. Notas", label: "Cant. Notas", thousands: ".", curve: false, 
+            <%= column_chart @chart_entries_counts, xtitle: "Fecha", ytitle: "Cant. Notas", label: "Cant. Notas", thousands: ".", curve: false,
                     adapter: 'highcharts', id: 'entryQuantitiesChart', colors: ['#3B82F6'], library: {
                     plotOptions: {
                       series: {
@@ -366,7 +367,7 @@
               data-topics-id-value='entryInteractionsChart'
               data-topics-url-value='<%= entries_data_topics_path %>'
               data-topics-topic-id-value='<%= @topic.id %>'>
-            <%= column_chart @chart_entries_sums, xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones", thousands: ".", curve: false, 
+            <%= column_chart @chart_entries_sums, xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones", thousands: ".", curve: false,
                     adapter: 'highcharts', id: 'entryInteractionsChart', colors: ['#10B981'], library: {
                     plotOptions: {
                       series: {
@@ -404,7 +405,7 @@
             data-topics-url-value='<%= entries_data_topics_path %>'
             data-topics-topic-id-value='<%= @topic.id %>'
             data-topics-title-value='true'>
-            <%= column_chart @title_chart_entries_counts, xtitle: "Fecha", ytitle: "Cant. Notas en Titulo", label: "Cant. Notas en Titulo", thousands: ".", curve: false, 
+            <%= column_chart @title_chart_entries_counts, xtitle: "Fecha", ytitle: "Cant. Notas en Titulo", label: "Cant. Notas en Titulo", thousands: ".", curve: false,
                   adapter: 'highcharts', id: 'titleEntryQuantitiesChart', colors: ['#8B5CF6'], library: {
                   plotOptions: {
                     series: {
@@ -433,7 +434,7 @@
             data-topics-url-value='<%= entries_data_topics_path %>'
             data-topics-topic-id-value='<%= @topic.id %>'
             data-topics-title-value='true'>
-            <%= column_chart @title_chart_entries_sums, xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones en TITULO", thousands: ".", curve: false, 
+            <%= column_chart @title_chart_entries_sums, xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones en TITULO", thousands: ".", curve: false,
                   adapter: 'highcharts', id: 'titleEntryInteractionsChart', colors: ['#F59E0B'], library: {
                   plotOptions: {
                     series: {
@@ -555,7 +556,7 @@
             data-topics-id-value='entryPolarityQuantitiesChart'
             data-topics-url-value='<%= entries_data_topics_path %>'
             data-topics-topic-id-value='<%= @topic.id %>'>
-            <%= area_chart polarity_stacked_chart_data(@chart_entries_sentiments_counts), xtitle: 'Fecha', ytitle: 'Cant. Notas', label: 'Notas', thousands: '.', 
+            <%= area_chart polarity_stacked_chart_data(@chart_entries_sentiments_counts), xtitle: 'Fecha', ytitle: 'Cant. Notas', label: 'Notas', thousands: '.',
                   stacked: true, curve: false, colors: ['#10B981', '#9CA3AF', '#EF4444'], id: 'entryPolarityQuantitiesChart', library: {
                   plotOptions: {
                     series: {
@@ -590,7 +591,7 @@
             data-topics-id-value='entryPolarityInteractionsChart'
             data-topics-url-value='<%= entries_data_topics_path %>'
             data-topics-topic-id-value='<%= @topic.id %>'>
-            <%= area_chart polarity_stacked_chart_data(@chart_entries_sentiments_sums), xtitle: 'Fecha', ytitle: 'Cant. Interacciones', label: 'Interacciones', 
+            <%= area_chart polarity_stacked_chart_data(@chart_entries_sentiments_sums), xtitle: 'Fecha', ytitle: 'Cant. Interacciones', label: 'Interacciones',
                   thousands: '.', stacked: true, curve: false, colors: ['#10B981', '#9CA3AF', '#EF4444'], id: 'entryPolarityInteractionsChart', library: {
                   plotOptions: {
                     series: {
@@ -812,7 +813,7 @@
     <section id="entries">
       <%= render partial: 'entry/entries_table', locals: { entries: @entries, title: "Todas las publicaciones etiquetadas con #{@topic.name}" } %>
     </section>
-    
+
     <!-- VIRAL CONTENT SECTION -->
     <% if @viral_content&.any? %>
       <section class="mb-8" id="viral-content">
@@ -820,7 +821,7 @@
           <!-- Decorative background elements -->
           <div class="absolute top-0 right-0 w-40 h-40 bg-orange-200/30 rounded-full -mr-20 -mt-20 blur-2xl"></div>
           <div class="absolute bottom-0 left-0 w-32 h-32 bg-pink-200/30 rounded-full -ml-16 -mb-16 blur-2xl"></div>
-          
+
           <div class="relative z-10">
             <!-- Header -->
             <div class="flex items-center justify-between mb-6">
@@ -948,7 +949,7 @@
         </div>
       </section>
     <% end %>
-    
+
     <!-- Word Cloud Section -->
     <section class="mb-8">
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
@@ -973,7 +974,7 @@
           <div>
             <ul class="cloud">
               <% prepare_word_cloud_data(@word_occurrences, @positive_words, @negative_words).each do |word_data| %>
-                <li style='color: <%= word_data[:color] %>' 
+                <li style='color: <%= word_data[:color] %>'
                     data-weight="<%= word_data[:weight] %>"
                     data-sentiment="<%= word_data[:sentiment] || 'neutral' %>">
                   <%= word_data[:word] %>
@@ -1016,7 +1017,7 @@
           <div>
             <ul class="cloud">
               <% prepare_word_cloud_data(@comments_word_occurrences, @positive_words, @negative_words).each do |word_data| %>
-                <li style='color: <%= word_data[:color] %>' 
+                <li style='color: <%= word_data[:color] %>'
                     data-weight="<%= word_data[:weight] %>"
                     data-sentiment="<%= word_data[:sentiment] || 'neutral' %>">
                   <%= word_data[:word] %>
@@ -1029,8 +1030,8 @@
     <% end %>
     <!-- Word Analysis Section -->
     <section class="mb-8">
-      <%= render partial: "tag/word_cloud_modern", 
-                 locals: { 
+      <%= render partial: "tag/word_cloud_modern",
+                 locals: {
                    title: "Análisis de Palabras en Notas",
                    icon: "fa-spell-check",
                    icon_color: "text-green-600",
@@ -1040,8 +1041,8 @@
     </section>
     <!-- Bigram Analysis Section -->
     <section class="mb-8">
-      <%= render partial: "tag/word_cloud_modern", 
-                 locals: { 
+      <%= render partial: "tag/word_cloud_modern",
+                 locals: {
                    title: "Análisis de Bigramas en Notas",
                    icon: "fa-comments",
                    icon_color: "text-blue-600",
@@ -1052,8 +1053,8 @@
     <% if @comments.any? %>
       <!-- Comments Analysis Section -->
       <section class="mb-8">
-        <%= render partial: "tag/word_cloud_modern", 
-                   locals: { 
+        <%= render partial: "tag/word_cloud_modern",
+                   locals: {
                      title: "Análisis de Palabras en Comentarios",
                      icon: "fa-comment-dots",
                      icon_color: "text-purple-600",
