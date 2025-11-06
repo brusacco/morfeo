@@ -28,13 +28,25 @@ namespace :facebook do
 
       loop do
         page_count += 1
-        label = cursor.present? ? "cursor: #{cursor}" : "page: #{page_count}"
+        label = cursor.present? ? "cursor: #{cursor[0..10]}..." : "page: #{page_count}"
         puts "  [Page #{page_count}/#{max_pages}] Processing #{label}..."
 
         response = FacebookServices::FanpageCrawler.call(page.uid, cursor)
         unless response.success?
-          Rails.logger.error "[FacebookCrawler] Error crawling #{page.name}: #{response.error}"
-          puts "  ❌ Error: #{response.error}"
+          error_msg = response.error
+          Rails.logger.error "[FacebookCrawler] Error crawling #{page.name}: #{error_msg}"
+
+          # Provide more context for common errors
+          if error_msg.include?('timeout')
+            puts "  ❌ Error: #{error_msg}"
+            puts "     💡 La conexión con Facebook API tardó demasiado. Los reintentos ya se intentaron."
+            puts "     💡 Puede reintentar esta página más tarde con: rake facebook:fanpage_crawler[1]"
+          elsif error_msg.include?('authentication')
+            puts "  ❌ Error: #{error_msg}"
+            puts "     💡 Verifica que FACEBOOK_API_TOKEN esté configurado correctamente"
+          else
+            puts "  ❌ Error: #{error_msg}"
+          end
           break
         end
 

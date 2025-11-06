@@ -28,6 +28,11 @@ module FacebookServices
     # Authentication errors
     AUTH_ERROR_CODES = [190, 102].freeze
 
+    # Retry configuration
+    MAX_RETRIES = 3             # Maximum number of retry attempts
+    INITIAL_RETRY_DELAY = 2     # Initial delay in seconds (will increase exponentially)
+    MAX_RETRY_DELAY = 60        # Maximum delay between retries
+
     def initialize(page_uid, cursor = nil)
       @page_uid = page_uid
       @cursor = cursor
@@ -35,7 +40,7 @@ module FacebookServices
 
     def call
       page = Page.find_by!(uid: @page_uid)
-      data = call_api(page.uid, @cursor)
+      data = call_api_with_retry(page.uid, @cursor)
 
       entries =
         Array(data['data']).filter_map do |post|
@@ -278,6 +283,47 @@ module FacebookServices
       url
     end
 
+    # Wrapper method that handles retries with exponential backoff
+    def call_api_with_retry(page_uid, cursor = nil)
+      attempt = 0
+      last_error = nil
+
+      loop do
+        attempt += 1
+
+        begin
+          return call_api(page_uid, cursor)
+        rescue ApiError => e
+          last_error = e
+
+          # Check if it's a retryable error (timeout or network error)
+          retryable = e.message.include?('timeout') ||
+                      e.message.include?('Network error') ||
+                      e.message.include?('connection')
+
+          unless retryable
+            # Non-retryable errors (auth errors, etc.) should fail immediately
+            Rails.logger.error("[FacebookServices::FanpageCrawler] Non-retryable error: #{e.message}")
+            raise e
+          end
+
+          # Check if we've exhausted retries
+          if attempt >= MAX_RETRIES
+            Rails.logger.error("[FacebookServices::FanpageCrawler] Max retries (#{MAX_RETRIES}) exceeded for page #{page_uid}")
+            raise e
+          end
+
+          # Calculate exponential backoff delay
+          delay = [INITIAL_RETRY_DELAY * (2**(attempt - 1)), MAX_RETRY_DELAY].min
+
+          Rails.logger.warn("[FacebookServices::FanpageCrawler] Retry #{attempt}/#{MAX_RETRIES} for page #{page_uid} after #{delay}s (Error: #{e.message})")
+
+          # Wait before retrying
+          sleep(delay)
+        end
+      end
+    end
+
     def call_api(page_uid, cursor = nil)
       # Validate token is present
       token = ENV.fetch('FACEBOOK_API_TOKEN') do
@@ -347,12 +393,18 @@ module FacebookServices
     rescue Net::ReadTimeout => e
       Rails.logger.error("[FacebookServices::FanpageCrawler] Read timeout for page #{page_uid}: #{e.message}")
       raise ApiError, "Facebook API read timeout"
+    rescue Timeout::Error => e
+      Rails.logger.error("[FacebookServices::FanpageCrawler] Timeout error for page #{page_uid}: #{e.message}")
+      raise ApiError, "Facebook API timeout"
     rescue JSON::ParserError
       Rails.logger.error("[FacebookServices::FanpageCrawler] Invalid JSON response: #{response&.body&.[](0..500)}")
       raise ApiError, "Invalid JSON from Facebook API"
     rescue SocketError, Errno::ECONNREFUSED, Errno::EHOSTUNREACH => e
       Rails.logger.error("[FacebookServices::FanpageCrawler] Network error: #{e.class} - #{e.message}")
       raise ApiError, "Network error connecting to Facebook API"
+    rescue Errno::ETIMEDOUT => e
+      Rails.logger.error("[FacebookServices::FanpageCrawler] Connection timed out for page #{page_uid}: #{e.message}")
+      raise ApiError, "Facebook API connection timeout"
     end
 
     # Extract wait time from rate limit error
