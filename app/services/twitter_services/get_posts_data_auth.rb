@@ -79,6 +79,7 @@ module TwitterServices
         max_retries = 2
         retry_count = 0
         response = nil
+        should_retry_request = false
 
         begin
           response =
@@ -119,11 +120,14 @@ module TwitterServices
               @ct0_token = new_credentials[:ct0_token]
               @current_account_index = new_credentials[:account_index]
               
-              # Retry this request with the new account
+              # Set flag to retry this request with the new account
               sleep(2) # Brief pause before retry
-              retry
+              should_retry_request = true
             end
           end
+          
+          # If we're retrying with a new account, restart this loop iteration
+          next if should_retry_request
           
           return handle_error("API Error: #{error_message}")
         end
