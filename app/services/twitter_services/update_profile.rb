@@ -21,7 +21,8 @@ module TwitterServices
 
     def extract_profile_data(data)
       # Navigate the Twitter API response structure to get user data from timeline
-      timeline = data.dig('data', 'user', 'result', 'timeline', 'timeline', 'instructions') || []
+      # The response structure is: data['user']['result']['timeline']['timeline']['instructions']
+      timeline = data.dig('user', 'result', 'timeline', 'timeline', 'instructions') || []
 
       # Find an entry with user data (usually in the first tweet)
       user_result = nil
