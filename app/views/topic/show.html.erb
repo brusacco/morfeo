@@ -30,14 +30,11 @@
       background: white;
       width: 100%;
     }
-    /* Lower z-index for chart containers and all Highcharts elements */
-    .chart-container,
+    /* Lower z-index for Highcharts elements to ensure sticky nav stays on top */
     .highcharts-container,
     .highcharts-container *,
     .highcharts-root,
-    svg[class*="highcharts"],
-    [data-controller="topics"],
-    div[class*="w-full"][class*="overflow-hidden"] {
+    svg[class*="highcharts"] {
       z-index: 1 !important;
     }
 
@@ -399,7 +396,7 @@
               Solo títulos
             </div>
           </div>
-          <div class='chart-container'
+          <div class='w-full overflow-hidden'
             data-controller='topics'
             data-topics-id-value='titleEntryQuantitiesChart'
             data-topics-url-value='<%= entries_data_topics_path %>'
@@ -428,7 +425,7 @@
               Interacciones en títulos
             </div>
           </div>
-          <div class='chart-container'
+          <div class='w-full overflow-hidden'
             data-controller='topics'
             data-topics-id-value='titleEntryInteractionsChart'
             data-topics-url-value='<%= entries_data_topics_path %>'
@@ -551,7 +548,7 @@
               </div>
             </div>
           </div>
-          <div class='chart-container'
+          <div class='w-full overflow-hidden'
             data-controller='topics'
             data-topics-id-value='entryPolarityQuantitiesChart'
             data-topics-url-value='<%= entries_data_topics_path %>'
@@ -586,7 +583,7 @@
               </div>
             </div>
           </div>
-          <div class='chart-container'
+          <div class='w-full overflow-hidden'
             data-controller='topics'
             data-topics-id-value='entryPolarityInteractionsChart'
             data-topics-url-value='<%= entries_data_topics_path %>'
