@@ -10,6 +10,13 @@ module TwitterServices
   # This service fetches tweets using authenticated Twitter session credentials.
   # Unlike the guest token approach, this uses OAuth session tokens from a logged-in user.
   #
+  # RATE LIMIT HANDLING:
+  # - Automatically rotates between multiple Twitter accounts when rate limits are hit
+  # - Uses TwitterServices::AccountManager for credential management
+  # - Detects HTTP 429 errors and Twitter API error codes (88, 326)
+  # - Implements 15-minute cooldown periods per account
+  # - Seamlessly switches to backup account during cooldown
+  #
   # IMPORTANT NOTES:
   # - This requires valid session cookies (auth_token, ct0) from a logged-in Twitter account
   # - These tokens expire and must be refreshed/rotated frequently
@@ -18,10 +25,18 @@ module TwitterServices
   # - Cookies can be obtained from browser DevTools while logged into Twitter
   #
   # Required ENV variables:
-  # - TWITTER_AUTH_TOKEN: The auth_token cookie value from a logged-in session
-  # - TWITTER_CT0_TOKEN: The ct0 (CSRF token) cookie value
-  # - TWITTER_BEARER_TOKEN: The bearer token (can be the same as guest approach)
-  # - SCRAPE_DO_TOKEN: (Optional) Token for scrape.do proxy service
+  # Primary Account:
+  #   - TWITTER_AUTH_TOKEN: The auth_token cookie value from a logged-in session
+  #   - TWITTER_CT0_TOKEN: The ct0 (CSRF token) cookie value
+  # Secondary Account (for rotation):
+  #   - TWITTER_AUTH_TOKEN2: The auth_token cookie value from second account
+  #   - TWITTER_CT0_TOKEN2: The ct0 token from second account
+  # Tertiary Account (optional):
+  #   - TWITTER_AUTH_TOKEN3: The auth_token cookie value from third account
+  #   - TWITTER_CT0_TOKEN3: The ct0 token from third account
+  # Other:
+  #   - TWITTER_BEARER_TOKEN: The bearer token (can be the same as guest approach)
+  #   - SCRAPE_DO_TOKEN: (Optional) Token for scrape.do proxy service
   #
   # Example usage:
   #   result = TwitterServices::GetPostsDataAuth.call('123456789')
@@ -40,8 +55,13 @@ module TwitterServices
       @use_proxy = use_proxy || ENV['USE_SCRAPE_DO_PROXY'] == 'true'
       @scrape_do_token = ENV['SCRAPE_DO_TOKEN'] || 'ed138ed418924138923ced2b81e04d53'
       @bearer_token = ENV['TWITTER_BEARER_TOKEN'] || 'AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs=1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA'
-      @auth_token = ENV.fetch('TWITTER_AUTH_TOKEN', nil)
-      @ct0_token = ENV.fetch('TWITTER_CT0_TOKEN', nil)
+      @account_manager = TwitterServices::AccountManager.new
+      
+      # Get initial credentials from account manager
+      credentials = @account_manager.get_active_credentials
+      @auth_token = credentials[:auth_token]
+      @ct0_token = credentials[:ct0_token]
+      @current_account_index = credentials[:account_index]
     end
 
     def call
@@ -55,7 +75,7 @@ module TwitterServices
       request_count = 0
 
       loop do
-        # Retry logic for timeouts
+        # Retry logic for timeouts with automatic account rotation
         max_retries = 2
         retry_count = 0
         response = nil
@@ -69,20 +89,42 @@ module TwitterServices
             end
         rescue Net::ReadTimeout, Net::OpenTimeout => e
           retry_count += 1
-          unless retry_count <= max_retries
+          
+          if retry_count <= max_retries
+            Rails.logger.warn("[TwitterServices::GetPostsDataAuth] Timeout (attempt #{retry_count}/#{max_retries}), retrying...")
+            sleep(retry_count * 5)
+            retry
+          else
+            # Timeout could indicate rate limiting, mark account and try to rotate
+            @account_manager.mark_rate_limited(@current_account_index, "Timeout after #{max_retries} retries")
             return handle_error("Request timeout after #{max_retries} retries: #{e.message}")
           end
-
-          Rails.logger.warn("[TwitterServices::GetPostsDataAuth] Timeout (attempt #{retry_count}/#{max_retries}), retrying...")
-          sleep(retry_count * 5)
-          retry
         end
 
         data = JSON.parse(response.body)
 
         unless response.success?
-          error_message = data['errors']&.map { |err| err['message'] }
-&.join(', ') || 'Unknown error'
+          error_message = data['errors']&.map { |err| err['message'] }&.join(', ') || 'Unknown error'
+          
+          # Check if this is a rate limit error
+          if TwitterServices::AccountManager.rate_limit_error?(error_message) || response.code == 429
+            Rails.logger.error("[TwitterServices::GetPostsDataAuth] Rate limit detected: #{error_message}")
+            @account_manager.mark_rate_limited(@current_account_index, error_message)
+            
+            # Try to rotate to another account
+            new_credentials = @account_manager.get_active_credentials
+            if new_credentials[:account_index] != @current_account_index
+              Rails.logger.info("[TwitterServices::GetPostsDataAuth] Rotating to #{new_credentials[:name]}")
+              @auth_token = new_credentials[:auth_token]
+              @ct0_token = new_credentials[:ct0_token]
+              @current_account_index = new_credentials[:account_index]
+              
+              # Retry this request with the new account
+              sleep(2) # Brief pause before retry
+              retry
+            end
+          end
+          
           return handle_error("API Error: #{error_message}")
         end
 
@@ -95,7 +137,7 @@ module TwitterServices
         # Stop if no more pages or reached max requests
         break if cursor.nil? || request_count >= @max_requests
 
-        # Random delay between 1-10 seconds to avoid rate limiting
+        # Random delay between 5-15 seconds to avoid rate limiting
         delay = rand(5..15)
         sleep(delay)
       end
@@ -104,6 +146,10 @@ module TwitterServices
     rescue JSON::ParserError => e
       handle_error("JSON parsing failed: #{e.message}")
     rescue StandardError => e
+      # Check if this is a rate limit error
+      if TwitterServices::AccountManager.rate_limit_error?(e.message)
+        @account_manager.mark_rate_limited(@current_account_index, e.message)
+      end
       handle_error("Request failed: #{e.message}")
     end
 
