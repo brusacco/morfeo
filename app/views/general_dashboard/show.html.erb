@@ -844,7 +844,7 @@
             <div class="space-y-3">
               <% @top_content[:top_tweets].first(3).each do |tweet| %>
                 <div class="p-3 bg-sky-50 rounded-lg border border-sky-100">
-                  <%= link_to tweet.tweet_url, target: '_blank', class: 'text-sm font-medium text-gray-900 hover:text-sky-600 line-clamp-2 block mb-1' do %>
+                  <%= link_to tweet.permalink_url, target: '_blank', class: 'text-sm font-medium text-gray-900 hover:text-sky-600 line-clamp-2 block mb-1' do %>
                     <%= tweet.text&.truncate(60) || 'Ver tweet' %>
                     <i class="fa-solid fa-external-link text-xs ml-1"></i>
                   <% end %>

@@ -52,8 +52,8 @@
           <% posts.each do |post| %>
             <tr class="hover:bg-sky-50 transition-colors duration-150">
               <td class="px-6 py-4">
-                <% if post.tweet_url.present? %>
-                  <%= link_to post.tweet_url, target: '_blank', class: 'group inline-flex items-start' do %>
+                <% if post.permalink_url.present? %>
+                  <%= link_to post.permalink_url, target: '_blank', class: 'group inline-flex items-start' do %>
                     <div class="flex-1">
                       <p class="text-sm font-medium text-gray-900 group-hover:text-sky-600 transition-colors line-clamp-3">
                         <%= post.text.to_s.truncate(200) %>

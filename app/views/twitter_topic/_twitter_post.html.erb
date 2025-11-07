@@ -18,8 +18,8 @@
   </div>
   <div class="p-4 flex flex-col flex-grow min-h-0">
     <div class="mb-3 flex-shrink-0">
-      <% if twitter_post.tweet_url.present? %>
-        <%= link_to twitter_post.tweet_url, target: '_blank', rel: 'noopener noreferrer',
+      <% if twitter_post.permalink_url.present? %>
+        <%= link_to twitter_post.permalink_url, target: '_blank', rel: 'noopener noreferrer',
             class: 'text-sm font-medium text-gray-900 hover:text-blue-600 line-clamp-3 block visited:text-purple-600',
             'aria-label': "Ver tweet: #{twitter_post.text.to_s.truncate(50)}" do %>
           <%= twitter_post.text.to_s.truncate(120) %>

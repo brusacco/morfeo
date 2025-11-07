@@ -399,7 +399,7 @@
 
                   <!-- Tweet Text -->
                   <h3 class="text-base font-bold text-gray-900 mb-3 line-clamp-2 hover:text-sky-600 transition-colors">
-                    <%= link_to viral[:post].tweet_url, target: '_blank', class: 'hover:underline' do %>
+                    <%= link_to viral[:post].permalink_url, target: '_blank', class: 'hover:underline' do %>
                       <%= viral[:post].text.to_s.truncate(120) %>
                       <i class="fa-solid fa-external-link text-xs text-gray-400 ml-1"></i>
                     <% end %>
@@ -454,7 +454,7 @@
 
                   <!-- Action Button -->
                   <div class="mt-4">
-                    <%= link_to viral[:post].tweet_url, target: '_blank', class: 'w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-all' do %>
+                    <%= link_to viral[:post].permalink_url, target: '_blank', class: 'w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-all' do %>
                       <i class="fa-solid fa-rocket mr-2"></i>
                       Amplificar Ahora
                       <i class="fa-solid fa-external-link ml-2 text-xs"></i>

@@ -57,8 +57,8 @@
               <!-- Tweet Text -->
               <td>
                 <div class="max-w-xs">
-                  <% if post.tweet_url.present? %>
-                    <%= link_to post.tweet_url, target: '_blank', rel: 'noopener noreferrer', 
+                  <% if post.permalink_url.present? %>
+                    <%= link_to post.permalink_url, target: '_blank', rel: 'noopener noreferrer', 
                         class: "dt-link hover:underline line-clamp-3",
                         title: post.text do %>
                       <%= truncate(post.text, length: 100) %>

@@ -62,7 +62,7 @@
       <% end %>
       <% if entry.twitter_post.present? %>
         <div class="pt-2 pb-2 border-t border-gray-100">
-          <%= link_to entry.twitter_post.tweet_url, 
+          <%= link_to entry.twitter_post.permalink_url, 
               target: '_blank',
               rel: 'noopener noreferrer',
               class: "inline-flex items-center px-3 py-1.5 rounded-md text-xs font-medium bg-gradient-to-r from-sky-50 to-blue-50 text-sky-700 border border-sky-200 hover:from-sky-100 hover:to-blue-100 hover:border-sky-300 hover:shadow-sm transition-all duration-200 group/link w-full justify-center",
