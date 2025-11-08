@@ -1,0 +1,62 @@
+<%# Mixed Content Display for General Dashboard PDF
+     Displays top content from all channels (Digital, Facebook, Twitter)
+     
+     Usage:
+       <%= render 'shared/pdf_general_mixed_content', presenter: @presenter %>
+     
+     Required locals:
+       - presenter: GeneralDashboardPresenter instance
+%>
+
+<div class="pdf-section">
+  <h2><%= pdf_section_title(:top_content) %></h2>
+  
+  <!-- Top Digital Entries -->
+  <% if presenter.has_digital_content? %>
+    <h3><i class="fas fa-newspaper" style="color: <%= PdfConstants::DIGITAL_PRIMARY_COLOR %>;"></i> <%= I18n.t('pdf.channels.digital') %> - Top <%= presenter.top_digital_entries.size %></h3>
+    
+    <% presenter.top_digital_entries.each_with_index do |entry, index| %>
+      <%= render 'shared/pdf_digital_post', entry: entry, index: index, show_site: true %>
+    <% end %>
+  <% end %>
+  
+  <!-- Top Facebook Posts -->
+  <% if presenter.has_facebook_content? %>
+    <h3 class="mt-lg"><i class="fab fa-facebook" style="color: <%= PdfConstants::FACEBOOK_PRIMARY_COLOR %>;"></i> <%= I18n.t('pdf.channels.facebook') %> - Top <%= presenter.top_facebook_posts.size %></h3>
+    
+    <% presenter.top_facebook_posts.each_with_index do |post, index| %>
+      <%= render 'shared/pdf_facebook_post', post: post, index: index, show_page: true, show_sentiment: false %>
+    <% end %>
+  <% end %>
+  
+  <!-- Top Twitter Posts -->
+  <% if presenter.has_twitter_content? %>
+    <h3 class="mt-lg"><i class="fab fa-twitter" style="color: <%= PdfConstants::TWITTER_PRIMARY_COLOR %>;"></i> <%= I18n.t('pdf.channels.twitter') %> - Top <%= presenter.top_twitter_posts.size %></h3>
+    
+    <% presenter.top_twitter_posts.each_with_index do |tweet, index| %>
+      <%= render 'shared/pdf_twitter_post', tweet: tweet, index: index, show_profile: true, show_post_type: false %>
+    <% end %>
+  <% end %>
+  
+  <!-- No Content Message -->
+  <% unless presenter.has_digital_content? || presenter.has_facebook_content? || presenter.has_twitter_content? %>
+    <div class="pdf-empty-state">
+      <p style="text-align: center; color: #6b7280; padding: 40px;">
+        📊 No hay contenido destacado disponible para este período.
+      </p>
+    </div>
+  <% end %>
+</div>
+
+<style>
+  .mt-lg {
+    margin-top: 20pt;
+  }
+  
+  .pdf-empty-state {
+    border: 1pt dashed #d1d5db;
+    border-radius: 4pt;
+    background: #f9fafb;
+  }
+</style>
+

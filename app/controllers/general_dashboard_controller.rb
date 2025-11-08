@@ -4,12 +4,13 @@
 # CEO-level reporting and analytics across all data sources
 class GeneralDashboardController < ApplicationController
   include TopicAuthorizable
+  include PdfCacheable
   
   before_action :authenticate_user!
   before_action :set_topic
   before_action :authorize_topic_access!, only: [:show, :pdf]
 
-  caches_action :show, :pdf, expires_in: 30.minutes,
+  caches_action :show, :pdf, expires_in: PDF_CACHE_DURATIONS[:general],
                 cache_path: proc { |c| { topic_id: c.params[:id], user_id: c.current_user.id, days_range: c.params[:days_range] } }
 
   def show
@@ -38,19 +39,34 @@ class GeneralDashboardController < ApplicationController
   end
 
   def pdf
-    # Get days_range from params, default to 7 days if not provided or invalid
-    days_range = (params[:days_range].presence&.to_i || DAYS_RANGE || 7)
+    # Get days_range from params, default to DEFAULT_DAYS_RANGE if not provided or invalid
+    days_range = (params[:days_range].presence&.to_i || DAYS_RANGE || PdfConstants::DEFAULT_DAYS_RANGE)
     
     @start_date = days_range.days.ago.beginning_of_day
     @end_date = Time.zone.now.end_of_day
     
-    @dashboard_data = GeneralDashboardServices::AggregatorService.call(
+    # Use caching for expensive PDF generation
+    @dashboard_data = fetch_cached_pdf(
+      type: :general,
+      topic_id: @topic.id,
+      days_range: days_range
+    ) do
+      GeneralDashboardServices::AggregatorService.call(
+        topic: @topic,
+        start_date: @start_date,
+        end_date: @end_date
+      )
+    end
+    
+    # Initialize presenter
+    @presenter = GeneralDashboardPresenter.new(
+      data: @dashboard_data,
       topic: @topic,
       start_date: @start_date,
       end_date: @end_date
     )
     
-    # Extract data for easy view access
+    # Keep legacy instance variables for backward compatibility
     @executive_summary = @dashboard_data[:executive_summary]
     @channel_performance = @dashboard_data[:channel_performance]
     @temporal_intelligence = @dashboard_data[:temporal_intelligence]

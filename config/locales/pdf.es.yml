@@ -39,6 +39,8 @@ es:
       quotes: "Quotes"
       total: "Total"
       engagement_rate: "Engagement Rate"
+      total_mentions: "Total Menciones"
+      sentiment: "Sentimiento"
       
     charts:
       entries_per_day: "Notas por Día"
@@ -85,8 +87,9 @@ es:
       
     footer:
       generated_by: "Generado por"
-      morfeo_analytics: "Morfeo Analytics"
+      morfeo_analytics: "MORFEO Analytics"
       date: "Fecha de generación"
+      generated: "Generado el"
       
     period:
       last_n_days: "Últimos %{count} días"
