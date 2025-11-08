@@ -1,0 +1,157 @@
+<%
+  # PDF Chart Wrapper - Professional chart presentation with external title
+  # Wraps charts with title, metadata, and source information
+  #
+  # Usage:
+  #   <%= render 'shared/pdf_chart_wrapper',
+  #         title: "Interacciones por Día",
+  #         subtitle: "Últimos 7 días",
+  #         chart_type: :column_chart,
+  #         chart_data: @data,
+  #         chart_options: { colors: ['#1e40af'] },
+  #         source: "Meta API",
+  #         icon: "📊" %>
+  
+  title ||= "Chart Title"
+  subtitle ||= nil
+  chart_type ||= :column_chart
+  chart_data ||= {}
+  chart_options ||= {}
+  source ||= nil
+  icon ||= "📊"
+  period ||= nil
+  updated_at ||= Time.current
+%>
+
+<div class="pdf-chart-wrapper">
+  <!-- Chart Header -->
+  <div class="pdf-chart-header">
+    <div class="pdf-chart-title-row">
+      <h3 class="pdf-chart-title">
+        <span class="pdf-chart-icon"><%= icon %></span>
+        <%= title %>
+      </h3>
+      <% if subtitle.present? || period.present? %>
+        <span class="pdf-chart-period"><%= subtitle || period %></span>
+      <% end %>
+    </div>
+  </div>
+  
+  <!-- Chart Canvas with Container -->
+  <div class="pdf-chart-canvas">
+    <% case chart_type %>
+    <% when :column_chart %>
+      <%= column_chart chart_data, **chart_options %>
+    <% when :line_chart %>
+      <%= line_chart chart_data, **chart_options %>
+    <% when :area_chart %>
+      <%= area_chart chart_data, **chart_options %>
+    <% when :pie_chart %>
+      <%= pie_chart chart_data, **chart_options %>
+    <% when :bar_chart %>
+      <%= bar_chart chart_data, **chart_options %>
+    <% else %>
+      <%= column_chart chart_data, **chart_options %>
+    <% end %>
+  </div>
+  
+  <!-- Chart Footer with Source -->
+  <% if source.present? %>
+    <div class="pdf-chart-footer">
+      <p class="pdf-chart-source">
+        <span class="pdf-chart-source-label">Fuente:</span>
+        <%= source %>
+        <span class="pdf-chart-divider">|</span>
+        <span class="pdf-chart-updated">Act.: <%= updated_at.strftime("%d/%m/%Y") %></span>
+      </p>
+    </div>
+  <% end %>
+</div>
+
+<style>
+  /* Chart Wrapper Styles */
+  .pdf-chart-wrapper {
+    margin: 20pt 0;
+    page-break-inside: avoid;
+  }
+  
+  /* Chart Header */
+  .pdf-chart-header {
+    margin-bottom: 16pt;
+  }
+  
+  .pdf-chart-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12pt;
+  }
+  
+  .pdf-chart-title {
+    margin: 0;
+    font-size: 14pt;
+    font-weight: 700;
+    color: <%= PdfColors::TEXT_PRIMARY %>;
+    padding-left: 12pt;
+    border-left: 4pt solid <%= PdfColors::CHART_PALETTE[0] %>;
+    display: flex;
+    align-items: center;
+    gap: 8pt;
+    line-height: 1.3;
+  }
+  
+  .pdf-chart-icon {
+    font-size: 16pt;
+    line-height: 1;
+  }
+  
+  .pdf-chart-period {
+    font-size: 9pt;
+    font-weight: 600;
+    color: <%= PdfColors::TEXT_SECONDARY %>;
+    text-transform: uppercase;
+    letter-spacing: 0.5pt;
+    padding: 4pt 10pt;
+    background: <%= PdfColors::BG_TERTIARY %>;
+    border-radius: 12pt;
+    white-space: nowrap;
+  }
+  
+  /* Chart Canvas */
+  .pdf-chart-canvas {
+    border: 1pt solid <%= PdfColors::BORDER_DEFAULT %>;
+    border-radius: 8pt;
+    padding: 16pt;
+    background: linear-gradient(180deg, #ffffff 0%, <%= PdfColors::BG_SECONDARY %> 100%);
+    box-shadow: 0 2pt 4pt <%= PdfColors::SHADOW_SM %>;
+  }
+  
+  /* Chart Footer */
+  .pdf-chart-footer {
+    margin-top: 8pt;
+    padding-top: 8pt;
+    border-top: 1pt dashed <%= PdfColors::BORDER_DEFAULT %>;
+  }
+  
+  .pdf-chart-source {
+    margin: 0;
+    font-size: 8pt;
+    color: <%= PdfColors::TEXT_TERTIARY %>;
+    line-height: 1.4;
+  }
+  
+  .pdf-chart-source-label {
+    font-weight: 600;
+    color: <%= PdfColors::TEXT_SECONDARY %>;
+  }
+  
+  .pdf-chart-divider {
+    margin: 0 6pt;
+    opacity: 0.5;
+  }
+  
+  .pdf-chart-updated {
+    font-style: italic;
+  }
+</style>
+

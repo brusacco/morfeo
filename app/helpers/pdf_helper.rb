@@ -151,7 +151,17 @@ module PdfHelper
 
   # Print-friendly color palette
   def pdf_print_colors
-    ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316']
+    PdfColors::CHART_PALETTE
+  end
+  
+  # Get primary color for report type
+  def pdf_primary_color(report_type)
+    PdfColors.primary_color(report_type)
+  end
+  
+  # Get sentiment color
+  def pdf_sentiment_color_value(sentiment)
+    PdfColors.sentiment_color(sentiment)
   end
 
   # Format date range for PDF header

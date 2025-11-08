@@ -1,0 +1,141 @@
+<%
+  # PDF Page Footer - Professional footer with page numbers and branding
+  # To be included at the end of each major section or page
+  #
+  # Usage:
+  #   <%= render 'shared/pdf_page_footer',
+  #         topic_name: @topic.name,
+  #         report_type: :digital,
+  #         page_number: 3 %>
+  
+  topic_name ||= "Report"
+  report_type ||= :general
+  page_number ||= nil
+  show_confidential ||= false
+%>
+
+<div class="pdf-page-footer">
+  <div class="pdf-footer-content">
+    <!-- Left: Logo/Brand -->
+    <div class="pdf-footer-left">
+      <span class="pdf-footer-logo">
+        <span class="pdf-footer-logo-icon">M</span>
+        <span class="pdf-footer-logo-text">Morfeo Analytics</span>
+      </span>
+    </div>
+    
+    <!-- Center: Topic Name -->
+    <div class="pdf-footer-center">
+      <span class="pdf-footer-topic"><%= truncate(topic_name, length: 40) %></span>
+    </div>
+    
+    <!-- Right: Page Number -->
+    <div class="pdf-footer-right">
+      <% if page_number %>
+        <span class="pdf-footer-page">Página <%= page_number %></span>
+      <% else %>
+        <span class="pdf-footer-page page-number-placeholder"></span>
+      <% end %>
+      <% if show_confidential %>
+        <span class="pdf-footer-confidential">🔒 Confidencial</span>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<style>
+  .pdf-page-footer {
+    margin-top: 32pt;
+    padding-top: 16pt;
+    border-top: 1pt solid <%= PdfColors::BORDER_DEFAULT %>;
+    page-break-inside: avoid;
+  }
+  
+  .pdf-footer-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16pt;
+    font-size: 8pt;
+    color: <%= PdfColors::TEXT_TERTIARY %>;
+  }
+  
+  /* Left Section - Logo/Brand */
+  .pdf-footer-left {
+    flex: 0 0 auto;
+  }
+  
+  .pdf-footer-logo {
+    display: flex;
+    align-items: center;
+    gap: 6pt;
+  }
+  
+  .pdf-footer-logo-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16pt;
+    height: 16pt;
+    background: <%= PdfColors.primary_color(report_type) %>;
+    color: white;
+    border-radius: 50%;
+    font-size: 10pt;
+    font-weight: 900;
+    line-height: 1;
+  }
+  
+  .pdf-footer-logo-text {
+    font-weight: 600;
+    color: <%= PdfColors::TEXT_SECONDARY %>;
+    font-size: 8pt;
+  }
+  
+  /* Center Section - Topic */
+  .pdf-footer-center {
+    flex: 1 1 auto;
+    text-align: center;
+  }
+  
+  .pdf-footer-topic {
+    font-weight: 500;
+    color: <%= PdfColors::TEXT_SECONDARY %>;
+  }
+  
+  /* Right Section - Page Number */
+  .pdf-footer-right {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 8pt;
+  }
+  
+  .pdf-footer-page {
+    font-weight: 600;
+    color: <%= PdfColors::TEXT_SECONDARY %>;
+    padding: 3pt 8pt;
+    background: <%= PdfColors::BG_TERTIARY %>;
+    border-radius: 4pt;
+  }
+  
+  .pdf-footer-confidential {
+    font-size: 7pt;
+    font-weight: 600;
+    color: <%= PdfColors::DANGER %>;
+    text-transform: uppercase;
+    letter-spacing: 0.3pt;
+  }
+</style>
+
+<script>
+  // Auto-number pages if placeholder exists
+  (function() {
+    const placeholders = document.querySelectorAll('.page-number-placeholder');
+    placeholders.forEach((el, index) => {
+      el.textContent = `Página ${index + 2}`; // +2 because page 1 is cover
+      el.classList.remove('page-number-placeholder');
+      el.classList.add('pdf-footer-page');
+    });
+  })();
+</script>
+
