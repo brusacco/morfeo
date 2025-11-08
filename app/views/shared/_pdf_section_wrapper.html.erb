@@ -1,0 +1,16 @@
+<%
+  # PDF Section Wrapper - Controls page breaks at section level
+  # Each section gets its own page (or shares if content is small)
+  
+  section_id = local_assigns.fetch(:section_id, nil)
+  force_new_page = local_assigns.fetch(:force_new_page, false)
+  css_class = local_assigns.fetch(:css_class, '')
+  
+  wrapper_classes = ['pdf-section-wrapper', css_class].compact.join(' ')
+  wrapper_classes += ' force-new-page' if force_new_page
+%>
+
+<div class="<%= wrapper_classes %>" <%= "id='#{section_id}'" if section_id.present? %>>
+  <%= yield if block_given? %>
+</div>
+

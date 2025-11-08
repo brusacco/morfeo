@@ -8,558 +8,888 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartkick@4.2.0/dist/chartkick.min.js"></script>
-    
+
     <%# Auto-print on page load %>
     <script>
       window.onload = function() {
         window.print();
       };
     </script>
-    
+
     <%# Include professional PDF styles %>
     <%= render 'shared/pdf_professional_styles' %>
-    
+
     <style>
-      /* Facebook-specific PDF color overrides */
-      h1, .pdf-page-title {
-        color: #1877f2; /* Facebook blue */
-      }
-      
-      /* Enhanced Header Styles */
-      .pdf-header-enhanced {
-        background: linear-gradient(135deg, #1877f2 0%, #0c63d4 100%);
-        color: white;
-        padding: 24pt 32pt;
-        margin: -20pt -20pt 24pt -20pt; /* Extend to edges */
-        border-radius: 0;
-        box-shadow: 0 4pt 12pt rgba(24, 119, 242, 0.2);
-      }
-      
-      .pdf-header-title {
-        margin: 0 0 12pt 0;
-        font-size: 26pt;
-        font-weight: 800;
-        color: white !important;
-        letter-spacing: -0.5pt;
-        line-height: 1.2;
-      }
-      
-      .pdf-header-meta {
-        margin: 0;
-        font-size: 11pt;
-        font-weight: 500;
-        opacity: 0.95;
-        display: flex;
-        align-items: center;
-        gap: 8pt;
-      }
-      
-      .pdf-header-meta-item {
-        display: inline-flex;
-        align-items: center;
-        gap: 4pt;
-      }
-      
-      .pdf-header-meta-separator {
-        opacity: 0.6;
-        font-weight: 300;
-      }
-      
-      /* Enhanced KPI Cards */
-      .pdf-metric-card {
-        border: 2pt solid #e5e7eb !important;
-        box-shadow: 0 2pt 8pt rgba(0, 0, 0, 0.08) !important;
-        padding: 20pt !important;
-        transition: all 0.3s ease;
-      }
-      
-      .pdf-metric-icon {
-        font-size: 32pt !important;
-        line-height: 1 !important;
-        margin-bottom: 12pt !important;
-        display: block;
-      }
-      
-      .pdf-metric-value {
-        font-size: 32pt !important;
-        font-weight: 900 !important;
-        letter-spacing: -1pt !important;
-        line-height: 1 !important;
-        margin: 8pt 0 !important;
-      }
-      
-      .pdf-metric-label {
-        font-size: 9pt !important;
-        font-weight: 600 !important;
-        text-transform: uppercase !important;
-        letter-spacing: 0.5pt !important;
-        color: #6b7280 !important;
+      /* Facebook-specific color variables */
+      :root {
+        --fb-primary: #1877f2;
+        --fb-secondary: #0c63d4;
       }
     </style>
   </head>
   <body>
-    <div class="pdf-container">
-      <%# Professional Cover Page %>
+    <%# SLIDE 0: Professional Cover Page %>
+    <%= render 'shared/pdf_section_wrapper', section_id: 'cover-page' do %>
       <%= render 'shared/pdf_cover_page',
             title: "Reporte Facebook",
             topic_name: @topic.name,
             period: pdf_date_range(days_range: @days_range),
             report_type: :facebook,
             subtitle: "Análisis de Reacciones y Sentimiento" %>
-      
-      <!-- Enhanced Header -->
-      <div class="pdf-header-enhanced">
-        <h1 class="pdf-header-title">Reporte Facebook: <%= @topic.name %></h1>
-        <p class="pdf-header-meta">
-          <span class="pdf-header-meta-item">📅 <%= pdf_date_range(days_range: @days_range) %></span>
-          <span class="pdf-header-meta-separator">|</span>
-          <span class="pdf-header-meta-item">🕐 Generado: <%= Time.current.strftime("%d/%m/%Y %H:%M") %></span>
-        </p>
-      </div>
+    <% end %>
 
-      <!-- KPI Section (Refactored) -->
-      <div class="pdf-section">
-        <h2>Métricas Principales</h2>
-        <%= render 'shared/pdf_kpis_grid', 
-              metrics: [
-                { label: "Posts", value: pdf_format_number(@total_posts), icon: "📝" },
-                { label: "Interacciones", value: pdf_format_number(@total_interactions), icon: "📊" },
-                { label: "Vistas", value: pdf_format_number(@total_views), icon: "👁️" },
-                { label: "Promedio", value: pdf_format_number(@average_interactions), icon: "📈" }
-              ] %>
-      </div>
+    <%# SLIDE 1: Métricas Principales %>
+    <%= render 'shared/pdf_section_wrapper', section_id: 'section-1', force_new_page: true do %>
+      <%= render 'shared/pdf_slide',
+            slide_number: 1,
+            title: "Métricas Principales",
+            subtitle: "Rendimiento General del Período",
+            report_type: :facebook,
+            topic_name: @topic.name do %>
 
-      <!-- Main Charts Section (Enhanced) -->
-      <div class="pdf-section">
-        <h2>Análisis Temporal de Publicaciones</h2>
-        <%= render 'shared/pdf_charts_row', 
-              charts: [
-                build_pdf_chart_config_enhanced(
-                  title: "Posts por Día",
-                  data: @chart_posts,
-                  type: :column_chart,
-                  xtitle: "Fecha",
-                  ytitle: "Posts",
-                  colors: ['#1877f2']
-                ),
-                build_pdf_chart_config_enhanced(
-                  title: "Interacciones por Día",
-                  data: @chart_interactions,
-                  type: :column_chart,
-                  xtitle: "Fecha",
-                  ytitle: "Interacciones",
-                  colors: ['#10b981']
-                )
-              ] %>
-      </div>
+        <%# KPIs en grid 2x2 para mejor visibilidad %>
+        <%= render 'shared/pdf_kpi_slide',
+            kpis: [
+              {
+                value: pdf_format_number(@total_posts),
+                label: "Posts",
+                icon: "📝",
+                sublabel: "publicaciones totales"
+              },
+              {
+                value: pdf_format_number(@total_interactions),
+                label: "Interacciones",
+                icon: "👍",
+                sublabel: "likes, comentarios, shares"
+              },
+              {
+                value: pdf_format_number(@total_views),
+                label: "Vistas",
+                icon: "👁️",
+                sublabel: "alcance oficial Meta API"
+              },
+              {
+                value: pdf_format_number(@average_interactions),
+                label: "Promedio",
+                icon: "📈",
+                sublabel: "interacciones por post"
+              }
+            ],
+            columns: 2,
+            size: 'large' %>
+      <% end %>
+    <% end %>
 
-      <!-- Summary Section -->
-      <div class="pdf-section">
-        <div class="pdf-summary">
-          <p>
-            El tópico <strong><%= @topic.name %></strong> en Facebook durante los últimos 
-            <strong><%= @days_range %> días</strong> cuenta con un total de 
-            <strong><%= pdf_format_number(@total_posts) %></strong> publicaciones y generó un total de 
-            <strong><%= pdf_format_number(@total_interactions) %></strong> interacciones, 
-            lo que nos da un promedio de 
-            <strong><%= pdf_format_number(@average_interactions) %></strong> interacciones por post.
+    <%# SLIDE 2: Evolución Temporal %>
+    <%= render 'shared/pdf_section_wrapper', section_id: 'section-2', force_new_page: true do %>
+      <%= render 'shared/pdf_slide',
+          slide_number: 2,
+          title: "Evolución Temporal",
+          subtitle: "Posts e Interacciones por Día",
+          report_type: :facebook,
+          topic_name: @topic.name do %>
+
+      <%# Gráficas apiladas verticalmente %>
+      <div style="display: flex; flex-direction: column; gap: 24pt;">
+        <%# Posts por Día %>
+        <div>
+          <h3 style="margin: 0 0 16pt 0; font-size: 14pt; font-weight: 700; color: #1f2937; padding-left: 12pt; border-left: 4pt solid #1877f2;">
+            📊 Posts por Día
+          </h3>
+          <div style="background: white; border: 2pt solid #e5e7eb; border-radius: 12pt; padding: 20pt; box-shadow: 0 2pt 8pt rgba(0, 0, 0, 0.06);">
+            <%= column_chart @chart_posts,
+                  colors: ['#1877f2'],
+                  height: '240px',
+                  library: {
+                    chart: { backgroundColor: 'transparent' },
+                    xAxis: { labels: { style: { fontSize: '9pt', fontWeight: '600' } } },
+                    yAxis: { labels: { style: { fontSize: '9pt', fontWeight: '600' } } }
+                  } %>
+          </div>
+          <p style="margin: 12pt 0 0 0; padding: 12pt 16pt; background: #eff6ff; border-left: 4pt solid #3b82f6; border-radius: 6pt; font-size: 10pt; line-height: 1.6; color: #1e40af;">
+            💡 Promedio de <strong><%= (@total_posts.to_f / @days_range).round(1) %></strong> posts por día durante el período analizado.
           </p>
-          <% if @total_views && @total_views > 0 %>
-            <p class="mt-md">
-              Las publicaciones alcanzaron un total de <strong><%= pdf_format_number(@total_views) %></strong> vistas
-              (dato oficial de Meta API).
-            </p>
-          <% end %>
+        </div>
+
+        <%# Interacciones por Día %>
+        <div>
+          <h3 style="margin: 0 0 16pt 0; font-size: 14pt; font-weight: 700; color: #1f2937; padding-left: 12pt; border-left: 4pt solid #10b981;">
+            👍 Interacciones por Día
+          </h3>
+          <div style="background: white; border: 2pt solid #e5e7eb; border-radius: 12pt; padding: 20pt; box-shadow: 0 2pt 8pt rgba(0, 0, 0, 0.06);">
+            <%= column_chart @chart_interactions,
+                  colors: ['#10b981'],
+                  height: '240px',
+                  library: {
+                    chart: { backgroundColor: 'transparent' },
+                    xAxis: { labels: { style: { fontSize: '9pt', fontWeight: '600' } } },
+                    yAxis: { labels: { style: { fontSize: '9pt', fontWeight: '600' } } }
+                  } %>
+          </div>
+          <p style="margin: 12pt 0 0 0; padding: 12pt 16pt; background: #d1fae5; border-left: 4pt solid #10b981; border-radius: 6pt; font-size: 10pt; line-height: 1.6; color: #065f46;">
+            💡 <%= @chart_interactions.values.max > @chart_interactions.values.min * 2 ? 'Alta variabilidad' : 'Consistencia' %> en las interacciones a lo largo del período.
+          </p>
         </div>
       </div>
+    <% end %>
+    <% end %>
 
-      <!-- Sentiment Analysis Section (Complete) -->
-      <% if @sentiment_summary.present? %>
-        <div class="pdf-section break-before">
-          <h2>Análisis de Sentimiento (Basado en Reacciones)</h2>
-          
-          <% 
-            presenter = FacebookSentimentPresenter.new(
-              sentiment_summary: @sentiment_summary,
-              sentiment_distribution: @sentiment_distribution,
-              sentiment_over_time: @sentiment_over_time,
-              reaction_breakdown: @reaction_breakdown,
-              top_positive_posts: @top_positive_posts,
-              top_negative_posts: @top_negative_posts,
-              controversial_posts: @controversial_posts,
-              emotional_trends: @emotional_trends
-            ) 
-          %>
-          
-          <% if presenter.has_data? %>
-            <!-- Sentiment Overview -->
-            <div class="pdf-stats-grid">
-              <div class="pdf-stats-card">
-                <div class="pdf-stats-label">Sentimiento Promedio</div>
-                <div class="pdf-stats-value" style="color: <%= presenter.average_sentiment > 0 ? '#10b981' : presenter.average_sentiment < 0 ? '#ef4444' : '#6b7280' %>">
-                  <%= pdf_sentiment_emoji(presenter.average_sentiment, system: :facebook) %>
-                  <%= number_with_precision(presenter.average_sentiment, precision: 2) %>
-                </div>
-                <div class="pdf-stats-sublabel">
-                  <%= presenter.average_sentiment > 0.5 ? 'Sentimiento Positivo' : presenter.average_sentiment < -0.5 ? 'Sentimiento Negativo' : 'Sentimiento Neutral' %>
+    <%# SLIDE 3: Análisis de Sentimiento (Overview) %>
+    <%= render 'shared/pdf_section_wrapper', section_id: 'section-3', force_new_page: true do %>
+    <% if @sentiment_summary.present? %>
+      <%
+        presenter = FacebookSentimentPresenter.new(
+          sentiment_summary: @sentiment_summary,
+          sentiment_distribution: @sentiment_distribution,
+          sentiment_over_time: @sentiment_over_time,
+          reaction_breakdown: @reaction_breakdown,
+          top_positive_posts: @top_positive_posts,
+          top_negative_posts: @top_negative_posts,
+          controversial_posts: @controversial_posts,
+          emotional_trends: @emotional_trends
+        )
+      %>
+
+      <% if presenter.has_data? %>
+      <%= render 'shared/pdf_slide',
+            slide_number: 3,
+            title: "Análisis de Sentimiento",
+              subtitle: "Basado en Reacciones de Facebook",
+              report_type: :facebook,
+              topic_name: @topic.name do %>
+
+          <%# KPIs de Sentimiento en grid 2x2 para mejor visibilidad %>
+          <%= render 'shared/pdf_kpi_slide',
+                kpis: [
+                  {
+                    value: number_with_precision(presenter.average_sentiment, precision: 2),
+                    label: "Score Promedio",
+                    icon: pdf_sentiment_emoji(presenter.average_sentiment, system: :facebook),
+                    sublabel: presenter.average_sentiment > 0.5 ? 'Positivo' : presenter.average_sentiment < -0.5 ? 'Negativo' : 'Neutral'
+                  },
+                  {
+                    value: "#{(presenter.overall_confidence * 100).round}%",
+                    label: "Confianza",
+                    icon: "📊",
+                    sublabel: "#{pdf_format_number(presenter.total_reactions)} reacciones"
+                  },
+                  {
+                    value: "#{presenter.positive_percentage}%",
+                    label: "Posts Positivos",
+                    icon: "😊",
+                    sublabel: "sentimiento positivo"
+                  },
+                  {
+                    value: @controversial_posts&.size || 0,
+                    label: "Controvertidos",
+                    icon: "⚠️",
+                    sublabel: "alta polarización"
+                  }
+                ],
+                columns: 2,
+                size: 'large' %>
+
+          <%# Methodology Note %>
+          <div style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-left: 6pt solid #3b82f6; border-radius: 12pt; padding: 20pt 24pt; margin-top: 24pt;">
+            <h4 style="margin: 0 0 12pt 0; color: #1e40af; font-size: 13pt; display: flex; align-items: center; gap: 8pt;">
+              <span style="font-size: 24pt;">💡</span>
+              ¿Cómo medimos el sentimiento?
+            </h4>
+            <p style="margin: 0 0 12pt 0; font-size: 10pt; line-height: 1.7; color: #1e3a8a;">
+              Analizamos automáticamente las <strong>reacciones</strong> que recibe cada post.
+              Cada tipo de reacción tiene un peso emocional que nos permite calcular un score entre
+              <span style="color: #ef4444; font-weight: 700;">-2.0 (muy negativo)</span> y
+              <span style="color: #10b981; font-weight: 700;">+2.0 (muy positivo)</span>.
+            </p>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8pt;">
+              <div style="padding: 8pt; background: #d1fae5; border-radius: 6pt; text-align: center;">
+                <div style="font-size: 20pt; margin-bottom: 4pt;">❤️</div>
+                <div style="font-weight: 700; color: #065f46; font-size: 9pt;">Love: +2.0</div>
+              </div>
+              <div style="padding: 8pt; background: #fef3c7; border-radius: 6pt; text-align: center;">
+                <div style="font-size: 20pt; margin-bottom: 4pt;">😄</div>
+                <div style="font-weight: 700; color: #92400e; font-size: 9pt;">Haha: +1.5</div>
+              </div>
+              <div style="padding: 8pt; background: #d1fae5; border-radius: 6pt; text-align: center;">
+                <div style="font-size: 20pt; margin-bottom: 4pt;">👍</div>
+                <div style="font-weight: 700; color: #065f46; font-size: 9pt;">Like: +0.5</div>
+              </div>
+              <div style="padding: 8pt; background: #e0e7ff; border-radius: 6pt; text-align: center;">
+                <div style="font-size: 20pt; margin-bottom: 4pt;">😮</div>
+                <div style="font-weight: 700; color: #3730a3; font-size: 9pt;">Wow: +1.0</div>
+              </div>
+              <div style="padding: 8pt; background: #fed7aa; border-radius: 6pt; text-align: center;">
+                <div style="font-size: 20pt; margin-bottom: 4pt;">😢</div>
+                <div style="font-weight: 700; color: #9a3412; font-size: 9pt;">Sad: -1.5</div>
+              </div>
+              <div style="padding: 8pt; background: #fee2e2; border-radius: 6pt; text-align: center;">
+                <div style="font-size: 20pt; margin-bottom: 4pt;">😠</div>
+                <div style="font-weight: 700; color: #991b1b; font-size: 9pt;">Angry: -2.0</div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      <% end %>
+    <% end %>
+    <% end %>
+
+    <%# SLIDE 4: Distribución de Sentimiento %>
+    <%= render 'shared/pdf_section_wrapper', section_id: 'section-4', force_new_page: true do %>
+    <% if @sentiment_summary.present? && @sentiment_distribution.present? %>
+      <%
+        presenter = FacebookSentimentPresenter.new(
+          sentiment_summary: @sentiment_summary,
+          sentiment_distribution: @sentiment_distribution,
+          sentiment_over_time: @sentiment_over_time,
+          reaction_breakdown: @reaction_breakdown,
+          top_positive_posts: @top_positive_posts,
+          top_negative_posts: @top_negative_posts,
+          controversial_posts: @controversial_posts,
+          emotional_trends: @emotional_trends
+        )
+      %>
+      <%= render 'shared/pdf_slide',
+            slide_number: 4,
+            title: "Distribución de Sentimiento",
+            subtitle: "Posts por Tipo de Sentimiento",
+            report_type: :facebook,
+            topic_name: @topic.name do %>
+
+        <%
+          # Configuración de emojis y colores por tipo de sentimiento
+          sentiment_config = {
+            'Muy Positivo' => { emoji: '😄', color: '#10b981', bg: '#d1fae5', range: '+1.5 a +2.0', desc: 'Contenido muy bien recibido' },
+            'Positivo' => { emoji: '🙂', color: '#22c55e', bg: '#dcfce7', range: '+0.5 a +1.5', desc: 'Contenido bien valorado' },
+            'Neutral' => { emoji: '😐', color: '#6b7280', bg: '#f3f4f6', range: '-0.5 a +0.5', desc: 'Sin sesgo emocional claro' },
+            'Negativo' => { emoji: '☹️', color: '#f59e0b', bg: '#fef3c7', range: '-1.5 a -0.5', desc: 'Contenido con rechazo' },
+            'Muy Negativo' => { emoji: '😠', color: '#ef4444', bg: '#fee2e2', range: '-2.0 a -1.5', desc: 'Contenido muy mal recibido' }
+          }
+
+          # Obtener distribución de sentimientos y convertir a hash si es array
+          sentiment_data = presenter.sentiment_distribution_data
+          sentiment_dist = sentiment_data.is_a?(Hash) ? sentiment_data : sentiment_data.to_h
+          total_posts = sentiment_dist.values.sum
+        %>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16pt;">
+            <% sentiment_dist.sort_by { |k, v| -v }.each_with_index do |(sentiment_name, count), index| %>
+              <% config = sentiment_config[sentiment_name] || { emoji: '😐', color: '#6b7280', bg: '#f3f4f6', range: 'N/A', desc: sentiment_name } %>
+              <% percentage = total_posts > 0 ? (count.to_f / total_posts * 100).round(1) : 0 %>
+
+              <div class="sentiment-card" style="background: white; border: 2pt solid #e5e7eb; border-radius: 10pt; padding: 14pt 16pt; box-shadow: 0 2pt 6pt rgba(0, 0, 0, 0.06); position: relative; overflow: hidden;">
+                <%# Background bar (porcentaje visual) %>
+                <div style="position: absolute; top: 0; left: 0; height: 100%; width: <%= percentage %>%; background: <%= config[:bg] %>; opacity: 0.5; z-index: 0;"></div>
+
+                <%# Content %>
+                <div style="position: relative; z-index: 1;">
+                  <%# Header con emoji y nombre %>
+                  <div style="display: flex; align-items: center; gap: 10pt; margin-bottom: 10pt;">
+                    <div style="flex: 0 0 auto; width: 40pt; height: 40pt; border-radius: 50%; background: <%= config[:bg] %>; display: flex; align-items: center; justify-content: center; font-size: 24pt; border: 2pt solid <%= config[:color] %>;">
+                      <%= config[:emoji] %>
+                    </div>
+                    <div style="flex: 1; min-width: 0;">
+                      <div style="font-size: 12pt; font-weight: 800; color: <%= config[:color] %>; line-height: 1;">
+                        <%= sentiment_name %>
+                      </div>
+                      <div style="font-size: 7pt; color: #6b7280; margin-top: 2pt;">
+                        <%= config[:desc] %>
+                      </div>
+                    </div>
+                  </div>
+
+                  <%# Métricas %>
+                  <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                    <div>
+                      <div style="font-size: 24pt; font-weight: 900; color: <%= config[:color] %>; line-height: 1; font-feature-settings: 'tnum' 1;">
+                        <%= count %>
+                      </div>
+                      <div style="font-size: 7pt; color: #6b7280; text-transform: uppercase; font-weight: 600; margin-top: 3pt;">
+                        posts
+                      </div>
+                    </div>
+
+                    <div style="text-align: right;">
+                      <div style="font-size: 16pt; font-weight: 800; color: <%= config[:color] %>; line-height: 1;">
+                        <%= percentage %>%
+                      </div>
+                      <div style="font-size: 7pt; color: #6b7280; margin-top: 3pt;">
+                        del total
+                      </div>
+                    </div>
+                  </div>
+
+                  <%# Sentiment range badge %>
+                  <div style="margin-top: 8pt; display: inline-block; padding: 3pt 8pt; background: <%= config[:bg] %>; border-radius: 10pt;">
+                    <span style="font-size: 7pt; font-weight: 700; color: <%= config[:color] %>;">
+                      📊 Rango: <%= config[:range] %>
+                    </span>
+                  </div>
                 </div>
               </div>
-              <% if presenter.has_validity_data? %>
-                <div class="pdf-stats-card">
-                  <div class="pdf-stats-label">Confianza Estadística</div>
-                  <div class="pdf-stats-value">
-                    <%= (presenter.overall_confidence * 100).round %>%
-                  </div>
-                  <div class="pdf-stats-sublabel">
-                    <%= presenter.total_reactions %> reacciones analizadas
-                  </div>
-                </div>
-              <% end %>
-              <% if @controversial_posts.present? && @controversial_posts.any? %>
-                <div class="pdf-stats-card">
-                  <div class="pdf-stats-label">Posts Controvertidos</div>
-                  <div class="pdf-stats-value" style="color: #f59e0b">
-                    ⚠️ <%= @controversial_posts.size %>
-                  </div>
-                  <div class="pdf-stats-sublabel">
-                    Alta polarización detectada
-                  </div>
-                </div>
-              <% end %>
-            </div>
-            
-            <!-- Sentiment Charts -->
-            <% if presenter.has_time_series? %>
-              <h3>Evolución del Sentimiento</h3>
-              <%= render 'shared/pdf_charts_row',
-                    charts: [
-                      build_pdf_chart_config(
-                        title: "Score de Sentimiento (-2.0 a +2.0)",
-                        data: @sentiment_over_time,
-                        type: :line_chart,
-                        xtitle: "Fecha",
-                        ytitle: "Score",
-                        colors: ['#8b5cf6'],
-                        min: -2,
-                        max: 2
-                      )
-                    ] %>
-            <% end %>
-            
-            <!-- Sentiment Distribution -->
-            <% if @sentiment_distribution.present? %>
-              <h3>Distribución de Sentimientos</h3>
-              <%= render 'shared/pdf_charts_row',
-                    charts: [
-                      build_pdf_chart_config(
-                        title: "Posts por Tipo de Sentimiento",
-                        data: presenter.sentiment_distribution_data,
-                        type: :pie_chart,
-                        donut: true,
-                        colors: ['#10b981', '#22c55e', '#6b7280', '#f59e0b', '#ef4444']
-                      ),
-                      build_pdf_chart_config(
-                        title: "Desglose de Reacciones",
-                        data: presenter.reaction_breakdown_data,
-                        type: :column_chart,
-                        colors: ['#1877f2', '#f43f5e', '#f59e0b', '#a855f7', '#3b82f6', '#10b981', '#ec4899']
-                      )
-                    ] %>
-            <% end %>
-            
-            <!-- Summary Text -->
-            <div class="pdf-summary">
-              <p>
-                <strong>Resumen del Análisis de Sentimiento:</strong>
-                El sentimiento promedio es <%= presenter.average_sentiment > 0.5 ? 'positivo' : presenter.average_sentiment < -0.5 ? 'negativo' : 'neutral' %>. 
-                El análisis se basa en <strong><%= pdf_format_number(presenter.total_reactions) %></strong> reacciones 
-                con una confianza estadística del <strong><%= (presenter.overall_confidence * 100).round %>%</strong>.
-              </p>
-              <% if @sentiment_distribution.present? %>
-                <p class="mt-md">
-                  La distribución de posts muestra: 
-                  <strong style="color: #10b981"><%= presenter.positive_percentage %>%</strong> positivos,
-                  <strong style="color: #6b7280"><%= presenter.neutral_percentage %>%</strong> neutrales, y
-                  <strong style="color: #ef4444"><%= presenter.negative_percentage %>%</strong> negativos.
-                </p>
-              <% end %>
-            </div>
-            
-            <!-- Simplified Methodology Explanation -->
-            <div class="pdf-note" style="background: #eff6ff; border-left: 4pt solid #3b82f6; padding: 12pt 16pt; margin: 16pt 0; border-radius: 6pt;">
-              <h4 style="margin: 0 0 8pt 0; color: #1e40af; font-size: 11pt;">💡 ¿Cómo medimos el sentimiento en Facebook?</h4>
-              <p style="margin-bottom: 8pt; font-size: 9pt; line-height: 1.6;">
-                Analizamos automáticamente las <strong>reacciones</strong> que recibe cada post. 
-                Cada tipo de reacción tiene un peso emocional:
-              </p>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8pt; margin-bottom: 8pt;">
-                <div style="padding: 6pt; background: #d1fae5; border-radius: 4pt;">
-                  <strong style="color: #065f46;">👍 Like:</strong> <span style="font-size: 8pt;">+0.5 puntos</span>
-                </div>
-                <div style="padding: 6pt; background: #fce7f3; border-radius: 4pt;">
-                  <strong style="color: #9f1239;">❤️ Love:</strong> <span style="font-size: 8pt;">+2.0 puntos</span>
-                </div>
-                <div style="padding: 6pt; background: #fef3c7; border-radius: 4pt;">
-                  <strong style="color: #92400e;">😄 Haha:</strong> <span style="font-size: 8pt;">+1.5 puntos</span>
-                </div>
-                <div style="padding: 6pt; background: #e0e7ff; border-radius: 4pt;">
-                  <strong style="color: #3730a3;">😮 Wow:</strong> <span style="font-size: 8pt;">+1.0 punto</span>
-                </div>
-                <div style="padding: 6pt; background: #fed7aa; border-radius: 4pt;">
-                  <strong style="color: #9a3412;">😢 Sad:</strong> <span style="font-size: 8pt;">-1.5 puntos</span>
-                </div>
-                <div style="padding: 6pt; background: #fee2e2; border-radius: 4pt;">
-                  <strong style="color: #991b1b;">😠 Angry:</strong> <span style="font-size: 8pt;">-2.0 puntos</span>
-                </div>
-              </div>
-              <p style="margin: 0; font-size: 9pt; line-height: 1.5;">
-                <strong>Resultado:</strong> Un score entre <span style="color: #ef4444; font-weight: 600;">-2.0 (muy negativo)</span> y 
-                <span style="color: #10b981; font-weight: 600;">+2.0 (muy positivo)</span>. 
-                Un score cercano a <strong>0</strong> indica sentimiento neutral.
-              </p>
-            </div>
-            
-            <!-- Top Positive Posts -->
-            <% if @top_positive_posts.present? && @top_positive_posts.any? %>
-              <h3>Top 5 Posts Más Positivos</h3>
-              <% @top_positive_posts.take(5).each_with_index do |post, index| %>
-                <div class="pdf-post-item">
-                  <div class="pdf-post-header">
-                    <span class="pdf-post-rank">#<%= index + 1 %></span>
-                    <span class="pdf-post-page"><%= post.page&.name || 'Unknown' %></span>
-                    <span class="pdf-post-date"><%= post.posted_at&.strftime("%d/%m/%Y") %></span>
-                    <span class="pdf-post-interactions" style="color: #10b981">
-                      <%= pdf_sentiment_emoji(post.sentiment_score, system: :facebook) %>
-                      Score: <%= number_with_precision(post.sentiment_score, precision: 2) %>
-                    </span>
-                  </div>
-                  
-                  <% if post.message.present? %>
-                    <p class="pdf-post-message"><%= truncate(post.message, length: 200) %></p>
-                  <% end %>
-                  
-                  <div class="pdf-post-metrics">
-                    <span class="pdf-metric">❤️ <%= pdf_format_number(post.reactions_total_count) %></span>
-                    <span class="pdf-metric">💬 <%= pdf_format_number(post.comments_count) %></span>
-                    <span class="pdf-metric">🔗 <%= pdf_format_number(post.share_count) %></span>
-                    <% if post.views_count && post.views_count > 0 %>
-                      <span class="pdf-metric">👁️ <%= pdf_format_number(post.views_count) %></span>
-                    <% end %>
-                  </div>
-                </div>
-              <% end %>
-            <% end %>
-            
-            <!-- Top Negative Posts -->
-            <% if @top_negative_posts.present? && @top_negative_posts.any? %>
-              <h3>Top 5 Posts Más Negativos</h3>
-              <% @top_negative_posts.take(5).each_with_index do |post, index| %>
-                <div class="pdf-post-item">
-                  <div class="pdf-post-header">
-                    <span class="pdf-post-rank">#<%= index + 1 %></span>
-                    <span class="pdf-post-page"><%= post.page&.name || 'Unknown' %></span>
-                    <span class="pdf-post-date"><%= post.posted_at&.strftime("%d/%m/%Y") %></span>
-                    <span class="pdf-post-interactions" style="color: #ef4444">
-                      <%= pdf_sentiment_emoji(post.sentiment_score, system: :facebook) %>
-                      Score: <%= number_with_precision(post.sentiment_score, precision: 2) %>
-                    </span>
-                  </div>
-                  
-                  <% if post.message.present? %>
-                    <p class="pdf-post-message"><%= truncate(post.message, length: 200) %></p>
-                  <% end %>
-                  
-                  <div class="pdf-post-metrics">
-                    <span class="pdf-metric">❤️ <%= pdf_format_number(post.reactions_total_count) %></span>
-                    <span class="pdf-metric">💬 <%= pdf_format_number(post.comments_count) %></span>
-                    <span class="pdf-metric">🔗 <%= pdf_format_number(post.share_count) %></span>
-                    <% if post.views_count && post.views_count > 0 %>
-                      <span class="pdf-metric">👁️ <%= pdf_format_number(post.views_count) %></span>
-                    <% end %>
-                  </div>
-                </div>
-              <% end %>
-            <% end %>
-            
-            <!-- Controversial Posts -->
-            <% if @controversial_posts.present? && @controversial_posts.any? %>
-              <h3>Posts Más Controvertidos (Alta Polarización)</h3>
-              <% @controversial_posts.take(3).each_with_index do |post, index| %>
-                <div class="pdf-post-item" style="border-left: 3pt solid #f59e0b;">
-                  <div class="pdf-post-header">
-                    <span class="pdf-post-rank">⚠️ #<%= index + 1 %></span>
-                    <span class="pdf-post-page"><%= post.page&.name || 'Unknown' %></span>
-                    <span class="pdf-post-date"><%= post.posted_at&.strftime("%d/%m/%Y") %></span>
-                    <span class="pdf-post-interactions" style="color: #f59e0b">
-                      Controversia: <%= number_with_precision(post.controversy_index * 100, precision: 0) %>%
-                    </span>
-                  </div>
-                  
-                  <% if post.message.present? %>
-                    <p class="pdf-post-message"><%= truncate(post.message, length: 200) %></p>
-                  <% end %>
-                  
-                  <div class="pdf-post-metrics">
-                    <span class="pdf-metric">❤️ <%= pdf_format_number(post.reactions_total_count) %></span>
-                    <span class="pdf-metric">💬 <%= pdf_format_number(post.comments_count) %></span>
-                    <span class="pdf-metric">🔗 <%= pdf_format_number(post.share_count) %></span>
-                    <span class="pdf-metric" style="color: #f59e0b">
-                      🔥 <%= number_with_precision(post.emotional_intensity * 100, precision: 0) %>% emoción
-                    </span>
-                  </div>
-                </div>
-              <% end %>
-            <% end %>
-            
-            <!-- Metodología -->
-            <div class="pdf-summary" style="background: #eff6ff; border-left: 3pt solid #3b82f6; padding: 8pt; margin-top: 12pt;">
-              <p style="margin: 0; font-size: 9pt; color: #1e40af;">
-                <strong>Nota sobre el análisis de sentimiento:</strong>
-                El sentimiento en Facebook se calcula usando un algoritmo ponderado basado en las reacciones:
-                Love y Thankful (+2.0), Haha (+1.5), Like (+0.5), Wow (neutral), Sad (-1.5), Angry (-2.0).
-                La confianza estadística aumenta con el número de reacciones analizadas.
-              </p>
-            </div>
           <% end %>
         </div>
-      <% end %>
 
-      <!-- Pages Analysis Section -->
-      <% if @pages_count.present? && @pages_count.any? %>
-        <div class="pdf-section">
-          <h2>Análisis de Fanpages</h2>
-          
-          <%= render 'shared/pdf_charts_row',
-                charts: [
-                  build_pdf_chart_config(
-                    title: "Posts por Fanpage",
-                    data: @pages_count,
-                    type: :pie_chart,
-                    donut: true,
-                    colors: ['#1877f2', '#F97316', '#10B981', '#F59E0B', '#EC4899']
-                  ),
-                  build_pdf_chart_config(
-                    title: "Interacciones por Fanpage",
-                    data: @pages_interactions,
-                    type: :pie_chart,
-                    donut: true,
-                    colors: ['#0284c7', '#6366F1', '#22C55E', '#D97706', '#EF4444']
-                  )
-                ] %>
-          
-          <!-- Top Pages List -->
-          <h3>Fanpages Destacadas</h3>
-          <div class="pdf-media-list">
-            <% @pages_count.take(12).each do |page_name, count| %>
-              <div class="pdf-media-item">
-                <div class="pdf-media-name"><%= page_name %></div>
-                <div class="pdf-media-count">
-                  <%= count %> posts · 
-                  <%= pdf_format_number(@pages_interactions[page_name] || 0) %> interacciones
+        <%# Insight Bar - Más compacto %>
+        <div style="display: flex; align-items: center; gap: 10pt; padding: 12pt 16pt; background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); border-left: 4pt solid #10b981; border-radius: 8pt; margin-top: 16pt;">
+          <span style="font-size: 24pt; line-height: 1;">💡</span>
+          <p style="margin: 0; font-size: 9pt; font-weight: 600; line-height: 1.4; color: #064e3b;">
+            <%= presenter.positive_percentage %>% positivos,
+            <%= presenter.neutral_percentage %>% neutrales,
+            <%= presenter.negative_percentage %>% negativos.
+            Confianza: <%= (presenter.overall_confidence * 100).round %>%.
+          </p>
+        </div>
+
+        <%# Source note %>
+        <p style="margin: 12pt 0 0 0; font-size: 7pt; color: #9ca3af; text-align: center; font-style: italic;">
+          Análisis: <%= total_posts %> posts | Score: -2.0 a +2.0
+        </p>
+      <% end %>
+    <% end %>
+    <% end %>
+
+    <%# SLIDE 5: Desglose de Reacciones %>
+    <%= render 'shared/pdf_section_wrapper', section_id: 'section-5' do %>
+    <% if @sentiment_summary.present? && @reaction_breakdown.present? %>
+      <%
+        presenter = FacebookSentimentPresenter.new(
+          sentiment_summary: @sentiment_summary,
+          sentiment_distribution: @sentiment_distribution,
+          sentiment_over_time: @sentiment_over_time,
+          reaction_breakdown: @reaction_breakdown,
+          top_positive_posts: @top_positive_posts,
+          top_negative_posts: @top_negative_posts,
+          controversial_posts: @controversial_posts,
+          emotional_trends: @emotional_trends
+        )
+      %>
+      <% if presenter.reaction_breakdown_data.present? %>
+      <%= render 'shared/pdf_slide',
+                slide_number: 5,
+                title: "Desglose de Reacciones",
+                subtitle: "Tipos de Reacciones Recibidas",
+                report_type: :facebook,
+                topic_name: @topic.name do %>
+
+        <%#
+          Mapeo de emojis y colores por tipo de reacción
+          Emojis oficiales de Facebook
+          Soporta nombres en inglés y español
+          Basado en los pesos de sentimiento de FacebookEntry
+        %>
+        <%
+          reaction_config = {
+                # Inglés
+                'Like' => { emoji: '👍', color: '#3b82f6', bg: '#dbeafe', sentiment: '+0.5', desc: 'Me gusta básico' },
+                'Love' => { emoji: '❤️', color: '#f43f5e', bg: '#fecdd3', sentiment: '+2.0', desc: 'Amor / Encanta' },
+                'Haha' => { emoji: '😆', color: '#f59e0b', bg: '#fef3c7', sentiment: '+1.5', desc: 'Risa / Divertido' },
+                'Wow' => { emoji: '😮', color: '#a855f7', bg: '#f3e8ff', sentiment: '+1.0', desc: 'Sorpresa / Asombro' },
+                'Sad' => { emoji: '😢', color: '#0ea5e9', bg: '#e0f2fe', sentiment: '-1.5', desc: 'Tristeza / Empatía' },
+                'Angry' => { emoji: '😡', color: '#dc2626', bg: '#fee2e2', sentiment: '-2.0', desc: 'Enojo / Indignación' },
+                'Care' => { emoji: '🤗', color: '#10b981', bg: '#d1fae5', sentiment: '+2.0', desc: 'Cuidado / Apoyo' },
+                'Thankful' => { emoji: '🙏', color: '#ec4899', bg: '#fce7f3', sentiment: '+2.0', desc: 'Agradecimiento' },
+                # Español
+                'Me Gusta' => { emoji: '👍', color: '#3b82f6', bg: '#dbeafe', sentiment: '+0.5', desc: 'Me gusta básico' },
+                'Me Encanta' => { emoji: '❤️', color: '#f43f5e', bg: '#fecdd3', sentiment: '+2.0', desc: 'Amor / Encanta' },
+                'Me Divierte' => { emoji: '😆', color: '#f59e0b', bg: '#fef3c7', sentiment: '+1.5', desc: 'Risa / Divertido' },
+                'Me Asombra' => { emoji: '😮', color: '#a855f7', bg: '#f3e8ff', sentiment: '+1.0', desc: 'Sorpresa / Asombro' },
+                'Me Entristece' => { emoji: '😢', color: '#0ea5e9', bg: '#e0f2fe', sentiment: '-1.5', desc: 'Tristeza / Empatía' },
+                'Me Enoja' => { emoji: '😡', color: '#dc2626', bg: '#fee2e2', sentiment: '-2.0', desc: 'Enojo / Indignación' },
+                'Me Importa' => { emoji: '🤗', color: '#10b981', bg: '#d1fae5', sentiment: '+2.0', desc: 'Cuidado / Apoyo' }
+              }
+
+              # Ordenar reacciones por cantidad (mayor a menor)
+              sorted_reactions = presenter.reaction_breakdown_data.sort_by { |k, v| -v }
+              total_reactions = presenter.reaction_breakdown_data.values.sum
+            %>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16pt;">
+              <% sorted_reactions.take(6).each_with_index do |(reaction_name, count), index| %>
+              <% config = reaction_config[reaction_name] || { emoji: '👍', color: '#6b7280', bg: '#f3f4f6', sentiment: '0', desc: reaction_name } %>
+                <% percentage = total_reactions > 0 ? (count.to_f / total_reactions * 100).round(1) : 0 %>
+
+                <div class="reaction-card" style="background: white; border: 2pt solid #e5e7eb; border-radius: 10pt; padding: 14pt 16pt; box-shadow: 0 2pt 6pt rgba(0, 0, 0, 0.06); position: relative; overflow: hidden;">
+                  <%# Background bar (porcentaje visual) %>
+                  <div style="position: absolute; top: 0; left: 0; height: 100%; width: <%= percentage %>%; background: <%= config[:bg] %>; opacity: 0.5; z-index: 0;"></div>
+
+                  <%# Content %>
+                  <div style="position: relative; z-index: 1;">
+                    <%# Header con emoji y nombre %>
+                    <div style="display: flex; align-items: center; gap: 10pt; margin-bottom: 10pt;">
+                      <div style="flex: 0 0 auto; width: 40pt; height: 40pt; border-radius: 50%; background: <%= config[:bg] %>; display: flex; align-items: center; justify-content: center; font-size: 24pt; border: 2pt solid <%= config[:color] %>;">
+                        <%= config[:emoji] %>
+                      </div>
+                      <div style="flex: 1; min-width: 0;">
+                        <div style="font-size: 12pt; font-weight: 800; color: <%= config[:color] %>; line-height: 1;">
+                          <%= reaction_name %>
+                        </div>
+                        <div style="font-size: 7pt; color: #6b7280; margin-top: 2pt;">
+                          <%= config[:desc] %>
+                        </div>
+                      </div>
+                    </div>
+
+                    <%# Métricas %>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                      <div>
+                        <div style="font-size: 24pt; font-weight: 900; color: <%= config[:color] %>; line-height: 1; font-feature-settings: 'tnum' 1;">
+                          <%= pdf_format_number(count) %>
+                        </div>
+                        <div style="font-size: 7pt; color: #6b7280; text-transform: uppercase; font-weight: 600; margin-top: 3pt;">
+                          reacciones
+                        </div>
+                      </div>
+
+                      <div style="text-align: right;">
+                        <div style="font-size: 16pt; font-weight: 800; color: <%= config[:color] %>; line-height: 1;">
+                          <%= percentage %>%
+                        </div>
+                        <div style="font-size: 7pt; color: #6b7280; margin-top: 3pt;">
+                          del total
+                        </div>
+                      </div>
+                    </div>
+
+                    <%# Sentiment badge %>
+                    <div style="margin-top: 8pt; display: inline-block; padding: 3pt 8pt; background: <%= config[:sentiment].start_with?('-') ? '#fee2e2' : '#d1fae5' %>; border-radius: 10pt;">
+                      <span style="font-size: 7pt; font-weight: 700; color: <%= config[:sentiment].start_with?('-') ? '#dc2626' : '#10b981' %>;">
+                        <%= config[:sentiment].start_with?('-') ? '▼' : '▲' %> Peso: <%= config[:sentiment] %>
+                      </span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            <% end %>
-          </div>
-        </div>
-      <% end %>
-
-      <!-- Tags Analysis Section -->
-      <% if @tag_counts.present? && @tag_counts.any? %>
-        <div class="pdf-section">
-          <h2>Análisis de Etiquetas</h2>
-          <%= render 'shared/pdf_charts_row',
-                charts: [
-                  build_pdf_chart_config(
-                    title: "Posts por Etiqueta",
-                    data: @tag_counts.map { |tag| [tag.name, tag.count] }.to_h,
-                    type: :pie_chart,
-                    donut: true,
-                    colors: ['#1877f2', '#8B5CF6', '#EC4899', '#14B8A6', '#F59E0B']
-                  ),
-                  build_pdf_chart_config(
-                    title: "Interacciones por Etiqueta",
-                    data: @tag_interactions,
-                    type: :pie_chart,
-                    donut: true,
-                    colors: ['#0284c7', '#7C3AED', '#D97706', '#0EA5E9', '#EF4444']
-                  )
-                ] %>
-        </div>
-      <% end %>
-
-      <!-- Words Analysis Section -->
-      <% if @word_occurrences.present? && @word_occurrences.any? %>
-        <div class="pdf-section">
-          <h2>Análisis de Palabras</h2>
-          
-          <h3>Palabras Más Frecuentes en Posts</h3>
-          <div class="pdf-words">
-            <% @word_occurrences.take(50).each do |word, count| %>
-              <span class="pdf-word"><%= word %> (<%= count %>)</span>
-            <% end %>
-          </div>
-          
-          <% if @bigram_occurrences.present? && @bigram_occurrences.any? %>
-            <h3>Bigramas Más Frecuentes</h3>
-            <div class="pdf-words">
-              <% @bigram_occurrences.take(30).each do |bigram, count| %>
-                <span class="pdf-word"><%= bigram %> (<%= count %>)</span>
               <% end %>
             </div>
-          <% end %>
-        </div>
-      <% end %>
 
-      <!-- Top Posts Section -->
-      <% if @top_posts.present? && @top_posts.any? %>
-        <div class="pdf-section break-before">
-          <h2>Top Posts con Más Interacciones</h2>
-          <% @top_posts.take(10).each_with_index do |post, index| %>
-            <div class="pdf-post-item">
-              <div class="pdf-post-header">
-                <span class="pdf-post-rank">#<%= index + 1 %></span>
-                <span class="pdf-post-page"><%= post.page&.name || 'Unknown' %></span>
-                <span class="pdf-post-date"><%= post.posted_at&.strftime("%d/%m/%Y") %></span>
-                <span class="pdf-post-interactions">
-                  <%= pdf_format_number(post.total_interactions) %> interacciones
-                </span>
+            <%# Insight Bar - Más compacto %>
+            <div style="display: flex; align-items: center; gap: 10pt; padding: 12pt 16pt; background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-left: 4pt solid #3b82f6; border-radius: 8pt; margin-top: 16pt;">
+              <span style="font-size: 24pt; line-height: 1;">💡</span>
+              <p style="margin: 0; font-size: 9pt; font-weight: 600; line-height: 1.4; color: #1e40af;">
+                <%
+                  top_reaction_name = sorted_reactions.first[0]
+                  top_reaction_count = sorted_reactions.first[1]
+                  top_reaction_config = reaction_config[top_reaction_name]
+                %>
+                <strong><%= top_reaction_name %></strong> predomina con
+                <strong><%= pdf_format_number(top_reaction_count) %></strong>
+                (<strong><%= (top_reaction_count.to_f / total_reactions * 100).round(1) %>%</strong>),
+                generando principalmente
+                <strong><%= top_reaction_config ? top_reaction_config[:desc].downcase : 'engagement' %></strong>.
+              </p>
+            </div>
+
+        <%# Source note %>
+        <p style="margin: 12pt 0 0 0; font-size: 7pt; color: #9ca3af; text-align: center; font-style: italic;">
+          Fuente: Meta API | Total: <%= pdf_format_number(total_reactions) %> reacciones
+        </p>
+      <% end %>
+      <% end %>
+    <% end %>
+    <% end %>
+
+    <%# SLIDE 6: Top Posts Positivos %>
+    <%= render 'shared/pdf_section_wrapper', section_id: 'section-6' do %>
+    <% if @top_positive_posts.present? && @top_positive_posts.any? %>
+      <%= render 'shared/pdf_slide',
+                slide_number: 6,
+                title: "Posts Más Positivos",
+                subtitle: "Contenido con Mejor Recepción",
+                report_type: :facebook,
+                topic_name: @topic.name do %>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20pt;">
+          <% @top_positive_posts.take(8).each_with_index do |post, index| %>
+            <div class="post-card" style="background: white; border: 2pt solid #d1fae5; border-radius: 10pt; padding: 14pt 16pt; box-shadow: 0 2pt 6pt rgba(5, 150, 105, 0.06);">
+              <%# Header %>
+              <div style="display: flex; align-items: center; gap: 10pt; margin-bottom: 10pt;">
+                <span style="display: flex; align-items: center; justify-content: center; width: 28pt; height: 28pt; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border-radius: 50%; font-size: 12pt; font-weight: 900;">#<%= index + 1 %></span>
+                <div style="flex: 1; min-width: 0;">
+                  <div style="font-weight: 700; color: #1f2937; font-size: 9pt; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><%= post.page&.name || 'Unknown' %></div>
+                  <div style="font-size: 7pt; color: #9ca3af;"><%= post.posted_at&.strftime("%d/%m/%Y") %></div>
+                  <div style="font-size: 8pt; color: #10b981; font-weight: 700;"><%= pdf_sentiment_emoji(post.sentiment_score, system: :facebook) %> <%= number_with_precision(post.sentiment_score, precision: 2) %></div>
+                </div>
               </div>
-              
+
+              <%# Message %>
               <% if post.message.present? %>
-                <p class="pdf-post-message"><%= truncate(post.message, length: 300) %></p>
+                <p style="margin: 0 0 10pt 0; font-size: 8pt; line-height: 1.5; color: #4b5563; height: 48pt; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical;"><%= post.message %></p>
               <% end %>
-              
-              <div class="pdf-post-metrics">
-                <span class="pdf-metric">❤️ <strong><%= pdf_format_number(post.reactions_total_count) %></strong> Reacciones</span>
-                <span class="pdf-metric">💬 <strong><%= pdf_format_number(post.comments_count) %></strong> Comentarios</span>
-                <span class="pdf-metric">🔗 <strong><%= pdf_format_number(post.share_count) %></strong> Compartidos</span>
+
+              <%# Metrics Compact %>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6pt; font-size: 8pt;">
+                <div style="background: #f3f4f6; padding: 6pt; border-radius: 4pt; text-align: center;">
+                  <div style="color: #9ca3af;">❤️</div>
+                  <div style="font-weight: 700; color: #1f2937;"><%= pdf_format_number(post.reactions_total_count) %></div>
+                </div>
+                <div style="background: #f3f4f6; padding: 6pt; border-radius: 4pt; text-align: center;">
+                  <div style="color: #9ca3af;">💬</div>
+                  <div style="font-weight: 700; color: #1f2937;"><%= pdf_format_number(post.comments_count) %></div>
+                </div>
+                <div style="background: #f3f4f6; padding: 6pt; border-radius: 4pt; text-align: center;">
+                  <div style="color: #9ca3af;">🔗</div>
+                  <div style="font-weight: 700; color: #1f2937;"><%= pdf_format_number(post.share_count) %></div>
+                </div>
                 <% if post.views_count && post.views_count > 0 %>
-                  <span class="pdf-metric">👁️ <strong><%= pdf_format_number(post.views_count) %></strong> Vistas</span>
+                  <div style="background: #f3f4f6; padding: 6pt; border-radius: 4pt; text-align: center;">
+                    <div style="color: #9ca3af;">👁️</div>
+                    <div style="font-weight: 700; color: #1f2937;"><%= pdf_format_number(post.views_count) %></div>
+                  </div>
                 <% end %>
               </div>
-              
-              <% if post.sentiment_score %>
-                <div class="pdf-post-metrics" style="border-top: 1pt solid #e5e7eb; margin-top: 8pt; padding-top: 8pt;">
-                  <span class="pdf-metric">
-                    Sentimiento: 
-                    <strong style="color: <%= post.sentiment_score > 0 ? '#10b981' : post.sentiment_score < 0 ? '#ef4444' : '#6b7280' %>">
-                      <%= pdf_sentiment_emoji(post.sentiment_score, system: :facebook) %>
-                      <%= number_with_precision(post.sentiment_score, precision: 1) %>
-                    </strong>
-                  </span>
-                </div>
-              <% end %>
             </div>
           <% end %>
         </div>
       <% end %>
+    <% end %>
+    <% end %>
 
-      <!-- Footer -->
-      <div class="pdf-report-footer">
-        <span>Generado por Morfeo Analytics</span>
-        <span><%= Time.current.strftime("%d/%m/%Y %H:%M") %></span>
-        <span>Confidencial</span>
-      </div>
-    </div>
+    <%# SLIDE 7: Top Posts Negativos %>
+    <%= render 'shared/pdf_section_wrapper', section_id: 'section-7' do %>
+    <% if @top_negative_posts.present? && @top_negative_posts.any? %>
+      <%= render 'shared/pdf_slide',
+                slide_number: 7,
+                title: "Posts Más Negativos",
+                subtitle: "Contenido que Requiere Atención",
+                report_type: :facebook,
+                topic_name: @topic.name do %>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20pt;">
+          <% @top_negative_posts.take(8).each_with_index do |post, index| %>
+            <div class="post-card" style="background: white; border: 2pt solid #fee2e2; border-radius: 10pt; padding: 14pt 16pt; box-shadow: 0 2pt 6pt rgba(220, 38, 38, 0.06);">
+              <%# Header %>
+              <div style="display: flex; align-items: center; gap: 10pt; margin-bottom: 10pt;">
+                <span style="display: flex; align-items: center; justify-content: center; width: 28pt; height: 28pt; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border-radius: 50%; font-size: 12pt; font-weight: 900;">#<%= index + 1 %></span>
+                <div style="flex: 1; min-width: 0;">
+                  <div style="font-weight: 700; color: #1f2937; font-size: 9pt; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><%= post.page&.name || 'Unknown' %></div>
+                  <div style="font-size: 7pt; color: #9ca3af;"><%= post.posted_at&.strftime("%d/%m/%Y") %></div>
+                  <div style="font-size: 8pt; color: #ef4444; font-weight: 700;"><%= pdf_sentiment_emoji(post.sentiment_score, system: :facebook) %> <%= number_with_precision(post.sentiment_score, precision: 2) %></div>
+                </div>
+              </div>
+
+              <%# Message %>
+              <% if post.message.present? %>
+                <p style="margin: 0 0 10pt 0; font-size: 8pt; line-height: 1.5; color: #4b5563; height: 48pt; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical;"><%= post.message %></p>
+              <% end %>
+
+              <%# Metrics Compact %>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6pt; font-size: 8pt;">
+                <div style="background: #f3f4f6; padding: 6pt; border-radius: 4pt; text-align: center;">
+                  <div style="color: #9ca3af;">❤️</div>
+                  <div style="font-weight: 700; color: #1f2937;"><%= pdf_format_number(post.reactions_total_count) %></div>
+                </div>
+                <div style="background: #f3f4f6; padding: 6pt; border-radius: 4pt; text-align: center;">
+                  <div style="color: #9ca3af;">💬</div>
+                  <div style="font-weight: 700; color: #1f2937;"><%= pdf_format_number(post.comments_count) %></div>
+                </div>
+                <div style="background: #f3f4f6; padding: 6pt; border-radius: 4pt; text-align: center;">
+                  <div style="color: #9ca3af;">🔗</div>
+                  <div style="font-weight: 700; color: #1f2937;"><%= pdf_format_number(post.share_count) %></div>
+                </div>
+                <% if post.views_count && post.views_count > 0 %>
+                  <div style="background: #f3f4f6; padding: 6pt; border-radius: 4pt; text-align: center;">
+                    <div style="color: #9ca3af;">👁️</div>
+                    <div style="font-weight: 700; color: #1f2937;"><%= pdf_format_number(post.views_count) %></div>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    <% end %>
+    <% end %>
+    <%# SLIDE 8: Análisis por Fanpage %>
+    <%= render 'shared/pdf_section_wrapper', section_id: 'section-8', force_new_page: true do %>
+    <% if @pages_count.present? && @pages_count.any? %>
+      <%= render 'shared/pdf_slide',
+            slide_number: 8,
+            title: "Análisis por Fanpage",
+            subtitle: "Distribución de Posts e Interacciones",
+            report_type: :facebook,
+            topic_name: @topic.name do %>
+
+        <%# Lista de Fanpages con Rankings %>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32pt;">
+
+          <%# Columna 1: Top Fanpages por Posts %>
+          <div>
+            <h3 style="margin: 0 0 20pt 0; font-size: 14pt; font-weight: 700; color: #1f2937; padding-left: 12pt; border-left: 4pt solid #1877f2;">
+              📝 Top Fanpages por Posts
+            </h3>
+
+            <div style="display: flex; flex-direction: column; gap: 12pt;">
+              <% @pages_count.take(10).each_with_index do |(page_name, count), index| %>
+                <%
+                  # Buscar la página para obtener el avatar
+                  page = Page.find_by(name: page_name)
+                %>
+                <div class="fanpage-item" style="display: flex; align-items: center; gap: 12pt; padding: 12pt 16pt; background: white; border: 1.5pt solid #e5e7eb; border-radius: 10pt; box-shadow: 0 1pt 4pt rgba(0, 0, 0, 0.06);">
+                  <%# Ranking Badge %>
+                  <div style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 28pt; height: 28pt; background: linear-gradient(135deg, #1877f2 0%, #0c63d4 100%); color: white; border-radius: 50%; font-size: 12pt; font-weight: 900; box-shadow: 0 2pt 4pt rgba(24, 119, 242, 0.3);">
+                    <%= index + 1 %>
+                  </div>
+
+                  <%# Avatar %>
+                  <% if page&.picture.present? %>
+                    <img src="<%= page.picture %>"
+                         style="flex: 0 0 auto; width: 40pt; height: 40pt; border-radius: 50%; object-fit: cover; border: 2pt solid #e5e7eb;"
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div style="display: none; flex: 0 0 auto; width: 40pt; height: 40pt; border-radius: 50%; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); align-items: center; justify-content: center; font-size: 18pt; border: 2pt solid #93c5fd;">
+                      👤
+                    </div>
+                  <% else %>
+                    <div style="flex: 0 0 auto; width: 40pt; height: 40pt; border-radius: 50%; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); display: flex; align-items: center; justify-content: center; font-size: 18pt; border: 2pt solid #93c5fd;">
+                      👤
+                    </div>
+                  <% end %>
+
+                  <%# Info %>
+                  <div style="flex: 1; min-width: 0;">
+                    <div style="font-weight: 700; font-size: 10pt; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                      <%= page_name %>
+                    </div>
+                    <div style="font-size: 8pt; color: #6b7280; margin-top: 2pt;">
+                      Fanpage oficial
+                    </div>
+                  </div>
+
+                  <%# Métrica %>
+                  <div style="flex: 0 0 auto; text-align: right; padding: 8pt 12pt; background: #eff6ff; border-radius: 6pt;">
+                    <div style="font-size: 16pt; font-weight: 900; color: #1877f2; line-height: 1;">
+                      <%= count %>
+                    </div>
+                    <div style="font-size: 7pt; color: #3b82f6; text-transform: uppercase; font-weight: 600; margin-top: 2pt;">
+                      posts
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+
+          <%# Columna 2: Top Fanpages por Interacciones %>
+          <div>
+            <h3 style="margin: 0 0 20pt 0; font-size: 14pt; font-weight: 700; color: #1f2937; padding-left: 12pt; border-left: 4pt solid #10b981;">
+              👍 Top Fanpages por Interacciones
+            </h3>
+
+            <div style="display: flex; flex-direction: column; gap: 12pt;">
+              <% @pages_interactions.sort_by { |k, v| -v }.take(10).each_with_index do |(page_name, interactions), index| %>
+                <%
+                  # Buscar la página para obtener el avatar
+                  page = Page.find_by(name: page_name)
+                %>
+                <div class="fanpage-item" style="display: flex; align-items: center; gap: 12pt; padding: 12pt 16pt; background: white; border: 1.5pt solid #e5e7eb; border-radius: 10pt; box-shadow: 0 1pt 4pt rgba(0, 0, 0, 0.06);">
+                  <%# Ranking Badge %>
+                  <div style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 28pt; height: 28pt; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border-radius: 50%; font-size: 12pt; font-weight: 900; box-shadow: 0 2pt 4pt rgba(16, 185, 129, 0.3);">
+                    <%= index + 1 %>
+                  </div>
+
+                  <%# Avatar %>
+                  <% if page&.picture.present? %>
+                    <img src="<%= page.picture %>"
+                         style="flex: 0 0 auto; width: 40pt; height: 40pt; border-radius: 50%; object-fit: cover; border: 2pt solid #e5e7eb;"
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div style="display: none; flex: 0 0 auto; width: 40pt; height: 40pt; border-radius: 50%; background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); align-items: center; justify-content: center; font-size: 18pt; border: 2pt solid #6ee7b7;">
+                      👤
+                    </div>
+                  <% else %>
+                    <div style="flex: 0 0 auto; width: 40pt; height: 40pt; border-radius: 50%; background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); display: flex; align-items: center; justify-content: center; font-size: 18pt; border: 2pt solid #6ee7b7;">
+                      👤
+                    </div>
+                  <% end %>
+
+                  <%# Info %>
+                  <div style="flex: 1; min-width: 0;">
+                    <div style="font-weight: 700; font-size: 10pt; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                      <%= page_name %>
+                    </div>
+                    <div style="font-size: 8pt; color: #6b7280; margin-top: 2pt;">
+                      <%= @pages_count[page_name] || 0 %> posts
+                    </div>
+                  </div>
+
+                  <%# Métrica %>
+                  <div style="flex: 0 0 auto; text-align: right; padding: 8pt 12pt; background: #d1fae5; border-radius: 6pt;">
+                    <div style="font-size: 16pt; font-weight: 900; color: #10b981; line-height: 1;">
+                      <%= pdf_format_number(interactions) %>
+                    </div>
+                    <div style="font-size: 7pt; color: #059669; text-transform: uppercase; font-weight: 600; margin-top: 2pt;">
+                      interac.
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+
+        </div>
+      <% end %>
+    <% end %>
+    <% end %>
+
+    <%# SLIDE 9: Análisis por Etiquetas %>
+    <%= render 'shared/pdf_section_wrapper', section_id: 'section-9', force_new_page: true do %>
+    <% if @tag_counts.present? && @tag_counts.any? %>
+      <%= render 'shared/pdf_slide',
+            slide_number: 9,
+            title: "Análisis por Etiquetas",
+            subtitle: "Distribución de Contenido por Tags",
+            report_type: :facebook,
+            topic_name: @topic.name do %>
+
+        <%# Lista de Etiquetas con Rankings %>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32pt;">
+
+          <%# Columna 1: Top Etiquetas por Posts %>
+          <div>
+            <h3 style="margin: 0 0 20pt 0; font-size: 14pt; font-weight: 700; color: #1f2937; padding-left: 12pt; border-left: 4pt solid #8b5cf6;">
+              🏷️ Top Etiquetas por Posts
+            </h3>
+
+            <div style="display: flex; flex-direction: column; gap: 12pt;">
+              <% @tag_counts.take(10).each_with_index do |tag, index| %>
+                <div class="tag-item" style="display: flex; align-items: center; gap: 12pt; padding: 12pt 16pt; background: white; border: 1.5pt solid #e5e7eb; border-radius: 10pt; box-shadow: 0 1pt 4pt rgba(0, 0, 0, 0.06);">
+                  <%# Ranking Badge %>
+                  <div style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 28pt; height: 28pt; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; border-radius: 50%; font-size: 12pt; font-weight: 900; box-shadow: 0 2pt 4pt rgba(139, 92, 246, 0.3);">
+                    <%= index + 1 %>
+                  </div>
+
+                  <%# Tag Icon %>
+                  <div style="flex: 0 0 auto; width: 40pt; height: 40pt; border-radius: 50%; background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%); display: flex; align-items: center; justify-content: center; font-size: 18pt; border: 2pt solid #c4b5fd;">
+                    🏷️
+                  </div>
+
+                  <%# Info %>
+                  <div style="flex: 1; min-width: 0;">
+                    <div style="font-weight: 700; font-size: 10pt; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                      <%= tag.name %>
+                    </div>
+                    <div style="font-size: 8pt; color: #6b7280; margin-top: 2pt;">
+                      Etiqueta de contenido
+                    </div>
+                  </div>
+
+                  <%# Métrica %>
+                  <div style="flex: 0 0 auto; text-align: right; padding: 8pt 12pt; background: #f5f3ff; border-radius: 6pt;">
+                    <div style="font-size: 16pt; font-weight: 900; color: #8b5cf6; line-height: 1;">
+                      <%= tag.count %>
+                    </div>
+                    <div style="font-size: 7pt; color: #7c3aed; text-transform: uppercase; font-weight: 600; margin-top: 2pt;">
+                      posts
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+
+          <%# Columna 2: Top Etiquetas por Interacciones %>
+          <div>
+            <h3 style="margin: 0 0 20pt 0; font-size: 14pt; font-weight: 700; color: #1f2937; padding-left: 12pt; border-left: 4pt solid #10b981;">
+              👍 Top Etiquetas por Interacciones
+            </h3>
+
+            <div style="display: flex; flex-direction: column; gap: 12pt;">
+              <% @tag_interactions.sort_by { |k, v| -v }.take(10).each_with_index do |(tag_name, interactions), index| %>
+                <%
+                  # Buscar el objeto tag para obtener el count
+                  tag_obj = @tag_counts.find { |t| t.name == tag_name }
+                %>
+                <div class="tag-item" style="display: flex; align-items: center; gap: 12pt; padding: 12pt 16pt; background: white; border: 1.5pt solid #e5e7eb; border-radius: 10pt; box-shadow: 0 1pt 4pt rgba(0, 0, 0, 0.06);">
+                  <%# Ranking Badge %>
+                  <div style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 28pt; height: 28pt; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border-radius: 50%; font-size: 12pt; font-weight: 900; box-shadow: 0 2pt 4pt rgba(16, 185, 129, 0.3);">
+                    <%= index + 1 %>
+                  </div>
+
+                  <%# Tag Icon %>
+                  <div style="flex: 0 0 auto; width: 40pt; height: 40pt; border-radius: 50%; background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); display: flex; align-items: center; justify-content: center; font-size: 18pt; border: 2pt solid #6ee7b7;">
+                    🏷️
+                  </div>
+
+                  <%# Info %>
+                  <div style="flex: 1; min-width: 0;">
+                    <div style="font-weight: 700; font-size: 10pt; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                      <%= tag_name %>
+                    </div>
+                    <div style="font-size: 8pt; color: #6b7280; margin-top: 2pt;">
+                      <%= tag_obj&.count || 0 %> posts
+                    </div>
+                  </div>
+
+                  <%# Métrica %>
+                  <div style="flex: 0 0 auto; text-align: right; padding: 8pt 12pt; background: #d1fae5; border-radius: 6pt;">
+                    <div style="font-size: 16pt; font-weight: 900; color: #10b981; line-height: 1;">
+                      <%= pdf_format_number(interactions) %>
+                    </div>
+                    <div style="font-size: 7pt; color: #059669; text-transform: uppercase; font-weight: 600; margin-top: 2pt;">
+                      interac.
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+
+        </div>
+      <% end %>
+    <% end %>
+    <% end %>
+
+    <%# SLIDE 10: Top Posts Generales %>
+    <%= render 'shared/pdf_section_wrapper', section_id: 'section-10', force_new_page: true do %>
+    <% if @top_posts.present? && @top_posts.any? %>
+      <%= render 'shared/pdf_slide',
+            slide_number: 10,
+            title: "Posts con Más Interacciones",
+            subtitle: "Contenido de Mayor Impacto",
+            report_type: :facebook,
+            topic_name: @topic.name do %>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20pt;">
+          <% @top_posts.take(8).each_with_index do |post, index| %>
+            <div class="post-card" style="background: white; border: 2pt solid #e5e7eb; border-radius: 10pt; padding: 14pt 16pt; box-shadow: 0 2pt 6pt rgba(0, 0, 0, 0.06);">
+              <%# Header %>
+              <div style="display: flex; align-items: center; gap: 10pt; margin-bottom: 10pt;">
+                <span style="display: flex; align-items: center; justify-content: center; width: 28pt; height: 28pt; background: linear-gradient(135deg, #1877f2 0%, #0c63d4 100%); color: white; border-radius: 50%; font-size: 12pt; font-weight: 900;">#<%= index + 1 %></span>
+                <div style="flex: 1; min-width: 0;">
+                  <div style="font-weight: 700; color: #1f2937; font-size: 9pt; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><%= post.page&.name || 'Unknown' %></div>
+                  <div style="font-size: 7pt; color: #9ca3af;"><%= post.posted_at&.strftime("%d/%m/%Y") %></div>
+                </div>
+              </div>
+
+              <%# Message %>
+              <% if post.message.present? %>
+                <p style="margin: 0 0 10pt 0; font-size: 8pt; line-height: 1.5; color: #4b5563; height: 48pt; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical;"><%= post.message %></p>
+              <% end %>
+
+              <%# Metrics Compact %>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6pt; font-size: 8pt;">
+                <div style="background: #f3f4f6; padding: 6pt; border-radius: 4pt; text-align: center;">
+                  <div style="color: #9ca3af;">❤️</div>
+                  <div style="font-weight: 700; color: #1f2937;"><%= pdf_format_number(post.reactions_total_count) %></div>
+                </div>
+                <div style="background: #f3f4f6; padding: 6pt; border-radius: 4pt; text-align: center;">
+                  <div style="color: #9ca3af;">💬</div>
+                  <div style="font-weight: 700; color: #1f2937;"><%= pdf_format_number(post.comments_count) %></div>
+                </div>
+                <div style="background: #f3f4f6; padding: 6pt; border-radius: 4pt; text-align: center;">
+                  <div style="color: #9ca3af;">🔗</div>
+                  <div style="font-weight: 700; color: #1f2937;"><%= pdf_format_number(post.share_count) %></div>
+                </div>
+                <% if post.views_count && post.views_count > 0 %>
+                  <div style="background: #f3f4f6; padding: 6pt; border-radius: 4pt; text-align: center;">
+                    <div style="color: #9ca3af;">👁️</div>
+                    <div style="font-weight: 700; color: #1f2937;"><%= pdf_format_number(post.views_count) %></div>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    <% end %>
+    <% end %>
+
   </body>
 </html>

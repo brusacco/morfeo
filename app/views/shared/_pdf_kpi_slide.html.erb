@@ -1,0 +1,150 @@
+<%
+  # PDF KPI Slide - PowerPoint-style metrics display
+  # Large, impactful KPI cards designed for executive presentations
+  
+  kpis = local_assigns.fetch(:kpis, [])
+  default_columns = kpis.length > 0 ? [kpis.length, 4].min : 4
+  columns = local_assigns.fetch(:columns, default_columns)
+  size = local_assigns.fetch(:size, 'large') # 'large', 'medium', 'small'
+%>
+
+<div class="pdf-kpi-slide-grid" style="grid-template-columns: repeat(<%= columns %>, 1fr);">
+  <% kpis.each do |kpi| %>
+    <div class="pdf-kpi-slide-card <%= "pdf-kpi-#{size}" %>">
+      <!-- Icon -->
+      <% if kpi[:icon].present? %>
+        <div class="pdf-kpi-slide-icon"><%= kpi[:icon] %></div>
+      <% end %>
+      
+      <!-- Value (Big Number) -->
+      <div class="pdf-kpi-slide-value">
+        <%= kpi[:value] %>
+      </div>
+      
+      <!-- Label -->
+      <div class="pdf-kpi-slide-label">
+        <%= kpi[:label] %>
+      </div>
+      
+      <!-- Trend (Optional) -->
+      <% if kpi[:trend].present? %>
+        <div class="pdf-kpi-slide-trend <%= kpi[:trend_positive] ? 'trend-positive' : 'trend-negative' %>">
+          <%= kpi[:trend_positive] ? '▲' : '▼' %>
+          <%= kpi[:trend] %>
+        </div>
+      <% end %>
+      
+      <!-- Sublabel (Optional) -->
+      <% if kpi[:sublabel].present? %>
+        <div class="pdf-kpi-slide-sublabel">
+          <%= kpi[:sublabel] %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</div>
+
+<style>
+  /* ===== POWERPOINT-STYLE KPI CARDS ===== */
+  
+  .pdf-kpi-slide-grid {
+    display: grid;
+    gap: 24pt;
+    margin: 0;
+  }
+  
+  .pdf-kpi-slide-card {
+    background: white;
+    border: 2pt solid <%= PdfColors::BORDER_DEFAULT %>;
+    border-radius: 16pt;
+    padding: 32pt 24pt;
+    text-align: center;
+    box-shadow: 0 8pt 24pt rgba(15, 23, 42, 0.08);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .pdf-kpi-slide-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4pt;
+    background: linear-gradient(90deg, 
+      <%= PdfColors::CHART_PALETTE[0] %> 0%, 
+      <%= PdfColors::CHART_PALETTE[1] %> 100%);
+  }
+  
+  .pdf-kpi-slide-icon {
+    font-size: 48pt;
+    line-height: 1;
+    margin-bottom: 16pt;
+    opacity: 0.9;
+  }
+  
+  .pdf-kpi-slide-value {
+    font-size: 48pt;
+    font-weight: 900;
+    line-height: 1;
+    color: <%= PdfColors::TEXT_PRIMARY %>;
+    letter-spacing: -2pt;
+    margin: 12pt 0;
+    font-feature-settings: 'tnum' 1;
+    font-variant-numeric: tabular-nums;
+  }
+  
+  .pdf-kpi-slide-label {
+    font-size: 12pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1pt;
+    color: <%= PdfColors::TEXT_SECONDARY %>;
+    margin: 12pt 0 0 0;
+  }
+  
+  .pdf-kpi-slide-trend {
+    display: inline-block;
+    margin-top: 12pt;
+    padding: 6pt 12pt;
+    border-radius: 20pt;
+    font-size: 11pt;
+    font-weight: 700;
+  }
+  
+  .pdf-kpi-slide-trend.trend-positive {
+    background: #d1fae5;
+    color: #047857;
+  }
+  
+  .pdf-kpi-slide-trend.trend-negative {
+    background: #fee2e2;
+    color: #dc2626;
+  }
+  
+  .pdf-kpi-slide-sublabel {
+    font-size: 9pt;
+    color: <%= PdfColors::TEXT_TERTIARY %>;
+    margin-top: 8pt;
+    font-style: italic;
+  }
+  
+  /* Size Variations */
+  .pdf-kpi-medium .pdf-kpi-slide-value {
+    font-size: 36pt;
+  }
+  
+  .pdf-kpi-medium .pdf-kpi-slide-icon {
+    font-size: 36pt;
+  }
+  
+  .pdf-kpi-small .pdf-kpi-slide-value {
+    font-size: 28pt;
+  }
+  
+  .pdf-kpi-small .pdf-kpi-slide-icon {
+    font-size: 28pt;
+  }
+</style>
+

@@ -1,0 +1,202 @@
+<%
+  # PDF Slide Layout - PowerPoint-style professional slide
+  # Each section becomes a self-contained, visually striking slide
+  
+  slide_number = local_assigns.fetch(:slide_number, 1)
+  title = local_assigns.fetch(:title, "Slide Title")
+  subtitle = local_assigns.fetch(:subtitle, nil)
+  report_type = local_assigns.fetch(:report_type, :digital)
+  topic_name = local_assigns.fetch(:topic_name, nil)
+  show_footer = local_assigns.fetch(:show_footer, true)
+  background_style = local_assigns.fetch(:background_style, 'default') # 'default', 'gradient', 'minimal'
+  
+  # Calculate background style inline
+  bg_style = case background_style
+  when 'gradient'
+    color = PdfColors.primary_color(report_type)
+    "background: linear-gradient(135deg, #{color}08 0%, #ffffff 50%);"
+  when 'minimal'
+    "background: #ffffff;"
+  else
+    "background: #fafbfc;"
+  end
+%>
+
+<div class="pdf-slide" data-slide="<%= slide_number %>" style="<%= bg_style %>">
+  <!-- Slide Header -->
+  <div class="pdf-slide-header">
+    <div class="pdf-slide-number-badge" style="background: <%= PdfColors.primary_color(report_type) %>">
+      <%= slide_number %>
+    </div>
+    <div class="pdf-slide-title-block">
+      <h2 class="pdf-slide-title"><%= title %></h2>
+      <% if subtitle.present? %>
+        <p class="pdf-slide-subtitle"><%= subtitle %></p>
+      <% end %>
+    </div>
+  </div>
+  
+  <!-- Slide Content Area -->
+  <div class="pdf-slide-content">
+    <%= yield if block_given? %>
+  </div>
+  
+  <!-- Slide Footer -->
+  <% if show_footer %>
+    <div class="pdf-slide-footer">
+      <div class="pdf-slide-footer-left">
+        <span class="pdf-slide-logo">
+          <span class="pdf-slide-logo-icon" style="background: <%= PdfColors.primary_color(report_type) %>">M</span>
+          <span class="pdf-slide-logo-text">Morfeo Analytics</span>
+        </span>
+      </div>
+      <div class="pdf-slide-footer-center">
+        <% if topic_name.present? %>
+          <%= truncate(topic_name, length: 50) %>
+        <% end %>
+      </div>
+      <div class="pdf-slide-footer-right">
+        <span class="pdf-slide-page"><%= slide_number %></span>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<style>
+  /* ===== POWERPOINT-STYLE SLIDE SYSTEM ===== */
+  
+  .pdf-slide {
+    width: 100%;
+    min-height: 100vh;
+    padding: 40pt 50pt;
+    display: flex;
+    flex-direction: column;
+    page-break-after: always;
+    page-break-inside: avoid;
+    position: relative;
+    box-sizing: border-box;
+  }
+  
+  /* Slide Header (Like PowerPoint Title Slide) */
+  .pdf-slide-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 20pt;
+    margin-bottom: 32pt;
+    padding-bottom: 20pt;
+    border-bottom: 2pt solid <%= PdfColors::BORDER_DEFAULT %>;
+  }
+  
+  .pdf-slide-number-badge {
+    flex: 0 0 auto;
+    width: 48pt;
+    height: 48pt;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12pt;
+    font-size: 24pt;
+    font-weight: 900;
+    color: white;
+    box-shadow: 0 4pt 12pt rgba(0, 0, 0, 0.15);
+  }
+  
+  .pdf-slide-title-block {
+    flex: 1 1 auto;
+  }
+  
+  .pdf-slide-title {
+    margin: 0;
+    font-size: 28pt;
+    font-weight: 800;
+    line-height: 1.2;
+    color: <%= PdfColors::TEXT_PRIMARY %>;
+    letter-spacing: -0.5pt;
+  }
+  
+  .pdf-slide-subtitle {
+    margin: 8pt 0 0 0;
+    font-size: 14pt;
+    font-weight: 500;
+    color: <%= PdfColors::TEXT_SECONDARY %>;
+    line-height: 1.4;
+  }
+  
+  /* Slide Content (Flexible Container) */
+  .pdf-slide-content {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 24pt;
+  }
+  
+  /* Slide Footer (Corporate Branding) */
+  .pdf-slide-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+    padding-top: 20pt;
+    border-top: 1pt solid <%= PdfColors::BORDER_DEFAULT %>;
+    font-size: 9pt;
+    color: <%= PdfColors::TEXT_TERTIARY %>;
+  }
+  
+  .pdf-slide-footer-left {
+    flex: 0 0 auto;
+  }
+  
+  .pdf-slide-logo {
+    display: flex;
+    align-items: center;
+    gap: 8pt;
+  }
+  
+  .pdf-slide-logo-icon {
+    width: 20pt;
+    height: 20pt;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 12pt;
+    font-weight: 900;
+  }
+  
+  .pdf-slide-logo-text {
+    font-weight: 700;
+    color: <%= PdfColors::TEXT_SECONDARY %>;
+    font-size: 10pt;
+  }
+  
+  .pdf-slide-footer-center {
+    flex: 1 1 auto;
+    text-align: center;
+    font-weight: 500;
+    color: <%= PdfColors::TEXT_SECONDARY %>;
+  }
+  
+  .pdf-slide-footer-right {
+    flex: 0 0 auto;
+  }
+  
+  .pdf-slide-page {
+    font-weight: 700;
+    color: <%= PdfColors::TEXT_SECONDARY %>;
+    font-size: 10pt;
+    padding: 4pt 12pt;
+    background: <%= PdfColors::BG_TERTIARY %>;
+    border-radius: 6pt;
+  }
+  
+  /* Background Styles */
+  .pdf-slide[data-background="gradient"] {
+    background: linear-gradient(135deg, rgba(30, 64, 175, 0.03) 0%, rgba(255, 255, 255, 1) 50%);
+  }
+  
+  .pdf-slide[data-background="minimal"] {
+    background: <%= PdfColors::BG_PRIMARY %>;
+  }
+</style>
+

@@ -1,0 +1,186 @@
+<%
+  # PDF Chart Slide - PowerPoint-style chart presentation
+  # Clean, impactful chart display with minimal distractions
+  
+  title = local_assigns.fetch(:title, "")
+  chart_type = local_assigns.fetch(:chart_type, :column_chart)
+  chart_data = local_assigns.fetch(:chart_data, {})
+  chart_options = local_assigns.fetch(:chart_options, {})
+  insight = local_assigns.fetch(:insight, nil)
+  layout = local_assigns.fetch(:layout, 'full') # 'full', 'split', 'compact'
+  source = local_assigns.fetch(:source, nil)
+%>
+
+<div class="pdf-chart-slide-container layout-<%= layout %>">
+  <% if layout == 'split' %>
+    <!-- Split Layout: Chart + Insight Side by Side -->
+    <div class="pdf-chart-slide-split">
+      <div class="pdf-chart-slide-visual">
+        <div class="pdf-chart-slide-canvas">
+          <%# Render chart based on type %>
+          <% case chart_type %>
+          <% when :column_chart %>
+            <%= column_chart chart_data, **chart_options %>
+          <% when :line_chart %>
+            <%= line_chart chart_data, **chart_options %>
+          <% when :area_chart %>
+            <%= area_chart chart_data, **chart_options %>
+          <% when :pie_chart %>
+            <%= pie_chart chart_data, **chart_options %>
+          <% when :bar_chart %>
+            <%= bar_chart chart_data, **chart_options %>
+          <% else %>
+            <%= column_chart chart_data, **chart_options %>
+          <% end %>
+        </div>
+      </div>
+      <div class="pdf-chart-slide-insight-panel">
+        <div class="pdf-insight-icon">💡</div>
+        <h4 class="pdf-insight-title">Insight Clave</h4>
+        <p class="pdf-insight-text"><%= insight %></p>
+        <% if source %>
+          <p class="pdf-insight-source">Fuente: <%= source %></p>
+        <% end %>
+      </div>
+    </div>
+  <% else %>
+    <!-- Full Layout: Chart Takes Full Width -->
+    <div class="pdf-chart-slide-full">
+      <div class="pdf-chart-slide-canvas">
+        <%# Render chart based on type %>
+        <% case chart_type %>
+        <% when :column_chart %>
+          <%= column_chart chart_data, **chart_options %>
+        <% when :line_chart %>
+          <%= line_chart chart_data, **chart_options %>
+        <% when :area_chart %>
+          <%= area_chart chart_data, **chart_options %>
+        <% when :pie_chart %>
+          <%= pie_chart chart_data, **chart_options %>
+        <% when :bar_chart %>
+          <%= bar_chart chart_data, **chart_options %>
+        <% else %>
+          <%= column_chart chart_data, **chart_options %>
+        <% end %>
+      </div>
+      <% if insight.present? %>
+        <div class="pdf-chart-slide-insight-bar">
+          <span class="pdf-insight-icon-small">💡</span>
+          <p class="pdf-insight-text-inline"><%= insight %></p>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</div>
+
+<style>
+  /* ===== POWERPOINT-STYLE CHART SLIDES ===== */
+  
+  .pdf-chart-slide-container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Full Width Layout */
+  .pdf-chart-slide-full {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20pt;
+  }
+  
+  .pdf-chart-slide-canvas {
+    flex: 1;
+    background: white;
+    border: 2pt solid <%= PdfColors::BORDER_DEFAULT %>;
+    border-radius: 16pt;
+    padding: 32pt;
+    box-shadow: 0 4pt 16pt rgba(15, 23, 42, 0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* Insight Bar (Under Chart) */
+  .pdf-chart-slide-insight-bar {
+    display: flex;
+    align-items: center;
+    gap: 12pt;
+    padding: 20pt 24pt;
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border-left: 6pt solid <%= PdfColors::INFO %>;
+    border-radius: 12pt;
+    box-shadow: 0 2pt 8pt rgba(30, 64, 175, 0.08);
+  }
+  
+  .pdf-insight-icon-small {
+    font-size: 24pt;
+    line-height: 1;
+  }
+  
+  .pdf-insight-text-inline {
+    margin: 0;
+    font-size: 13pt;
+    font-weight: 600;
+    line-height: 1.6;
+    color: <%= PdfColors::TEXT_PRIMARY %>;
+  }
+  
+  /* Split Layout */
+  .pdf-chart-slide-split {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 32pt;
+    height: 100%;
+  }
+  
+  .pdf-chart-slide-visual {
+    display: flex;
+    align-items: center;
+  }
+  
+  .pdf-chart-slide-insight-panel {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border-radius: 16pt;
+    padding: 32pt;
+    border: 2pt solid #86efac;
+    box-shadow: 0 4pt 16pt rgba(5, 150, 105, 0.12);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  
+  .pdf-insight-icon {
+    font-size: 56pt;
+    line-height: 1;
+    margin-bottom: 20pt;
+  }
+  
+  .pdf-insight-title {
+    margin: 0 0 16pt 0;
+    font-size: 18pt;
+    font-weight: 800;
+    color: #047857;
+    text-transform: uppercase;
+    letter-spacing: 0.5pt;
+  }
+  
+  .pdf-insight-text {
+    margin: 0;
+    font-size: 15pt;
+    font-weight: 600;
+    line-height: 1.7;
+    color: #064e3b;
+  }
+  
+  .pdf-insight-source {
+    margin: 16pt 0 0 0;
+    font-size: 9pt;
+    color: #047857;
+    font-style: italic;
+    padding-top: 12pt;
+    border-top: 1pt dashed #86efac;
+  }
+</style>
+

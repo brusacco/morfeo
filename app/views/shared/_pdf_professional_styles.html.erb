@@ -17,6 +17,42 @@
     margin: 2.5cm 2cm 2.5cm 2cm;
   }
 
+  /* ===== PAGE BREAK CONTROL ===== */
+  /* Page breaks are ONLY controlled by .pdf-section-wrapper */
+  /* All other elements just prevent internal cuts */
+  
+  /* Prevent elements from being cut internally */
+  .pdf-slide,
+  .pdf-section,
+  .pdf-card,
+  .pdf-kpi-card,
+  .pdf-chart-container,
+  .pdf-table-wrapper,
+  .pdf-insight-box,
+  .pdf-stat-card {
+    break-inside: avoid;
+  }
+
+  /* Specific elements that should never be cut */
+  h1, h2, h3, h4, h5, h6,
+  table, img, figure,
+  .chart-wrapper,
+  .kpi-card,
+  .stat-box,
+  .reaction-card,
+  .sentiment-card,
+  .post-card,
+  .fanpage-item,
+  .tag-item {
+    break-inside: avoid;
+  }
+
+  /* Avoid orphans and widows in text */
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+
   /* ===== PROFESSIONAL FONTS ===== */
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@700;900&display=swap');
 
@@ -119,7 +155,6 @@
     margin: var(--space-2xl) 0 var(--space-lg) 0;
     padding-bottom: var(--space-sm);
     border-bottom: 2pt solid var(--color-gray-200);
-    page-break-after: avoid;
   }
 
   /* Subsection Headers (H3) */
@@ -130,7 +165,6 @@
     line-height: 1.4;
     color: var(--color-gray-800);
     margin: var(--space-xl) 0 var(--space-md) 0;
-    page-break-after: avoid;
   }
 
   /* Small Headers (H4) */
@@ -141,7 +175,6 @@
     line-height: 1.4;
     color: var(--color-gray-700);
     margin: var(--space-lg) 0 var(--space-sm) 0;
-    page-break-after: avoid;
   }
 
   /* Body Text */
@@ -166,7 +199,6 @@
     justify-content: center;
     align-items: center;
     text-align: center;
-    page-break-after: always;
     padding: var(--space-3xl) var(--space-2xl);
     background: linear-gradient(135deg, #fafbfc 0%, #ffffff 100%);
     border-bottom: 4pt solid var(--color-primary);
@@ -265,11 +297,7 @@
   /* ===== SECTIONS ===== */
   .pdf-section {
     margin-bottom: var(--space-2xl);
-    page-break-inside: avoid;
-  }
-
-  .pdf-section.break-before {
-    page-break-before: always;
+    break-inside: avoid;
   }
 
   /* ===== EXECUTIVE SUMMARY ===== */
@@ -279,7 +307,7 @@
     border-radius: var(--radius-md);
     padding: var(--space-xl);
     margin: var(--space-2xl) 0;
-    page-break-inside: avoid;
+    break-inside: avoid;
   }
 
   .pdf-executive-summary h2 {
@@ -325,7 +353,7 @@
     grid-template-columns: repeat(4, 1fr);
     gap: var(--space-lg);
     margin: var(--space-xl) 0;
-    page-break-inside: avoid;
+    break-inside: avoid;
   }
 
   .pdf-metric-card {
@@ -381,13 +409,13 @@
     display: flex;
     gap: var(--space-lg);
     margin-bottom: var(--space-xl);
-    page-break-inside: avoid;
+    break-inside: avoid;
   }
 
   .pdf-chart-single {
     width: 100%;
     margin-bottom: var(--space-xl);
-    page-break-inside: avoid;
+    break-inside: avoid;
   }
 
   .pdf-chart-half {
@@ -428,7 +456,7 @@
     display: flex;
     gap: var(--space-md);
     margin-bottom: var(--space-xl);
-    page-break-inside: avoid;
+    break-inside: avoid;
   }
 
   .pdf-stats-card {
@@ -464,7 +492,7 @@
     border-radius: var(--radius-md);
     padding: var(--space-lg);
     margin: var(--space-xl) 0;
-    page-break-inside: avoid;
+    break-inside: avoid;
   }
 
   .pdf-summary p {
@@ -480,7 +508,7 @@
     border-radius: var(--radius-md);
     padding: var(--space-lg);
     margin: var(--space-xl) 0;
-    page-break-inside: avoid;
+    break-inside: avoid;
   }
 
   .pdf-report p {
@@ -496,7 +524,7 @@
     border-radius: var(--radius-md);
     padding: var(--space-lg);
     margin: var(--space-xl) 0;
-    page-break-inside: avoid;
+    break-inside: avoid;
   }
 
   .pdf-insights-title {
@@ -584,7 +612,7 @@
     border-radius: var(--radius-md);
     padding: var(--space-lg);
     margin-bottom: var(--space-lg);
-    page-break-inside: avoid;
+    break-inside: avoid;
     box-shadow: var(--shadow-sm);
   }
 
@@ -710,15 +738,7 @@
   .pdf-cloud li[data-weight="9"] { font-size: 27pt; opacity: 1; }
   .pdf-cloud li[data-weight="10"] { font-size: 30pt; opacity: 1; }
 
-  /* ===== PAGE BREAK CONTROLS ===== */
-  .page-break {
-    page-break-before: always;
-  }
-
-  .avoid-break {
-    page-break-inside: avoid;
-  }
-
+  /* ===== LEGACY: Section Headers ===== */
   .section-header {
     break-after: avoid-page;
     break-inside: avoid;
@@ -773,14 +793,57 @@
       background: white;
     }
 
-    /* Ensure page breaks work correctly */
+    /* Ensure headers don't break */
     h2, h3 {
-      page-break-after: avoid;
-      page-break-inside: avoid;
+      break-inside: avoid;
     }
 
     .pdf-section {
+      break-inside: avoid;
+    }
+
+    /* PDF Section Wrappers - ONLY PLACE with page-break rules */
+    .pdf-section-wrapper {
       page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    
+    .pdf-section-wrapper.force-new-page {
+      page-break-before: always;
+    }
+
+    /* PowerPoint-style slides - NO page breaks */
+    .pdf-slide {
+      /* Page breaks controlled by .pdf-section-wrapper */
+    }
+
+    /* Keep cards and containers together */
+    .pdf-kpi-slide-card,
+    .pdf-chart-slide-canvas,
+    .reaction-card,
+    .sentiment-card,
+    .post-card,
+    .fanpage-item,
+    .tag-item {
+      break-inside: avoid !important;
+    }
+
+    /* Prevent cutting lists and grids */
+    .pdf-kpi-slide-grid,
+    .pdf-chart-slide-container {
+      break-inside: avoid;
+    }
+
+    /* Keep insight boxes together */
+    .pdf-chart-slide-insight-bar,
+    .pdf-insight-box {
+      break-inside: avoid;
+    }
+
+    /* Optimize chart rendering for print */
+    .chart-wrapper,
+    .highcharts-container {
+      break-inside: avoid;
     }
   }
 
@@ -824,5 +887,206 @@
     color: var(--color-gray-500);
     font-style: italic;
   }
+
+  /* ===== PDF SECTION WRAPPER (Page Break Control) ===== */
+  /* Each section wrapper controls page breaks independently */
+  
+  .pdf-section-wrapper {
+    width: 100%;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    margin-bottom: var(--space-2xl);
+  }
+  
+  .pdf-section-wrapper.force-new-page {
+    page-break-before: always;
+  }
+
+  /* ===== POWERPOINT-STYLE SLIDE SYSTEM ===== */
+  /* Professional slide layout for executive presentations */
+
+  .pdf-slide {
+    width: 100%;
+    min-height: auto;
+    padding: var(--space-3xl) var(--space-xl);
+    /* NO page-break rules here - controlled by wrapper */
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .pdf-slide-header {
+    margin-bottom: var(--space-2xl);
+    break-inside: avoid;
+    break-inside: avoid;
+    break-after: avoid;
+    break-after: avoid;
+  }
+
+  .pdf-slide-number-badge {
+    display: inline-block;
+    width: 32pt;
+    height: 32pt;
+    line-height: 32pt;
+    text-align: center;
+    border-radius: 50%;
+    color: white;
+    font-weight: 900;
+    font-size: 14pt;
+    margin-bottom: var(--space-md);
+    box-shadow: 0 2pt 6pt rgba(0, 0, 0, 0.15);
+  }
+
+  .pdf-slide-title {
+    font-size: 24pt;
+    font-weight: 900;
+    color: var(--color-gray-900);
+    margin: var(--space-sm) 0;
+    padding-left: var(--space-lg);
+    border-left: 6pt solid;
+    line-height: 1.2;
+  }
+
+  .pdf-slide-subtitle {
+    font-size: 11pt;
+    color: var(--color-gray-600);
+    margin: var(--space-xs) 0 0 calc(var(--space-lg) + 6pt);
+    font-weight: 500;
+  }
+
+  .pdf-slide-content {
+    flex: 1;
+    break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .pdf-slide-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: var(--space-lg);
+    margin-top: var(--space-2xl);
+    border-top: 2pt solid var(--color-gray-200);
+    font-size: 8pt;
+    color: var(--color-gray-500);
+    break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* KPI Slide Grid */
+  .pdf-kpi-slide-grid {
+    display: grid;
+    gap: var(--space-lg);
+    margin: var(--space-xl) 0;
+    break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .pdf-kpi-slide-card {
+    background: white;
+    border: 2pt solid var(--color-gray-200);
+    border-radius: 12pt;
+    padding: var(--space-xl);
+    text-align: center;
+    box-shadow: 0 2pt 8pt rgba(0, 0, 0, 0.06);
+    break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .pdf-kpi-slide-icon {
+    font-size: 32pt;
+    line-height: 1;
+    margin-bottom: var(--space-md);
+  }
+
+  .pdf-kpi-slide-value {
+    font-size: 36pt;
+    font-weight: 900;
+    line-height: 1;
+    color: var(--color-gray-900);
+    margin-bottom: var(--space-sm);
+    font-feature-settings: 'tnum' 1;
+  }
+
+  .pdf-kpi-slide-label {
+    font-size: 11pt;
+    font-weight: 700;
+    color: var(--color-gray-700);
+    text-transform: uppercase;
+    letter-spacing: 0.5pt;
+    margin-bottom: var(--space-xs);
+  }
+
+  .pdf-kpi-slide-sublabel {
+    font-size: 8pt;
+    color: var(--color-gray-500);
+  }
+
+  /* KPI Size Variants */
+  .pdf-kpi-large .pdf-kpi-slide-icon { font-size: 48pt; }
+  .pdf-kpi-large .pdf-kpi-slide-value { font-size: 48pt; }
+  .pdf-kpi-large .pdf-kpi-slide-label { font-size: 13pt; }
+
+  .pdf-kpi-medium .pdf-kpi-slide-icon { font-size: 32pt; }
+  .pdf-kpi-medium .pdf-kpi-slide-value { font-size: 32pt; }
+  .pdf-kpi-medium .pdf-kpi-slide-label { font-size: 11pt; }
+
+  .pdf-kpi-small .pdf-kpi-slide-icon { font-size: 24pt; }
+  .pdf-kpi-small .pdf-kpi-slide-value { font-size: 24pt; }
+  .pdf-kpi-small .pdf-kpi-slide-label { font-size: 9pt; }
+
+  /* Chart Slide Container */
+  .pdf-chart-slide-container {
+    break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .pdf-chart-slide-canvas {
+    background: white;
+    border: 2pt solid var(--color-gray-200);
+    border-radius: 12pt;
+    padding: var(--space-xl);
+    box-shadow: 0 2pt 8pt rgba(0, 0, 0, 0.06);
+    break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .pdf-chart-slide-insight-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-lg) var(--space-xl);
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border-left: 6pt solid #3b82f6;
+    border-radius: 10pt;
+    margin-top: var(--space-lg);
+    break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .pdf-insight-icon-small {
+    font-size: 24pt;
+    line-height: 1;
+  }
+
+  .pdf-insight-text-inline {
+    flex: 1;
+    margin: 0;
+    font-size: 11pt;
+    font-weight: 600;
+    line-height: 1.5;
+    color: #1e40af;
+  }
+
+  /* Card-based visual elements */
+  .reaction-card,
+  .sentiment-card,
+  .post-card,
+  .fanpage-item,
+  .tag-item {
+    break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
 </style>
 
