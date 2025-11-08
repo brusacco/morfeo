@@ -8,311 +8,537 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartkick@4.2.0/dist/chartkick.min.js"></script>
-    
+
     <%# Auto-print on page load %>
     <script>
       window.onload = function() {
         window.print();
       };
     </script>
-    
+
     <%# Include professional PDF styles %>
     <%= render 'shared/pdf_professional_styles' %>
-    
+
     <style>
-      /* Twitter-specific PDF color overrides */
-      h1, .pdf-page-title {
-        color: #0ea5e9; /* Twitter blue */
-      }
-      
-      /* Enhanced Header Styles */
-      .pdf-header-enhanced {
-        background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
-        color: white;
-        padding: 24pt 32pt;
-        margin: -20pt -20pt 24pt -20pt;
-        border-radius: 0;
-        box-shadow: 0 4pt 12pt rgba(14, 165, 233, 0.2);
-      }
-      
-      .pdf-header-title {
-        margin: 0 0 12pt 0;
-        font-size: 26pt;
-        font-weight: 800;
-        color: white !important;
-        letter-spacing: -0.5pt;
-        line-height: 1.2;
-      }
-      
-      .pdf-header-meta {
-        margin: 0;
-        font-size: 11pt;
-        font-weight: 500;
-        opacity: 0.95;
-        display: flex;
-        align-items: center;
-        gap: 8pt;
-      }
-      
-      .pdf-header-meta-item {
-        display: inline-flex;
-        align-items: center;
-        gap: 4pt;
-      }
-      
-      .pdf-header-meta-separator {
-        opacity: 0.6;
-        font-weight: 300;
-      }
-      
-      /* Enhanced KPI Cards */
-      .pdf-metric-card {
-        border: 2pt solid #e5e7eb !important;
-        box-shadow: 0 2pt 8pt rgba(0, 0, 0, 0.08) !important;
-        padding: 20pt !important;
-      }
-      
-      .pdf-metric-icon {
-        font-size: 32pt !important;
-        line-height: 1 !important;
-        margin-bottom: 12pt !important;
-        display: block;
-      }
-      
-      .pdf-metric-value {
-        font-size: 32pt !important;
-        font-weight: 900 !important;
-        letter-spacing: -1pt !important;
-        line-height: 1 !important;
-        margin: 8pt 0 !important;
-      }
-      
-      .pdf-metric-label {
-        font-size: 9pt !important;
-        font-weight: 600 !important;
-        text-transform: uppercase !important;
-        letter-spacing: 0.5pt !important;
-        color: #6b7280 !important;
+      /* Twitter-specific color variables */
+      :root {
+        --twitter-primary: #1DA1F2;
+        --twitter-secondary: #0c7abf;
       }
     </style>
   </head>
   <body>
-    <div class="pdf-container">
-      <%# Professional Cover Page %>
+    <%# SLIDE 0: Professional Cover Page %>
+    <%= render 'shared/pdf_section_wrapper', section_id: 'cover-page' do %>
       <%= render 'shared/pdf_cover_page',
             title: "Reporte Twitter",
             topic_name: @topic.name,
             period: pdf_date_range(days_range: @days_range),
             report_type: :twitter,
             subtitle: "Análisis de Engagement y Alcance" %>
-      
-      <% # Initialize Twitter Dashboard Presenter %>
-      <% @presenter = TwitterDashboardPresenter.new(
-            topic: @topic,
-            total_posts: @total_posts,
-            total_interactions: @total_interactions,
-            total_views: @total_views,
-            average_interactions: @average_interactions,
-            chart_posts: @chart_posts,
-            chart_interactions: @chart_interactions,
-            tag_counts: @tag_counts,
-            tag_interactions: @tag_interactions,
-            profiles_count: @profiles_count,
-            profiles_interactions: @profiles_interactions,
-            top_posts: @top_posts,
-            posts: @posts,
-            word_occurrences: @word_occurrences,
-            bigram_occurrences: @bigram_occurrences
-          ) %>
+    <% end %>
 
-      <!-- Enhanced Header -->
-      <div class="pdf-header-enhanced">
-        <h1 class="pdf-header-title">Reporte Twitter: <%= @topic.name %></h1>
-        <p class="pdf-header-meta">
-          <span class="pdf-header-meta-item">📅 <%= pdf_date_range(days_range: @days_range) %></span>
-          <span class="pdf-header-meta-separator">|</span>
-          <span class="pdf-header-meta-item">🕐 Generado: <%= Time.current.strftime("%d/%m/%Y %H:%M") %></span>
-        </p>
-      </div>
+    <%# SLIDE 1: Métricas Principales %>
+    <%= render 'shared/pdf_section_wrapper', section_id: 'section-1', force_new_page: true do %>
+      <%= render 'shared/pdf_slide',
+            slide_number: 1,
+            title: "Métricas Principales",
+            subtitle: "Rendimiento General del Período",
+            report_type: :twitter,
+            topic_name: @topic.name do %>
 
-      <!-- KPI Section (Refactored) -->
-      <div class="pdf-section">
-        <h2>Métricas Principales</h2>
-        <%= render 'shared/pdf_kpis_grid', 
-              metrics: build_pdf_kpi_metrics(@presenter, :twitter) %>
-      </div>
-
-      <!-- Main Charts Section (Refactored) -->
-      <div class="pdf-section">
-        <h2>Análisis Temporal de Tweets</h2>
-        <%= render 'shared/pdf_charts_row', 
-              charts: [
-                build_pdf_chart_config_enhanced(
-                  title: I18n.t('twitter.charts.tweets_per_day'),
-                  data: @chart_posts,
-                  type: :column_chart,
-                  xtitle: I18n.t('twitter.charts.date'),
-                  ytitle: I18n.t('twitter.charts.tweets'),
-                  colors: ['#0ea5e9']
-                ),
-                build_pdf_chart_config_enhanced(
-                  title: I18n.t('twitter.charts.interactions_per_day'),
-                  data: @chart_interactions,
-                  type: :column_chart,
-                  xtitle: I18n.t('twitter.charts.date'),
-                  ytitle: I18n.t('twitter.charts.interactions'),
-                  colors: ['#10b981']
-                )
-              ] %>
-      </div>
-
-      <!-- Summary Section -->
-      <div class="pdf-section">
-        <div class="pdf-summary">
-          <p>
-            El tópico <strong><%= @topic.name %></strong> en Twitter durante los últimos 
-            <strong><%= @days_range %> días</strong> cuenta con un total de 
-            <strong><%= @presenter.formatted_total_posts %></strong> tweets y generó un total de 
-            <strong><%= @presenter.formatted_total_interactions %></strong> interacciones, 
-            lo que nos da un promedio de 
-            <strong><%= @presenter.formatted_average_interactions %></strong> interacciones por tweet.
-          </p>
-          <% if @presenter.has_views_data? %>
-            <p class="mt-md">
-              Los tweets alcanzaron un total de <strong><%= @presenter.formatted_total_views %></strong> visualizaciones,
-              con una tasa de engagement del <strong><%= number_with_precision(@presenter.engagement_rate, precision: 2) %>%</strong>.
-            </p>
-          <% end %>
-        </div>
-      </div>
-
-      <!-- Tags Analysis Section (Refactored) -->
-      <% if @presenter.has_tag_data? %>
-        <div class="pdf-section">
-          <h2><%= I18n.t('twitter.tags.title') %></h2>
-          <%= render 'shared/pdf_charts_row',
-                charts: [
-                  build_pdf_chart_config_enhanced(
-                    title: I18n.t('twitter.tags.tweets_by_tag'),
-                    data: @presenter.tag_counts_chart_data,
-                    type: :pie_chart,
-                    donut: true,
-                    colors: @presenter.chart_colors(:tag_counts)
-                  ),
-                  build_pdf_chart_config_enhanced(
-                    title: I18n.t('twitter.tags.interactions_by_tag'),
-                    data: @tag_interactions,
-                    type: :pie_chart,
-                    donut: true,
-                    colors: @presenter.chart_colors(:tag_interactions)
-                  )
-                ] %>
-        </div>
+        <%# KPIs en grid 2x2 para mejor visibilidad %>
+        <%= render 'shared/pdf_kpi_slide',
+              kpis: [
+                {
+                  value: pdf_format_number(@total_posts),
+                  label: "Tweets",
+                  icon: "🐦",
+                  sublabel: "publicaciones totales"
+                },
+                {
+                  value: pdf_format_number(@total_interactions),
+                  label: "Interacciones",
+                  icon: "❤️",
+                  sublabel: "likes, retweets, respuestas"
+                },
+                {
+                  value: pdf_format_number(@total_views),
+                  label: "Vistas",
+                  icon: "👁️",
+                  sublabel: "alcance oficial Twitter API"
+                },
+                {
+                  value: pdf_format_number(@average_interactions),
+                  label: "Promedio",
+                  icon: "📈",
+                  sublabel: "interacciones por tweet"
+                }
+              ],
+              columns: 2,
+              size: 'large' %>
       <% end %>
+    <% end %>
 
-      <!-- Profiles Analysis Section (Refactored) -->
-      <% if @presenter.has_profile_data? %>
-        <div class="pdf-section break-before">
-          <h2><%= I18n.t('twitter.profiles.title') %></h2>
-          
-          <!-- Profile Charts -->
-          <%= render 'shared/pdf_charts_row',
-                charts: [
-                  build_pdf_chart_config_enhanced(
-                    title: I18n.t('twitter.profiles.tweets_by_profile'),
-                    data: @profiles_count,
-                    type: :pie_chart,
-                    donut: true,
-                    colors: @presenter.chart_colors(:profile_counts)
-                  ),
-                  build_pdf_chart_config_enhanced(
-                    title: I18n.t('twitter.profiles.interactions_by_profile'),
-                    data: @profiles_interactions,
-                    type: :pie_chart,
-                    donut: true,
-                    colors: @presenter.chart_colors(:profile_interactions)
-                  )
-                ] %>
-          
-          <!-- Top Profiles List -->
-          <h3>Perfiles Destacados</h3>
-          <div class="pdf-media-list">
-            <% @profiles_count.take(12).each do |profile_name, count| %>
-              <div class="pdf-media-item">
-                <div class="pdf-media-name"><%= profile_name %></div>
-                <div class="pdf-media-count">
-                  <%= count %> tweets · 
-                  <%= pdf_format_number(@profiles_interactions[profile_name] || 0) %> interacciones
-                </div>
-              </div>
-            <% end %>
+    <%# SLIDE 2: Evolución Temporal %>
+    <%= render 'shared/pdf_section_wrapper', section_id: 'section-2', force_new_page: true do %>
+      <%= render 'shared/pdf_slide',
+            slide_number: 2,
+            title: "Evolución Temporal",
+            subtitle: "Tweets e Interacciones por Día",
+            report_type: :twitter,
+            topic_name: @topic.name do %>
+
+        <%# Gráficas apiladas verticalmente %>
+        <div style="display: flex; flex-direction: column; gap: 24pt;">
+          <%# Tweets por Día %>
+          <div>
+            <h3 style="margin: 0 0 16pt 0; font-size: 14pt; font-weight: 700; color: #1f2937; padding-left: 12pt; border-left: 4pt solid #1DA1F2;">
+              📊 Tweets por Día
+            </h3>
+            <div style="background: white; border: 2pt solid #e5e7eb; border-radius: 12pt; padding: 20pt; box-shadow: 0 2pt 8pt rgba(0, 0, 0, 0.06);">
+              <%= column_chart @chart_posts,
+                    colors: ['#1DA1F2'],
+                    height: '240px',
+                    library: {
+                      chart: { backgroundColor: 'transparent' },
+                      xAxis: { labels: { style: { fontSize: '9pt', fontWeight: '600' } } },
+                      yAxis: { labels: { style: { fontSize: '9pt', fontWeight: '600' } } }
+                    } %>
+            </div>
+            <p style="margin: 12pt 0 0 0; padding: 12pt 16pt; background: #dbeafe; border-left: 4pt solid #3b82f6; border-radius: 6pt; font-size: 10pt; line-height: 1.6; color: #1e40af;">
+              💡 Promedio de <strong><%= (@total_posts.to_f / @days_range).round(1) %></strong> tweets por día durante el período analizado.
+            </p>
+          </div>
+
+          <%# Interacciones por Día %>
+          <div>
+            <h3 style="margin: 0 0 16pt 0; font-size: 14pt; font-weight: 700; color: #1f2937; padding-left: 12pt; border-left: 4pt solid #10b981;">
+              ❤️ Interacciones por Día
+            </h3>
+            <div style="background: white; border: 2pt solid #e5e7eb; border-radius: 12pt; padding: 20pt; box-shadow: 0 2pt 8pt rgba(0, 0, 0, 0.06);">
+              <%= column_chart @chart_interactions,
+                    colors: ['#10b981'],
+                    height: '240px',
+                    library: {
+                      chart: { backgroundColor: 'transparent' },
+                      xAxis: { labels: { style: { fontSize: '9pt', fontWeight: '600' } } },
+                      yAxis: { labels: { style: { fontSize: '9pt', fontWeight: '600' } } }
+                    } %>
+            </div>
+            <p style="margin: 12pt 0 0 0; padding: 12pt 16pt; background: #d1fae5; border-left: 4pt solid #10b981; border-radius: 6pt; font-size: 10pt; line-height: 1.6; color: #065f46;">
+              💡 <%= @chart_interactions.values.max > @chart_interactions.values.min * 2 ? 'Alta variabilidad' : 'Consistencia' %> en las interacciones a lo largo del período.
+            </p>
           </div>
         </div>
       <% end %>
+    <% end %>
 
-      <!-- Words Analysis Section -->
-      <% if @presenter.has_word_cloud? || @presenter.has_bigram_data? %>
-        <div class="pdf-section">
-          <h2>Análisis de Palabras</h2>
-          
-          <% if @presenter.has_word_cloud? %>
-            <h3>Palabras Más Frecuentes en Tweets</h3>
-            <div class="pdf-words">
-              <% @word_occurrences.take(50).each do |word, count| %>
-                <span class="pdf-word"><%= word %> (<%= count %>)</span>
+    <%# SLIDE 3: Análisis por Etiquetas %>
+    <%= render 'shared/pdf_section_wrapper', section_id: 'section-3', force_new_page: true do %>
+    <% if @tag_counts.present? && @tag_counts.any? %>
+      <%= render 'shared/pdf_slide',
+            slide_number: 3,
+            title: "Análisis por Etiquetas",
+            subtitle: "Distribución de Contenido por Tags",
+            report_type: :twitter,
+            topic_name: @topic.name do %>
+
+        <%# Lista de Etiquetas con Rankings %>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32pt;">
+
+          <%# Columna 1: Top Etiquetas por Tweets %>
+          <div>
+            <h3 style="margin: 0 0 20pt 0; font-size: 14pt; font-weight: 700; color: #1f2937; padding-left: 12pt; border-left: 4pt solid #1DA1F2;">
+              🏷️ Top Etiquetas por Tweets
+            </h3>
+
+            <div style="display: flex; flex-direction: column; gap: 12pt;">
+              <% @tag_counts.take(10).each_with_index do |tag, index| %>
+                <% tag_name = tag.respond_to?(:name) ? tag.name : tag.to_s %>
+                <% count = tag.respond_to?(:count) ? tag.count : 0 %>
+                <div class="tag-item" style="display: flex; align-items: center; gap: 12pt; padding: 12pt 16pt; background: white; border: 1.5pt solid #e5e7eb; border-radius: 10pt; box-shadow: 0 1pt 4pt rgba(0, 0, 0, 0.06);">
+                  <%# Ranking Badge %>
+                  <div style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 28pt; height: 28pt; background: linear-gradient(135deg, #1DA1F2 0%, #0c7abf 100%); color: white; border-radius: 50%; font-size: 12pt; font-weight: 900; box-shadow: 0 2pt 4pt rgba(29, 161, 242, 0.3);">
+                    <%= index + 1 %>
+                  </div>
+
+                  <%# Tag Icon %>
+                  <div style="flex: 0 0 auto; width: 40pt; height: 40pt; border-radius: 50%; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); display: flex; align-items: center; justify-content: center; font-size: 18pt; border: 2pt solid #93c5fd;">
+                    🏷️
+                  </div>
+
+                  <%# Info %>
+                  <div style="flex: 1; min-width: 0;">
+                    <div style="font-weight: 700; font-size: 10pt; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                      <%= tag_name %>
+                    </div>
+                    <div style="font-size: 8pt; color: #6b7280; margin-top: 2pt;">
+                      Etiqueta de contenido
+                    </div>
+                  </div>
+
+                  <%# Métrica %>
+                  <div style="flex: 0 0 auto; text-align: right; padding: 8pt 12pt; background: #dbeafe; border-radius: 6pt;">
+                    <div style="font-size: 16pt; font-weight: 900; color: #1DA1F2; line-height: 1;">
+                      <%= count %>
+                    </div>
+                    <div style="font-size: 7pt; color: #0c7abf; text-transform: uppercase; font-weight: 600; margin-top: 2pt;">
+                      tweets
+                    </div>
+                  </div>
+                </div>
               <% end %>
             </div>
-          <% end %>
-          
-          <% if @presenter.has_bigram_data? %>
-            <h3>Bigramas Más Frecuentes</h3>
-            <div class="pdf-words">
-              <% @bigram_occurrences.take(30).each do |bigram, count| %>
-                <span class="pdf-word"><%= bigram %> (<%= count %>)</span>
+          </div>
+
+          <%# Columna 2: Top Etiquetas por Interacciones %>
+          <div>
+            <h3 style="margin: 0 0 20pt 0; font-size: 14pt; font-weight: 700; color: #1f2937; padding-left: 12pt; border-left: 4pt solid #10b981;">
+              👍 Top Etiquetas por Interacciones
+            </h3>
+
+            <div style="display: flex; flex-direction: column; gap: 12pt;">
+              <% @tag_interactions.sort_by { |k, v| -v }.take(10).each_with_index do |(tag_name, interactions), index| %>
+                <%
+                  # Buscar el objeto tag para obtener el count
+                  tag_obj = @tag_counts.find { |t| t.respond_to?(:name) && t.name == tag_name }
+                  tweet_count = tag_obj&.respond_to?(:count) ? tag_obj.count : 0
+                %>
+                <div class="tag-item" style="display: flex; align-items: center; gap: 12pt; padding: 12pt 16pt; background: white; border: 1.5pt solid #e5e7eb; border-radius: 10pt; box-shadow: 0 1pt 4pt rgba(0, 0, 0, 0.06);">
+                  <%# Ranking Badge %>
+                  <div style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 28pt; height: 28pt; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border-radius: 50%; font-size: 12pt; font-weight: 900; box-shadow: 0 2pt 4pt rgba(16, 185, 129, 0.3);">
+                    <%= index + 1 %>
+                  </div>
+
+                  <%# Tag Icon %>
+                  <div style="flex: 0 0 auto; width: 40pt; height: 40pt; border-radius: 50%; background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); display: flex; align-items: center; justify-content: center; font-size: 18pt; border: 2pt solid #6ee7b7;">
+                    🏷️
+                  </div>
+
+                  <%# Info %>
+                  <div style="flex: 1; min-width: 0;">
+                    <div style="font-weight: 700; font-size: 10pt; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                      <%= tag_name %>
+                    </div>
+                    <div style="font-size: 8pt; color: #6b7280; margin-top: 2pt;">
+                      <%= tweet_count %> tweets
+                    </div>
+                  </div>
+
+                  <%# Métrica %>
+                  <div style="flex: 0 0 auto; text-align: right; padding: 8pt 12pt; background: #d1fae5; border-radius: 6pt;">
+                    <div style="font-size: 16pt; font-weight: 900; color: #10b981; line-height: 1;">
+                      <%= pdf_format_number(interactions) %>
+                    </div>
+                    <div style="font-size: 7pt; color: #059669; text-transform: uppercase; font-weight: 600; margin-top: 2pt;">
+                      interac.
+                    </div>
+                  </div>
+                </div>
               <% end %>
             </div>
-          <% end %>
+          </div>
+
         </div>
       <% end %>
+    <% end %>
+    <% end %>
 
-      <!-- Top Posts Section -->
-      <% if @presenter.has_top_posts? %>
-        <div class="pdf-section break-before">
-          <h2>Top Tweets con Más Interacciones</h2>
-          <% @top_posts.take(10).each_with_index do |post, index| %>
-            <div class="pdf-post-item">
-              <div class="pdf-post-header">
-                <span class="pdf-post-rank">#<%= index + 1 %></span>
-                <span class="pdf-post-profile">@<%= post.twitter_profile&.username || 'unknown' %></span>
-                <span class="pdf-post-date"><%= post.posted_at&.strftime("%d/%m/%Y") %></span>
-                <span class="pdf-post-interactions">
-                  <%= pdf_format_number(post.total_interactions) %> interacciones
-                </span>
-              </div>
-              
-              <% if post.text.present? %>
-                <p class="pdf-post-text"><%= truncate(post.text, length: 300) %></p>
+    <%# SLIDE 4: Análisis por Perfiles %>
+    <%= render 'shared/pdf_section_wrapper', section_id: 'section-4', force_new_page: true do %>
+    <% if @profiles_count.present? && @profiles_count.any? %>
+      <%= render 'shared/pdf_slide',
+            slide_number: 4,
+            title: "Análisis por Perfiles",
+            subtitle: "Distribución de Tweets e Interacciones",
+            report_type: :twitter,
+            topic_name: @topic.name do %>
+
+        <%# Lista de Perfiles con Rankings %>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32pt;">
+
+          <%# Columna 1: Top Perfiles por Tweets %>
+          <div>
+            <h3 style="margin: 0 0 20pt 0; font-size: 14pt; font-weight: 700; color: #1f2937; padding-left: 12pt; border-left: 4pt solid #1DA1F2;">
+              🐦 Top Perfiles por Tweets
+            </h3>
+
+            <div style="display: flex; flex-direction: column; gap: 12pt;">
+              <% @profiles_count.sort_by { |k, v| -v }.take(10).each_with_index do |(profile_name, count), index| %>
+                <%
+                  # Buscar el perfil para obtener el avatar
+                  profile = TwitterProfile.find_by(name: profile_name)
+                %>
+                <div class="fanpage-item" style="display: flex; align-items: center; gap: 12pt; padding: 12pt 16pt; background: white; border: 1.5pt solid #e5e7eb; border-radius: 10pt; box-shadow: 0 1pt 4pt rgba(0, 0, 0, 0.06);">
+                  <%# Ranking Badge %>
+                  <div style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 28pt; height: 28pt; background: linear-gradient(135deg, #1DA1F2 0%, #0c7abf 100%); color: white; border-radius: 50%; font-size: 12pt; font-weight: 900; box-shadow: 0 2pt 4pt rgba(29, 161, 242, 0.3);">
+                    <%= index + 1 %>
+                  </div>
+
+                  <%# Avatar %>
+                  <% if profile&.picture.present? %>
+                    <img src="<%= profile.picture %>"
+                         style="flex: 0 0 auto; width: 40pt; height: 40pt; border-radius: 50%; object-fit: cover; border: 2pt solid #e5e7eb;"
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div style="display: none; flex: 0 0 auto; width: 40pt; height: 40pt; border-radius: 50%; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); align-items: center; justify-content: center; font-size: 18pt; border: 2pt solid #93c5fd;">
+                      🐦
+                    </div>
+                  <% else %>
+                    <div style="flex: 0 0 auto; width: 40pt; height: 40pt; border-radius: 50%; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); display: flex; align-items: center; justify-content: center; font-size: 18pt; border: 2pt solid #93c5fd;">
+                      🐦
+                    </div>
+                  <% end %>
+
+                  <%# Info %>
+                  <div style="flex: 1; min-width: 0;">
+                    <div style="font-weight: 700; font-size: 10pt; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                      <%= profile_name %>
+                    </div>
+                    <div style="font-size: 8pt; color: #6b7280; margin-top: 2pt;">
+                      <% if profile&.username.present? %>
+                        @<%= profile.username %>
+                      <% else %>
+                        Perfil de Twitter
+                      <% end %>
+                    </div>
+                  </div>
+
+                  <%# Métrica %>
+                  <div style="flex: 0 0 auto; text-align: right; padding: 8pt 12pt; background: #dbeafe; border-radius: 6pt;">
+                    <div style="font-size: 16pt; font-weight: 900; color: #1DA1F2; line-height: 1;">
+                      <%= pdf_format_number(count) %>
+                    </div>
+                    <div style="font-size: 7pt; color: #0c7abf; text-transform: uppercase; font-weight: 600; margin-top: 2pt;">
+                      tweets
+                    </div>
+                  </div>
+                </div>
               <% end %>
-              
-              <div class="pdf-post-metrics">
-                <span class="pdf-metric">❤️ <strong><%= pdf_format_number(post.favorite_count) %></strong> Me gusta</span>
-                <span class="pdf-metric">🔄 <strong><%= pdf_format_number(post.retweet_count) %></strong> Retweets</span>
-                <span class="pdf-metric">💬 <strong><%= pdf_format_number(post.reply_count) %></strong> Respuestas</span>
+            </div>
+          </div>
+
+          <%# Columna 2: Top Perfiles por Interacciones %>
+          <div>
+            <h3 style="margin: 0 0 20pt 0; font-size: 14pt; font-weight: 700; color: #1f2937; padding-left: 12pt; border-left: 4pt solid #10b981;">
+              👍 Top Perfiles por Interacciones
+            </h3>
+
+            <div style="display: flex; flex-direction: column; gap: 12pt;">
+              <% @profiles_interactions.sort_by { |k, v| -v }.take(10).each_with_index do |(profile_name, interactions), index| %>
+                <%
+                  # Buscar el perfil para obtener el avatar
+                  profile = TwitterProfile.find_by(name: profile_name)
+                %>
+                <div class="fanpage-item" style="display: flex; align-items: center; gap: 12pt; padding: 12pt 16pt; background: white; border: 1.5pt solid #e5e7eb; border-radius: 10pt; box-shadow: 0 1pt 4pt rgba(0, 0, 0, 0.06);">
+                  <%# Ranking Badge %>
+                  <div style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 28pt; height: 28pt; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border-radius: 50%; font-size: 12pt; font-weight: 900; box-shadow: 0 2pt 4pt rgba(16, 185, 129, 0.3);">
+                    <%= index + 1 %>
+                  </div>
+
+                  <%# Avatar %>
+                  <% if profile&.picture.present? %>
+                    <img src="<%= profile.picture %>"
+                         style="flex: 0 0 auto; width: 40pt; height: 40pt; border-radius: 50%; object-fit: cover; border: 2pt solid #e5e7eb;"
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div style="display: none; flex: 0 0 auto; width: 40pt; height: 40pt; border-radius: 50%; background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); align-items: center; justify-content: center; font-size: 18pt; border: 2pt solid #6ee7b7;">
+                      🐦
+                    </div>
+                  <% else %>
+                    <div style="flex: 0 0 auto; width: 40pt; height: 40pt; border-radius: 50%; background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); display: flex; align-items: center; justify-content: center; font-size: 18pt; border: 2pt solid #6ee7b7;">
+                      🐦
+                    </div>
+                  <% end %>
+
+                  <%# Info %>
+                  <div style="flex: 1; min-width: 0;">
+                    <div style="font-weight: 700; font-size: 10pt; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                      <%= profile_name %>
+                    </div>
+                    <div style="font-size: 8pt; color: #6b7280; margin-top: 2pt;">
+                      <%= @profiles_count[profile_name] || 0 %> tweets
+                    </div>
+                  </div>
+
+                  <%# Métrica %>
+                  <div style="flex: 0 0 auto; text-align: right; padding: 8pt 12pt; background: #d1fae5; border-radius: 6pt;">
+                    <div style="font-size: 16pt; font-weight: 900; color: #10b981; line-height: 1;">
+                      <%= pdf_format_number(interactions) %>
+                    </div>
+                    <div style="font-size: 7pt; color: #059669; text-transform: uppercase; font-weight: 600; margin-top: 2pt;">
+                      interac.
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+
+        </div>
+      <% end %>
+    <% end %>
+    <% end %>
+
+    <%# SLIDE 5: Análisis de Palabras %>
+    <%= render 'shared/pdf_section_wrapper', section_id: 'section-5' do %>
+    <% if @word_occurrences.present? && @word_occurrences.any? %>
+      <%= render 'shared/pdf_slide',
+            slide_number: 5,
+            title: "Análisis de Palabras",
+            subtitle: "Términos Más Frecuentes en Tweets",
+            report_type: :twitter,
+            topic_name: @topic.name do %>
+
+        <%# Lista de Palabras con Rankings %>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32pt;">
+
+          <%# Columna 1: Top 10 Palabras Individuales %>
+          <div>
+            <h3 style="margin: 0 0 20pt 0; font-size: 14pt; font-weight: 700; color: #1f2937; padding-left: 12pt; border-left: 4pt solid #1DA1F2;">
+              💬 Top 10 Palabras
+            </h3>
+
+            <div style="display: flex; flex-direction: column; gap: 12pt;">
+              <% @word_occurrences.first(10).each_with_index do |word_data, index| %>
+                <% word, count = word_data %>
+                <div class="tag-item" style="display: flex; align-items: center; gap: 12pt; padding: 12pt 16pt; background: white; border: 1.5pt solid #e5e7eb; border-radius: 10pt; box-shadow: 0 1pt 4pt rgba(0, 0, 0, 0.06);">
+                  <%# Ranking Badge %>
+                  <div style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 28pt; height: 28pt; background: linear-gradient(135deg, #1DA1F2 0%, #0c7abf 100%); color: white; border-radius: 50%; font-size: 12pt; font-weight: 900; box-shadow: 0 2pt 4pt rgba(29, 161, 242, 0.3);">
+                    <%= index + 1 %>
+                  </div>
+
+                  <%# Word Icon %>
+                  <div style="flex: 0 0 auto; width: 40pt; height: 40pt; border-radius: 50%; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); display: flex; align-items: center; justify-content: center; font-size: 18pt; border: 2pt solid #93c5fd;">
+                    💬
+                  </div>
+
+                  <%# Info %>
+                  <div style="flex: 1; min-width: 0;">
+                    <div style="font-weight: 700; font-size: 10pt; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                      <%= word %>
+                    </div>
+                    <div style="font-size: 8pt; color: #6b7280; margin-top: 2pt;">
+                      Palabra clave
+                    </div>
+                  </div>
+
+                  <%# Métrica %>
+                  <div style="flex: 0 0 auto; text-align: right; padding: 8pt 12pt; background: #dbeafe; border-radius: 6pt;">
+                    <div style="font-size: 16pt; font-weight: 900; color: #1DA1F2; line-height: 1;">
+                      <%= count %>
+                    </div>
+                    <div style="font-size: 7pt; color: #0c7abf; text-transform: uppercase; font-weight: 600; margin-top: 2pt;">
+                      menciones
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+
+          <%# Columna 2: Top 10 Bigramas (frases de 2 palabras) %>
+          <div>
+            <h3 style="margin: 0 0 20pt 0; font-size: 14pt; font-weight: 700; color: #1f2937; padding-left: 12pt; border-left: 4pt solid #10b981;">
+              💬💬 Top 10 Frases
+            </h3>
+
+            <div style="display: flex; flex-direction: column; gap: 12pt;">
+              <% @bigram_occurrences.first(10).each_with_index do |bigram_data, index| %>
+                <% bigram, count = bigram_data %>
+                <div class="tag-item" style="display: flex; align-items: center; gap: 12pt; padding: 12pt 16pt; background: white; border: 1.5pt solid #e5e7eb; border-radius: 10pt; box-shadow: 0 1pt 4pt rgba(0, 0, 0, 0.06);">
+                  <%# Ranking Badge %>
+                  <div style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 28pt; height: 28pt; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border-radius: 50%; font-size: 12pt; font-weight: 900; box-shadow: 0 2pt 4pt rgba(16, 185, 129, 0.3);">
+                    <%= index + 1 %>
+                  </div>
+
+                  <%# Bigram Icon %>
+                  <div style="flex: 0 0 auto; width: 40pt; height: 40pt; border-radius: 50%; background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); display: flex; align-items: center; justify-content: center; font-size: 18pt; border: 2pt solid #6ee7b7;">
+                    💬
+                  </div>
+
+                  <%# Info %>
+                  <div style="flex: 1; min-width: 0;">
+                    <div style="font-weight: 700; font-size: 10pt; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                      <%= bigram %>
+                    </div>
+                    <div style="font-size: 8pt; color: #6b7280; margin-top: 2pt;">
+                      Frase común
+                    </div>
+                  </div>
+
+                  <%# Métrica %>
+                  <div style="flex: 0 0 auto; text-align: right; padding: 8pt 12pt; background: #d1fae5; border-radius: 6pt;">
+                    <div style="font-size: 16pt; font-weight: 900; color: #10b981; line-height: 1;">
+                      <%= count %>
+                    </div>
+                    <div style="font-size: 7pt; color: #059669; text-transform: uppercase; font-weight: 600; margin-top: 2pt;">
+                      menciones
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+
+        </div>
+      <% end %>
+    <% end %>
+    <% end %>
+
+    <%# SLIDE 6: Top Tweets %>
+    <%= render 'shared/pdf_section_wrapper', section_id: 'section-6' do %>
+    <% if @top_posts.present? && @top_posts.any? %>
+      <%= render 'shared/pdf_slide',
+            slide_number: 6,
+            title: "Tweets con Más Interacciones",
+            subtitle: "Contenido de Mayor Impacto",
+            report_type: :twitter,
+            topic_name: @topic.name do %>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20pt;">
+          <% @top_posts.take(8).each_with_index do |post, index| %>
+            <div class="post-card" style="background: white; border: 2pt solid #e0f2fe; border-radius: 10pt; padding: 14pt 16pt; box-shadow: 0 2pt 6pt rgba(29, 161, 242, 0.06);">
+              <%# Header %>
+              <div style="display: flex; align-items: center; gap: 10pt; margin-bottom: 10pt;">
+                <span style="display: flex; align-items: center; justify-content: center; width: 28pt; height: 28pt; background: linear-gradient(135deg, #1DA1F2 0%, #0c7abf 100%); color: white; border-radius: 50%; font-size: 12pt; font-weight: 900;">#<%= index + 1 %></span>
+                <div style="flex: 1; min-width: 0;">
+                  <div style="font-weight: 700; color: #1f2937; font-size: 9pt; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">@<%= post.twitter_profile&.username || 'Unknown' %></div>
+                  <div style="font-size: 7pt; color: #9ca3af;"><%= post.posted_at&.strftime("%d/%m/%Y") %></div>
+                </div>
+              </div>
+
+              <%# Tweet Text %>
+              <% if post.text.present? %>
+                <p style="margin: 0 0 10pt 0; font-size: 8pt; line-height: 1.5; color: #4b5563; height: 48pt; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical;"><%= post.text %></p>
+              <% end %>
+
+              <%# Metrics Compact %>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6pt; font-size: 8pt;">
+                <div style="background: #fef3c7; padding: 6pt; border-radius: 4pt; text-align: center;">
+                  <div style="color: #92400e;">❤️</div>
+                  <div style="font-weight: 700; color: #1f2937;"><%= pdf_format_number(post.favorite_count || 0) %></div>
+                </div>
+                <div style="background: #d1fae5; padding: 6pt; border-radius: 4pt; text-align: center;">
+                  <div style="color: #065f46;">🔁</div>
+                  <div style="font-weight: 700; color: #1f2937;"><%= pdf_format_number(post.retweet_count || 0) %></div>
+                </div>
+                <div style="background: #dbeafe; padding: 6pt; border-radius: 4pt; text-align: center;">
+                  <div style="color: #1e40af;">💬</div>
+                  <div style="font-weight: 700; color: #1f2937;"><%= pdf_format_number(post.reply_count || 0) %></div>
+                </div>
                 <% if post.views_count && post.views_count > 0 %>
-                  <span class="pdf-metric">👁️ <strong><%= pdf_format_number(post.views_count) %></strong> Vistas</span>
+                  <div style="background: #f3f4f6; padding: 6pt; border-radius: 4pt; text-align: center;">
+                    <div style="color: #9ca3af;">👁️</div>
+                    <div style="font-weight: 700; color: #1f2937;"><%= pdf_format_number(post.views_count) %></div>
+                  </div>
                 <% end %>
               </div>
             </div>
           <% end %>
         </div>
       <% end %>
+    <% end %>
+    <% end %>
 
-      <!-- Footer -->
-      <div class="pdf-report-footer">
-        <span>Generado por Morfeo Analytics</span>
-        <span><%= Time.current.strftime("%d/%m/%Y %H:%M") %></span>
-        <span>Confidencial</span>
-      </div>
-    </div>
   </body>
 </html>
