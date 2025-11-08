@@ -1,0 +1,10 @@
+<%# Sentiment Legend Partial - Better separation of concerns %>
+<div class="flex items-center space-x-2 text-sm text-gray-500">
+  <% sentiment_legend_data.each do |item| %>
+    <div class="flex items-center">
+      <div class="w-3 h-3 rounded-full mr-1" style="background-color: <%= item[:color] %>"></div>
+      <span><%= item[:label] %></span>
+    </div>
+  <% end %>
+</div>
+

@@ -1,0 +1,76 @@
+<%
+# Sentiment Trend Charts Partial (Refactored with Presenter)
+# Reusable component for displaying sentiment trends across dashboards
+#
+# Required locals:
+#   - title: Section title (e.g., "Tendencias de Sentimiento")
+#   - icon: FontAwesome icon class (e.g., "fa-arrow-trend-up")
+#   - icon_color: Tailwind color class (e.g., "text-blue-600")
+#   - chart_data_counts: Data for count/quantity chart
+#   - chart_data_sums: Data for sum/interactions chart
+#
+# Optional locals:
+#   - chart_id_prefix: Prefix for chart IDs (default: "sentiment")
+#   - count_label: Label for first chart (default: I18n)
+#   - sum_label: Label for second chart (default: I18n)
+#   - controller_name: Stimulus controller name (optional)
+#   - topic_id: Topic ID for data reloading (optional)
+#   - url_path: URL for AJAX data loading (optional)
+
+# Initialize presenter to handle chart configuration
+presenter = SentimentChartPresenter.new(local_assigns)
+%>
+
+<section class="mb-8">
+  <h2 class="text-2xl font-bold text-gray-900 mb-6">
+    <i class="fa-solid <%= presenter.icon %> <%= presenter.icon_color %> mr-2"></i>
+    <%= presenter.title %>
+  </h2>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Sentiment Chart 1: Quantities/Counts -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-medium text-gray-900"><%= presenter.count_label %> por Sentimiento</h3>
+        <%= render 'shared/sentiment_legend' %>
+      </div>
+      
+      <div class='w-full overflow-hidden' <%= tag.attributes(presenter.count_chart_stimulus_attributes) %>>
+        <%= line_chart polarity_stacked_chart_data(presenter.chart_data_counts),
+              xtitle: 'Fecha',
+              ytitle: "Cant. #{presenter.count_label}",
+              thousands: '.',
+              colors: sentiment_colors,
+              id: presenter.count_chart_id,
+              library: sentiment_line_chart_config %>
+        
+        <% if presenter.stimulus_enabled? %>
+          <%= render partial: 'home/modal', locals: { graph_id: presenter.count_chart_id, controller_name: local_assigns[:controller_name] } %>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Sentiment Chart 2: Sums/Interactions -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-medium text-gray-900"><%= presenter.sum_label %> por Sentimiento</h3>
+        <%= render 'shared/sentiment_legend' %>
+      </div>
+      
+      <div class='w-full overflow-hidden' <%= tag.attributes(presenter.sum_chart_stimulus_attributes) %>>
+        <%= line_chart polarity_stacked_chart_data(presenter.chart_data_sums),
+              xtitle: 'Fecha',
+              ytitle: "Cant. #{presenter.sum_label}",
+              thousands: '.',
+              colors: sentiment_colors,
+              id: presenter.sum_chart_id,
+              library: sentiment_line_chart_config %>
+        
+        <% if presenter.stimulus_enabled? %>
+          <%= render partial: 'home/modal', locals: { graph_id: presenter.sum_chart_id, controller_name: local_assigns[:controller_name] } %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</section>
+

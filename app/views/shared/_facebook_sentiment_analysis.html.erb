@@ -1,0 +1,34 @@
+<%# Facebook Sentiment Analysis Main Partial
+# Reusable component for Facebook reaction-based sentiment analysis
+#
+# Required locals:
+#   - sentiment_summary: Hash with main sentiment metrics
+#   - sentiment_distribution: Hash with distribution data
+#   - sentiment_over_time: Hash with time series data
+#   - reaction_breakdown: Hash with reaction counts
+#   - top_positive_posts: Array of positive posts
+#   - top_negative_posts: Array of negative posts
+#   - controversial_posts: Array of controversial posts
+#   - sentiment_trend: Hash with 24h trend data
+#   - emotional_trends: Hash with emotional intensity data (optional)
+%>
+
+<% presenter = FacebookSentimentPresenter.new(local_assigns) %>
+<% return unless presenter.has_data? %>
+
+<section id="sentiment" class="mb-8">
+  <h2 class="text-2xl font-bold text-gray-900 mb-6">
+    <i class="fa-solid fa-heart-pulse text-purple-600 mr-2"></i>
+    Análisis de Sentimiento
+  </h2>
+
+  <!-- Overview Cards -->
+  <%= render 'shared/facebook_sentiment_overview', presenter: presenter %>
+
+  <!-- Charts Grid -->
+  <%= render 'shared/facebook_sentiment_charts', presenter: presenter %>
+
+  <!-- Top Posts by Sentiment -->
+  <%= render 'shared/facebook_sentiment_top_posts', presenter: presenter %>
+</section>
+

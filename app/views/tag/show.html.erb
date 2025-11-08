@@ -437,58 +437,15 @@
         </div>
       </section>
       <!-- Sentiment Trends Section -->
-      <section class="mb-8">
-        <h2 class="text-2xl font-bold text-gray-900 mb-6">
-          <i class="fa-solid fa-arrow-trend-up text-blue-600 mr-2"></i>
-          Tendencias de Sentimiento
-        </h2>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
-          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow w-full">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Cantidad de Notas por Sentimiento</h3>
-            <div class='w-full overflow-hidden'>
-              <%= line_chart polarity_stacked_chart_data(@entries.where.not(polarity: nil).reorder(nil).group(:polarity).group_by_day(:published_at).count), 
-                    xtitle: "Fecha", 
-                    ytitle: "Cant. Notas", 
-                    colors: ['#10B981', '#9CA3AF', '#EF4444'],
-                    library: {
-                      chart: { height: 300 },
-                      plotOptions: {
-                        series: {
-                          lineWidth: 3,
-                          marker: { enabled: true, radius: 4 }
-                        }
-                      },
-                      tooltip: {
-                        shared: true,
-                        crosshairs: true
-                      }
-                    } %>
-            </div>
-          </div>
-          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow w-full">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Cantidad de Interacciones por Sentimiento</h3>
-            <div class='w-full overflow-hidden'>
-              <%= line_chart polarity_stacked_chart_data(@entries.where.not(polarity: nil).reorder(nil).group(:polarity).group_by_day(:published_at).sum(:total_count)), 
-                    xtitle: "Fecha", 
-                    ytitle: "Cant. Interacciones", 
-                    colors: ['#10B981', '#9CA3AF', '#EF4444'],
-                    library: {
-                      chart: { height: 300 },
-                      plotOptions: {
-                        series: {
-                          lineWidth: 3,
-                          marker: { enabled: true, radius: 4 }
-                        }
-                      },
-                      tooltip: {
-                        shared: true,
-                        crosshairs: true
-                      }
-                    } %>
-            </div>
-          </div>
-        </div>
-      </section>
+      <%= render 'shared/sentiment_trend_charts',
+            title: 'Tendencias de Sentimiento',
+            icon: 'fa-arrow-trend-up',
+            icon_color: 'text-blue-600',
+            chart_data_counts: @sentiment_data[:counts],
+            chart_data_sums: @sentiment_data[:sums],
+            chart_id_prefix: 'tagSentiment',
+            count_label: 'Notas',
+            sum_label: 'Interacciones' %>
       <!-- Sentiment Distribution Section -->
       <section class="mb-8">
         <h2 class="text-2xl font-bold text-gray-900 mb-6">

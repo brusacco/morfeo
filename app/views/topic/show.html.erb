@@ -491,106 +491,18 @@
       </div>
     </section>
     <!-- Sentiment Trend Charts -->
-    <section class="mb-8">
-      <h2 class="text-2xl font-bold text-gray-900 mb-6">
-        <i class="fa-solid fa-arrow-trend-up text-blue-600 mr-2"></i>
-        Tendencias de Sentimiento
-      </h2>
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Sentiment Chart 1: Entry Quantities -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-medium text-gray-900">Notas por Sentimiento</h3>
-            <div class="flex items-center space-x-2 text-sm text-gray-500">
-              <div class="flex items-center">
-                <div class="w-3 h-3 bg-green-500 rounded-full mr-1"></div>
-                <span>Positivo</span>
-              </div>
-              <div class="flex items-center">
-                <div class="w-3 h-3 bg-gray-400 rounded-full mr-1"></div>
-                <span>Neutro</span>
-              </div>
-              <div class="flex items-center">
-                <div class="w-3 h-3 bg-red-500 rounded-full mr-1"></div>
-                <span>Negativo</span>
-              </div>
-            </div>
-          </div>
-          <div class='w-full overflow-hidden'
-            data-controller='topics'
-            data-topics-id-value='entryPolarityQuantitiesChart'
-            data-topics-url-value='<%= entries_data_topics_path %>'
-            data-topics-topic-id-value='<%= @topic.id %>'>
-            <%= line_chart polarity_stacked_chart_data(@chart_entries_sentiments_counts),
-                  xtitle: 'Fecha',
-                  ytitle: 'Cant. Notas',
-                  thousands: '.',
-                  colors: ['#10B981', '#9CA3AF', '#EF4444'],
-                  id: 'entryPolarityQuantitiesChart',
-                  library: {
-                    chart: { height: 300 },
-                    plotOptions: {
-                      series: {
-                        lineWidth: 3,
-                        marker: { enabled: true, radius: 4 }
-                      }
-                    },
-                    tooltip: {
-                      shared: true,
-                      crosshairs: true
-                    }
-                  } %>
-            <%= render partial: 'home/modal', locals: { graph_id: 'entryPolarityQuantitiesChart', controller_name: 'topics' } %>
-          </div>
-        </div>
-        <!-- Sentiment Chart 2: Interactions -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-medium text-gray-900">Interacciones por Sentimiento</h3>
-            <div class="flex items-center space-x-2 text-sm text-gray-500">
-              <div class="flex items-center">
-                <div class="w-3 h-3 bg-green-500 rounded-full mr-1"></div>
-                <span>Positivo</span>
-              </div>
-              <div class="flex items-center">
-                <div class="w-3 h-3 bg-gray-400 rounded-full mr-1"></div>
-                <span>Neutro</span>
-              </div>
-              <div class="flex items-center">
-                <div class="w-3 h-3 bg-red-500 rounded-full mr-1"></div>
-                <span>Negativo</span>
-              </div>
-            </div>
-          </div>
-          <div class='w-full overflow-hidden'
-            data-controller='topics'
-            data-topics-id-value='entryPolarityInteractionsChart'
-            data-topics-url-value='<%= entries_data_topics_path %>'
-            data-topics-topic-id-value='<%= @topic.id %>'>
-            <%= line_chart polarity_stacked_chart_data(@chart_entries_sentiments_sums),
-                  xtitle: 'Fecha',
-                  ytitle: 'Cant. Interacciones',
-                  thousands: '.',
-                  colors: ['#10B981', '#9CA3AF', '#EF4444'],
-                  id: 'entryPolarityInteractionsChart',
-                  library: {
-                    chart: { height: 300 },
-                    plotOptions: {
-                      series: {
-                        lineWidth: 3,
-                        marker: { enabled: true, radius: 4 }
-                      }
-                    },
-                    tooltip: {
-                      shared: true,
-                      crosshairs: true
-                    }
-                  } %>
-            <%= render partial: 'home/modal', locals: { graph_id: 'entryPolarityInteractionsChart', controller_name: 'topics' } %>
-          </div>
-        </div>
-      </div>
-    </section>
+    <%= render 'shared/sentiment_trend_charts',
+          title: 'Tendencias de Sentimiento',
+          icon: 'fa-arrow-trend-up',
+          icon_color: 'text-blue-600',
+          chart_data_counts: @chart_entries_sentiments_counts,
+          chart_data_sums: @chart_entries_sentiments_sums,
+          chart_id_prefix: 'entryPolarity',
+          count_label: 'Notas',
+          sum_label: 'Interacciones',
+          controller_name: 'topics',
+          topic_id: @topic.id,
+          url_path: entries_data_topics_path %>
     <!-- Sentiment Distribution -->
     <section class="mb-8">
       <h2 class="text-2xl font-bold text-gray-900 mb-6">

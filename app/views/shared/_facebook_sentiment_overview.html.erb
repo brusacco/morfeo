@@ -1,0 +1,57 @@
+<%# Facebook Sentiment Overview Cards %>
+<% presenter = local_assigns[:presenter] %>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+  <!-- Average Sentiment Card -->
+  <div class="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl border border-purple-200 p-6">
+    <h3 class="text-sm font-medium text-gray-600 mb-3"><%= t('sentiment.facebook.average_sentiment') %></h3>
+    <div class="flex items-center justify-between">
+      <div class="text-4xl font-bold <%= sentiment_score_color(presenter.average_sentiment) %>">
+        <%= presenter.formatted_score(presenter.average_sentiment) %>
+      </div>
+      <div class="text-5xl"><%= sentiment_emoji(presenter.average_sentiment) %></div>
+    </div>
+    <p class="text-xs text-gray-500 mt-3">-2.0 (muy negativo) a +2.0 (muy positivo)</p>
+    
+    <% if presenter.has_validity_data? %>
+      <div class="mt-3 pt-3 border-t border-purple-200">
+        <div class="flex items-center justify-between text-xs">
+          <span class="text-gray-600"><%= t('sentiment.facebook.confidence') %>:</span>
+          <span class="font-semibold <%= presenter.high_confidence? ? 'text-green-600' : 'text-amber-600' %>">
+            <%= (presenter.overall_confidence * 100).round %>%
+          </span>
+        </div>
+        <div class="flex items-center justify-between text-xs mt-1">
+          <span class="text-gray-600"><%= t('sentiment.facebook.reactions') %>:</span>
+          <span class="font-semibold text-purple-600">
+            <%= number_with_delimiter(presenter.total_reactions) %>
+          </span>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Trend Card -->
+  <% if presenter.has_trend? %>
+    <div class="bg-white rounded-xl border border-gray-200 p-6">
+      <h3 class="text-sm font-medium text-gray-600 mb-3"><%= t('sentiment.facebook.trend_24h') %></h3>
+      <div class="text-3xl font-bold <%= sentiment_score_color(presenter.trend_recent_score) %>">
+        <%= "%+.1f" % presenter.trend_change_percent %>%
+      </div>
+      <div class="flex items-center mt-3 text-sm">
+        <%= sentiment_trend_icon(presenter.trend_direction) %>
+        <span class="ml-2 text-gray-700 capitalize"><%= presenter.trend_label %></span>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Controversial Posts Card -->
+  <div class="bg-white rounded-xl border border-gray-200 p-6">
+    <h3 class="text-sm font-medium text-gray-600 mb-3"><%= t('sentiment.facebook.controversial_posts') %></h3>
+    <div class="text-3xl font-bold text-amber-600">
+      <%= presenter.controversial_count %>
+    </div>
+    <p class="text-xs text-gray-500 mt-3">Alto balance entre reacciones positivas/negativas</p>
+  </div>
+</div>
+

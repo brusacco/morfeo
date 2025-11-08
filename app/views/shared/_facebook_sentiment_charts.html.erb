@@ -1,0 +1,61 @@
+<%# Facebook Sentiment Charts Sub-Partial %>
+<% presenter = local_assigns[:presenter] %>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+  <!-- Sentiment Over Time Chart -->
+  <% if presenter.has_time_series? %>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <h3 class="text-lg font-medium text-gray-900 mb-4"><%= t('sentiment.facebook.evolution') %></h3>
+      <%= line_chart presenter.sentiment_time_series_data,
+          colors: [presenter.chart_color(:primary)],
+          min: -2,
+          max: 2,
+          download: false,
+          library: {
+            chart: { height: 300 },
+            plotOptions: {
+              series: {
+                lineWidth: 3,
+                marker: { radius: 4 }
+              }
+            },
+            yAxis: {
+              plotLines: [{
+                color: '#10B981',
+                width: 2,
+                value: 0,
+                dashStyle: 'Dash',
+                label: { text: 'Neutral' }
+              }]
+            }
+          } %>
+    </div>
+  <% end %>
+
+  <!-- Distribution Pie Chart -->
+  <% if presenter.has_distribution? %>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <h3 class="text-lg font-medium text-gray-900 mb-4"><%= t('sentiment.facebook.distribution') %></h3>
+      <%= pie_chart prepare_sentiment_pie_data(presenter.sentiment_distribution),
+          donut: true,
+          colors: ['#10b981', '#84cc16', '#94a3b8', '#f97316', '#ef4444'],
+          download: false,
+          library: { chart: { height: 300 } } %>
+    </div>
+  <% end %>
+</div>
+
+<!-- Reaction Breakdown Chart -->
+<% if presenter.has_reaction_breakdown? %>
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+    <h3 class="text-lg font-medium text-gray-900 mb-4">
+      <i class="fa-solid fa-chart-bar text-indigo-600 mr-2"></i>
+      <%= t('sentiment.facebook.reaction_breakdown') %>
+    </h3>
+    <%= column_chart prepare_reaction_breakdown(presenter.reaction_breakdown),
+        colors: ['#ec4899', '#f59e0b', '#8b5cf6', '#3b82f6', '#10b981', '#6366f1', '#ef4444'],
+        download: false,
+        library: { chart: { height: 300 } } %>
+  </div>
+<% end %>
+

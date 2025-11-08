@@ -1,0 +1,137 @@
+<%# Facebook Sentiment Top Posts Sub-Partial %>
+<% presenter = local_assigns[:presenter] %>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+  <!-- Positive Posts -->
+  <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 p-6">
+    <h3 class="text-lg font-medium text-green-900 mb-4">
+      <i class="fa-solid fa-smile text-green-600 mr-2"></i>
+      <%= t('sentiment.facebook.top_positive') %>
+    </h3>
+    
+    <% if presenter.has_positive_posts? %>
+      <div class="space-y-3">
+        <% presenter.top_positive_posts.first(3).each do |post| %>
+          <div class="bg-white rounded-lg border border-green-200 p-3">
+            <%= link_to post.permalink_url, target: '_blank', rel: 'noopener',
+                class: 'text-sm text-gray-900 hover:text-green-600 line-clamp-2 block mb-2' do %>
+              <%= post.message.to_s.truncate(80) %>
+              <i class="fa-solid fa-external-link text-xs ml-1"></i>
+            <% end %>
+            
+            <div class="flex items-center justify-between text-xs mb-2">
+              <span class="text-gray-600"><%= post.page.name %></span>
+              <span class="font-bold text-green-700">
+                <%= sentiment_emoji(post.sentiment_score) %>
+                <%= number_with_precision(post.sentiment_score, precision: 1) %>
+              </span>
+            </div>
+            
+            <!-- Reaction Breakdown -->
+            <div class="pt-2 border-t border-green-100">
+              <div class="flex items-center justify-between text-xs text-gray-600">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <% if post.reactions_love_count > 0 %>
+                    <span class="inline-flex items-center gap-1">
+                      <span>❤️</span>
+                      <span class="font-medium"><%= post.reactions_love_count %></span>
+                    </span>
+                  <% end %>
+                  <% if post.reactions_haha_count > 0 %>
+                    <span class="inline-flex items-center gap-1">
+                      <span>😆</span>
+                      <span class="font-medium"><%= post.reactions_haha_count %></span>
+                    </span>
+                  <% end %>
+                  <% if post.reactions_wow_count > 0 %>
+                    <span class="inline-flex items-center gap-1">
+                      <span>😮</span>
+                      <span class="font-medium"><%= post.reactions_wow_count %></span>
+                    </span>
+                  <% end %>
+                  <% if post.reactions_thankful_count > 0 %>
+                    <span class="inline-flex items-center gap-1">
+                      <span>🙏</span>
+                      <span class="font-medium"><%= post.reactions_thankful_count %></span>
+                    </span>
+                  <% end %>
+                </div>
+                <span class="font-semibold text-green-700">
+                  <%= number_with_delimiter(post.total_interactions) %>
+                </span>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="text-center py-8">
+        <p class="text-xs text-gray-500"><%= t('sentiment.facebook.no_positive_posts') %></p>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Negative Posts -->
+  <div class="bg-gradient-to-br from-red-50 to-rose-50 rounded-xl border border-red-200 p-6">
+    <h3 class="text-lg font-medium text-red-900 mb-4">
+      <i class="fa-solid fa-frown text-red-600 mr-2"></i>
+      <%= t('sentiment.facebook.top_negative') %>
+    </h3>
+    
+    <% if presenter.has_negative_posts? %>
+      <div class="space-y-3">
+        <% presenter.top_negative_posts.first(3).each do |post| %>
+          <div class="bg-white rounded-lg border border-red-200 p-3">
+            <%= link_to post.permalink_url, target: '_blank', rel: 'noopener',
+                class: 'text-sm text-gray-900 hover:text-red-600 line-clamp-2 block mb-2' do %>
+              <%= post.message.to_s.truncate(80) %>
+              <i class="fa-solid fa-external-link text-xs ml-1"></i>
+            <% end %>
+            
+            <div class="flex items-center justify-between text-xs mb-2">
+              <span class="text-gray-600"><%= post.page.name %></span>
+              <span class="font-bold text-red-700">
+                <%= sentiment_emoji(post.sentiment_score) %>
+                <%= number_with_precision(post.sentiment_score, precision: 1) %>
+              </span>
+            </div>
+            
+            <!-- Reaction Breakdown -->
+            <div class="pt-2 border-t border-red-100">
+              <div class="flex items-center justify-between text-xs text-gray-600">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <% if post.reactions_sad_count > 0 %>
+                    <span class="inline-flex items-center gap-1">
+                      <span>😢</span>
+                      <span class="font-medium"><%= post.reactions_sad_count %></span>
+                    </span>
+                  <% end %>
+                  <% if post.reactions_angry_count > 0 %>
+                    <span class="inline-flex items-center gap-1">
+                      <span>😡</span>
+                      <span class="font-medium"><%= post.reactions_angry_count %></span>
+                    </span>
+                  <% end %>
+                  <% if post.reactions_wow_count > 0 %>
+                    <span class="inline-flex items-center gap-1">
+                      <span>😮</span>
+                      <span class="font-medium"><%= post.reactions_wow_count %></span>
+                    </span>
+                  <% end %>
+                </div>
+                <span class="font-semibold text-red-700">
+                  <%= number_with_delimiter(post.total_interactions) %>
+                </span>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="text-center py-8">
+        <p class="text-xs text-gray-500"><%= t('sentiment.facebook.no_negative_posts') %></p>
+      </div>
+    <% end %>
+  </div>
+</div>
+

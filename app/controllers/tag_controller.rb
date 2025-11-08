@@ -111,6 +111,9 @@ class TagController < ApplicationController
     @tags_count = {}
     @tags.each { |n| @tags_count[n.name] = n.count }
     
+    # Sentiment data for charts (moved from view for performance)
+    @sentiment_data = calculate_sentiment_data
+    
     # Temporal Intelligence Data
     load_temporal_intelligence_data
   end
@@ -391,5 +394,17 @@ class TagController < ApplicationController
         avg_engagement: (entries.sum(&:total_count).to_f / entries.size).round(1)
       }
     end
+  end
+  
+  # Calculate sentiment data for charts
+  # Moved from view for better performance and separation of concerns
+  # @return [Hash] Sentiment counts and sums grouped by day
+  def calculate_sentiment_data
+    entries_with_sentiment = @entries.where.not(polarity: nil).reorder(nil)
+    
+    {
+      counts: entries_with_sentiment.group(:polarity).group_by_day(:published_at).count,
+      sums: entries_with_sentiment.group(:polarity).group_by_day(:published_at).sum(:total_count)
+    }
   end
 end

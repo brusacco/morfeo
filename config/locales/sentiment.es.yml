@@ -1,0 +1,44 @@
+# Spanish translations for Morfeo
+es:
+  sentiment:
+    positive: "Positivo"
+    neutral: "Neutro"
+    negative: "Negativo"
+    charts:
+      title: "Tendencias de Sentimiento"
+      count_label: "Notas"
+      sum_label: "Interacciones"
+      positive_label: "Positivo"
+      neutral_label: "Neutro"
+      negative_label: "Negativo"
+    trend:
+      up: "al alza"
+      down: "a la baja"
+      stable: "estable"
+    facebook:
+      very_positive: "Muy Positivo"
+      positive: "Positivo"
+      neutral: "Neutral"
+      negative: "Negativo"
+      very_negative: "Muy Negativo"
+      average_sentiment: "Sentimiento Promedio"
+      confidence: "Confianza"
+      reactions: "Reacciones"
+      trend_24h: "Tendencia (24h)"
+      controversial_posts: "Posts Controversiales"
+      evolution: "Evolución del Sentimiento"
+      distribution: "Distribución"
+      reaction_breakdown: "Desglose de Reacciones"
+      top_positive: "Más Positivas"
+      top_negative: "Más Negativas"
+      no_positive_posts: "No se encontraron publicaciones con sentimiento positivo en este período."
+      no_negative_posts: "No se encontraron publicaciones con sentimiento negativo en este período."
+    reactions:
+      love: "Me Encanta"
+      like: "Me Gusta"
+      haha: "Me Divierte"
+      wow: "Me Asombra"
+      sad: "Me Entristece"
+      angry: "Me Enoja"
+      thankful: "Agradecido"
+
