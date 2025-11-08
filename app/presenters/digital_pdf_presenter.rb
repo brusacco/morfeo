@@ -5,13 +5,14 @@
 # Follows the same pattern as TwitterDashboardPresenter and FacebookSentimentPresenter
 class DigitalPdfPresenter
   include ActionView::Helpers::NumberHelper
+  include PdfConstants
 
   attr_reader :topic, :days_range, :data
 
   # Conservative reach multiplier for digital media
   # Assumes each interaction represents ~3 unique viewers
   # Based on industry research for digital news consumption patterns
-  REACH_MULTIPLIER = 3
+  REACH_MULTIPLIER = DIGITAL_REACH_MULTIPLIER
 
   # Initialize presenter with topic data
   #
@@ -53,7 +54,7 @@ class DigitalPdfPresenter
   # @return [Integer] Average interactions (rounded)
   def average_interactions
     return 0 if entries_count.zero?
-    @average_interactions ||= (interactions_count.to_f / entries_count).round
+    @average_interactions ||= (Float(interactions_count) / entries_count).round
   end
 
   # Format entries count with delimiter
@@ -207,7 +208,7 @@ class DigitalPdfPresenter
   # @param entries [ActiveRecord::Relation, Struct, Array] Entries data
   # @param limit [Integer] Maximum number of entries to return
   # @return [Array<Entry>] Top entries sorted by interactions
-  def top_entries(entries, limit: 15)
+  def top_entries(entries, limit: MAX_TOP_POSTS)
     if entries.respond_to?(:relation)
       # It's a Struct wrapper from PDF service
       entries.relation.includes(:site).order(total_count: :desc).limit(limit)
@@ -215,8 +216,8 @@ class DigitalPdfPresenter
       # It's an ActiveRecord Relation
       entries.includes(:site).order(total_count: :desc).limit(limit)
     else
-      # It's an Array
-      entries.sort_by { |e| -e.total_count.to_i }.take(limit)
+      # It's an Array - use safe conversion
+      entries.sort_by { |e| -Integer(e.total_count || 0) }.take(limit)
     end
   end
 
@@ -252,6 +253,24 @@ class DigitalPdfPresenter
   def reach_methodology
     "El alcance estimado se calcula de forma conservadora (#{REACH_MULTIPLIER}x las interacciones). " \
     'Esto asume que cada interacción representa aproximadamente 3 lectores únicos.'
+  end
+
+  # Get color palette for digital pie charts
+  # @return [Array<String>] Array of hex color codes
+  def pie_chart_colors
+    DIGITAL_PIE_COLORS
+  end
+
+  # Get primary color for digital charts
+  # @return [String] Hex color code
+  def primary_color
+    DIGITAL_PRIMARY_COLOR
+  end
+
+  # Get success color for interaction charts
+  # @return [String] Hex color code
+  def success_color
+    DIGITAL_SUCCESS_COLOR
   end
 end
 

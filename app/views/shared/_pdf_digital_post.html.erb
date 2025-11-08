@@ -1,0 +1,83 @@
+<%# Digital Entry Post Card for PDF
+     Displays a single digital media article/entry with its metrics
+     
+     Usage:
+       <%= render 'shared/pdf_digital_post', entry: entry, index: 0 %>
+     
+     Required locals:
+       - entry: Entry model instance
+     Optional locals:
+       - index: Position in list (for numbering)
+       - show_site: Whether to display site name (default: true)
+%>
+
+<%
+  index ||= nil
+  show_site = local_assigns.fetch(:show_site, true)
+  
+  # Calculate metrics
+  total_interactions = entry.total_count || 0
+  reactions = entry.reaction_count || 0
+  comments = entry.comment_count || 0
+  shares = entry.share_count || 0
+  
+  # Sentiment
+  sentiment = entry.polarity || 'neutral'
+  sentiment_emoji = case sentiment
+  when 'positive', 1 then '😊'
+  when 'negative', 2 then '☹️'
+  else '😐'
+  end
+%>
+
+<div class="pdf-post-item">
+  <div class="pdf-post-header">
+    <% if index.present? %>
+      <span class="pdf-post-number">#<%= index + 1 %></span>
+    <% end %>
+    <% if show_site && entry.site.present? %>
+      <span class="pdf-post-site"><%= entry.site.name %></span>
+    <% end %>
+    <span class="pdf-post-date"><%= entry.published_at&.strftime('%d/%m/%Y %H:%M') %></span>
+  </div>
+  
+  <h4 class="pdf-post-title">
+    <%= sentiment_emoji %> <%= entry.title %>
+  </h4>
+  
+  <% if entry.description.present? %>
+    <p class="pdf-post-description">
+      <%= entry.description.truncate(PdfConstants::DESCRIPTION_TRUNCATE_LENGTH) %>
+    </p>
+  <% end %>
+  
+  <div class="pdf-post-metrics">
+    <div class="pdf-metric-item">
+      <span class="pdf-metric-icon">👍</span>
+      <span class="pdf-metric-value"><%= pdf_format_number(reactions) %></span>
+      <span class="pdf-metric-label">Reacciones</span>
+    </div>
+    <div class="pdf-metric-item">
+      <span class="pdf-metric-icon">💬</span>
+      <span class="pdf-metric-value"><%= pdf_format_number(comments) %></span>
+      <span class="pdf-metric-label">Comentarios</span>
+    </div>
+    <div class="pdf-metric-item">
+      <span class="pdf-metric-icon">🔗</span>
+      <span class="pdf-metric-value"><%= pdf_format_number(shares) %></span>
+      <span class="pdf-metric-label">Compartidos</span>
+    </div>
+    <div class="pdf-metric-item">
+      <span class="pdf-metric-icon">📊</span>
+      <span class="pdf-metric-value"><%= pdf_format_number(total_interactions) %></span>
+      <span class="pdf-metric-label">Total</span>
+    </div>
+  </div>
+  
+  <% if entry.url.present? %>
+    <div class="pdf-post-url">
+      <%= entry.url.truncate(100) %>
+    </div>
+  <% end %>
+</div>
+

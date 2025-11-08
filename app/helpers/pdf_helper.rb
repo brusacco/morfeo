@@ -3,12 +3,14 @@
 # Helper methods for PDF generation
 # Provides utilities for formatting data in PDF reports
 module PdfHelper
+  include PdfConstants
+
   # Format number with delimiter for PDF display
   # @param number [Integer, Float] Number to format
   # @return [String] Formatted number with dots as thousands separator
   def pdf_format_number(number)
     return '0' if number.nil? || number.zero?
-    number.to_s.reverse.scan(/\d{1,3}/).join('.').reverse
+    number.to_s.reverse.scan(/\d{1,3}/).join(NUMBER_DELIMITER).reverse
   end
 
   # Get icon emoji for metric type
@@ -70,22 +72,22 @@ module PdfHelper
     when :facebook
       [
         {
-          label: 'Posts',
+          label: I18n.t('pdf.metrics.posts'),
           value: pdf_format_number(presenter.instance_variable_get(:@total_posts) || 0),
           icon: pdf_metric_icon(:posts)
         },
         {
-          label: 'Interacciones',
+          label: I18n.t('pdf.metrics.interactions'),
           value: pdf_format_number(presenter.instance_variable_get(:@total_interactions) || 0),
           icon: pdf_metric_icon(:interactions)
         },
         {
-          label: 'Vistas',
+          label: I18n.t('pdf.metrics.views'),
           value: pdf_format_number(presenter.instance_variable_get(:@total_views) || 0),
           icon: pdf_metric_icon(:views)
         },
         {
-          label: 'Promedio',
+          label: I18n.t('pdf.metrics.average'),
           value: pdf_format_number(presenter.instance_variable_get(:@average_interactions) || 0),
           icon: pdf_metric_icon(:average)
         }
@@ -119,11 +121,11 @@ module PdfHelper
   # @return [String] Formatted date range
   def pdf_date_range(days_range: nil, start_date: nil, end_date: nil)
     if start_date && end_date
-      "#{start_date.strftime('%d/%m/%Y')} - #{end_date.strftime('%d/%m/%Y')}"
+      I18n.t('pdf.period.from_to', from: start_date.strftime('%d/%m/%Y'), to: end_date.strftime('%d/%m/%Y'))
     elsif days_range
-      "Últimos #{days_range} días"
+      I18n.t('pdf.period.last_n_days', count: days_range)
     else
-      "Período analizado"
+      I18n.t('pdf.period.analyzed_period')
     end
   end
 
@@ -137,10 +139,10 @@ module PdfHelper
     if system == :facebook
       # Facebook: continuous score -2.0 to +2.0
       case score
-      when 1.5..Float::INFINITY then '😊'
-      when 0.5..1.5 then '🙂'
-      when -0.5..0.5 then '😐'
-      when -1.5..-0.5 then '☹️'
+      when FACEBOOK_SENTIMENT_VERY_POSITIVE..Float::INFINITY then '😊'
+      when FACEBOOK_SENTIMENT_POSITIVE..FACEBOOK_SENTIMENT_VERY_POSITIVE then '🙂'
+      when FACEBOOK_SENTIMENT_NEUTRAL_MIN..FACEBOOK_SENTIMENT_NEUTRAL_MAX then '😐'
+      when FACEBOOK_SENTIMENT_VERY_NEGATIVE..FACEBOOK_SENTIMENT_NEGATIVE then '☹️'
       else '😠'
       end
     else
@@ -158,10 +160,40 @@ module PdfHelper
   # @param total [Numeric] Total value
   # @param precision [Integer] Decimal places
   # @return [String] Formatted percentage
-  def pdf_percentage(part, total, precision: 1)
+  def pdf_percentage(part, total, precision: PERCENTAGE_PRECISION)
     return '0%' if total.nil? || total.zero?
     percentage = (part.to_f / total * 100).round(precision)
     "#{percentage}%"
+  end
+
+  # Get localized PDF title
+  # @param type [Symbol] PDF type (:digital, :facebook, :twitter)
+  # @param topic_name [String] Topic name
+  # @return [String] Localized title
+  def pdf_title(type, topic_name)
+    title_key = "pdf.titles.#{type}_report"
+    "#{I18n.t(title_key)}: #{topic_name}"
+  end
+
+  # Get localized section title
+  # @param section [Symbol] Section identifier
+  # @return [String] Localized section title
+  def pdf_section_title(section)
+    I18n.t("pdf.sections.#{section}")
+  end
+
+  # Get localized metric label
+  # @param metric [Symbol] Metric identifier
+  # @return [String] Localized metric label
+  def pdf_metric_label(metric)
+    I18n.t("pdf.metrics.#{metric}")
+  end
+
+  # Get localized chart title
+  # @param chart [Symbol] Chart identifier
+  # @return [String] Localized chart title
+  def pdf_chart_title(chart)
+    I18n.t("pdf.charts.#{chart}")
   end
 end
 

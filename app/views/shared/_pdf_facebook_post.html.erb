@@ -1,0 +1,131 @@
+<%# Facebook Post Card for PDF
+     Displays a single Facebook post with reaction-based sentiment and engagement metrics
+     
+     Usage:
+       <%= render 'shared/pdf_facebook_post', post: facebook_entry, index: 0 %>
+     
+     Required locals:
+       - post: FacebookEntry model instance
+     Optional locals:
+       - index: Position in list (for numbering)
+       - show_page: Whether to display page name (default: true)
+       - show_sentiment: Whether to show sentiment score (default: false)
+%>
+
+<%
+  index ||= nil
+  show_page = local_assigns.fetch(:show_page, true)
+  show_sentiment = local_assigns.fetch(:show_sentiment, false)
+  
+  # Calculate metrics
+  total_reactions = post.reactions_total_count || 0
+  comments = post.comments_count || 0
+  shares = post.share_count || 0
+  views = post.views_count || 0
+  total_interactions = total_reactions + comments + shares
+  
+  # Reactions breakdown
+  likes = post.reactions_like_count || 0
+  loves = post.reactions_love_count || 0
+  hahas = post.reactions_haha_count || 0
+  wows = post.reactions_wow_count || 0
+  sads = post.reactions_sad_count || 0
+  angrys = post.reactions_angry_count || 0
+  
+  # Sentiment
+  sentiment_score = post.sentiment_score || 0.0
+  sentiment_emoji = pdf_sentiment_emoji(sentiment_score, system: :facebook)
+%>
+
+<div class="pdf-post-item">
+  <div class="pdf-post-header">
+    <% if index.present? %>
+      <span class="pdf-post-number">#<%= index + 1 %></span>
+    <% end %>
+    <% if show_page && post.page.present? %>
+      <span class="pdf-post-site"><i class="fab fa-facebook"></i> <%= post.page.name %></span>
+    <% end %>
+    <span class="pdf-post-date"><%= post.posted_at&.strftime('%d/%m/%Y %H:%M') %></span>
+  </div>
+  
+  <% if show_sentiment %>
+    <div class="pdf-sentiment-badge" style="background: <%= sentiment_score > 0.5 ? '#d1fae5' : sentiment_score < -0.5 ? '#fee2e2' : '#f3f4f6' %>">
+      <%= sentiment_emoji %> Sentimiento: <%= sprintf('%.2f', sentiment_score) %>
+      <% if post.controversy_index && post.controversy_index > 0.5 %>
+        <span class="pdf-controversy-badge">⚠️ Controvertido</span>
+      <% end %>
+    </div>
+  <% end %>
+  
+  <% if post.message.present? %>
+    <p class="pdf-post-message">
+      <%= post.message.truncate(PdfConstants::POST_MESSAGE_TRUNCATE_LENGTH) %>
+    </p>
+  <% end %>
+  
+  <% if post.attachment_title.present? %>
+    <div class="pdf-post-attachment">
+      <strong><%= post.attachment_title %></strong>
+      <% if post.attachment_description.present? %>
+        <p><%= post.attachment_description.truncate(100) %></p>
+      <% end %>
+    </div>
+  <% end %>
+  
+  <div class="pdf-post-metrics">
+    <div class="pdf-metric-item">
+      <span class="pdf-metric-icon">👁️</span>
+      <span class="pdf-metric-value"><%= pdf_format_number(views) %></span>
+      <span class="pdf-metric-label">Vistas</span>
+    </div>
+    <div class="pdf-metric-item">
+      <span class="pdf-metric-icon">❤️</span>
+      <span class="pdf-metric-value"><%= pdf_format_number(total_reactions) %></span>
+      <span class="pdf-metric-label">Reacciones</span>
+    </div>
+    <div class="pdf-metric-item">
+      <span class="pdf-metric-icon">💬</span>
+      <span class="pdf-metric-value"><%= pdf_format_number(comments) %></span>
+      <span class="pdf-metric-label">Comentarios</span>
+    </div>
+    <div class="pdf-metric-item">
+      <span class="pdf-metric-icon">🔗</span>
+      <span class="pdf-metric-value"><%= pdf_format_number(shares) %></span>
+      <span class="pdf-metric-label">Compartidos</span>
+    </div>
+    <div class="pdf-metric-item">
+      <span class="pdf-metric-icon">📊</span>
+      <span class="pdf-metric-value"><%= pdf_format_number(total_interactions) %></span>
+      <span class="pdf-metric-label">Total</span>
+    </div>
+  </div>
+  
+  <!-- Reaction Breakdown -->
+  <div class="pdf-reaction-breakdown">
+    <% if likes > 0 %>
+      <span class="pdf-reaction-item">👍 <%= pdf_format_number(likes) %></span>
+    <% end %>
+    <% if loves > 0 %>
+      <span class="pdf-reaction-item">❤️ <%= pdf_format_number(loves) %></span>
+    <% end %>
+    <% if hahas > 0 %>
+      <span class="pdf-reaction-item">😄 <%= pdf_format_number(hahas) %></span>
+    <% end %>
+    <% if wows > 0 %>
+      <span class="pdf-reaction-item">😮 <%= pdf_format_number(wows) %></span>
+    <% end %>
+    <% if sads > 0 %>
+      <span class="pdf-reaction-item">😢 <%= pdf_format_number(sads) %></span>
+    <% end %>
+    <% if angrys > 0 %>
+      <span class="pdf-reaction-item">😠 <%= pdf_format_number(angrys) %></span>
+    <% end %>
+  </div>
+  
+  <% if post.permalink_url.present? %>
+    <div class="pdf-post-url">
+      <a href="<%= post.permalink_url %>" target="_blank"><%= post.permalink_url.truncate(100) %></a>
+    </div>
+  <% end %>
+</div>
+

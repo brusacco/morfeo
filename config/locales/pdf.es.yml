@@ -1,0 +1,126 @@
+es:
+  pdf:
+    titles:
+      digital_report: "Reporte Medios Digitales"
+      facebook_report: "Reporte Facebook"
+      twitter_report: "Reporte Twitter"
+      general_report: "Reporte General"
+      
+    sections:
+      main_metrics: "Métricas Principales"
+      temporal_evolution: "Evolución Temporal"
+      sentiment_analysis: "Análisis de Sentimiento"
+      media_analysis: "Análisis de Medios"
+      tags_analysis: "Análisis de Etiquetas"
+      words_analysis: "Análisis de Palabras"
+      top_content: "Contenido Destacado"
+      top_articles: "Top Notas con Más Interacciones"
+      top_posts: "Top Posts con Más Interacciones"
+      top_tweets: "Top Tweets con Más Interacciones"
+      fanpages_analysis: "Análisis de Fanpages"
+      profiles_analysis: "Análisis de Perfiles"
+      executive_summary: "Resumen Ejecutivo"
+      
+    metrics:
+      entries: "Notas"
+      posts: "Posts"
+      tweets: "Tweets"
+      interactions: "Interacciones"
+      views: "Vistas"
+      reach: "Alcance"
+      estimated_reach: "Alcance Est."
+      average: "Promedio"
+      reactions: "Reacciones"
+      comments: "Comentarios"
+      shares: "Compartidos"
+      likes: "Likes"
+      retweets: "Retweets"
+      replies: "Respuestas"
+      quotes: "Quotes"
+      total: "Total"
+      engagement_rate: "Engagement Rate"
+      
+    charts:
+      entries_per_day: "Notas por Día"
+      interactions_per_day: "Interacciones por Día"
+      posts_per_day: "Posts por Día"
+      tweets_per_day: "Tweets por Día"
+      entries_by_sentiment: "Notas por Sentimiento"
+      interactions_by_sentiment: "Interacciones por Sentimiento"
+      entries_by_site: "Notas por Medio"
+      interactions_by_site: "Interacciones por Medio"
+      posts_by_page: "Posts por Fanpage"
+      interactions_by_page: "Interacciones por Fanpage"
+      tweets_by_profile: "Tweets por Perfil"
+      interactions_by_profile: "Interacciones por Perfil"
+      entries_by_tag: "Notas por Etiqueta"
+      posts_by_tag: "Posts por Etiqueta"
+      tweets_by_tag: "Tweets por Etiqueta"
+      interactions_by_tag: "Interacciones por Etiqueta"
+      sentiment_evolution: "Evolución del Sentimiento"
+      posts_by_sentiment_type: "Posts por Tipo de Sentimiento"
+      reaction_breakdown: "Desglose de Reacciones"
+      
+    sentiment:
+      overview: "Resumen de Sentimiento"
+      positive_entries: "Notas Positivas"
+      neutral_entries: "Notas Neutrales"
+      negative_entries: "Notas Negativas"
+      average_sentiment: "Sentimiento Promedio"
+      statistical_confidence: "Confianza Estadística"
+      controversial_posts: "Posts Controvertidos"
+      top_positive: "Top %{count} Posts Más Positivos"
+      top_negative: "Top %{count} Posts Más Negativos"
+      top_controversial: "Top %{count} Posts Controvertidos"
+      methodology_note: "Nota Metodológica"
+      
+    words:
+      most_frequent: "Palabras Más Frecuentes en Titulares"
+      bigrams: "Bigramas Más Frecuentes"
+      
+    content:
+      featured_media: "Medios Destacados"
+      featured_pages: "Fanpages Destacadas"
+      featured_profiles: "Perfiles Destacados"
+      
+    footer:
+      generated_by: "Generado por"
+      morfeo_analytics: "Morfeo Analytics"
+      date: "Fecha de generación"
+      
+    period:
+      last_n_days: "Últimos %{count} días"
+      from_to: "%{from} - %{to}"
+      analyzed_period: "Período analizado"
+      generated: "Generado"
+      
+    summary:
+      topic_summary: "El tópico <strong>%{topic}</strong> en %{channel} durante los últimos <strong>%{days}</strong> días cuenta con un total de <strong>%{count}</strong> %{content_type} que generaron <strong>%{interactions}</strong> interacciones totales."
+      reach_summary: "El alcance estimado es de <strong>%{reach}</strong> personas. %{methodology} El promedio de interacciones por %{content_type} es de <strong>%{average}</strong>."
+      sentiment_summary: "El sentimiento promedio es %{sentiment}. El análisis se basa en <strong>%{reactions}</strong> reacciones con una confianza estadística del <strong>%{confidence}%</strong>."
+      distribution_summary: "La distribución de posts muestra: <strong style=\"color: #10b981\">%{positive}%</strong> positivos, <strong style=\"color: #6b7280\">%{neutral}%</strong> neutrales, y <strong style=\"color: #ef4444\">%{negative}%</strong> negativos."
+      
+    methodology:
+      reach_digital: "El alcance estimado se calcula de forma conservadora (%{multiplier}x las interacciones). Esto asume que cada interacción representa aproximadamente %{readers} lectores únicos."
+      reach_facebook: "Los datos de alcance de Facebook provienen directamente de la API de Meta y representan las visualizaciones reales del contenido."
+      reach_twitter: "Los datos de alcance de Twitter provienen de la API oficial cuando están disponibles. En caso contrario, se utiliza una estimación conservadora."
+      sentiment_facebook: "El análisis de sentimiento se basa en las reacciones de Facebook, donde cada tipo de reacción tiene un peso emocional diferente. Los valores positivos (Love, Haha) suman al sentimiento, mientras que los negativos (Sad, Angry) restan."
+      sentiment_digital: "El sentimiento de medios digitales es analizado mediante inteligencia artificial (OpenAI) basándose en el contenido del titular y texto de la nota."
+      
+    post_types:
+      tweet: "Tweet"
+      retweet: "Retweet"
+      quote_tweet: "Quote Tweet"
+      tweet_with_media: "Tweet con Media"
+      controversial: "Controvertido"
+      
+    channels:
+      digital: "medios digitales"
+      facebook: "Facebook"
+      twitter: "Twitter"
+      
+    content_types:
+      entries: "notas"
+      posts: "posts"
+      tweets: "tweets"
+

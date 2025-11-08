@@ -1,0 +1,116 @@
+<%# Twitter Post Card for PDF
+     Displays a single tweet with Twitter-specific engagement metrics
+     
+     Usage:
+       <%= render 'shared/pdf_twitter_post', tweet: twitter_post, index: 0 %>
+     
+     Required locals:
+       - tweet: TwitterPost model instance
+     Optional locals:
+       - index: Position in list (for numbering)
+       - show_profile: Whether to display profile name (default: true)
+       - show_post_type: Whether to show post type badge (default: false)
+%>
+
+<%
+  index ||= nil
+  show_profile = local_assigns.fetch(:show_profile, true)
+  show_post_type = local_assigns.fetch(:show_post_type, false)
+  
+  # Calculate metrics
+  likes = tweet.favorite_count || 0
+  retweets = tweet.retweet_count || 0
+  replies = tweet.reply_count || 0
+  quotes = tweet.quote_count || 0
+  views = tweet.views_count || 0
+  total_interactions = likes + retweets + replies + quotes
+  
+  # Post type
+  post_type = if tweet.is_retweet
+    'Retweet'
+  elsif tweet.is_quote
+    'Quote Tweet'
+  elsif tweet.payload&.dig('includes', 'media')&.any?
+    'Tweet con Media'
+  else
+    'Tweet'
+  end
+  
+  # Engagement rate
+  engagement_rate = views > 0 ? ((total_interactions.to_f / views) * 100).round(2) : 0
+%>
+
+<div class="pdf-post-item">
+  <div class="pdf-post-header">
+    <% if index.present? %>
+      <span class="pdf-post-number">#<%= index + 1 %></span>
+    <% end %>
+    <% if show_profile && tweet.twitter_profile.present? %>
+      <span class="pdf-post-site">
+        <i class="fab fa-twitter"></i> @<%= tweet.twitter_profile.username %>
+      </span>
+    <% end %>
+    <span class="pdf-post-date"><%= tweet.posted_at&.strftime('%d/%m/%Y %H:%M') %></span>
+    <% if show_post_type %>
+      <span class="pdf-post-type-badge"><%= post_type %></span>
+    <% end %>
+  </div>
+  
+  <% if tweet.text.present? %>
+    <p class="pdf-post-message">
+      <%= tweet.text.truncate(PdfConstants::POST_MESSAGE_TRUNCATE_LENGTH) %>
+    </p>
+  <% end %>
+  
+  <div class="pdf-post-metrics">
+    <div class="pdf-metric-item">
+      <span class="pdf-metric-icon">👁️</span>
+      <span class="pdf-metric-value"><%= pdf_format_number(views) %></span>
+      <span class="pdf-metric-label">Vistas</span>
+    </div>
+    <div class="pdf-metric-item">
+      <span class="pdf-metric-icon">❤️</span>
+      <span class="pdf-metric-value"><%= pdf_format_number(likes) %></span>
+      <span class="pdf-metric-label">Likes</span>
+    </div>
+    <div class="pdf-metric-item">
+      <span class="pdf-metric-icon">🔄</span>
+      <span class="pdf-metric-value"><%= pdf_format_number(retweets) %></span>
+      <span class="pdf-metric-label">Retweets</span>
+    </div>
+    <div class="pdf-metric-item">
+      <span class="pdf-metric-icon">💬</span>
+      <span class="pdf-metric-value"><%= pdf_format_number(replies) %></span>
+      <span class="pdf-metric-label">Respuestas</span>
+    </div>
+    <% if quotes > 0 %>
+      <div class="pdf-metric-item">
+        <span class="pdf-metric-icon">💭</span>
+        <span class="pdf-metric-value"><%= pdf_format_number(quotes) %></span>
+        <span class="pdf-metric-label">Quotes</span>
+      </div>
+    <% end %>
+    <div class="pdf-metric-item">
+      <span class="pdf-metric-icon">📊</span>
+      <span class="pdf-metric-value"><%= pdf_format_number(total_interactions) %></span>
+      <span class="pdf-metric-label">Total</span>
+    </div>
+  </div>
+  
+  <!-- Engagement Rate -->
+  <% if views > 0 %>
+    <div class="pdf-engagement-rate">
+      <strong>Engagement Rate:</strong> <%= engagement_rate %>%
+      <span class="pdf-engagement-formula">
+        (<%= pdf_format_number(total_interactions) %> interacciones / <%= pdf_format_number(views) %> vistas)
+      </span>
+    </div>
+  <% end %>
+  
+  <% if tweet.permalink_url.present? %>
+    <div class="pdf-post-url">
+      <a href="<%= tweet.permalink_url %>" target="_blank"><%= tweet.permalink_url.truncate(100) %></a>
+    </div>
+  <% end %>
+</div>
+
