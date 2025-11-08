@@ -1,0 +1,38 @@
+<%# Twitter KPIs Section
+# Displays 4 key performance indicator cards
+#
+# Required locals:
+#   - presenter: TwitterDashboardPresenter instance
+%>
+
+<% presenter = local_assigns[:presenter] %>
+<% return unless presenter&.has_data? %>
+
+<section id="kpis">
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <% presenter.kpi_cards.each do |kpi| %>
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-<%= kpi[:hover_color] %>-300 transition-all duration-200 cursor-default group">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-2">
+          <div class="text-sm font-medium text-gray-500 uppercase tracking-wide">
+            <%= kpi[:title] %>
+          </div>
+          <div class="p-2 bg-<%= kpi[:color] %>-100 rounded-lg group-hover:bg-<%= kpi[:hover_color] %>-100 transition-colors">
+            <i class="<%= kpi[:icon] %> text-<%= kpi[:color] %>-600 group-hover:text-<%= kpi[:hover_color] %>-600 transition-colors" aria-hidden="true"></i>
+          </div>
+        </div>
+        
+        <!-- Value -->
+        <div class="mt-2 text-3xl font-bold text-<%= kpi[:color] == 'gray' ? 'gray-900' : "#{kpi[:color]}-600" %> group-hover:text-<%= kpi[:hover_color] %>-600 <%= kpi[:color] != 'gray' ? 'group-hover:scale-105' : '' %> transition-<%= kpi[:color] != 'gray' ? 'transform' : 'colors' %>">
+          <%= kpi[:value] %>
+        </div>
+        
+        <!-- Description -->
+        <p class="mt-2 text-sm text-gray-500">
+          <%= kpi[:description] %>
+        </p>
+      </div>
+    <% end %>
+  </div>
+</section>
+

@@ -1,0 +1,51 @@
+<%# Twitter Charts Section
+# Displays temporal evolution charts (tweets and interactions over time)
+#
+# Required locals:
+#   - presenter: TwitterDashboardPresenter instance
+#   - topic_id: Topic ID for chart interactions
+#   - url_path: Path for loading entries data
+%>
+
+<% presenter = local_assigns[:presenter] %>
+<% topic_id = local_assigns[:topic_id] %>
+<% url_path = local_assigns[:url_path] %>
+<% return unless presenter&.has_chart_data? %>
+
+<section id="charts">
+  <h2 class="text-2xl font-bold text-gray-900 mb-6">
+    <i class="fa-solid fa-chart-line text-indigo-600 mr-2"></i>
+    <%= t('twitter.charts.tweets_per_day').split(' por ').first %> Temporal
+  </h2>
+  
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <% [:posts, :interactions].each do |chart_type| %>
+      <% config = presenter.chart_configs[chart_type] %>
+      
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-medium text-gray-900"><%= config[:title] %></h3>
+          <span class="text-sm text-gray-500">
+            <% if chart_type == :posts %>
+              <%= t('twitter.charts.total_daily').sub('Total ', 'Últimos ') %>
+            <% else %>
+              <%= t('twitter.charts.total_daily') %>
+            <% end %>
+          </span>
+        </div>
+        
+        <!-- Chart -->
+        <%= render_column_chart(config[:data],
+              chart_id: config[:chart_id],
+              url: url_path,
+              topic_id: topic_id,
+              label: config[:label],
+              color: config[:color],
+              xtitle: config[:xtitle],
+              ytitle: config[:ytitle]) %>
+      </div>
+    <% end %>
+  </div>
+</section>
+

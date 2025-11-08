@@ -1,0 +1,58 @@
+# Spanish translations for Twitter dashboard
+es:
+  twitter:
+    kpis:
+      tweets: "Tweets"
+      tweets_description: "Tweets etiquetados con este tópico en los últimos %{days} días."
+      interactions: "Interacciones"
+      interactions_description: "Me gusta + Retweets + Respuestas."
+      views: "Vistas"
+      views_description: "Total de visualizaciones de los tweets."
+      average: "Promedio"
+      average_description: "Interacciones promedio por tweet."
+    charts:
+      tweets: "Tweets"
+      tweets_per_day: "Tweets por día"
+      interactions: "Interacciones"
+      interactions_per_day: "Interacciones por día"
+      date: "Fecha"
+      total_daily: "Total diario"
+    tags:
+      title: "Etiquetas relacionadas"
+      tweets_by_tag: "Cantidad de tweets por etiqueta"
+      interactions_by_tag: "Interacciones por etiqueta"
+    profiles:
+      title: "Perfiles destacados"
+      tweets_by_profile: "Tweets por perfil"
+      interactions_by_profile: "Interacciones por perfil"
+    viral:
+      title: "Contenido Viral Detectado"
+      badge: "VIRAL"
+      multiplier: "%{multiplier}x mediana"
+      time_period: "Últimas 24 horas"
+      engagement_threshold: "Engagement > 5x mediana"
+      likes: "Likes"
+      retweets: "Retweets"
+      replies: "Replies"
+      total: "Total"
+      amplify: "Amplificar Ahora"
+      action_title: "Acción Recomendada"
+      action_description: "Este contenido está generando alto engagement en Twitter. Considera:"
+      actions:
+        promote: "Amplificar con Twitter Ads (Promoted Tweets)"
+        retweet: "Retweet desde cuentas oficiales"
+        include: "Incluir en comunicaciones y reportes"
+        analyze: "Analizar por qué resuena con la audiencia"
+    word_cloud:
+      title: "Análisis de Palabras en Tweets"
+      bigram_title: "Análisis de Bigramas en Tweets"
+      description: "Análisis de frecuencia de palabras clave que aparecen en los tweets"
+      bigram_description: "Análisis de pares de palabras consecutivas (bigramas) en los tweets"
+      positive: "Positivas"
+      neutral: "Neutrales"
+      negative: "Negativas"
+    posts:
+      all_tweets: "Todos los tweets etiquetados con %{topic}"
+      top_tweets: "Tweets con más interacciones"
+      sources: "Cuentas que mas han mencionado este tópico fueron:"
+

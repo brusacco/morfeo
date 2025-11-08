@@ -203,142 +203,46 @@
 <main class="bg-gray-50 min-h-screen">
   <div class="mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-8">
     
-    <!-- KPI cards -->
-    <section id="kpis">
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-sky-300 transition-all duration-200 cursor-default group">
-          <div class="flex items-center justify-between mb-2">
-            <div class="text-sm font-medium text-gray-500 uppercase tracking-wide">Tweets</div>
-            <div class="p-2 bg-gray-100 rounded-lg group-hover:bg-sky-100 transition-colors">
-              <i class="fa-brands fa-twitter text-gray-600 group-hover:text-sky-600 transition-colors" aria-hidden="true"></i>
-            </div>
-          </div>
-          <div class="mt-2 text-3xl font-bold text-gray-900 group-hover:text-sky-600 transition-colors">
-            <%= number_with_delimiter(@total_posts) %>
-          </div>
-          <p class="mt-2 text-sm text-gray-500">Tweets etiquetados con este tópico en los últimos <%= DAYS_RANGE %> días.</p>
-        </div>
-        
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-sky-300 transition-all duration-200 cursor-default group">
-          <div class="flex items-center justify-between mb-2">
-            <div class="text-sm font-medium text-gray-500 uppercase tracking-wide">Interacciones</div>
-            <div class="p-2 bg-sky-100 rounded-lg group-hover:bg-sky-200 transition-colors">
-              <i class="fa-solid fa-chart-line text-sky-600 group-hover:text-sky-700 transition-colors" aria-hidden="true"></i>
-            </div>
-          </div>
-          <div class="mt-2 text-3xl font-bold text-sky-600 group-hover:scale-105 transition-transform">
-            <%= number_with_delimiter(@total_interactions) %>
-          </div>
-          <p class="mt-2 text-sm text-gray-500">Me gusta + Retweets + Respuestas.</p>
-        </div>
-        
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-purple-300 transition-all duration-200 cursor-default group">
-          <div class="flex items-center justify-between mb-2">
-            <div class="text-sm font-medium text-gray-500 uppercase tracking-wide">Vistas</div>
-            <div class="p-2 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
-              <i class="fa-solid fa-eye text-purple-600 group-hover:text-purple-700 transition-colors" aria-hidden="true"></i>
-            </div>
-          </div>
-          <div class="mt-2 text-3xl font-bold text-purple-600 group-hover:scale-105 transition-transform">
-            <%= number_with_delimiter(@total_views) %>
-          </div>
-          <p class="mt-2 text-sm text-gray-500">Total de visualizaciones de los tweets.</p>
-        </div>
-        
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-green-300 transition-all duration-200 cursor-default group">
-          <div class="flex items-center justify-between mb-2">
-            <div class="text-sm font-medium text-gray-500 uppercase tracking-wide">Promedio</div>
-            <div class="p-2 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
-              <i class="fa-solid fa-calculator text-green-600 group-hover:text-green-700 transition-colors" aria-hidden="true"></i>
-            </div>
-          </div>
-          <div class="mt-2 text-3xl font-bold text-green-600 group-hover:scale-105 transition-transform">
-            <%= number_with_delimiter(@average_interactions) %>
-          </div>
-          <p class="mt-2 text-sm text-gray-500">Interacciones promedio por tweet.</p>
-        </div>
-      </div>
-    </section>
+    <% # Initialize Twitter Dashboard Presenter with all data %>
+    <% @presenter = TwitterDashboardPresenter.new(
+          topic: @topic,
+          total_posts: @total_posts,
+          total_interactions: @total_interactions,
+          total_views: @total_views,
+          average_interactions: @average_interactions,
+          chart_posts: @chart_posts,
+          chart_interactions: @chart_interactions,
+          tag_counts: @tag_counts,
+          tag_interactions: @tag_interactions,
+          profiles_count: @profiles_count,
+          profiles_interactions: @profiles_interactions,
+          top_posts: @top_posts,
+          posts: @posts,
+          viral_content: @viral_content,
+          word_occurrences: @word_occurrences,
+          bigram_occurrences: @bigram_occurrences,
+          positive_words: @positive_words,
+          negative_words: @negative_words,
+          site_top_counts: @site_top_counts
+        ) %>
+    
+    <!-- KPI cards (Refactored) -->
+    <%= render 'shared/twitter_kpis', presenter: @presenter %>
     
     <!-- TEMPORAL INTELLIGENCE SECTION -->
     <%= render 'temporal_intelligence' %>
     
-    <!-- Charts -->
-    <section id="charts">
-      <h2 class="text-2xl font-bold text-gray-900 mb-6">
-        <i class="fa-solid fa-chart-line text-indigo-600 mr-2"></i>
-        Evolución temporal
-      </h2>
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Tweets Chart -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-medium text-gray-900">Tweets por día</h3>
-            <span class="text-sm text-gray-500">Últimos <%= DAYS_RANGE %> días</span>
-          </div>
-          <%= render_column_chart(@chart_posts,
-                chart_id: 'twitterPostsChart',
-                url: entries_data_twitter_topics_path,
-                topic_id: @topic.id,
-                label: 'Tweets',
-                color: :sky,
-                xtitle: 'Fecha',
-                ytitle: 'Tweets') %>
-        </div>
-        
-        <!-- Interactions Chart -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-medium text-gray-900">Interacciones por día</h3>
-            <span class="text-sm text-gray-500">Total diario</span>
-          </div>
-          <%= render_column_chart(@chart_interactions,
-                chart_id: 'twitterInteractionsChart',
-                url: entries_data_twitter_topics_path,
-                topic_id: @topic.id,
-                label: 'Interacciones',
-                color: :success,
-                xtitle: 'Fecha',
-                ytitle: 'Interacciones') %>
-        </div>
-      </div>
-    </section>
+    <!-- Charts (Refactored) -->
+    <%= render 'shared/twitter_charts',
+          presenter: @presenter,
+          topic_id: @topic.id,
+          url_path: entries_data_twitter_topics_path %>
     
-    <!-- Tag insights -->
-    <section id="tags">
-      <h2 class="text-2xl font-bold text-gray-900 mb-6">
-        <i class="fa-solid fa-tags text-blue-600 mr-2"></i>
-        Etiquetas relacionadas
-      </h2>
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Cantidad de tweets por etiqueta</h3>
-          <%= pie_chart @tag_counts.map { |tag| [tag.name, tag.count] }.to_h, donut: true, suffix: '%', colors: ['#0ea5e9', '#8B5CF6', '#EC4899', '#14B8A6', '#F59E0B'] %>
-        </div>
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Interacciones por etiqueta</h3>
-          <%= pie_chart @tag_interactions, donut: true, suffix: '%', colors: ['#0284c7', '#7C3AED', '#D97706', '#0EA5E9', '#EF4444'] %>
-        </div>
-      </div>
-    </section>
+    <!-- Tag insights (Refactored) -->
+    <%= render 'shared/twitter_tag_insights', presenter: @presenter %>
     
-    <!-- Profile insights -->
-    <section id="profiles">
-      <h2 class="text-2xl font-bold text-gray-900 mb-6">
-        <i class="fa-solid fa-user-group text-green-600 mr-2"></i>
-        Perfiles destacados
-      </h2>
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Tweets por perfil</h3>
-          <%= pie_chart @profiles_count, donut: true, colors: ['#0ea5e9', '#F97316', '#10B981', '#F59E0B', '#EC4899'] %>
-        </div>
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Interacciones por perfil</h3>
-          <%= pie_chart @profiles_interactions, donut: true, colors: ['#0284c7', '#6366F1', '#22C55E', '#D97706', '#EF4444'] %>
-        </div>
-      </div>
-    </section>
+    <!-- Profile insights (Refactored) -->
+    <%= render 'shared/twitter_profile_insights', presenter: @presenter %>
     
     <!-- Top Media Sources Section -->
     <section class="mb-8">
@@ -350,143 +254,8 @@
       <%= render partial: 'twitter_topic/posts_table', locals: { posts: @posts, title: "Todos los tweets etiquetados con #{@topic.name}" } %>
     </section>
     
-    <!-- VIRAL CONTENT SECTION -->
-    <% if @viral_content&.any? %>
-      <section class="mb-8" id="viral-content">
-        <div class="bg-gradient-to-r from-orange-50 via-red-50 to-pink-50 border-2 border-orange-300 rounded-xl shadow-xl p-6 relative overflow-hidden">
-          <!-- Decorative background elements -->
-          <div class="absolute top-0 right-0 w-40 h-40 bg-orange-200/30 rounded-full -mr-20 -mt-20 blur-2xl"></div>
-          <div class="absolute bottom-0 left-0 w-32 h-32 bg-pink-200/30 rounded-full -ml-16 -mb-16 blur-2xl"></div>
-          
-          <div class="relative z-10">
-            <!-- Header -->
-            <div class="flex items-center justify-between mb-6">
-              <div>
-                <h2 class="text-2xl font-bold text-gray-900 flex items-center">
-                  <span class="inline-flex items-center justify-center w-10 h-10 bg-orange-500 rounded-full mr-3 animate-pulse">
-                    <i class="fa-solid fa-fire text-white text-xl"></i>
-                  </span>
-                  Contenido Viral Detectado
-                  <span class="ml-3 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-600 text-white">
-                    <%= @viral_content.size %> <%= @viral_content.size == 1 ? 'tweet' : 'tweets' %>
-                  </span>
-                </h2>
-                <p class="text-sm text-gray-600 mt-2 ml-13">
-                  <i class="fa-solid fa-clock mr-1"></i>
-                  Últimas 24 horas • Engagement > 5x mediana
-                </p>
-              </div>
-            </div>
-
-            <!-- Viral Tweets Grid -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <% @viral_content.each do |viral| %>
-                <div class="bg-white rounded-lg shadow-md border-2 border-orange-200 p-5 hover:shadow-xl hover:border-orange-400 transition-all duration-200">
-                  <!-- Viral Badge -->
-                  <div class="flex items-center justify-between mb-3">
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-orange-500 to-red-500 text-white">
-                      <i class="fa-solid fa-fire mr-1.5"></i>
-                      VIRAL (<%= viral[:multiplier] %>x mediana)
-                    </span>
-                    <span class="text-xs text-gray-500">
-                      <i class="fa-solid fa-clock mr-1"></i>
-                      <%= time_ago_in_words(viral[:posted_at]) %> atrás
-                    </span>
-                  </div>
-
-                  <!-- Tweet Text -->
-                  <h3 class="text-base font-bold text-gray-900 mb-3 line-clamp-2 hover:text-sky-600 transition-colors">
-                    <%= link_to viral[:post].permalink_url, target: '_blank', class: 'hover:underline' do %>
-                      <%= viral[:post].text.to_s.truncate(120) %>
-                      <i class="fa-solid fa-external-link text-xs text-gray-400 ml-1"></i>
-                    <% end %>
-                  </h3>
-
-                  <!-- Metadata -->
-                  <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center text-sm text-gray-600">
-                      <i class="fa-brands fa-twitter mr-2 text-sky-500"></i>
-                      <span class="font-medium">@<%= viral[:post].twitter_profile.username %></span>
-                    </div>
-                    <div class="text-xs text-gray-500">
-                      <%= viral[:posted_at].strftime('%d/%m/%Y %H:%M') %>
-                    </div>
-                  </div>
-
-                  <!-- Engagement Stats -->
-                  <div class="grid grid-cols-4 gap-3 p-3 bg-gray-50 rounded-lg">
-                    <div class="text-center">
-                      <div class="text-lg font-bold text-red-600">
-                        <%= number_with_delimiter(viral[:post].favorite_count) %>
-                      </div>
-                      <div class="text-xs text-gray-600 mt-1">
-                        <i class="fa-solid fa-heart"></i> Likes
-                      </div>
-                    </div>
-                    <div class="text-center">
-                      <div class="text-lg font-bold text-green-600">
-                        <%= number_with_delimiter(viral[:post].retweet_count) %>
-                      </div>
-                      <div class="text-xs text-gray-600 mt-1">
-                        <i class="fa-solid fa-retweet"></i> Retweets
-                      </div>
-                    </div>
-                    <div class="text-center">
-                      <div class="text-lg font-bold text-blue-600">
-                        <%= number_with_delimiter(viral[:post].reply_count) %>
-                      </div>
-                      <div class="text-xs text-gray-600 mt-1">
-                        <i class="fa-solid fa-reply"></i> Replies
-                      </div>
-                    </div>
-                    <div class="text-center">
-                      <div class="text-lg font-bold text-orange-600">
-                        <%= number_with_delimiter(viral[:engagement]) %>
-                      </div>
-                      <div class="text-xs text-gray-600 mt-1">
-                        <i class="fa-solid fa-chart-line"></i> Total
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Action Button -->
-                  <div class="mt-4">
-                    <%= link_to viral[:post].permalink_url, target: '_blank', class: 'w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-all' do %>
-                      <i class="fa-solid fa-rocket mr-2"></i>
-                      Amplificar Ahora
-                      <i class="fa-solid fa-external-link ml-2 text-xs"></i>
-                    <% end %>
-                  </div>
-                </div>
-              <% end %>
-            </div>
-
-            <!-- Call to Action -->
-            <div class="mt-6 p-4 bg-orange-100 border border-orange-300 rounded-lg">
-              <div class="flex items-start">
-                <div class="flex-shrink-0">
-                  <i class="fa-solid fa-lightbulb text-orange-600 text-xl"></i>
-                </div>
-                <div class="ml-3">
-                  <h3 class="text-sm font-medium text-orange-900">
-                    Acción Recomendada
-                  </h3>
-                  <div class="mt-2 text-sm text-orange-800">
-                    <p>Este contenido está generando alto engagement en Twitter. Considera:</p>
-                    <ul class="list-disc list-inside mt-2 space-y-1">
-                      <li>Amplificar con Twitter Ads (Promoted Tweets)</li>
-                      <li>Retweet desde cuentas oficiales</li>
-                      <li>Incluir en comunicaciones y reportes</li>
-                      <li>Analizar por qué resuena con la audiencia</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-    <% end %>
+    <!-- VIRAL CONTENT SECTION (Refactored) -->
+    <%= render 'shared/twitter_viral_content', presenter: @presenter %>
     
     <!-- Word Cloud Section -->
     <% if @word_occurrences.any? %>

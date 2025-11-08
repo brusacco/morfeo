@@ -1,0 +1,41 @@
+<%# Twitter Tag Insights Section
+# Displays tag distribution charts (by count and by interactions)
+#
+# Required locals:
+#   - presenter: TwitterDashboardPresenter instance
+%>
+
+<% presenter = local_assigns[:presenter] %>
+<% return unless presenter&.has_tag_data? %>
+
+<section id="tags">
+  <h2 class="text-2xl font-bold text-gray-900 mb-6">
+    <i class="fa-solid fa-tags text-blue-600 mr-2"></i>
+    <%= t('twitter.tags.title') %>
+  </h2>
+  
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Tag Counts Chart -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <h3 class="text-lg font-medium text-gray-900 mb-4">
+        <%= t('twitter.tags.tweets_by_tag') %>
+      </h3>
+      <%= pie_chart presenter.tag_counts_chart_data,
+            donut: true,
+            suffix: '%',
+            colors: presenter.chart_colors(:tag_counts) %>
+    </div>
+    
+    <!-- Tag Interactions Chart -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <h3 class="text-lg font-medium text-gray-900 mb-4">
+        <%= t('twitter.tags.interactions_by_tag') %>
+      </h3>
+      <%= pie_chart presenter.tag_interactions,
+            donut: true,
+            suffix: '%',
+            colors: presenter.chart_colors(:tag_interactions) %>
+    </div>
+  </div>
+</section>
+

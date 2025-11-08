@@ -1,0 +1,145 @@
+<%# Twitter Viral Content Section
+# Displays tweets that have gone viral (high engagement)
+#
+# Required locals:
+#   - presenter: TwitterDashboardPresenter instance
+%>
+
+<% presenter = local_assigns[:presenter] %>
+<% return unless presenter&.has_viral_content? %>
+
+<section class="mb-8" id="viral-content">
+  <div class="bg-gradient-to-r from-orange-50 via-red-50 to-pink-50 border-2 border-orange-300 rounded-xl shadow-xl p-6 relative overflow-hidden">
+    <!-- Decorative background elements -->
+    <div class="absolute top-0 right-0 w-40 h-40 bg-orange-200/30 rounded-full -mr-20 -mt-20 blur-2xl"></div>
+    <div class="absolute bottom-0 left-0 w-32 h-32 bg-pink-200/30 rounded-full -ml-16 -mb-16 blur-2xl"></div>
+    
+    <div class="relative z-10">
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900 flex items-center">
+            <span class="inline-flex items-center justify-center w-10 h-10 bg-orange-500 rounded-full mr-3 animate-pulse">
+              <i class="fa-solid fa-fire text-white text-xl"></i>
+            </span>
+            <%= t('twitter.viral.title') %>
+            <span class="ml-3 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-600 text-white">
+              <%= presenter.viral_count %> <%= presenter.viral_count == 1 ? 'tweet' : 'tweets' %>
+            </span>
+          </h2>
+          <p class="text-sm text-gray-600 mt-2 ml-13">
+            <i class="fa-solid fa-clock mr-1"></i>
+            <%= t('twitter.viral.time_period') %> • <%= t('twitter.viral.engagement_threshold') %>
+          </p>
+        </div>
+      </div>
+
+      <!-- Viral Tweets Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <% presenter.viral_content.each do |viral| %>
+          <div class="bg-white rounded-lg shadow-md border-2 border-orange-200 p-5 hover:shadow-xl hover:border-orange-400 transition-all duration-200">
+            <!-- Viral Badge -->
+            <div class="flex items-center justify-between mb-3">
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-orange-500 to-red-500 text-white">
+                <i class="fa-solid fa-fire mr-1.5"></i>
+                <%= t('twitter.viral.badge') %> (<%= t('twitter.viral.multiplier', multiplier: viral[:multiplier]) %>)
+              </span>
+              <span class="text-xs text-gray-500">
+                <i class="fa-solid fa-clock mr-1"></i>
+                <%= time_ago_in_words(viral[:posted_at]) %> atrás
+              </span>
+            </div>
+
+            <!-- Tweet Text -->
+            <h3 class="text-base font-bold text-gray-900 mb-3 line-clamp-2 hover:text-sky-600 transition-colors">
+              <%= link_to viral[:post].permalink_url, target: '_blank', rel: 'noopener', class: 'hover:underline' do %>
+                <%= viral[:post].text.to_s.truncate(120) %>
+                <i class="fa-solid fa-external-link text-xs text-gray-400 ml-1"></i>
+              <% end %>
+            </h3>
+
+            <!-- Metadata -->
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center text-sm text-gray-600">
+                <i class="fa-brands fa-twitter mr-2 text-sky-500"></i>
+                <span class="font-medium">@<%= viral[:post].twitter_profile.username %></span>
+              </div>
+              <div class="text-xs text-gray-500">
+                <%= viral[:posted_at].strftime('%d/%m/%Y %H:%M') %>
+              </div>
+            </div>
+
+            <!-- Engagement Stats -->
+            <div class="grid grid-cols-4 gap-3 p-3 bg-gray-50 rounded-lg">
+              <div class="text-center">
+                <div class="text-lg font-bold text-red-600">
+                  <%= number_with_delimiter(viral[:post].favorite_count) %>
+                </div>
+                <div class="text-xs text-gray-600 mt-1">
+                  <i class="fa-solid fa-heart"></i> <%= t('twitter.viral.likes') %>
+                </div>
+              </div>
+              <div class="text-center">
+                <div class="text-lg font-bold text-green-600">
+                  <%= number_with_delimiter(viral[:post].retweet_count) %>
+                </div>
+                <div class="text-xs text-gray-600 mt-1">
+                  <i class="fa-solid fa-retweet"></i> <%= t('twitter.viral.retweets') %>
+                </div>
+              </div>
+              <div class="text-center">
+                <div class="text-lg font-bold text-blue-600">
+                  <%= number_with_delimiter(viral[:post].reply_count) %>
+                </div>
+                <div class="text-xs text-gray-600 mt-1">
+                  <i class="fa-solid fa-reply"></i> <%= t('twitter.viral.replies') %>
+                </div>
+              </div>
+              <div class="text-center">
+                <div class="text-lg font-bold text-orange-600">
+                  <%= number_with_delimiter(viral[:engagement]) %>
+                </div>
+                <div class="text-xs text-gray-600 mt-1">
+                  <i class="fa-solid fa-chart-line"></i> <%= t('twitter.viral.total') %>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Button -->
+            <div class="mt-4">
+              <%= link_to viral[:post].permalink_url, target: '_blank', rel: 'noopener', class: 'w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-all' do %>
+                <i class="fa-solid fa-rocket mr-2"></i>
+                <%= t('twitter.viral.amplify') %>
+                <i class="fa-solid fa-external-link ml-2 text-xs"></i>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Call to Action -->
+      <div class="mt-6 p-4 bg-orange-100 border border-orange-300 rounded-lg">
+        <div class="flex items-start">
+          <div class="flex-shrink-0">
+            <i class="fa-solid fa-lightbulb text-orange-600 text-xl"></i>
+          </div>
+          <div class="ml-3">
+            <h3 class="text-sm font-medium text-orange-900">
+              <%= t('twitter.viral.action_title') %>
+            </h3>
+            <div class="mt-2 text-sm text-orange-800">
+              <p><%= t('twitter.viral.action_description') %></p>
+              <ul class="list-disc list-inside mt-2 space-y-1">
+                <li><%= t('twitter.viral.actions.promote') %></li>
+                <li><%= t('twitter.viral.actions.retweet') %></li>
+                <li><%= t('twitter.viral.actions.include') %></li>
+                <li><%= t('twitter.viral.actions.analyze') %></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
