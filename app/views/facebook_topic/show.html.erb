@@ -288,9 +288,19 @@
                data-topics-url-value="<%= entries_data_facebook_topics_path %>"
                data-topics-topic-id-value="<%= @topic.id %>"
                data-topics-title-value="false">
-            <%= column_chart @chart_posts, xtitle: 'Fecha', ytitle: 'Publicaciones', label: 'Publicaciones',
-                  id: 'facebookPostsChart', adapter: 'highcharts', library: { plotOptions: { series: { dataLabels: { enabled: true } } } },
-                  colors: ['#3B82F6'], thousands: '.' %>
+            <%= column_chart @chart_posts, xtitle: 'Fecha', ytitle: 'Publicaciones',
+                  id: 'facebookPostsChart', adapter: 'highcharts', 
+                  colors: ['#3B82F6'], thousands: '.',
+                  library: { 
+                    plotOptions: { 
+                      series: { 
+                        dataLabels: { enabled: true }
+                      } 
+                    },
+                    tooltip: {
+                      pointFormat: '<b>{point.y}</b> Publicaciones'
+                    }
+                  } %>
             <%= render 'home/modal', graph_id: 'facebookPostsChart', controller_name: 'topics' %>
           </div>
         </div>
@@ -305,9 +315,19 @@
                data-topics-url-value="<%= entries_data_facebook_topics_path %>"
                data-topics-topic-id-value="<%= @topic.id %>"
                data-topics-title-value="false">
-            <%= column_chart @chart_interactions, xtitle: 'Fecha', ytitle: 'Interacciones', label: 'Interacciones',
-                  id: 'facebookInteractionsChart', adapter: 'highcharts', library: { plotOptions: { series: { dataLabels: { enabled: true } } } },
-                  colors: ['#10B981'], thousands: '.' %>
+            <%= column_chart @chart_interactions, xtitle: 'Fecha', ytitle: 'Interacciones',
+                  id: 'facebookInteractionsChart', adapter: 'highcharts', 
+                  colors: ['#10B981'], thousands: '.',
+                  library: { 
+                    plotOptions: { 
+                      series: { 
+                        dataLabels: { enabled: true }
+                      } 
+                    },
+                    tooltip: {
+                      pointFormat: '<b>{point.y}</b> Interacciones'
+                    }
+                  } %>
             <%= render 'home/modal', graph_id: 'facebookInteractionsChart', controller_name: 'topics' %>
           </div>
         </div>
