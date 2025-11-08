@@ -222,5 +222,49 @@ class FacebookSentimentPresenter
   def chart_color(key)
     config[:chart_colors][key] || '#6b7280'
   end
+
+  # Calculate positive percentage from sentiment distribution
+  # @return [Float] Percentage of positive posts
+  def positive_percentage
+    return 0.0 unless has_distribution?
+    total = total_posts_count
+    return 0.0 if total.zero?
+
+    positive_count = @sentiment_distribution[:very_positive][:count] +
+                     @sentiment_distribution[:positive][:count]
+    (positive_count.to_f / total * 100).round(1)
+  end
+
+  # Calculate neutral percentage from sentiment distribution
+  # @return [Float] Percentage of neutral posts
+  def neutral_percentage
+    return 0.0 unless has_distribution?
+    total = total_posts_count
+    return 0.0 if total.zero?
+
+    neutral_count = @sentiment_distribution[:neutral][:count]
+    (neutral_count.to_f / total * 100).round(1)
+  end
+
+  # Calculate negative percentage from sentiment distribution
+  # @return [Float] Percentage of negative posts
+  def negative_percentage
+    return 0.0 unless has_distribution?
+    total = total_posts_count
+    return 0.0 if total.zero?
+
+    negative_count = @sentiment_distribution[:negative][:count] +
+                     @sentiment_distribution[:very_negative][:count]
+    (negative_count.to_f / total * 100).round(1)
+  end
+
+  private
+
+  # Calculate total posts from sentiment distribution
+  # @return [Integer] Total number of posts
+  def total_posts_count
+    return 0 unless @sentiment_distribution.present?
+    @sentiment_distribution.values.sum { |v| v[:count] }
+  end
 end
 

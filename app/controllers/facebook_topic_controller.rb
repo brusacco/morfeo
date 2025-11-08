@@ -78,6 +78,7 @@ class FacebookTopicController < ApplicationController
     # Assign data to instance variables for the view
     assign_facebook_data(dashboard_data[:facebook_data])
     assign_pages_data(dashboard_data[:pages_data])
+    assign_sentiment_analysis(dashboard_data[:sentiment_analysis]) # ← AGREGADO: Datos de sentimiento para PDF
 
     # Render with specific layout for PDF
     render layout: false

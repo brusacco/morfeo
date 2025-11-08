@@ -1,0 +1,93 @@
+<%# PDF Charts Row Partial
+# Reusable chart row for PDF reports
+# Supports 1 or 2 charts side by side
+#
+# Required locals:
+#   - charts: Array of chart configurations
+#
+# Chart configuration:
+#   {
+#     title: "Chart Title",
+#     data: { date => value },
+#     type: :column_chart, :line_chart, :pie_chart, :area_chart
+#     options: { xtitle: "X", ytitle: "Y", colors: [...], ... }
+#   }
+#
+# Example:
+#   charts = [
+#     { 
+#       title: "Notas por Día",
+#       data: @chart_data,
+#       type: :column_chart,
+#       options: { xtitle: "Fecha", ytitle: "Cant. Notas", colors: ['blue'] }
+#     }
+#   ]
+%>
+
+<% charts = local_assigns[:charts] || [] %>
+<% return if charts.empty? %>
+
+<% layout_class = charts.size == 1 ? 'pdf-chart-single' : 'pdf-chart-row' %>
+
+<div class="<%= layout_class %>">
+  <% charts.each do |chart_config| %>
+    <% chart_class = charts.size == 1 ? '' : 'pdf-chart-half' %>
+    <div class="<%= chart_class %>">
+      <div class="pdf-chart-card">
+        <h3 class="pdf-chart-title"><%= chart_config[:title] %></h3>
+        <div class="pdf-chart-canvas">
+          <% 
+            chart_type = chart_config[:type] || :column_chart
+            chart_data = chart_config[:data] || {}
+            
+            # Build chart options
+            custom_options = chart_config[:options] || {}
+            
+            # Default library options for data labels
+            default_library = {
+              plotOptions: {
+                series: {
+                  dataLabels: {
+                    enabled: true
+                  }
+                }
+              }
+            }
+            
+            # Merge library options if custom library options exist
+            if custom_options[:library]
+              merged_library = default_library.deep_merge(custom_options[:library])
+              custom_options = custom_options.merge(library: merged_library)
+            else
+              custom_options = custom_options.merge(library: default_library)
+            end
+            
+            # Add default options
+            chart_options = {
+              thousands: '.',
+              curve: false,
+              height: '200px'
+            }.merge(custom_options)
+          %>
+          
+          <%# Render chart based on type %>
+          <% case chart_type %>
+          <% when :column_chart %>
+            <%= column_chart chart_data, **chart_options %>
+          <% when :line_chart %>
+            <%= line_chart chart_data, **chart_options %>
+          <% when :area_chart %>
+            <%= area_chart chart_data, **chart_options %>
+          <% when :pie_chart %>
+            <%= pie_chart chart_data, **chart_options %>
+          <% when :bar_chart %>
+            <%= bar_chart chart_data, **chart_options %>
+          <% else %>
+            <%= column_chart chart_data, **chart_options %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>
+

@@ -2,347 +2,20 @@
 <html lang="es">
   <head>
     <meta charset="utf-8">
-    <title>Reporte Facebook: <%=@topic.name%> - Morfeo Analytics</title>
+    <title>Reporte Facebook: <%= @topic.name %> - Morfeo Analytics</title>
     <!-- Chartkick for Charts -->
     <script src="https://www.gstatic.com/charts/loader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartkick@4.2.0/dist/chartkick.min.js"></script>
+    
+    <%# Include professional PDF styles %>
+    <%= render 'shared/pdf_professional_styles' %>
+    
     <style>
-      /* PDF Print Optimized Styles */
-      @page {
-        margin: 2cm;
-        size: A4;
-      }
-
-      * {
-        box-sizing: border-box;
-      }
-
-      body {
-        font-family: 'Arial', 'Helvetica', sans-serif;
-        font-size: 11pt;
-        line-height: 1.4;
-        margin: 0;
-        padding: 0;
-        color: #1a1a1a;
-        background: white;
-      }
-
-      /* Typography */
-      h1 {
-        font-size: 20pt;
-        font-weight: bold;
-        margin: 0 0 12pt 0;
-        color: #1e3a8a;
-        border-bottom: 2pt solid #e5e7eb;
-        padding-bottom: 6pt;
-      }
-
-      h2 {
-        font-size: 16pt;
-        font-weight: bold;
-        margin: 16pt 0 8pt 0;
-        color: #1f2937;
-        page-break-after: avoid;
-      }
-
-      h3 {
-        font-size: 14pt;
-        font-weight: 600;
-        margin: 12pt 0 6pt 0;
-        color: #374151;
-        page-break-after: avoid;
-      }
-
-      p {
-        margin: 6pt 0;
-        text-align: justify;
-      }
-
-      /* Layout Structure */
-      .pdf-container {
-        width: 100%;
-        max-width: none;
-      }
-
-      .pdf-section {
-        margin-bottom: 20pt;
-        page-break-inside: avoid;
-      }
-
-      .pdf-section.break-before {
-        page-break-before: always;
-      }
-
-      .pdf-header {
-        text-align: center;
-        margin-bottom: 20pt;
-        padding-bottom: 12pt;
-        border-bottom: 1pt solid #e5e7eb;
-      }
-
-      /* Chart Containers */
-      .pdf-chart-row {
-        display: flex;
-        gap: 16pt;
-        margin-bottom: 16pt;
-        page-break-inside: avoid;
-      }
-
-      .pdf-chart-single {
-        width: 100%;
-        margin-bottom: 16pt;
-        page-break-inside: avoid;
-      }
-
-      .pdf-chart-half {
-        flex: 1;
-        min-width: 0;
-      }
-
-      .pdf-chart-card {
-        background: white;
-        border: 1pt solid #e5e7eb;
-        border-radius: 6pt;
-        padding: 12pt;
-        box-shadow: 0 1pt 3pt rgba(0, 0, 0, 0.1);
-      }
-
-      .pdf-chart-title {
-        font-size: 12pt;
-        font-weight: 600;
-        color: #374151;
-        margin: 0 0 8pt 0;
-        text-align: center;
-      }
-
-      .pdf-chart-canvas {
-        width: 100% !important;
-        height: 200px !important;
-        max-height: 200px;
-      }
-
-      /* Chartkick specific styles */
-      .pdf-chart-canvas canvas {
-        width: 100% !important;
-        height: 200px !important;
-      }
-
-      /* Statistics Grid */
-      .pdf-stats-grid {
-        display: flex;
-        gap: 8pt;
-        margin-bottom: 16pt;
-        page-break-inside: avoid;
-      }
-
-      .pdf-stats-card {
-        flex: 1;
-        background: white;
-        border: 1pt solid #e5e7eb;
-        border-radius: 4pt;
-        padding: 8pt;
-        text-align: center;
-      }
-
-      .pdf-stats-label {
-        font-size: 9pt;
-        color: #6b7280;
-        margin-bottom: 4pt;
-      }
-
-      .pdf-stats-value {
-        font-size: 18pt;
-        font-weight: bold;
-        color: #1f2937;
-      }
-
-      /* Summary Text */
-      .pdf-summary {
-        background: #f8fafc;
-        border-left: 4pt solid #3b82f6;
-        padding: 12pt;
-        margin: 16pt 0;
-        page-break-inside: avoid;
-      }
-
-      .pdf-summary p {
-        margin: 0;
-        font-size: 10pt;
-        line-height: 1.5;
-      }
-
-      /* Media Sources */
-      .pdf-media-list {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8pt;
-        margin: 12pt 0;
-      }
-
-      .pdf-media-item {
-        background: white;
-        border: 1pt solid #e5e7eb;
-        border-radius: 4pt;
-        padding: 6pt;
-        font-size: 10pt;
-      }
-
-      .pdf-media-name {
-        font-weight: 600;
-        color: #374151;
-      }
-
-      .pdf-media-count {
-        color: #059669;
-        font-weight: bold;
-      }
-
-      /* Word Analysis */
-      .pdf-words {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 4pt;
-        margin: 8pt 0;
-      }
-
-      .pdf-word {
-        background: #e0e7ff;
-        color: #3730a3;
-        padding: 2pt 6pt;
-        border-radius: 2pt;
-        font-size: 9pt;
-        white-space: nowrap;
-      }
-
-      /* Post Items */
-      .pdf-post-item {
-        background: white;
-        border: 1pt solid #e5e7eb;
-        border-radius: 6pt;
-        padding: 12pt;
-        margin-bottom: 12pt;
-        page-break-inside: avoid;
-      }
-
-      .pdf-post-header {
-        display: flex;
-        align-items: center;
-        gap: 8pt;
-        margin-bottom: 8pt;
-        font-size: 9pt;
-        color: #6b7280;
-        border-bottom: 1pt solid #f3f4f6;
-        padding-bottom: 6pt;
-      }
-
-      .pdf-post-rank {
-        background: #3b82f6;
-        color: white;
-        padding: 2pt 6pt;
-        border-radius: 4pt;
-        font-weight: bold;
-        font-size: 8pt;
-      }
-
-      .pdf-post-page {
-        font-weight: 600;
-        color: #374151;
-      }
-
-      .pdf-post-date {
-        color: #6b7280;
-      }
-
-      .pdf-post-interactions {
-        margin-left: auto;
-        font-weight: bold;
-        color: #059669;
-      }
-
-      .pdf-post-message {
-        font-size: 11pt;
-        color: #1f2937;
-        margin: 6pt 0;
-        line-height: 1.4;
-      }
-
-      .pdf-post-metrics {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12pt;
-        margin-top: 8pt;
-        padding-top: 6pt;
-        border-top: 1pt solid #f3f4f6;
-        font-size: 9pt;
-      }
-
-      .pdf-metric {
-        color: #374151;
-      }
-
-      .pdf-metric strong {
-        color: #1f2937;
-      }
-
-      /* Page Breaks */
-      .page-break {
-        page-break-before: always;
-      }
-
-      .avoid-break {
-        page-break-inside: avoid;
-      }
-
-      /* Tag Cloud Styles */
-      .pdf-word-cloud {
-        padding: 20pt;
-        text-align: center;
-        background-color: #f9fafb;
-        border-radius: 6pt;
-        margin: 12pt 0;
-      }
-
-      .pdf-cloud {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        line-height: 2.5;
-      }
-
-      .pdf-cloud li {
-        display: inline;
-        margin: 0 4pt;
-        font-weight: 600;
-        text-decoration: none;
-        border-radius: 3pt;
-        padding: 2pt 4pt;
-      }
-
-      /* Dynamic font sizes based on data-weight attribute */
-      .pdf-cloud li[data-weight="1"] { font-size: 9pt; }
-      .pdf-cloud li[data-weight="2"] { font-size: 11pt; }
-      .pdf-cloud li[data-weight="3"] { font-size: 13pt; }
-      .pdf-cloud li[data-weight="4"] { font-size: 15pt; }
-      .pdf-cloud li[data-weight="5"] { font-size: 17pt; }
-      .pdf-cloud li[data-weight="6"] { font-size: 19pt; }
-      .pdf-cloud li[data-weight="7"] { font-size: 21pt; }
-      .pdf-cloud li[data-weight="8"] { font-size: 23pt; }
-      .pdf-cloud li[data-weight="9"] { font-size: 25pt; }
-      .pdf-cloud li[data-weight="10"] { font-size: 27pt; }
-
-      /* Ensure good contrast for print */
-      .pdf-cloud li {
-        text-shadow: 1pt 1pt 2pt rgba(0,0,0,0.1);
-      }
-
-      /* Print Optimizations */
-      @media print {
-        body {
-          -webkit-print-color-adjust: exact;
-          print-color-adjust: exact;
-        }
+      /* Facebook-specific PDF color overrides */
+      h1, .pdf-page-title {
+        color: #1877f2; /* Facebook blue */
       }
     </style>
   </head>
@@ -350,214 +23,419 @@
     <div class="pdf-container">
       <!-- Header -->
       <div class="pdf-header">
-        <h1>Reporte Facebook: <%=@topic.name%></h1>
-        <p>Período: Últimos <%=@days_range%> días | Generado: <%=Time.current.strftime("%d/%m/%Y %H:%M")%></p>
+        <h1>Reporte Facebook: <%= @topic.name %></h1>
+        <p>Período: <%= pdf_date_range(days_range: @days_range) %> | Generado: <%= Time.current.strftime("%d/%m/%Y %H:%M") %></p>
       </div>
-      <!-- KPI Section -->
+
+      <!-- KPI Section (Refactored) -->
       <div class="pdf-section">
         <h2>Métricas Principales</h2>
-        <div class="pdf-stats-grid">
-          <div class="pdf-stats-card">
-            <div class="pdf-stats-label">Total Publicaciones</div>
-            <div class="pdf-stats-value"><%=number_with_delimiter(@total_posts, delimiter: ".")%></div>
-          </div>
-          <div class="pdf-stats-card">
-            <div class="pdf-stats-label">Total Interacciones</div>
-            <div class="pdf-stats-value"><%=number_with_delimiter(@total_interactions, delimiter: ".")%></div>
-          </div>
-          <div class="pdf-stats-card">
-            <div class="pdf-stats-label">Vistas Estimadas</div>
-            <div class="pdf-stats-value"><%=number_with_delimiter(@total_views, delimiter: ".")%></div>
-          </div>
-          <div class="pdf-stats-card">
-            <div class="pdf-stats-label">Promedio por Publicación</div>
-            <div class="pdf-stats-value"><%=number_with_delimiter(@average_interactions, delimiter: ".")%></div>
-          </div>
-        </div>
+        <%= render 'shared/pdf_kpis_grid', 
+              metrics: [
+                { label: "Posts", value: pdf_format_number(@total_posts), icon: "📝" },
+                { label: "Interacciones", value: pdf_format_number(@total_interactions), icon: "📊" },
+                { label: "Vistas", value: pdf_format_number(@total_views), icon: "👁️" },
+                { label: "Promedio", value: pdf_format_number(@average_interactions), icon: "📈" }
+              ] %>
       </div>
-      <!-- Main Charts Section -->
+
+      <!-- Main Charts Section (Refactored) -->
       <div class="pdf-section">
-        <h2>Evolución Temporal</h2>
-        <!-- Row 1: Posts and Interactions Charts -->
-        <div class="pdf-chart-row">
-          <div class="pdf-chart-half">
-            <div class="pdf-chart-card">
-              <h3 class="pdf-chart-title">Publicaciones por Día</h3>
-              <div class="pdf-chart-canvas">
-                <%= column_chart @chart_posts, xtitle: "Fecha", ytitle: "Publicaciones", label: "Publicaciones", thousands: ".", curve: false, 
-                      colors: ['#3B82F6'], height: "200px", library: {
-                      plotOptions: {
-                        series: {
-                          dataLabels: {
-                            enabled: true
-                          }
-                        }
-                      } } %>
-              </div>
-            </div>
-          </div>
-          <div class="pdf-chart-half">
-            <div class="pdf-chart-card">
-              <h3 class="pdf-chart-title">Interacciones por Día</h3>
-              <div class="pdf-chart-canvas">
-                <%= column_chart @chart_interactions, xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones", thousands: ".", curve: false, 
-                      colors: ['#10B981'], height: "200px", library: {
-                      plotOptions: {
-                        series: {
-                          dataLabels: {
-                            enabled: true
-                          }
-                        }
-                      } } %>
-              </div>
-            </div>
-          </div>
-        </div>
+        <h2>Análisis Temporal de Publicaciones</h2>
+        <%= render 'shared/pdf_charts_row', 
+              charts: [
+                build_pdf_chart_config(
+                  title: "Posts por Día",
+                  data: @chart_posts,
+                  type: :column_chart,
+                  xtitle: "Fecha",
+                  ytitle: "Posts",
+                  colors: ['#1877f2']
+                ),
+                build_pdf_chart_config(
+                  title: "Interacciones por Día",
+                  data: @chart_interactions,
+                  type: :column_chart,
+                  xtitle: "Fecha",
+                  ytitle: "Interacciones",
+                  colors: ['#10b981']
+                )
+              ] %>
       </div>
+
       <!-- Summary Section -->
       <div class="pdf-section">
         <div class="pdf-summary">
-          <p>El tópico <strong><%=@topic.name%></strong> en Facebook durante los últimos <strong><%=DAYS_RANGE%> días</strong> cuenta con un total de <strong><%=number_with_delimiter(@total_posts, delimiter: ".")%></strong> publicaciones y generó un total de <strong><%=number_with_delimiter(@total_interactions, delimiter: '.')%></strong> interacciones, lo que nos da un promedio de <strong><%=number_with_delimiter(@average_interactions, delimiter: '.')%></strong> interacciones por publicación.</p>
-        </div>
-      </div>
-      <!-- Tags Analysis Section -->
-      <div class="pdf-section">
-        <h2>Análisis de Etiquetas</h2>
-        <div class="pdf-chart-row">
-          <div class="pdf-chart-half">
-            <div class="pdf-chart-card">
-              <h3 class="pdf-chart-title">Publicaciones por Etiqueta</h3>
-              <div class="pdf-chart-canvas">
-                <% tag_counts_hash = @tag_counts.map { |tag| [tag.name, tag.count] }.to_h %>
-                <%= pie_chart tag_counts_hash, donut: true, height: "200px", colors: ['#6366F1', '#8B5CF6', '#EC4899', '#14B8A6', '#F59E0B'] %>
-              </div>
-            </div>
-          </div>
-          <div class="pdf-chart-half">
-            <div class="pdf-chart-card">
-              <h3 class="pdf-chart-title">Interacciones por Etiqueta</h3>
-              <div class="pdf-chart-canvas">
-                <%= pie_chart @tag_interactions, donut: true, height: "200px", colors: ['#2563EB', '#7C3AED', '#D97706', '#0EA5E9', '#EF4444'] %>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <!-- Page Break for Fanpages Analysis -->
-      <div class="pdf-section break-before">
-        <h2>Análisis de Fanpages</h2>
-        <!-- Fanpages Pie Charts -->
-        <div class="pdf-chart-row">
-          <div class="pdf-chart-half">
-            <div class="pdf-chart-card">
-              <h3 class="pdf-chart-title">Publicaciones por Fanpage</h3>
-              <div class="pdf-chart-canvas">
-                <%= pie_chart @pages_count, donut: true, height: "200px", colors: ['#2563EB', '#F97316', '#10B981', '#F59E0B', '#EC4899'] %>
-              </div>
-            </div>
-          </div>
-          <div class="pdf-chart-half">
-            <div class="pdf-chart-card">
-              <h3 class="pdf-chart-title">Interacciones por Fanpage</h3>
-              <div class="pdf-chart-canvas">
-                <%= pie_chart @pages_interactions, donut: true, height: "200px", colors: ['#0EA5E9', '#6366F1', '#22C55E', '#D97706', '#EF4444'] %>
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- Top Fanpages List -->
-        <h3>Fanpages Destacadas</h3>
-        <div class="pdf-media-list">
-          <% @pages_count.take(12).each do |page_name, count| %>
-            <div class="pdf-media-item">
-              <div class="pdf-media-name"><%=page_name%></div>
-              <div class="pdf-media-count"><%=count%> publicaciones · <%=number_with_delimiter(@pages_interactions[page_name] || 0, delimiter: ".")%> interacciones</div>
-            </div>
+          <p>
+            El tópico <strong><%= @topic.name %></strong> en Facebook durante los últimos 
+            <strong><%= @days_range %> días</strong> cuenta con un total de 
+            <strong><%= pdf_format_number(@total_posts) %></strong> publicaciones y generó un total de 
+            <strong><%= pdf_format_number(@total_interactions) %></strong> interacciones, 
+            lo que nos da un promedio de 
+            <strong><%= pdf_format_number(@average_interactions) %></strong> interacciones por post.
+          </p>
+          <% if @total_views && @total_views > 0 %>
+            <p class="mt-md">
+              Las publicaciones alcanzaron un total de <strong><%= pdf_format_number(@total_views) %></strong> vistas
+              (dato oficial de Meta API).
+            </p>
           <% end %>
         </div>
       </div>
-      <!-- Words Analysis Section -->
-      <div class="pdf-section">
-        <h2>Análisis de Palabras</h2>
-        <h3>Palabras Más Frecuentes en Publicaciones</h3>
-        <div class="pdf-words">
-          <% @word_occurrences.take(50).each do |word, count| %>
-            <span class="pdf-word"><%=word%> (<%=count%>)</span>
-          <% end %>
-        </div>
-        <h3>Bigramas Más Frecuentes</h3>
-        <div class="pdf-words">
-          <% @bigram_occurrences.take(30).each do |bigram, count| %>
-            <span class="pdf-word"><%=bigram%> (<%=count%>)</span>
-          <% end %>
-        </div>
-      </div>
-      <!-- Top Posts Section -->
-      <div class="pdf-section break-before">
-        <h2>Top Publicaciones con Más Interacciones</h2>
-        <% @top_posts.each_with_index do |entry, index| %>
-          <div class="pdf-post-item">
-            <div class="pdf-post-header">
-              <span class="pdf-post-rank">#<%=index + 1%></span>
-              <span class="pdf-post-page"><%=entry.page&.name || 'Sin página'%></span>
-              <span class="pdf-post-date"><%=entry.posted_at&.strftime("%d/%m/%Y")%></span>
-              <span class="pdf-post-interactions"><%=number_with_delimiter(entry.total_interactions, delimiter: ".")%> interacciones</span>
-            </div>
-            <% if entry.message.present? %>
-              <p class="pdf-post-message"><%=truncate(entry.message, length: 300)%></p>
-            <% end %>
-            <div class="pdf-post-metrics">
-              <span class="pdf-metric">
-                <strong>Reacciones:</strong> <%=number_with_delimiter(entry.reactions_total_count || 0, delimiter: ".")%>
-              </span>
-              <span class="pdf-metric">
-                <strong>Comentarios:</strong> <%=number_with_delimiter(entry.comments_count || 0, delimiter: ".")%>
-              </span>
-              <span class="pdf-metric">
-                <strong>Compartidas:</strong> <%=number_with_delimiter(entry.share_count || 0, delimiter: ".")%>
-              </span>
-              <span class="pdf-metric">
-                <strong>❤️ Loves:</strong> <%=number_with_delimiter(entry.reactions_love_count || 0, delimiter: ".")%>
-              </span>
-              <span class="pdf-metric">
-                <strong>😂 Haha:</strong> <%=number_with_delimiter(entry.reactions_haha_count || 0, delimiter: ".")%>
-              </span>
-              <span class="pdf-metric">
-                <strong>😮 Wow:</strong> <%=number_with_delimiter(entry.reactions_wow_count || 0, delimiter: ".")%>
-              </span>
-              <span class="pdf-metric">
-                <strong>😢 Sad:</strong> <%=number_with_delimiter(entry.reactions_sad_count || 0, delimiter: ".")%>
-              </span>
-              <span class="pdf-metric">
-                <strong>😡 Angry:</strong> <%=number_with_delimiter(entry.reactions_angry_count || 0, delimiter: ".")%>
-              </span>
-            </div>
-          </div>
-        <% end %>
-      </div>
-      <!-- Word Cloud Section -->
-      <% if @word_occurrences&.any? %>
+
+      <!-- Sentiment Analysis Section (Complete) -->
+      <% if @sentiment_summary.present? %>
         <div class="pdf-section break-before">
-          <h2>Nube de Palabras de Publicaciones</h2>
-          <div class="pdf-word-cloud">
-            <% min_max = find_max_and_min_occurrences(@word_occurrences) %>
-            <ul class="pdf-cloud">
-              <% @word_occurrences.shuffle { |a, b| a[1] <=> b[1] }.each do |word, value| %>
-                <li style='color: <%= word_color(@positive_words, @negative_words, word) %>' 
-                    data-weight="<%= normalize_to_scale(value, min_max[:max], min_max[:min]) %>">
-                  <%= word %>
-                </li>
+          <h2>Análisis de Sentimiento (Basado en Reacciones)</h2>
+          
+          <% 
+            presenter = FacebookSentimentPresenter.new(
+              sentiment_summary: @sentiment_summary,
+              sentiment_distribution: @sentiment_distribution,
+              sentiment_over_time: @sentiment_over_time,
+              reaction_breakdown: @reaction_breakdown,
+              top_positive_posts: @top_positive_posts,
+              top_negative_posts: @top_negative_posts,
+              controversial_posts: @controversial_posts,
+              emotional_trends: @emotional_trends
+            ) 
+          %>
+          
+          <% if presenter.has_data? %>
+            <!-- Sentiment Overview -->
+            <div class="pdf-stats-grid">
+              <div class="pdf-stats-card">
+                <div class="pdf-stats-label">Sentimiento Promedio</div>
+                <div class="pdf-stats-value" style="color: <%= presenter.average_sentiment > 0 ? '#10b981' : presenter.average_sentiment < 0 ? '#ef4444' : '#6b7280' %>">
+                  <%= pdf_sentiment_emoji(presenter.average_sentiment, system: :facebook) %>
+                  <%= number_with_precision(presenter.average_sentiment, precision: 2) %>
+                </div>
+                <div class="pdf-stats-sublabel">
+                  <%= presenter.average_sentiment > 0.5 ? 'Sentimiento Positivo' : presenter.average_sentiment < -0.5 ? 'Sentimiento Negativo' : 'Sentimiento Neutral' %>
+                </div>
+              </div>
+              <% if presenter.has_validity_data? %>
+                <div class="pdf-stats-card">
+                  <div class="pdf-stats-label">Confianza Estadística</div>
+                  <div class="pdf-stats-value">
+                    <%= (presenter.overall_confidence * 100).round %>%
+                  </div>
+                  <div class="pdf-stats-sublabel">
+                    <%= presenter.total_reactions %> reacciones analizadas
+                  </div>
+                </div>
               <% end %>
-            </ul>
+              <% if @controversial_posts.present? && @controversial_posts.any? %>
+                <div class="pdf-stats-card">
+                  <div class="pdf-stats-label">Posts Controvertidos</div>
+                  <div class="pdf-stats-value" style="color: #f59e0b">
+                    ⚠️ <%= @controversial_posts.size %>
+                  </div>
+                  <div class="pdf-stats-sublabel">
+                    Alta polarización detectada
+                  </div>
+                </div>
+              <% end %>
+            </div>
+            
+            <!-- Sentiment Charts -->
+            <% if presenter.has_time_series? %>
+              <h3>Evolución del Sentimiento</h3>
+              <%= render 'shared/pdf_charts_row',
+                    charts: [
+                      build_pdf_chart_config(
+                        title: "Score de Sentimiento (-2.0 a +2.0)",
+                        data: @sentiment_over_time,
+                        type: :line_chart,
+                        xtitle: "Fecha",
+                        ytitle: "Score",
+                        colors: ['#8b5cf6'],
+                        min: -2,
+                        max: 2
+                      )
+                    ] %>
+            <% end %>
+            
+            <!-- Sentiment Distribution -->
+            <% if @sentiment_distribution.present? %>
+              <h3>Distribución de Sentimientos</h3>
+              <%= render 'shared/pdf_charts_row',
+                    charts: [
+                      build_pdf_chart_config(
+                        title: "Posts por Tipo de Sentimiento",
+                        data: presenter.sentiment_distribution_data,
+                        type: :pie_chart,
+                        donut: true,
+                        colors: ['#10b981', '#22c55e', '#6b7280', '#f59e0b', '#ef4444']
+                      ),
+                      build_pdf_chart_config(
+                        title: "Desglose de Reacciones",
+                        data: presenter.reaction_breakdown_data,
+                        type: :column_chart,
+                        colors: ['#1877f2', '#f43f5e', '#f59e0b', '#a855f7', '#3b82f6', '#10b981', '#ec4899']
+                      )
+                    ] %>
+            <% end %>
+            
+            <!-- Summary Text -->
+            <div class="pdf-summary">
+              <p>
+                <strong>Resumen del Análisis de Sentimiento:</strong>
+                El sentimiento promedio es <%= presenter.average_sentiment > 0.5 ? 'positivo' : presenter.average_sentiment < -0.5 ? 'negativo' : 'neutral' %>. 
+                El análisis se basa en <strong><%= pdf_format_number(presenter.total_reactions) %></strong> reacciones 
+                con una confianza estadística del <strong><%= (presenter.overall_confidence * 100).round %>%</strong>.
+              </p>
+              <% if @sentiment_distribution.present? %>
+                <p class="mt-md">
+                  La distribución de posts muestra: 
+                  <strong style="color: #10b981"><%= presenter.positive_percentage %>%</strong> positivos,
+                  <strong style="color: #6b7280"><%= presenter.neutral_percentage %>%</strong> neutrales, y
+                  <strong style="color: #ef4444"><%= presenter.negative_percentage %>%</strong> negativos.
+                </p>
+              <% end %>
+            </div>
+            
+            <!-- Top Positive Posts -->
+            <% if @top_positive_posts.present? && @top_positive_posts.any? %>
+              <h3>Top 5 Posts Más Positivos</h3>
+              <% @top_positive_posts.take(5).each_with_index do |post, index| %>
+                <div class="pdf-post-item">
+                  <div class="pdf-post-header">
+                    <span class="pdf-post-rank">#<%= index + 1 %></span>
+                    <span class="pdf-post-page"><%= post.page&.name || 'Unknown' %></span>
+                    <span class="pdf-post-date"><%= post.posted_at&.strftime("%d/%m/%Y") %></span>
+                    <span class="pdf-post-interactions" style="color: #10b981">
+                      <%= pdf_sentiment_emoji(post.sentiment_score, system: :facebook) %>
+                      Score: <%= number_with_precision(post.sentiment_score, precision: 2) %>
+                    </span>
+                  </div>
+                  
+                  <% if post.message.present? %>
+                    <p class="pdf-post-message"><%= truncate(post.message, length: 200) %></p>
+                  <% end %>
+                  
+                  <div class="pdf-post-metrics">
+                    <span class="pdf-metric">❤️ <%= pdf_format_number(post.reactions_total_count) %></span>
+                    <span class="pdf-metric">💬 <%= pdf_format_number(post.comments_count) %></span>
+                    <span class="pdf-metric">🔗 <%= pdf_format_number(post.share_count) %></span>
+                    <% if post.views_count && post.views_count > 0 %>
+                      <span class="pdf-metric">👁️ <%= pdf_format_number(post.views_count) %></span>
+                    <% end %>
+                  </div>
+                </div>
+              <% end %>
+            <% end %>
+            
+            <!-- Top Negative Posts -->
+            <% if @top_negative_posts.present? && @top_negative_posts.any? %>
+              <h3>Top 5 Posts Más Negativos</h3>
+              <% @top_negative_posts.take(5).each_with_index do |post, index| %>
+                <div class="pdf-post-item">
+                  <div class="pdf-post-header">
+                    <span class="pdf-post-rank">#<%= index + 1 %></span>
+                    <span class="pdf-post-page"><%= post.page&.name || 'Unknown' %></span>
+                    <span class="pdf-post-date"><%= post.posted_at&.strftime("%d/%m/%Y") %></span>
+                    <span class="pdf-post-interactions" style="color: #ef4444">
+                      <%= pdf_sentiment_emoji(post.sentiment_score, system: :facebook) %>
+                      Score: <%= number_with_precision(post.sentiment_score, precision: 2) %>
+                    </span>
+                  </div>
+                  
+                  <% if post.message.present? %>
+                    <p class="pdf-post-message"><%= truncate(post.message, length: 200) %></p>
+                  <% end %>
+                  
+                  <div class="pdf-post-metrics">
+                    <span class="pdf-metric">❤️ <%= pdf_format_number(post.reactions_total_count) %></span>
+                    <span class="pdf-metric">💬 <%= pdf_format_number(post.comments_count) %></span>
+                    <span class="pdf-metric">🔗 <%= pdf_format_number(post.share_count) %></span>
+                    <% if post.views_count && post.views_count > 0 %>
+                      <span class="pdf-metric">👁️ <%= pdf_format_number(post.views_count) %></span>
+                    <% end %>
+                  </div>
+                </div>
+              <% end %>
+            <% end %>
+            
+            <!-- Controversial Posts -->
+            <% if @controversial_posts.present? && @controversial_posts.any? %>
+              <h3>Posts Más Controvertidos (Alta Polarización)</h3>
+              <% @controversial_posts.take(3).each_with_index do |post, index| %>
+                <div class="pdf-post-item" style="border-left: 3pt solid #f59e0b;">
+                  <div class="pdf-post-header">
+                    <span class="pdf-post-rank">⚠️ #<%= index + 1 %></span>
+                    <span class="pdf-post-page"><%= post.page&.name || 'Unknown' %></span>
+                    <span class="pdf-post-date"><%= post.posted_at&.strftime("%d/%m/%Y") %></span>
+                    <span class="pdf-post-interactions" style="color: #f59e0b">
+                      Controversia: <%= number_with_precision(post.controversy_index * 100, precision: 0) %>%
+                    </span>
+                  </div>
+                  
+                  <% if post.message.present? %>
+                    <p class="pdf-post-message"><%= truncate(post.message, length: 200) %></p>
+                  <% end %>
+                  
+                  <div class="pdf-post-metrics">
+                    <span class="pdf-metric">❤️ <%= pdf_format_number(post.reactions_total_count) %></span>
+                    <span class="pdf-metric">💬 <%= pdf_format_number(post.comments_count) %></span>
+                    <span class="pdf-metric">🔗 <%= pdf_format_number(post.share_count) %></span>
+                    <span class="pdf-metric" style="color: #f59e0b">
+                      🔥 <%= number_with_precision(post.emotional_intensity * 100, precision: 0) %>% emoción
+                    </span>
+                  </div>
+                </div>
+              <% end %>
+            <% end %>
+            
+            <!-- Metodología -->
+            <div class="pdf-summary" style="background: #eff6ff; border-left: 3pt solid #3b82f6; padding: 8pt; margin-top: 12pt;">
+              <p style="margin: 0; font-size: 9pt; color: #1e40af;">
+                <strong>Nota sobre el análisis de sentimiento:</strong>
+                El sentimiento en Facebook se calcula usando un algoritmo ponderado basado en las reacciones:
+                Love y Thankful (+2.0), Haha (+1.5), Like (+0.5), Wow (neutral), Sad (-1.5), Angry (-2.0).
+                La confianza estadística aumenta con el número de reacciones analizadas.
+              </p>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+
+      <!-- Pages Analysis Section -->
+      <% if @pages_count.present? && @pages_count.any? %>
+        <div class="pdf-section">
+          <h2>Análisis de Fanpages</h2>
+          
+          <%= render 'shared/pdf_charts_row',
+                charts: [
+                  build_pdf_chart_config(
+                    title: "Posts por Fanpage",
+                    data: @pages_count,
+                    type: :pie_chart,
+                    donut: true,
+                    colors: ['#1877f2', '#F97316', '#10B981', '#F59E0B', '#EC4899']
+                  ),
+                  build_pdf_chart_config(
+                    title: "Interacciones por Fanpage",
+                    data: @pages_interactions,
+                    type: :pie_chart,
+                    donut: true,
+                    colors: ['#0284c7', '#6366F1', '#22C55E', '#D97706', '#EF4444']
+                  )
+                ] %>
+          
+          <!-- Top Pages List -->
+          <h3>Fanpages Destacadas</h3>
+          <div class="pdf-media-list">
+            <% @pages_count.take(12).each do |page_name, count| %>
+              <div class="pdf-media-item">
+                <div class="pdf-media-name"><%= page_name %></div>
+                <div class="pdf-media-count">
+                  <%= count %> posts · 
+                  <%= pdf_format_number(@pages_interactions[page_name] || 0) %> interacciones
+                </div>
+              </div>
+            <% end %>
           </div>
         </div>
       <% end %>
+
+      <!-- Tags Analysis Section -->
+      <% if @tag_counts.present? && @tag_counts.any? %>
+        <div class="pdf-section">
+          <h2>Análisis de Etiquetas</h2>
+          <%= render 'shared/pdf_charts_row',
+                charts: [
+                  build_pdf_chart_config(
+                    title: "Posts por Etiqueta",
+                    data: @tag_counts.map { |tag| [tag.name, tag.count] }.to_h,
+                    type: :pie_chart,
+                    donut: true,
+                    colors: ['#1877f2', '#8B5CF6', '#EC4899', '#14B8A6', '#F59E0B']
+                  ),
+                  build_pdf_chart_config(
+                    title: "Interacciones por Etiqueta",
+                    data: @tag_interactions,
+                    type: :pie_chart,
+                    donut: true,
+                    colors: ['#0284c7', '#7C3AED', '#D97706', '#0EA5E9', '#EF4444']
+                  )
+                ] %>
+        </div>
+      <% end %>
+
+      <!-- Words Analysis Section -->
+      <% if @word_occurrences.present? && @word_occurrences.any? %>
+        <div class="pdf-section">
+          <h2>Análisis de Palabras</h2>
+          
+          <h3>Palabras Más Frecuentes en Posts</h3>
+          <div class="pdf-words">
+            <% @word_occurrences.take(50).each do |word, count| %>
+              <span class="pdf-word"><%= word %> (<%= count %>)</span>
+            <% end %>
+          </div>
+          
+          <% if @bigram_occurrences.present? && @bigram_occurrences.any? %>
+            <h3>Bigramas Más Frecuentes</h3>
+            <div class="pdf-words">
+              <% @bigram_occurrences.take(30).each do |bigram, count| %>
+                <span class="pdf-word"><%= bigram %> (<%= count %>)</span>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+
+      <!-- Top Posts Section -->
+      <% if @top_posts.present? && @top_posts.any? %>
+        <div class="pdf-section break-before">
+          <h2>Top Posts con Más Interacciones</h2>
+          <% @top_posts.take(10).each_with_index do |post, index| %>
+            <div class="pdf-post-item">
+              <div class="pdf-post-header">
+                <span class="pdf-post-rank">#<%= index + 1 %></span>
+                <span class="pdf-post-page"><%= post.page&.name || 'Unknown' %></span>
+                <span class="pdf-post-date"><%= post.posted_at&.strftime("%d/%m/%Y") %></span>
+                <span class="pdf-post-interactions">
+                  <%= pdf_format_number(post.total_interactions) %> interacciones
+                </span>
+              </div>
+              
+              <% if post.message.present? %>
+                <p class="pdf-post-message"><%= truncate(post.message, length: 300) %></p>
+              <% end %>
+              
+              <div class="pdf-post-metrics">
+                <span class="pdf-metric">❤️ <strong><%= pdf_format_number(post.reactions_total_count) %></strong> Reacciones</span>
+                <span class="pdf-metric">💬 <strong><%= pdf_format_number(post.comments_count) %></strong> Comentarios</span>
+                <span class="pdf-metric">🔗 <strong><%= pdf_format_number(post.share_count) %></strong> Compartidos</span>
+                <% if post.views_count && post.views_count > 0 %>
+                  <span class="pdf-metric">👁️ <strong><%= pdf_format_number(post.views_count) %></strong> Vistas</span>
+                <% end %>
+              </div>
+              
+              <% if post.sentiment_score %>
+                <div class="pdf-post-metrics" style="border-top: 1pt solid #e5e7eb; margin-top: 8pt; padding-top: 8pt;">
+                  <span class="pdf-metric">
+                    Sentimiento: 
+                    <strong style="color: <%= post.sentiment_score > 0 ? '#10b981' : post.sentiment_score < 0 ? '#ef4444' : '#6b7280' %>">
+                      <%= pdf_sentiment_emoji(post.sentiment_score, system: :facebook) %>
+                      <%= number_with_precision(post.sentiment_score, precision: 1) %>
+                    </strong>
+                  </span>
+                </div>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+
+      <!-- Footer -->
+      <div class="pdf-report-footer">
+        <span>Generado por Morfeo Analytics</span>
+        <span><%= Time.current.strftime("%d/%m/%Y %H:%M") %></span>
+        <span>Confidencial</span>
+      </div>
     </div>
-    <!-- Auto-print after page loads -->
-    <script>
-      setTimeout(function() {
-        window.print();
-      }, 1000);
-    </script>
   </body>
 </html>

@@ -1,0 +1,20 @@
+<%# PDF KPIs Grid Partial - Displays metrics in a grid layout for PDF %>
+<%# Usage: render 'shared/pdf_kpis_grid', metrics: [{ label: 'X', value: 'Y', icon: '📊' }, ...] %>
+<%
+  # Accept metrics array directly
+  metrics_array = local_assigns[:metrics] || []
+%>
+
+<div class="pdf-metrics-grid">
+  <% metrics_array.each do |metric| %>
+    <div class="pdf-metric-card">
+      <% if metric[:icon] %>
+        <div class="pdf-metric-icon">
+          <%= metric[:icon] %>
+        </div>
+      <% end %>
+      <div class="pdf-metric-label"><%= metric[:label] %></div>
+      <div class="pdf-metric-value"><%= metric[:value] %></div>
+    </div>
+  <% end %>
+</div>
