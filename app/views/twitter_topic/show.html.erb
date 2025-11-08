@@ -270,39 +270,36 @@
         Evolución temporal
       </h2>
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Tweets Chart -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-lg font-medium text-gray-900">Tweets por día</h3>
             <span class="text-sm text-gray-500">Últimos <%= DAYS_RANGE %> días</span>
           </div>
-          <div class="w-full overflow-hidden"
-               data-controller="topics"
-               data-topics-id-value="twitterPostsChart"
-               data-topics-url-value="<%= entries_data_twitter_topics_path %>"
-               data-topics-topic-id-value="<%= @topic.id %>"
-               data-topics-title-value="false">
-            <%= column_chart @chart_posts, xtitle: 'Fecha', ytitle: 'Tweets', label: 'Tweets',
-                  id: 'twitterPostsChart', adapter: 'highcharts', library: { plotOptions: { series: { dataLabels: { enabled: true } } } },
-                  colors: ['#0ea5e9'], thousands: '.' %>
-            <%= render 'home/modal', graph_id: 'twitterPostsChart', controller_name: 'topics' %>
-          </div>
+          <%= render_column_chart(@chart_posts,
+                chart_id: 'twitterPostsChart',
+                url: entries_data_twitter_topics_path,
+                topic_id: @topic.id,
+                label: 'Tweets',
+                color: :sky,
+                xtitle: 'Fecha',
+                ytitle: 'Tweets') %>
         </div>
+        
+        <!-- Interactions Chart -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-lg font-medium text-gray-900">Interacciones por día</h3>
             <span class="text-sm text-gray-500">Total diario</span>
           </div>
-          <div class="w-full overflow-hidden"
-               data-controller="topics"
-               data-topics-id-value="twitterInteractionsChart"
-               data-topics-url-value="<%= entries_data_twitter_topics_path %>"
-               data-topics-topic-id-value="<%= @topic.id %>"
-               data-topics-title-value="false">
-            <%= column_chart @chart_interactions, xtitle: 'Fecha', ytitle: 'Interacciones', label: 'Interacciones',
-                  id: 'twitterInteractionsChart', adapter: 'highcharts', library: { plotOptions: { series: { dataLabels: { enabled: true } } } },
-                  colors: ['#10B981'], thousands: '.' %>
-            <%= render 'home/modal', graph_id: 'twitterInteractionsChart', controller_name: 'topics' %>
-          </div>
+          <%= render_column_chart(@chart_interactions,
+                chart_id: 'twitterInteractionsChart',
+                url: entries_data_twitter_topics_path,
+                topic_id: @topic.id,
+                label: 'Interacciones',
+                color: :success,
+                xtitle: 'Fecha',
+                ytitle: 'Interacciones') %>
         </div>
       </div>
     </section>

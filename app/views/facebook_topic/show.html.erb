@@ -31,7 +31,7 @@
       width: 100%;
     }
     /* Lower z-index for chart containers and all Highcharts elements */
-    .chart-container, 
+    .chart-container,
     .highcharts-container,
     .highcharts-container *,
     .highcharts-root,
@@ -40,7 +40,7 @@
     div[class*="w-full"][class*="overflow-hidden"] {
       z-index: 1 !important;
     }
-    
+
     /* Ensure chart parent cards don't interfere */
     section .bg-white {
       isolation: auto;
@@ -62,7 +62,7 @@
         <p class="mt-1 text-sm text-gray-600">Interacciones de fanpages - Últimos <%= DAYS_RANGE %> días</p>
       </div>
       <div class="mt-4 flex flex-col sm:flex-row gap-2 md:mt-0 md:ml-4">
-        <%= link_to pdf_facebook_topic_path(@topic, days_range: 7), target: '_blank', 
+        <%= link_to pdf_facebook_topic_path(@topic, days_range: 7), target: '_blank',
             rel: 'noopener noreferrer',
             class: 'inline-flex items-center justify-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors',
             'aria-label': "Generar PDF - 7 días" do %>
@@ -71,19 +71,19 @@
           </svg>
           PDF 7d
         <% end %>
-        <%= link_to pdf_facebook_topic_path(@topic, days_range: 15), target: '_blank', 
+        <%= link_to pdf_facebook_topic_path(@topic, days_range: 15), target: '_blank',
             rel: 'noopener noreferrer',
             class: 'inline-flex items-center justify-center px-3 py-2 border border-indigo-600 text-sm font-medium rounded-md text-indigo-600 bg-white hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors',
             'aria-label': "Generar PDF - 15 días" do %>
           15d
         <% end %>
-        <%= link_to pdf_facebook_topic_path(@topic, days_range: 30), target: '_blank', 
+        <%= link_to pdf_facebook_topic_path(@topic, days_range: 30), target: '_blank',
             rel: 'noopener noreferrer',
             class: 'inline-flex items-center justify-center px-3 py-2 border border-indigo-600 text-sm font-medium rounded-md text-indigo-600 bg-white hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors',
             'aria-label': "Generar PDF - 30 días" do %>
           30d
         <% end %>
-        <%= link_to pdf_facebook_topic_path(@topic, days_range: 60), target: '_blank', 
+        <%= link_to pdf_facebook_topic_path(@topic, days_range: 60), target: '_blank',
             rel: 'noopener noreferrer',
             class: 'inline-flex items-center justify-center px-3 py-2 border border-indigo-600 text-sm font-medium rounded-md text-indigo-600 bg-white hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors',
             'aria-label': "Generar PDF - 60 días" do %>
@@ -109,49 +109,49 @@
   <div class="mx-auto px-4 sm:px-6 lg:px-8 bg-white">
     <div class="flex items-center justify-between h-12 overflow-x-auto scrollbar-hide">
       <div class="flex space-x-1 md:space-x-4">
-        <a href="#kpis" 
+        <a href="#kpis"
            data-turbo="false"
            class="px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap"
            aria-label="Ir a sección de métricas clave">
           <i class="fa-solid fa-gauge-high mr-1 md:mr-2" aria-hidden="true"></i>
           <span class="hidden sm:inline">Métricas</span>
         </a>
-        <a href="#temporal-intelligence" 
+        <a href="#temporal-intelligence"
            data-turbo="false"
            class="px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap"
            aria-label="Ir a inteligencia temporal">
           <i class="fa-solid fa-clock mr-1 md:mr-2" aria-hidden="true"></i>
           <span class="hidden sm:inline">Temporal</span>
         </a>
-        <a href="#sentiment" 
+        <a href="#sentiment"
            data-turbo="false"
            class="px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-700 hover:text-purple-600 hover:bg-purple-50 rounded-md transition-colors whitespace-nowrap"
            aria-label="Ir a análisis de sentimiento">
           <i class="fa-solid fa-heart-pulse mr-1 md:mr-2" aria-hidden="true"></i>
           <span class="hidden sm:inline">Sentimiento</span>
         </a>
-        <a href="#charts" 
+        <a href="#charts"
            data-turbo="false"
            class="px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap"
            aria-label="Ir a evolución temporal">
           <i class="fa-solid fa-chart-line mr-1 md:mr-2" aria-hidden="true"></i>
           <span class="hidden sm:inline">Evolución</span>
         </a>
-        <a href="#tags" 
+        <a href="#tags"
            data-turbo="false"
            class="px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap"
            aria-label="Ir a etiquetas">
           <i class="fa-solid fa-tags mr-1 md:mr-2" aria-hidden="true"></i>
           <span class="hidden sm:inline">Etiquetas</span>
         </a>
-        <a href="#pages" 
+        <a href="#pages"
            data-turbo="false"
            class="px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap"
            aria-label="Ir a fanpages">
           <i class="fa-brands fa-facebook-f mr-1 md:mr-2" aria-hidden="true"></i>
           <span class="hidden sm:inline">Fanpages</span>
         </a>
-        <a href="#posts" 
+        <a href="#posts"
            data-turbo="false"
            class="px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap"
            aria-label="Ir a tabla de publicaciones">
@@ -159,7 +159,7 @@
           <span class="hidden sm:inline">Publicaciones</span>
         </a>
         <% if @viral_content&.any? %>
-          <a href="#viral-content" 
+          <a href="#viral-content"
              data-turbo="false"
              class="inline-flex items-center px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-red-700 hover:text-red-800 hover:bg-red-50 rounded-md transition-colors whitespace-nowrap"
              aria-label="Ir a contenido viral">
@@ -170,8 +170,8 @@
         <% end %>
       </div>
       <!-- Back to Top Button -->
-      <a href="#" 
-         id="backToTop" 
+      <a href="#"
+         id="backToTop"
          class="ml-4 inline-flex items-center px-3 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-md transition-colors cursor-pointer whitespace-nowrap"
          aria-label="Volver arriba">
         <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
@@ -194,7 +194,7 @@
       });
     }
   });
-  
+
   document.addEventListener('turbo:load', function() {
     const backToTopLink = document.getElementById('backToTop');
     if (backToTopLink) {
@@ -209,7 +209,7 @@
 
 <main class="bg-gray-50 min-h-screen">
   <div class="mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-8">
-    
+
     <!-- KPI cards -->
     <section id="kpis">
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -225,7 +225,7 @@
           </div>
           <p class="mt-2 text-sm text-gray-500">Publicaciones tagged con este tópico en los últimos <%= DAYS_RANGE %> días.</p>
         </div>
-        
+
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-indigo-300 transition-all duration-200 cursor-default group">
           <div class="flex items-center justify-between mb-2">
             <div class="text-sm font-medium text-gray-500 uppercase tracking-wide">Interacciones</div>
@@ -238,7 +238,7 @@
           </div>
           <p class="mt-2 text-sm text-gray-500">Likes + Comentarios + Compartidos.</p>
         </div>
-        
+
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-purple-300 transition-all duration-200 cursor-default group">
           <div class="flex items-center justify-between mb-2">
             <div class="text-sm font-medium text-gray-500 uppercase tracking-wide">Vistas</div>
@@ -251,7 +251,7 @@
           </div>
           <p class="mt-2 text-sm text-gray-500">Estimación de vistas totales basada en engagement.</p>
         </div>
-        
+
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-green-300 transition-all duration-200 cursor-default group">
           <div class="flex items-center justify-between mb-2">
             <div class="text-sm font-medium text-gray-500 uppercase tracking-wide">Promedio</div>
@@ -266,10 +266,10 @@
         </div>
       </div>
     </section>
-    
+
     <!-- TEMPORAL INTELLIGENCE SECTION -->
     <%= render 'temporal_intelligence' %>
-    
+
     <!-- Charts -->
     <section id="charts">
       <h2 class="text-2xl font-bold text-gray-900 mb-6">
@@ -277,63 +277,40 @@
         Evolución temporal
       </h2>
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Publicaciones Chart -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-lg font-medium text-gray-900">Publicaciones por día</h3>
             <span class="text-sm text-gray-500">Últimos <%= DAYS_RANGE %> días</span>
           </div>
-          <div class="w-full overflow-hidden"
-               data-controller="topics"
-               data-topics-id-value="facebookPostsChart"
-               data-topics-url-value="<%= entries_data_facebook_topics_path %>"
-               data-topics-topic-id-value="<%= @topic.id %>"
-               data-topics-title-value="false">
-            <%= column_chart @chart_posts, xtitle: 'Fecha', ytitle: 'Publicaciones',
-                  id: 'facebookPostsChart', adapter: 'highcharts', 
-                  colors: ['#3B82F6'], thousands: '.',
-                  library: { 
-                    plotOptions: { 
-                      series: { 
-                        dataLabels: { enabled: true }
-                      } 
-                    },
-                    tooltip: {
-                      pointFormat: '<b>{point.y}</b> Publicaciones'
-                    }
-                  } %>
-            <%= render 'home/modal', graph_id: 'facebookPostsChart', controller_name: 'topics' %>
-          </div>
+          <%= render_column_chart(@chart_posts,
+                chart_id: 'facebookPostsChart',
+                url: entries_data_facebook_topics_path,
+                topic_id: @topic.id,
+                label: 'Publicaciones',
+                color: :primary,
+                xtitle: 'Fecha',
+                ytitle: 'Publicaciones') %>
         </div>
+
+        <!-- Interacciones Chart -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-lg font-medium text-gray-900">Interacciones por día</h3>
             <span class="text-sm text-gray-500">Total diario</span>
           </div>
-          <div class="w-full overflow-hidden"
-               data-controller="topics"
-               data-topics-id-value="facebookInteractionsChart"
-               data-topics-url-value="<%= entries_data_facebook_topics_path %>"
-               data-topics-topic-id-value="<%= @topic.id %>"
-               data-topics-title-value="false">
-            <%= column_chart @chart_interactions, xtitle: 'Fecha', ytitle: 'Interacciones',
-                  id: 'facebookInteractionsChart', adapter: 'highcharts', 
-                  colors: ['#10B981'], thousands: '.',
-                  library: { 
-                    plotOptions: { 
-                      series: { 
-                        dataLabels: { enabled: true }
-                      } 
-                    },
-                    tooltip: {
-                      pointFormat: '<b>{point.y}</b> Interacciones'
-                    }
-                  } %>
-            <%= render 'home/modal', graph_id: 'facebookInteractionsChart', controller_name: 'topics' %>
-          </div>
+          <%= render_column_chart(@chart_interactions,
+                chart_id: 'facebookInteractionsChart',
+                url: entries_data_facebook_topics_path,
+                topic_id: @topic.id,
+                label: 'Interacciones',
+                color: :success,
+                xtitle: 'Fecha',
+                ytitle: 'Interacciones') %>
         </div>
       </div>
     </section>
-    
+
     <!-- Tag insights -->
     <section id="tags">
       <h2 class="text-2xl font-bold text-gray-900 mb-6">
@@ -351,7 +328,7 @@
         </div>
       </div>
     </section>
-    
+
     <!-- Sentiment Analysis Section -->
     <% if @sentiment_summary %>
       <section id="sentiment" class="mb-8">
@@ -359,7 +336,7 @@
           <i class="fa-solid fa-heart-pulse text-purple-600 mr-2"></i>
           Análisis de Sentimiento
         </h2>
-        
+
         <!-- Overview Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <!-- Average Sentiment -->
@@ -390,7 +367,7 @@
               </div>
             <% end %>
           </div>
-          
+
           <!-- Trend -->
           <% if @sentiment_trend %>
             <div class="bg-white rounded-xl border border-gray-200 p-6">
@@ -404,7 +381,7 @@
               </div>
             </div>
           <% end %>
-          
+
           <!-- Controversial -->
           <div class="bg-white rounded-xl border border-gray-200 p-6">
             <h3 class="text-sm font-medium text-gray-600 mb-3">Posts Controversiales</h3>
@@ -414,28 +391,28 @@
             <p class="text-xs text-gray-500 mt-3">Alto balance positivo/negativo</p>
           </div>
         </div>
-        
+
         <!-- Charts Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           <!-- Sentiment Over Time -->
           <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <h3 class="text-lg font-medium text-gray-900 mb-4">Evolución del Sentimiento</h3>
-            <%= line_chart @sentiment_over_time, 
-                colors: ['#8b5cf6'], 
-                min: -2, 
+            <%= line_chart @sentiment_over_time,
+                colors: ['#8b5cf6'],
+                min: -2,
                 max: 2,
                 download: false,
-                library: { 
+                library: {
                   chart: { height: 300 },
-                  plotOptions: { 
-                    series: { 
+                  plotOptions: {
+                    series: {
                       lineWidth: 3,
                       marker: { radius: 4 }
-                    } 
+                    }
                   }
                 } %>
           </div>
-          
+
           <!-- Distribution Pie -->
           <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <h3 class="text-lg font-medium text-gray-900 mb-4">Distribución</h3>
@@ -446,7 +423,7 @@
                 library: { chart: { height: 300 } } %>
           </div>
         </div>
-        
+
         <!-- Reaction Breakdown -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
           <h3 class="text-lg font-medium text-gray-900 mb-4">
@@ -458,7 +435,7 @@
               download: false,
               library: { chart: { height: 300 } } %>
         </div>
-        
+
         <!-- Top Posts by Sentiment -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           <!-- Positive Posts -->
@@ -549,7 +526,7 @@
               </div>
             <% end %>
           </div>
-          
+
           <!-- Negative Posts -->
           <div class="bg-gradient-to-br from-red-50 to-rose-50 rounded-xl border border-red-200 p-6">
             <h3 class="text-lg font-medium text-red-900 mb-4">
@@ -639,7 +616,7 @@
             <% end %>
           </div>
         </div>
-        
+
         <!-- Controversial Posts Section -->
         <% if @controversial_posts.present? && @controversial_posts.any? %>
           <div class="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border-2 border-amber-300 p-6 mb-6">
@@ -654,7 +631,7 @@
               <i class="fa-solid fa-info-circle mr-1"></i>
               Posts con alto balance entre reacciones positivas y negativas. Audiencia dividida.
             </p>
-            
+
             <div class="space-y-3">
               <% @controversial_posts.each do |post| %>
                 <div class="bg-white rounded-lg border-2 border-amber-200 p-4 hover:border-amber-400 transition-all">
@@ -672,7 +649,7 @@
                         <span><%= time_ago_in_words(post.posted_at) %> atrás</span>
                       </div>
                     </div>
-                    
+
                     <!-- Controversy Badge -->
                     <div class="ml-4 flex-shrink-0">
                       <div class="bg-amber-600 text-white rounded-lg px-3 py-2 text-center min-w-[80px]">
@@ -681,7 +658,7 @@
                       </div>
                     </div>
                   </div>
-                  
+
                   <!-- Reaction Breakdown -->
                   <div class="pt-3 border-t border-amber-200">
                     <div class="grid grid-cols-2 gap-4">
@@ -723,7 +700,7 @@
                           <% end %>
                         </div>
                       </div>
-                      
+
                       <!-- Negative Reactions -->
                       <div class="bg-red-50 rounded-lg p-3 border border-red-200">
                         <div class="text-xs font-semibold text-red-800 mb-2 uppercase tracking-wide">
@@ -745,7 +722,7 @@
                         </div>
                       </div>
                     </div>
-                    
+
                     <!-- Total Stats -->
                     <div class="mt-3 pt-3 border-t border-amber-200 flex items-center justify-between text-sm">
                       <div class="flex items-center gap-4">
@@ -773,7 +750,7 @@
                 </div>
               <% end %>
             </div>
-            
+
             <!-- Explanation Box -->
             <div class="mt-4 p-4 bg-amber-100 border border-amber-300 rounded-lg">
               <h4 class="text-sm font-semibold text-amber-900 mb-2">
@@ -788,7 +765,7 @@
         <% end %>
       </section>
     <% end %>
-    
+
     <!-- Pages insights -->
     <section id="pages">
       <h2 class="text-2xl font-bold text-gray-900 mb-6">
@@ -806,17 +783,17 @@
         </div>
       </div>
     </section>
-    
+
     <!-- Top Media Sources Section -->
     <section class="mb-8">
       <%= render partial: 'site/sites', locals: { sites: @site_top_counts, title: 'Cuentas que mas han mencionado este tópico fueron:' } %>
     </section>
-    
+
     <!-- All posts -->
     <section id="posts">
       <%= render partial: 'facebook_topic/posts_table', locals: { entries: @entries, title: "Todas las publicaciones etiquetadas con #{@topic.name}" } %>
     </section>
-    
+
     <!-- VIRAL CONTENT SECTION -->
     <% if @viral_content&.any? %>
       <section class="mb-8" id="viral-content">
@@ -824,7 +801,7 @@
           <!-- Decorative background elements -->
           <div class="absolute top-0 right-0 w-40 h-40 bg-orange-200/30 rounded-full -mr-20 -mt-20 blur-2xl"></div>
           <div class="absolute bottom-0 left-0 w-32 h-32 bg-pink-200/30 rounded-full -ml-16 -mb-16 blur-2xl"></div>
-          
+
           <div class="relative z-10">
             <!-- Header -->
             <div class="flex items-center justify-between mb-6">
@@ -954,7 +931,7 @@
         </div>
       </section>
     <% end %>
-    
+
     <!-- Word Cloud Section -->
     <% if @word_occurrences.any? %>
       <section class="mb-8">
@@ -979,7 +956,7 @@
           <div>
             <ul class="cloud">
               <% prepare_word_cloud_data(@word_occurrences, @positive_words, @negative_words).each do |word_data| %>
-                <li style='color: <%= word_data[:color] %>' 
+                <li style='color: <%= word_data[:color] %>'
                     data-weight="<%= word_data[:weight] %>"
                     data-sentiment="<%= word_data[:sentiment] || 'neutral' %>">
                   <%= word_data[:word] %>
@@ -990,20 +967,20 @@
         </div>
       </section>
     <% end %>
-    
+
     <!-- Word Analysis Tables -->
     <section class="space-y-6">
-      <%= render partial: "tag/word_cloud_modern", 
-                 locals: { 
+      <%= render partial: "tag/word_cloud_modern",
+                 locals: {
                    title: "Análisis de Palabras en Publicaciones",
                    icon: "fa-spell-check",
                    icon_color: "text-green-600",
                    word_data: @word_occurrences,
                    description: "Análisis de frecuencia de palabras clave que aparecen en las publicaciones de Facebook"
                  } %>
-      
-      <%= render partial: "tag/word_cloud_modern", 
-                 locals: { 
+
+      <%= render partial: "tag/word_cloud_modern",
+                 locals: {
                    title: "Análisis de Bigramas en Publicaciones",
                    icon: "fa-comments",
                    icon_color: "text-blue-600",
@@ -1011,7 +988,7 @@
                    description: "Análisis de pares de palabras consecutivas (bigramas) en las publicaciones de Facebook"
                  } %>
     </section>
-    
+
     <!-- Top posts cards -->
     <section>
       <%= render partial: 'facebook_topic/facebook_entries', locals: { facebook_entries: @top_posts, title: 'Publicaciones con más interacciones' } %>

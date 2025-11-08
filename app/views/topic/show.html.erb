@@ -331,22 +331,14 @@
               Últimos <%=DAYS_RANGE%> días
             </div>
           </div>
-          <div class='w-full overflow-hidden'
-              data-controller='topics'
-              data-topics-id-value='entryQuantitiesChart'
-              data-topics-url-value='<%= entries_data_topics_path %>'
-              data-topics-topic-id-value='<%= @topic.id %>'>
-            <%= column_chart @chart_entries_counts, xtitle: "Fecha", ytitle: "Cant. Notas", label: "Cant. Notas", thousands: ".", curve: false,
-                    adapter: 'highcharts', id: 'entryQuantitiesChart', colors: ['#3B82F6'], library: {
-                    plotOptions: {
-                      series: {
-                        dataLabels: {
-                          enabled: true
-                        }
-                      }
-                    } } %>
-            <%= render 'home/modal', graph_id: 'entryQuantitiesChart', controller_name: 'topics' %>
-          </div>
+          <%= render_column_chart(@chart_entries_counts,
+                chart_id: 'entryQuantitiesChart',
+                url: entries_data_topics_path,
+                topic_id: @topic.id,
+                label: 'Notas',
+                color: :primary,
+                xtitle: 'Fecha',
+                ytitle: 'Cant. Notas') %>
         </div>
         <!-- Chart Card 2: Interactions -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow w-full">
@@ -359,22 +351,14 @@
               Total de interacciones
             </div>
           </div>
-          <div class='w-full overflow-hidden'
-              data-controller='topics'
-              data-topics-id-value='entryInteractionsChart'
-              data-topics-url-value='<%= entries_data_topics_path %>'
-              data-topics-topic-id-value='<%= @topic.id %>'>
-            <%= column_chart @chart_entries_sums, xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones", thousands: ".", curve: false,
-                    adapter: 'highcharts', id: 'entryInteractionsChart', colors: ['#10B981'], library: {
-                    plotOptions: {
-                      series: {
-                        dataLabels: {
-                          enabled: true
-                        }
-                      }
-                    } } %>
-            <%= render partial: 'home/modal', locals: { graph_id: 'entryInteractionsChart', controller_name: 'topics' } %>
-          </div>
+          <%= render_column_chart(@chart_entries_sums,
+                chart_id: 'entryInteractionsChart',
+                url: entries_data_topics_path,
+                topic_id: @topic.id,
+                label: 'Interacciones',
+                color: :success,
+                xtitle: 'Fecha',
+                ytitle: 'Interacciones') %>
         </div>
       </div>
     </section>
@@ -396,23 +380,15 @@
               Solo títulos
             </div>
           </div>
-          <div class='w-full overflow-hidden'
-            data-controller='topics'
-            data-topics-id-value='titleEntryQuantitiesChart'
-            data-topics-url-value='<%= entries_data_topics_path %>'
-            data-topics-topic-id-value='<%= @topic.id %>'
-            data-topics-title-value='true'>
-            <%= column_chart @title_chart_entries_counts, xtitle: "Fecha", ytitle: "Cant. Notas en Titulo", label: "Cant. Notas en Titulo", thousands: ".", curve: false,
-                  adapter: 'highcharts', id: 'titleEntryQuantitiesChart', colors: ['#8B5CF6'], library: {
-                  plotOptions: {
-                    series: {
-                      dataLabels: {
-                        enabled: true
-                      }
-                    }
-                  } } %>
-            <%= render 'home/modal', graph_id: 'titleEntryQuantitiesChart', controller_name: 'topics' %>
-          </div>
+          <%= render_column_chart(@title_chart_entries_counts,
+                chart_id: 'titleEntryQuantitiesChart',
+                url: entries_data_topics_path,
+                topic_id: @topic.id,
+                title: true,
+                label: 'Notas en Titulo',
+                color: :purple,
+                xtitle: 'Fecha',
+                ytitle: 'Cant. Notas en Titulo') %>
         </div>
         <!-- Title Chart 2: Interactions -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
@@ -425,23 +401,15 @@
               Interacciones en títulos
             </div>
           </div>
-          <div class='w-full overflow-hidden'
-            data-controller='topics'
-            data-topics-id-value='titleEntryInteractionsChart'
-            data-topics-url-value='<%= entries_data_topics_path %>'
-            data-topics-topic-id-value='<%= @topic.id %>'
-            data-topics-title-value='true'>
-            <%= column_chart @title_chart_entries_sums, xtitle: "Fecha", ytitle: "Interacciones", label: "Interacciones en TITULO", thousands: ".", curve: false,
-                  adapter: 'highcharts', id: 'titleEntryInteractionsChart', colors: ['#F59E0B'], library: {
-                  plotOptions: {
-                    series: {
-                      dataLabels: {
-                        enabled: true
-                      }
-                    }
-                  } } %>
-            <%= render partial: 'home/modal', locals: { graph_id: 'titleEntryInteractionsChart', controller_name: 'topics' } %>
-          </div>
+          <%= render_column_chart(@title_chart_entries_sums,
+                chart_id: 'titleEntryInteractionsChart',
+                url: entries_data_topics_path,
+                topic_id: @topic.id,
+                title: true,
+                label: 'Interacciones',
+                color: :warning,
+                xtitle: 'Fecha',
+                ytitle: 'Interacciones') %>
         </div>
       </div>
     </section>
