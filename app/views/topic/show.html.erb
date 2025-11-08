@@ -521,14 +521,25 @@
             data-topics-id-value='entryPolarityQuantitiesChart'
             data-topics-url-value='<%= entries_data_topics_path %>'
             data-topics-topic-id-value='<%= @topic.id %>'>
-            <%= area_chart polarity_stacked_chart_data(@chart_entries_sentiments_counts), xtitle: 'Fecha', ytitle: 'Cant. Notas', label: 'Notas', thousands: '.',
-                  stacked: true, curve: false, colors: ['#10B981', '#9CA3AF', '#EF4444'], id: 'entryPolarityQuantitiesChart', library: {
-                  plotOptions: {
-                    series: {
-                      name: 'Polarity',
-                      dataLabels: { enabled: false }
+            <%= line_chart polarity_stacked_chart_data(@chart_entries_sentiments_counts),
+                  xtitle: 'Fecha',
+                  ytitle: 'Cant. Notas',
+                  thousands: '.',
+                  colors: ['#10B981', '#9CA3AF', '#EF4444'],
+                  id: 'entryPolarityQuantitiesChart',
+                  library: {
+                    chart: { height: 300 },
+                    plotOptions: {
+                      series: {
+                        lineWidth: 3,
+                        marker: { enabled: true, radius: 4 }
+                      }
+                    },
+                    tooltip: {
+                      shared: true,
+                      crosshairs: true
                     }
-                  } } %>
+                  } %>
             <%= render partial: 'home/modal', locals: { graph_id: 'entryPolarityQuantitiesChart', controller_name: 'topics' } %>
           </div>
         </div>
@@ -556,14 +567,25 @@
             data-topics-id-value='entryPolarityInteractionsChart'
             data-topics-url-value='<%= entries_data_topics_path %>'
             data-topics-topic-id-value='<%= @topic.id %>'>
-            <%= area_chart polarity_stacked_chart_data(@chart_entries_sentiments_sums), xtitle: 'Fecha', ytitle: 'Cant. Interacciones', label: 'Interacciones',
-                  thousands: '.', stacked: true, curve: false, colors: ['#10B981', '#9CA3AF', '#EF4444'], id: 'entryPolarityInteractionsChart', library: {
-                  plotOptions: {
-                    series: {
-                      name: 'Polarity',
-                      dataLabels: { enabled: true }
+            <%= line_chart polarity_stacked_chart_data(@chart_entries_sentiments_sums),
+                  xtitle: 'Fecha',
+                  ytitle: 'Cant. Interacciones',
+                  thousands: '.',
+                  colors: ['#10B981', '#9CA3AF', '#EF4444'],
+                  id: 'entryPolarityInteractionsChart',
+                  library: {
+                    chart: { height: 300 },
+                    plotOptions: {
+                      series: {
+                        lineWidth: 3,
+                        marker: { enabled: true, radius: 4 }
+                      }
+                    },
+                    tooltip: {
+                      shared: true,
+                      crosshairs: true
                     }
-                  } } %>
+                  } %>
             <%= render partial: 'home/modal', locals: { graph_id: 'entryPolarityInteractionsChart', controller_name: 'topics' } %>
           </div>
         </div>
