@@ -114,6 +114,46 @@ module PdfHelper
     }
   end
 
+  # Enhanced chart configuration for better print quality
+  # @param title [String] Chart title
+  # @param data [Hash] Chart data
+  # @param type [Symbol] Chart type
+  # @param options [Hash] Additional options
+  # @return [Hash] Enhanced chart configuration
+  def build_pdf_chart_config_enhanced(title:, data:, type: :column_chart, **options)
+    # Enhanced library options for print quality
+    enhanced_options = options.dup
+    enhanced_options[:library] ||= {}
+    
+    enhanced_options[:library][:chart] ||= {}
+    enhanced_options[:library][:chart][:style] = {
+      fontFamily: 'Inter, -apple-system, sans-serif',
+      fontSize: '11pt'
+    }
+    
+    enhanced_options[:library][:xAxis] ||= {}
+    enhanced_options[:library][:xAxis][:labels] = {
+      style: { fontSize: '10pt', fontWeight: '600', color: '#374151' },
+      rotation: (type == :column_chart ? -45 : 0)
+    }
+    enhanced_options[:library][:xAxis][:gridLineWidth] = 1
+    enhanced_options[:library][:xAxis][:gridLineColor] = '#f3f4f6'
+    
+    enhanced_options[:library][:yAxis] ||= {}
+    enhanced_options[:library][:yAxis][:labels] = {
+      style: { fontSize: '10pt', fontWeight: '600', color: '#374151' }
+    }
+    enhanced_options[:library][:yAxis][:gridLineWidth] = 1
+    enhanced_options[:library][:yAxis][:gridLineColor] = '#f3f4f6'
+    
+    build_pdf_chart_config(title: title, data: data, type: type, **enhanced_options)
+  end
+
+  # Print-friendly color palette
+  def pdf_print_colors
+    ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316']
+  end
+
   # Format date range for PDF header
   # @param days_range [Integer] Number of days
   # @param start_date [Date, nil] Optional start date

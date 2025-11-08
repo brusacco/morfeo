@@ -1,56 +1,246 @@
-<!-- Professional Cover Page for Executive PDF Reports -->
-<div class="pdf-cover-page">
-  <!-- Logo (placeholder - replace with actual logo path) -->
-  <% if defined?(logo_path) && logo_path.present? %>
-    <%= image_tag(logo_path, class: 'pdf-cover-logo', alt: 'Morfeo Analytics Logo') %>
-  <% else %>
-    <div class="pdf-cover-logo" style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); width: 120pt; height: 60pt; display: flex; align-items: center; justify-content: center; border-radius: 6pt;">
-      <span style="color: white; font-size: 18pt; font-weight: 700; font-family: var(--font-serif);">MORFEO</span>
-    </div>
-  <% end %>
+<%
+  # Professional PDF Cover Page - Morfeo Analytics
+  # Reusable cover page for all reports
+  # Usage: render 'shared/pdf_cover_page', title: "...", topic_name: @topic.name, period: "...", report_type: :digital
+  
+  report_type ||= :general
+  subtitle ||= nil
+  
+  # Color scheme by report type
+  colors = {
+    digital: { primary: '#1e3a8a', secondary: '#3b82f6', gradient_start: '#dbeafe', gradient_end: '#eff6ff' },
+    facebook: { primary: '#1877f2', secondary: '#3b82f6', gradient_start: '#dbeafe', gradient_end: '#eff6ff' },
+    twitter: { primary: '#1da1f2', secondary: '#0ea5e9', gradient_start: '#e0f2fe', gradient_end: '#f0f9ff' },
+    general: { primary: '#8b5cf6', secondary: '#a78bfa', gradient_start: '#ede9fe', gradient_end: '#f5f3ff' }
+  }
+  
+  color_scheme = colors[report_type] || colors[:general]
+%>
 
-  <!-- Report Type & Title -->
-  <div style="margin-top: 48pt;">
-    <div class="pdf-cover-subtitle">
-      <%= report_type || 'Informe de Análisis de Medios' %>
+<div class="pdf-cover-page" style="background: linear-gradient(135deg, <%= color_scheme[:gradient_start] %> 0%, <%= color_scheme[:gradient_end] %> 100%);">
+  <!-- Logo Area -->
+  <div class="pdf-cover-logo-area">
+    <div class="pdf-cover-logo-placeholder" style="border-color: <%= color_scheme[:primary] %>;">
+      <span style="color: <%= color_scheme[:primary] %>; font-size: 32pt; font-weight: 900;">M</span>
     </div>
-    <h1 class="pdf-cover-title">
-      <%= report_title %>
+    <div class="pdf-cover-brand" style="color: <%= color_scheme[:primary] %>;">
+      MORFEO ANALYTICS
+    </div>
+  </div>
+  
+  <!-- Title Section -->
+  <div class="pdf-cover-main">
+    <h1 class="pdf-cover-title" style="color: <%= color_scheme[:primary] %>;">
+      <%= title %>
     </h1>
+    
+    <% if subtitle.present? %>
+      <p class="pdf-cover-subtitle" style="color: <%= color_scheme[:secondary] %>;">
+        <%= subtitle %>
+      </p>
+    <% end %>
+    
+    <!-- Topic Highlight -->
+    <div class="pdf-cover-topic" style="border-left-color: <%= color_scheme[:primary] %>;">
+      <div class="pdf-cover-topic-label">Tópico Analizado</div>
+      <div class="pdf-cover-topic-name"><%= topic_name %></div>
+    </div>
   </div>
-
-  <!-- Topic Name in Highlight Box -->
-  <div class="pdf-cover-topic">
-    Tópico: <%= topic_name %>
-  </div>
-
-  <!-- Report Metadata -->
+  
+  <!-- Metadata Section -->
   <div class="pdf-cover-meta">
-    <div style="margin-bottom: 8pt;">
-      <strong>Período de Análisis:</strong><br>
-      <%= date_range %>
-    </div>
-    <div style="margin-bottom: 8pt;">
-      <strong>Generado:</strong> <%= generated_date %>
-    </div>
-    <% if defined?(prepared_for) && prepared_for.present? %>
-      <div style="margin-bottom: 8pt;">
-        <strong>Preparado para:</strong> <%= prepared_for %>
+    <div class="pdf-cover-meta-row">
+      <div class="pdf-cover-meta-item">
+        <span class="pdf-cover-meta-icon">📅</span>
+        <div>
+          <div class="pdf-cover-meta-label">Período de Análisis</div>
+          <div class="pdf-cover-meta-value"><%= period %></div>
+        </div>
       </div>
-    <% end %>
-    <% if defined?(prepared_by) && prepared_by.present? %>
-      <div>
-        <strong>Preparado por:</strong> <%= prepared_by %>
+      
+      <div class="pdf-cover-meta-item">
+        <span class="pdf-cover-meta-icon">📊</span>
+        <div>
+          <div class="pdf-cover-meta-label">Fecha de Generación</div>
+          <div class="pdf-cover-meta-value"><%= Time.current.strftime("%d de %B de %Y") %></div>
+        </div>
       </div>
-    <% end %>
+      
+      <div class="pdf-cover-meta-item">
+        <span class="pdf-cover-meta-icon">🕐</span>
+        <div>
+          <div class="pdf-cover-meta-label">Hora</div>
+          <div class="pdf-cover-meta-value"><%= Time.current.strftime("%H:%M hrs") %></div>
+        </div>
+      </div>
+    </div>
   </div>
-
-  <!-- Confidentiality Notice -->
-  <div class="pdf-cover-confidential">
-    Documento Confidencial · Solo para uso interno
+  
+  <!-- Bottom Section -->
+  <div class="pdf-cover-bottom">
+    <!-- Footer -->
+    <div class="pdf-cover-footer">
+      <p>Powered by <strong>Morfeo Analytics</strong> | Inteligencia de Medios Digitales</p>
+      <p>www.morfeo.com.py | contacto@morfeo.com.py</p>
+    </div>
   </div>
 </div>
 
-<!-- Page break after cover -->
-<div style="page-break-after: always;"></div>
-
+<style>
+  /* Cover Page Styles */
+  .pdf-cover-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    text-align: center;
+    page-break-after: always;
+    padding: 40pt 40pt 24pt 40pt;
+    position: relative;
+  }
+  
+  /* Logo Area */
+  .pdf-cover-logo-area {
+    margin-bottom: 24pt;
+  }
+  
+  .pdf-cover-logo-placeholder {
+    width: 80pt;
+    height: 80pt;
+    border: 4pt solid;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12pt;
+    background: white;
+  }
+  
+  .pdf-cover-brand {
+    font-size: 14pt;
+    font-weight: 700;
+    letter-spacing: 2pt;
+    font-family: var(--font-sans);
+  }
+  
+  /* Main Content */
+  .pdf-cover-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-width: 500pt;
+  }
+  
+  .pdf-cover-title {
+    font-family: var(--font-serif);
+    font-size: 36pt;
+    font-weight: 900;
+    line-height: 1.2;
+    margin: 0 0 16pt 0;
+    letter-spacing: -1pt;
+  }
+  
+  .pdf-cover-subtitle {
+    font-size: 16pt;
+    font-weight: 500;
+    margin: 0 0 32pt 0;
+    line-height: 1.4;
+  }
+  
+  .pdf-cover-topic {
+    background: white;
+    border-left: 6pt solid;
+    border-radius: 8pt;
+    padding: 20pt 24pt;
+    margin: 24pt 0;
+    box-shadow: 0 4pt 12pt rgba(0, 0, 0, 0.08);
+  }
+  
+  .pdf-cover-topic-label {
+    font-size: 10pt;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1pt;
+    color: #6b7280;
+    margin-bottom: 8pt;
+  }
+  
+  .pdf-cover-topic-name {
+    font-size: 24pt;
+    font-weight: 700;
+    color: #1f2937;
+    line-height: 1.3;
+  }
+  
+  /* Metadata */
+  .pdf-cover-meta {
+    width: 100%;
+    max-width: 500pt;
+    margin: 16pt 0;
+  }
+  
+  .pdf-cover-meta-row {
+    display: flex;
+    gap: 16pt;
+    justify-content: space-around;
+  }
+  
+  .pdf-cover-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 8pt;
+    text-align: left;
+    background: white;
+    padding: 12pt 16pt;
+    border-radius: 6pt;
+    flex: 1;
+    box-shadow: 0 2pt 6pt rgba(0, 0, 0, 0.05);
+  }
+  
+  .pdf-cover-meta-icon {
+    font-size: 20pt;
+    line-height: 1;
+  }
+  
+  .pdf-cover-meta-label {
+    font-size: 8pt;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5pt;
+    margin-bottom: 2pt;
+  }
+  
+  .pdf-cover-meta-value {
+    font-size: 10pt;
+    font-weight: 600;
+    color: #1f2937;
+  }
+  
+  /* Bottom Section - Contains footer */
+  .pdf-cover-bottom {
+    width: 100%;
+    margin-top: auto;
+    padding-top: 32pt;
+  }
+  
+  /* Footer */
+  .pdf-cover-footer {
+    font-size: 8pt;
+    color: #9ca3af;
+    line-height: 1.8;
+    margin-top: 0;
+    padding-top: 20pt;
+    border-top: 1pt solid rgba(0, 0, 0, 0.1);
+  }
+  
+  .pdf-cover-footer p {
+    margin: 6pt 0;
+  }
+  
+  .pdf-cover-footer strong {
+    font-weight: 600;
+    color: #6b7280;
+  }
+</style>

@@ -9,6 +9,13 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartkick@4.2.0/dist/chartkick.min.js"></script>
     
+    <%# Auto-print on page load %>
+    <script>
+      window.onload = function() {
+        window.print();
+      };
+    </script>
+    
     <%# Include professional PDF styles %>
     <%= render 'shared/pdf_professional_styles' %>
     
@@ -17,10 +24,88 @@
       h1, .pdf-page-title {
         color: #0ea5e9; /* Twitter blue */
       }
+      
+      /* Enhanced Header Styles */
+      .pdf-header-enhanced {
+        background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
+        color: white;
+        padding: 24pt 32pt;
+        margin: -20pt -20pt 24pt -20pt;
+        border-radius: 0;
+        box-shadow: 0 4pt 12pt rgba(14, 165, 233, 0.2);
+      }
+      
+      .pdf-header-title {
+        margin: 0 0 12pt 0;
+        font-size: 26pt;
+        font-weight: 800;
+        color: white !important;
+        letter-spacing: -0.5pt;
+        line-height: 1.2;
+      }
+      
+      .pdf-header-meta {
+        margin: 0;
+        font-size: 11pt;
+        font-weight: 500;
+        opacity: 0.95;
+        display: flex;
+        align-items: center;
+        gap: 8pt;
+      }
+      
+      .pdf-header-meta-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 4pt;
+      }
+      
+      .pdf-header-meta-separator {
+        opacity: 0.6;
+        font-weight: 300;
+      }
+      
+      /* Enhanced KPI Cards */
+      .pdf-metric-card {
+        border: 2pt solid #e5e7eb !important;
+        box-shadow: 0 2pt 8pt rgba(0, 0, 0, 0.08) !important;
+        padding: 20pt !important;
+      }
+      
+      .pdf-metric-icon {
+        font-size: 32pt !important;
+        line-height: 1 !important;
+        margin-bottom: 12pt !important;
+        display: block;
+      }
+      
+      .pdf-metric-value {
+        font-size: 32pt !important;
+        font-weight: 900 !important;
+        letter-spacing: -1pt !important;
+        line-height: 1 !important;
+        margin: 8pt 0 !important;
+      }
+      
+      .pdf-metric-label {
+        font-size: 9pt !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5pt !important;
+        color: #6b7280 !important;
+      }
     </style>
   </head>
   <body>
     <div class="pdf-container">
+      <%# Professional Cover Page %>
+      <%= render 'shared/pdf_cover_page',
+            title: "Reporte Twitter",
+            topic_name: @topic.name,
+            period: pdf_date_range(days_range: @days_range),
+            report_type: :twitter,
+            subtitle: "Análisis de Engagement y Alcance" %>
+      
       <% # Initialize Twitter Dashboard Presenter %>
       <% @presenter = TwitterDashboardPresenter.new(
             topic: @topic,
@@ -40,10 +125,14 @@
             bigram_occurrences: @bigram_occurrences
           ) %>
 
-      <!-- Header -->
-      <div class="pdf-header">
-        <h1>Reporte Twitter: <%= @topic.name %></h1>
-        <p>Período: <%= pdf_date_range(days_range: @days_range) %> | Generado: <%= Time.current.strftime("%d/%m/%Y %H:%M") %></p>
+      <!-- Enhanced Header -->
+      <div class="pdf-header-enhanced">
+        <h1 class="pdf-header-title">Reporte Twitter: <%= @topic.name %></h1>
+        <p class="pdf-header-meta">
+          <span class="pdf-header-meta-item">📅 <%= pdf_date_range(days_range: @days_range) %></span>
+          <span class="pdf-header-meta-separator">|</span>
+          <span class="pdf-header-meta-item">🕐 Generado: <%= Time.current.strftime("%d/%m/%Y %H:%M") %></span>
+        </p>
       </div>
 
       <!-- KPI Section (Refactored) -->
@@ -58,7 +147,7 @@
         <h2>Análisis Temporal de Tweets</h2>
         <%= render 'shared/pdf_charts_row', 
               charts: [
-                build_pdf_chart_config(
+                build_pdf_chart_config_enhanced(
                   title: I18n.t('twitter.charts.tweets_per_day'),
                   data: @chart_posts,
                   type: :column_chart,
@@ -66,7 +155,7 @@
                   ytitle: I18n.t('twitter.charts.tweets'),
                   colors: ['#0ea5e9']
                 ),
-                build_pdf_chart_config(
+                build_pdf_chart_config_enhanced(
                   title: I18n.t('twitter.charts.interactions_per_day'),
                   data: @chart_interactions,
                   type: :column_chart,
@@ -103,14 +192,14 @@
           <h2><%= I18n.t('twitter.tags.title') %></h2>
           <%= render 'shared/pdf_charts_row',
                 charts: [
-                  build_pdf_chart_config(
+                  build_pdf_chart_config_enhanced(
                     title: I18n.t('twitter.tags.tweets_by_tag'),
                     data: @presenter.tag_counts_chart_data,
                     type: :pie_chart,
                     donut: true,
                     colors: @presenter.chart_colors(:tag_counts)
                   ),
-                  build_pdf_chart_config(
+                  build_pdf_chart_config_enhanced(
                     title: I18n.t('twitter.tags.interactions_by_tag'),
                     data: @tag_interactions,
                     type: :pie_chart,
@@ -129,14 +218,14 @@
           <!-- Profile Charts -->
           <%= render 'shared/pdf_charts_row',
                 charts: [
-                  build_pdf_chart_config(
+                  build_pdf_chart_config_enhanced(
                     title: I18n.t('twitter.profiles.tweets_by_profile'),
                     data: @profiles_count,
                     type: :pie_chart,
                     donut: true,
                     colors: @presenter.chart_colors(:profile_counts)
                   ),
-                  build_pdf_chart_config(
+                  build_pdf_chart_config_enhanced(
                     title: I18n.t('twitter.profiles.interactions_by_profile'),
                     data: @profiles_interactions,
                     type: :pie_chart,

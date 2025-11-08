@@ -9,6 +9,13 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartkick@4.2.0/dist/chartkick.min.js"></script>
     
+    <%# Auto-print on page load %>
+    <script>
+      window.onload = function() {
+        window.print();
+      };
+    </script>
+    
     <%# Include professional PDF styles %>
     <%= render 'shared/pdf_professional_styles' %>
     
@@ -17,14 +24,97 @@
       h1, .pdf-page-title {
         color: #1877f2; /* Facebook blue */
       }
+      
+      /* Enhanced Header Styles */
+      .pdf-header-enhanced {
+        background: linear-gradient(135deg, #1877f2 0%, #0c63d4 100%);
+        color: white;
+        padding: 24pt 32pt;
+        margin: -20pt -20pt 24pt -20pt; /* Extend to edges */
+        border-radius: 0;
+        box-shadow: 0 4pt 12pt rgba(24, 119, 242, 0.2);
+      }
+      
+      .pdf-header-title {
+        margin: 0 0 12pt 0;
+        font-size: 26pt;
+        font-weight: 800;
+        color: white !important;
+        letter-spacing: -0.5pt;
+        line-height: 1.2;
+      }
+      
+      .pdf-header-meta {
+        margin: 0;
+        font-size: 11pt;
+        font-weight: 500;
+        opacity: 0.95;
+        display: flex;
+        align-items: center;
+        gap: 8pt;
+      }
+      
+      .pdf-header-meta-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 4pt;
+      }
+      
+      .pdf-header-meta-separator {
+        opacity: 0.6;
+        font-weight: 300;
+      }
+      
+      /* Enhanced KPI Cards */
+      .pdf-metric-card {
+        border: 2pt solid #e5e7eb !important;
+        box-shadow: 0 2pt 8pt rgba(0, 0, 0, 0.08) !important;
+        padding: 20pt !important;
+        transition: all 0.3s ease;
+      }
+      
+      .pdf-metric-icon {
+        font-size: 32pt !important;
+        line-height: 1 !important;
+        margin-bottom: 12pt !important;
+        display: block;
+      }
+      
+      .pdf-metric-value {
+        font-size: 32pt !important;
+        font-weight: 900 !important;
+        letter-spacing: -1pt !important;
+        line-height: 1 !important;
+        margin: 8pt 0 !important;
+      }
+      
+      .pdf-metric-label {
+        font-size: 9pt !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5pt !important;
+        color: #6b7280 !important;
+      }
     </style>
   </head>
   <body>
     <div class="pdf-container">
-      <!-- Header -->
-      <div class="pdf-header">
-        <h1>Reporte Facebook: <%= @topic.name %></h1>
-        <p>Período: <%= pdf_date_range(days_range: @days_range) %> | Generado: <%= Time.current.strftime("%d/%m/%Y %H:%M") %></p>
+      <%# Professional Cover Page %>
+      <%= render 'shared/pdf_cover_page',
+            title: "Reporte Facebook",
+            topic_name: @topic.name,
+            period: pdf_date_range(days_range: @days_range),
+            report_type: :facebook,
+            subtitle: "Análisis de Reacciones y Sentimiento" %>
+      
+      <!-- Enhanced Header -->
+      <div class="pdf-header-enhanced">
+        <h1 class="pdf-header-title">Reporte Facebook: <%= @topic.name %></h1>
+        <p class="pdf-header-meta">
+          <span class="pdf-header-meta-item">📅 <%= pdf_date_range(days_range: @days_range) %></span>
+          <span class="pdf-header-meta-separator">|</span>
+          <span class="pdf-header-meta-item">🕐 Generado: <%= Time.current.strftime("%d/%m/%Y %H:%M") %></span>
+        </p>
       </div>
 
       <!-- KPI Section (Refactored) -->
@@ -39,12 +129,12 @@
               ] %>
       </div>
 
-      <!-- Main Charts Section (Refactored) -->
+      <!-- Main Charts Section (Enhanced) -->
       <div class="pdf-section">
         <h2>Análisis Temporal de Publicaciones</h2>
         <%= render 'shared/pdf_charts_row', 
               charts: [
-                build_pdf_chart_config(
+                build_pdf_chart_config_enhanced(
                   title: "Posts por Día",
                   data: @chart_posts,
                   type: :column_chart,
@@ -52,7 +142,7 @@
                   ytitle: "Posts",
                   colors: ['#1877f2']
                 ),
-                build_pdf_chart_config(
+                build_pdf_chart_config_enhanced(
                   title: "Interacciones por Día",
                   data: @chart_interactions,
                   type: :column_chart,
@@ -193,6 +283,40 @@
                   <strong style="color: #ef4444"><%= presenter.negative_percentage %>%</strong> negativos.
                 </p>
               <% end %>
+            </div>
+            
+            <!-- Simplified Methodology Explanation -->
+            <div class="pdf-note" style="background: #eff6ff; border-left: 4pt solid #3b82f6; padding: 12pt 16pt; margin: 16pt 0; border-radius: 6pt;">
+              <h4 style="margin: 0 0 8pt 0; color: #1e40af; font-size: 11pt;">💡 ¿Cómo medimos el sentimiento en Facebook?</h4>
+              <p style="margin-bottom: 8pt; font-size: 9pt; line-height: 1.6;">
+                Analizamos automáticamente las <strong>reacciones</strong> que recibe cada post. 
+                Cada tipo de reacción tiene un peso emocional:
+              </p>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8pt; margin-bottom: 8pt;">
+                <div style="padding: 6pt; background: #d1fae5; border-radius: 4pt;">
+                  <strong style="color: #065f46;">👍 Like:</strong> <span style="font-size: 8pt;">+0.5 puntos</span>
+                </div>
+                <div style="padding: 6pt; background: #fce7f3; border-radius: 4pt;">
+                  <strong style="color: #9f1239;">❤️ Love:</strong> <span style="font-size: 8pt;">+2.0 puntos</span>
+                </div>
+                <div style="padding: 6pt; background: #fef3c7; border-radius: 4pt;">
+                  <strong style="color: #92400e;">😄 Haha:</strong> <span style="font-size: 8pt;">+1.5 puntos</span>
+                </div>
+                <div style="padding: 6pt; background: #e0e7ff; border-radius: 4pt;">
+                  <strong style="color: #3730a3;">😮 Wow:</strong> <span style="font-size: 8pt;">+1.0 punto</span>
+                </div>
+                <div style="padding: 6pt; background: #fed7aa; border-radius: 4pt;">
+                  <strong style="color: #9a3412;">😢 Sad:</strong> <span style="font-size: 8pt;">-1.5 puntos</span>
+                </div>
+                <div style="padding: 6pt; background: #fee2e2; border-radius: 4pt;">
+                  <strong style="color: #991b1b;">😠 Angry:</strong> <span style="font-size: 8pt;">-2.0 puntos</span>
+                </div>
+              </div>
+              <p style="margin: 0; font-size: 9pt; line-height: 1.5;">
+                <strong>Resultado:</strong> Un score entre <span style="color: #ef4444; font-weight: 600;">-2.0 (muy negativo)</span> y 
+                <span style="color: #10b981; font-weight: 600;">+2.0 (muy positivo)</span>. 
+                Un score cercano a <strong>0</strong> indica sentimiento neutral.
+              </p>
             </div>
             
             <!-- Top Positive Posts -->

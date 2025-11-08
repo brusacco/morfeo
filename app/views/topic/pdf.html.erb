@@ -9,6 +9,13 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartkick@4.2.0/dist/chartkick.min.js"></script>
     
+    <%# Auto-print on page load %>
+    <script>
+      window.onload = function() {
+        window.print();
+      };
+    </script>
+    
     <%# Include professional PDF styles %>
     <%= render 'shared/pdf_professional_styles' %>
     
@@ -17,10 +24,87 @@
       h1, .pdf-page-title {
         color: #1e3a8a; /* Dark blue for digital */
       }
+      
+      /* Enhanced Header Styles */
+      .pdf-header-enhanced {
+        background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+        color: white;
+        padding: 24pt 32pt;
+        margin: -20pt -20pt 24pt -20pt;
+        border-radius: 0;
+        box-shadow: 0 4pt 12pt rgba(30, 58, 138, 0.2);
+      }
+      
+      .pdf-header-title {
+        margin: 0 0 12pt 0;
+        font-size: 26pt;
+        font-weight: 800;
+        color: white !important;
+        letter-spacing: -0.5pt;
+        line-height: 1.2;
+      }
+      
+      .pdf-header-meta {
+        margin: 0;
+        font-size: 11pt;
+        font-weight: 500;
+        opacity: 0.95;
+        display: flex;
+        align-items: center;
+        gap: 8pt;
+      }
+      
+      .pdf-header-meta-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 4pt;
+      }
+      
+      .pdf-header-meta-separator {
+        opacity: 0.6;
+        font-weight: 300;
+      }
+      
+      /* Enhanced KPI Cards */
+      .pdf-metric-card {
+        border: 2pt solid #e5e7eb !important;
+        box-shadow: 0 2pt 8pt rgba(0, 0, 0, 0.08) !important;
+        padding: 20pt !important;
+      }
+      
+      .pdf-metric-icon {
+        font-size: 32pt !important;
+        line-height: 1 !important;
+        margin-bottom: 12pt !important;
+        display: block;
+      }
+      
+      .pdf-metric-value {
+        font-size: 32pt !important;
+        font-weight: 900 !important;
+        letter-spacing: -1pt !important;
+        line-height: 1 !important;
+        margin: 8pt 0 !important;
+      }
+      
+      .pdf-metric-label {
+        font-size: 9pt !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5pt !important;
+        color: #6b7280 !important;
+      }
     </style>
   </head>
   <body>
     <div class="pdf-container">
+      <%# Professional Cover Page %>
+      <%= render 'shared/pdf_cover_page',
+            title: "Reporte Medios Digitales",
+            topic_name: @topic.name,
+            period: pdf_date_range(days_range: @days_range),
+            report_type: :digital %>
+      
       <%# Initialize Digital PDF Presenter %>
       <% @presenter = DigitalPdfPresenter.new(
             data: {
@@ -56,10 +140,14 @@
             days_range: @days_range
           ) %>
 
-      <!-- Header -->
-      <div class="pdf-header">
-        <h1>Reporte Medios Digitales: <%= @topic.name %></h1>
-        <p>Período: <%= pdf_date_range(days_range: @days_range) %> | Generado: <%= Time.current.strftime("%d/%m/%Y %H:%M") %></p>
+      <!-- Enhanced Header -->
+      <div class="pdf-header-enhanced">
+        <h1 class="pdf-header-title">Reporte Medios Digitales: <%= @topic.name %></h1>
+        <p class="pdf-header-meta">
+          <span class="pdf-header-meta-item">📅 <%= pdf_date_range(days_range: @days_range) %></span>
+          <span class="pdf-header-meta-separator">|</span>
+          <span class="pdf-header-meta-item">🕐 Generado: <%= Time.current.strftime("%d/%m/%Y %H:%M") %></span>
+        </p>
       </div>
 
       <!-- KPI Section (Using Presenter) -->
@@ -73,7 +161,7 @@
         <h2>Evolución Temporal</h2>
         <%= render 'shared/pdf_charts_row', 
               charts: [
-                build_pdf_chart_config(
+                build_pdf_chart_config_enhanced(
                   title: "Notas por Día",
                   data: @presenter.chart_entries_counts,
                   type: :column_chart,
@@ -81,7 +169,7 @@
                   ytitle: "Notas",
                   colors: ['#1e3a8a']
                 ),
-                build_pdf_chart_config(
+                build_pdf_chart_config_enhanced(
                   title: "Interacciones por Día",
                   data: @presenter.chart_entries_sums,
                   type: :column_chart,
@@ -153,7 +241,7 @@
           <% if @presenter.chart_sentiment_counts.present? && @presenter.chart_sentiment_sums.present? %>
             <%= render 'shared/pdf_charts_row',
                   charts: [
-                    build_pdf_chart_config(
+                    build_pdf_chart_config_enhanced(
                       title: "Notas por Sentimiento",
                       data: @presenter.chart_sentiment_counts,
                       type: :line_chart,
@@ -161,7 +249,7 @@
                       ytitle: "Notas",
                       colors: sentiment_colors
                     ),
-                    build_pdf_chart_config(
+                    build_pdf_chart_config_enhanced(
                       title: "Interacciones por Sentimiento",
                       data: @presenter.chart_sentiment_sums,
                       type: :line_chart,
@@ -181,14 +269,14 @@
           
           <%= render 'shared/pdf_charts_row',
                 charts: [
-                  build_pdf_chart_config(
+                  build_pdf_chart_config_enhanced(
                     title: "Notas por Medio",
                     data: @presenter.site_counts,
                     type: :pie_chart,
                     donut: true,
                     colors: ['#1e3a8a', '#F97316', '#10B981', '#F59E0B', '#EC4899']
                   ),
-                  build_pdf_chart_config(
+                  build_pdf_chart_config_enhanced(
                     title: "Interacciones por Medio",
                     data: @presenter.site_sums,
                     type: :pie_chart,
@@ -219,14 +307,14 @@
           <h2>Análisis de Etiquetas</h2>
           <%= render 'shared/pdf_charts_row',
                 charts: [
-                  build_pdf_chart_config(
+                  build_pdf_chart_config_enhanced(
                     title: "Notas por Etiqueta",
                     data: @presenter.tag_counts,
                     type: :pie_chart,
                     donut: true,
                     colors: ['#1e3a8a', '#8B5CF6', '#EC4899', '#14B8A6', '#F59E0B']
                   ),
-                  build_pdf_chart_config(
+                  build_pdf_chart_config_enhanced(
                     title: "Interacciones por Etiqueta",
                     data: @presenter.tag_interactions,
                     type: :pie_chart,

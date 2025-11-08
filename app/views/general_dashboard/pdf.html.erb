@@ -9,12 +9,89 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartkick@4.2.0/dist/chartkick.min.js"></script>
     
+    <%# Auto-print on page load %>
+    <script>
+      window.onload = function() {
+        window.print();
+      };
+    </script>
+    
     <%= render 'shared/pdf_professional_styles' %>
     
     <style>
       /* General Dashboard Specific Styles */
       h1 {
         color: #8b5cf6; /* Purple for general dashboard */
+      }
+      
+      /* Enhanced Header Styles */
+      .pdf-header-enhanced {
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        color: white;
+        padding: 24pt 32pt;
+        margin: -20pt -20pt 24pt -20pt;
+        border-radius: 0;
+        box-shadow: 0 4pt 12pt rgba(139, 92, 246, 0.2);
+      }
+      
+      .pdf-header-title {
+        margin: 0 0 12pt 0;
+        font-size: 26pt;
+        font-weight: 800;
+        color: white !important;
+        letter-spacing: -0.5pt;
+        line-height: 1.2;
+      }
+      
+      .pdf-header-meta {
+        margin: 0;
+        font-size: 11pt;
+        font-weight: 500;
+        opacity: 0.95;
+        display: flex;
+        align-items: center;
+        gap: 8pt;
+      }
+      
+      .pdf-header-meta-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 4pt;
+      }
+      
+      .pdf-header-meta-separator {
+        opacity: 0.6;
+        font-weight: 300;
+      }
+      
+      /* Enhanced KPI Cards */
+      .pdf-metric-card {
+        border: 2pt solid #e5e7eb !important;
+        box-shadow: 0 2pt 8pt rgba(0, 0, 0, 0.08) !important;
+        padding: 20pt !important;
+      }
+      
+      .pdf-metric-icon {
+        font-size: 32pt !important;
+        line-height: 1 !important;
+        margin-bottom: 12pt !important;
+        display: block;
+      }
+      
+      .pdf-metric-value {
+        font-size: 32pt !important;
+        font-weight: 900 !important;
+        letter-spacing: -1pt !important;
+        line-height: 1 !important;
+        margin: 8pt 0 !important;
+      }
+      
+      .pdf-metric-label {
+        font-size: 9pt !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5pt !important;
+        color: #6b7280 !important;
       }
       
       .mt-lg {
@@ -58,10 +135,29 @@
         font-size: 9pt;
         white-space: nowrap;
       }
+      
+      /* Table width optimization */
+      table {
+        table-layout: fixed;
+      }
+      
+      .pdf-table-top-content td {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        hyphens: auto;
+      }
     </style>
   </head>
   <body>
     <div class="pdf-container">
+      <%# Professional Cover Page %>
+      <%= render 'shared/pdf_cover_page',
+            title: "Dashboard General Ejecutivo",
+            topic_name: @topic.name,
+            period: pdf_date_range(start_date: @start_date, end_date: @end_date),
+            report_type: :general,
+            subtitle: "Análisis Cross-Channel · Digital · Facebook · Twitter" %>
+      
       <%# Initialize General Dashboard Presenter %>
       <% @presenter ||= GeneralDashboardPresenter.new(
             data: @dashboard_data,
@@ -70,16 +166,19 @@
             end_date: @end_date
           ) %>
 
-      <!-- Header -->
-      <div class="pdf-header">
-        <h1><%= pdf_title(:general, @topic.name) %></h1>
-        <p style="font-size: 12pt; color: #6b7280; margin: 0;">
-          <%= I18n.t('pdf.period.from_to', 
-                from: @start_date.strftime('%d/%m/%Y'), 
-                to: @end_date.strftime('%d/%m/%Y')) %>
-        </p>
-        <p style="font-size: 10pt; color: #9ca3af; margin: 4pt 0 0 0;">
-          <%= I18n.t('pdf.footer.generated') %>: <%= Time.zone.now.strftime('%d/%m/%Y %H:%M') %>
+      <!-- Enhanced Header -->
+      <div class="pdf-header-enhanced">
+        <h1 class="pdf-header-title"><%= pdf_title(:general, @topic.name) %></h1>
+        <p class="pdf-header-meta">
+          <span class="pdf-header-meta-item">
+            📅 <%= I18n.t('pdf.period.from_to', 
+                  from: @start_date.strftime('%d/%m/%Y'), 
+                  to: @end_date.strftime('%d/%m/%Y')) %>
+          </span>
+          <span class="pdf-header-meta-separator">|</span>
+          <span class="pdf-header-meta-item">
+            🕐 <%= I18n.t('pdf.footer.generated') %>: <%= Time.zone.now.strftime('%d/%m/%Y %H:%M') %>
+          </span>
         </p>
       </div>
 
@@ -137,14 +236,14 @@
 
         <%= render 'shared/pdf_charts_row',
               charts: [
-                build_pdf_chart_config(
+                build_pdf_chart_config_enhanced(
                   title: "Menciones por Canal",
                   data: @presenter.channel_mentions_chart_data,
                   type: :pie_chart,
                   donut: true,
                   colors: [PdfConstants::DIGITAL_PRIMARY_COLOR, PdfConstants::FACEBOOK_PRIMARY_COLOR, PdfConstants::TWITTER_PRIMARY_COLOR]
                 ),
-                build_pdf_chart_config(
+                build_pdf_chart_config_enhanced(
                   title: "Interacciones por Canal",
                   data: @presenter.channel_interactions_chart_data,
                   type: :pie_chart,
@@ -272,14 +371,14 @@
         <!-- Top Digital Entries -->
         <% if @top_content && @top_content[:top_entries]&.any? %>
           <h3>Medios Digitales - Top <%= [@top_content[:top_entries].size, 10].min %></h3>
-          <table>
-            <thead>
-              <tr>
-                <th>Título</th>
-                <th>Fuente</th>
-                <th style="text-align: right;">Interacciones</th>
-              </tr>
-            </thead>
+        <table class="pdf-table-top-content">
+          <thead>
+            <tr>
+              <th style="width: 60%;">Título</th>
+              <th style="width: 20%;">Fuente</th>
+              <th style="width: 20%; text-align: right;">Interacciones</th>
+            </tr>
+          </thead>
             <tbody>
               <% @top_content[:top_entries].first(10).each do |entry| %>
                 <tr>
@@ -295,12 +394,12 @@
         <!-- Top Facebook Posts -->
         <% if @top_content && @top_content[:top_facebook_posts]&.any? %>
           <h3 class="mt-lg">Facebook - Top <%= [@top_content[:top_facebook_posts].size, 10].min %></h3>
-          <table>
+          <table class="pdf-table-top-content">
             <thead>
               <tr>
-                <th>Mensaje</th>
-                <th>Página</th>
-                <th style="text-align: right;">Interacciones</th>
+                <th style="width: 60%;">Mensaje</th>
+                <th style="width: 20%;">Página</th>
+                <th style="width: 20%; text-align: right;">Interacciones</th>
               </tr>
             </thead>
             <tbody>
@@ -318,12 +417,12 @@
         <!-- Top Twitter Posts -->
         <% if @top_content && @top_content[:top_tweets]&.any? %>
           <h3 class="mt-lg">Twitter - Top <%= [@top_content[:top_tweets].size, 10].min %></h3>
-          <table>
+          <table class="pdf-table-top-content">
             <thead>
               <tr>
-                <th>Tweet</th>
-                <th>Cuenta</th>
-                <th style="text-align: right;">Interacciones</th>
+                <th style="width: 60%;">Tweet</th>
+                <th style="width: 20%;">Cuenta</th>
+                <th style="width: 20%; text-align: right;">Interacciones</th>
               </tr>
             </thead>
             <tbody>
