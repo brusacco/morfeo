@@ -26,6 +26,14 @@ module TwitterServices
   #   - TWITTER_AUTH_TOKEN3
   #   - TWITTER_CT0_TOKEN3
   #
+  # Fourth Account (optional - for additional capacity):
+  #   - TWITTER_AUTH_TOKEN4
+  #   - TWITTER_CT0_TOKEN4
+  #
+  # Fifth Account (optional - for additional capacity):
+  #   - TWITTER_AUTH_TOKEN5
+  #   - TWITTER_CT0_TOKEN5
+  #
   # Usage:
   #   manager = TwitterServices::AccountManager.new
   #   credentials = manager.get_active_credentials
@@ -223,6 +231,24 @@ module TwitterServices
           name: 'Account 3 (Tertiary)',
           auth_token: ENV['TWITTER_AUTH_TOKEN3'],
           ct0_token: ENV['TWITTER_CT0_TOKEN3']
+        }
+      end
+
+      # Fourth account
+      if ENV['TWITTER_AUTH_TOKEN4'].present? && ENV['TWITTER_CT0_TOKEN4'].present?
+        accounts << {
+          name: 'Account 4 (Quaternary)',
+          auth_token: ENV['TWITTER_AUTH_TOKEN4'],
+          ct0_token: ENV['TWITTER_CT0_TOKEN4']
+        }
+      end
+
+      # Fifth account
+      if ENV['TWITTER_AUTH_TOKEN5'].present? && ENV['TWITTER_CT0_TOKEN5'].present?
+        accounts << {
+          name: 'Account 5 (Quinary)',
+          auth_token: ENV['TWITTER_AUTH_TOKEN5'],
+          ct0_token: ENV['TWITTER_CT0_TOKEN5']
         }
       end
 

@@ -34,6 +34,12 @@ module TwitterServices
   # Tertiary Account (optional):
   #   - TWITTER_AUTH_TOKEN3: The auth_token cookie value from third account
   #   - TWITTER_CT0_TOKEN3: The ct0 token from third account
+  # Fourth Account (optional):
+  #   - TWITTER_AUTH_TOKEN4: The auth_token cookie value from fourth account
+  #   - TWITTER_CT0_TOKEN4: The ct0 token from fourth account
+  # Fifth Account (optional):
+  #   - TWITTER_AUTH_TOKEN5: The auth_token cookie value from fifth account
+  #   - TWITTER_CT0_TOKEN5: The ct0 token from fifth account
   # Other:
   #   - TWITTER_BEARER_TOKEN: The bearer token (can be the same as guest approach)
   #   - SCRAPE_DO_TOKEN: (Optional) Token for scrape.do proxy service
