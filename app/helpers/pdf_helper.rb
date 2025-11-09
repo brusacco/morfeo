@@ -245,5 +245,83 @@ module PdfHelper
   def pdf_chart_title(chart)
     I18n.t("pdf.charts.#{chart}")
   end
+
+  # Configure Google Charts for PDF with responsive height based on date range
+  # Optimized for exact A4 page fitting (1 slide = 1 page)
+  # @param days_range [Integer] Number of days in the date range (7-60+)
+  # @return [Hash] Google Charts library configuration
+  def pdf_chart_config_for_range(days_range)
+    # Reduced heights to fit 2 charts + headers + insights in 1 A4 page
+    # A4 content area: 729pt height
+    # Slide padding: 48pt (24pt top + 24pt bottom)
+    # Header: ~60pt
+    # 2 charts + headers + insights: ~600pt
+    # Each chart section: ~250pt max
+    height = case days_range
+             when 0..7 then '180px'    # Reduced from 240px
+             when 8..14 then '190px'   # Reduced from 260px
+             when 15..30 then '200px'  # Reduced from 280px
+             when 31..60 then '210px'  # Reduced from 300px
+             else '220px'              # Reduced from 320px (60+ days)
+             end
+
+    # Adjust chartArea bottom padding for rotated labels
+    # Reduced to fit compact layout
+    bottom = case days_range
+             when 0..7 then 60      # Reduced from 80
+             when 8..14 then 65     # Reduced from 90
+             when 15..30 then 70    # Reduced from 100
+             when 31..60 then 75    # Reduced from 110
+             else 80                # Reduced from 120 (60+ days)
+             end
+
+    {
+      width: '680px', # Fixed width for consistent PDF layout
+      height: height,
+      library: {
+        backgroundColor: 'transparent',
+        chartArea: {
+          width: '94%', # Maximize chart area (6% for axis labels)
+          height: '94%',
+          top: 30,      # Reduced from 40
+          left: 50,     # Reduced from 60
+          right: 15,    # Reduced from 20
+          bottom: bottom
+        },
+        hAxis: {
+          textStyle: {
+            fontSize: 9,  # Reduced from 10
+            fontName: 'Inter, sans-serif',
+            color: '#374151'
+          },
+          slantedText: true, # Enable rotated labels
+          slantedTextAngle: 45, # 45° rotation
+          gridlines: { color: '#f3f4f6' },
+          minorGridlines: { count: 0 }
+        },
+        vAxis: {
+          textStyle: {
+            fontSize: 9,  # Reduced from 10
+            fontName: 'Inter, sans-serif',
+            color: '#374151'
+          },
+          gridlines: { color: '#f3f4f6' },
+          minorGridlines: { count: 0 }
+        },
+        legend: {
+          position: 'none', # Removed legend to save space
+          alignment: 'center',
+          textStyle: {
+            fontSize: 10,  # Reduced from 11
+            fontName: 'Inter, sans-serif',
+            color: '#1f2937'
+          }
+        },
+        animation: {
+          duration: 0 # Disable animations for faster PDF rendering
+        }
+      }
+    }
+  end
 end
 

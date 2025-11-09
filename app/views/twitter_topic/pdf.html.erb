@@ -20,10 +20,361 @@
     <%= render 'shared/pdf_professional_styles' %>
 
     <style>
+      /* =======================================
+         TWITTER PDF - A4 FORCED LAYOUT
+         ======================================= */
+
+      /* A4 Portrait: 210mm × 297mm
+         Margins: 2cm top/bottom, 1.5cm left/right
+         Content area: 18cm × 25.7cm (510pt × 729pt) */
+
+      @page {
+        size: A4 portrait;
+        margin: 2cm 1.5cm 2cm 1.5cm;
+      }
+
       /* Twitter-specific color variables */
       :root {
         --twitter-primary: #1DA1F2;
         --twitter-secondary: #0c7abf;
+        --a4-content-height: 729pt; /* 25.7cm available height */
+        --a4-content-width: 510pt;  /* 18cm available width */
+      }
+
+      /* Global container - strict A4 enforcement */
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        max-width: 21cm;
+        overflow-x: hidden;
+        box-sizing: border-box;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      /* ===== SLIDE HEIGHT CONTROL ===== */
+      /* Each slide must fit in exactly 729pt (25.7cm) */
+
+      .pdf-slide {
+        max-height: 729pt !important;
+        height: auto;
+        padding: 24pt 20pt !important;
+        overflow: hidden;
+      }
+
+      .pdf-slide-header {
+        margin-bottom: 16pt !important;
+      }
+
+      .pdf-slide-title {
+        font-size: 20pt !important;
+        margin: 6pt 0 !important;
+        line-height: 1.1 !important;
+      }
+
+      .pdf-slide-subtitle {
+        font-size: 10pt !important;
+        margin: 4pt 0 0 calc(12pt + 6pt) !important;
+      }
+
+      .pdf-slide-number-badge {
+        width: 28pt !important;
+        height: 28pt !important;
+        line-height: 28pt !important;
+        font-size: 12pt !important;
+        margin-bottom: 8pt !important;
+      }
+
+      /* ===== KPI CARDS - Compact for 1 page ===== */
+
+      .pdf-kpi-slide-grid {
+        gap: 12pt !important;
+        margin: 16pt 0 !important;
+      }
+
+      .pdf-kpi-slide-card {
+        padding: 16pt !important;
+        border: 1.5pt solid var(--color-gray-200) !important;
+      }
+
+      .pdf-kpi-slide-icon {
+        font-size: 28pt !important;
+        margin-bottom: 8pt !important;
+      }
+
+      .pdf-kpi-large .pdf-kpi-slide-value {
+        font-size: 32pt !important;
+        margin-bottom: 6pt !important;
+      }
+
+      .pdf-kpi-large .pdf-kpi-slide-label {
+        font-size: 11pt !important;
+        margin-bottom: 4pt !important;
+      }
+
+      .pdf-kpi-slide-sublabel {
+        font-size: 7.5pt !important;
+      }
+
+      /* ===== CHARTS - Optimized heights ===== */
+
+      div[style*="background: white"][style*="border: 2pt"] {
+        padding: 14pt !important;
+        border: 1.5pt solid #e5e7eb !important;
+      }
+
+      /* Chart headers - compact */
+      h3[style*="font-size: 14pt"] {
+        margin: 0 0 10pt 0 !important;
+        font-size: 12pt !important;
+        padding-left: 10pt !important;
+        border-left: 3pt solid !important;
+      }
+
+      /* ===== PRINT MEDIA RULES ===== */
+      @media print {
+        html, body {
+          overflow-x: hidden !important;
+          width: 100% !important;
+          max-width: 21cm !important;
+        }
+
+        .pdf-slide {
+          page-break-after: always;
+        }
+
+        .pdf-section-wrapper.force-new-page {
+          page-break-before: always !important;
+          break-before: page !important;
+        }
+
+        .sentiment-card,
+        .reaction-card,
+        .post-card,
+        .profile-item,
+        .tag-item {
+          page-break-inside: avoid !important;
+          break-inside: avoid !important;
+        }
+      }
+
+      /* ===== TWITTER PROFILE & TAG ITEMS - Fixed Height for Consistency ===== */
+      
+      .profile-item,
+      .tag-item {
+        padding: 6pt 10pt !important;
+        gap: 8pt !important;
+        margin-bottom: 6pt !important;
+        border: 1pt solid #e5e7eb !important;
+        border-radius: 6pt !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        /* CRITICAL: Fixed height for all items */
+        height: 46pt !important;
+        min-height: 46pt !important;
+        max-height: 46pt !important;
+        display: flex !important;
+        align-items: center !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+      }
+
+      /* Ranking badges - exact size */
+      .profile-item > div:first-child,
+      .tag-item > div:first-child {
+        width: 22pt !important;
+        height: 22pt !important;
+        font-size: 10pt !important;
+        flex-shrink: 0 !important;
+        flex-grow: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+
+      /* Avatar/Icon - exact size with perfect centering */
+      .profile-item > div:nth-child(2),
+      .tag-item > div:nth-child(2) {
+        width: 28pt !important;
+        height: 28pt !important;
+        font-size: 14pt !important;
+        flex-shrink: 0 !important;
+        flex-grow: 0 !important;
+        /* CRÍTICO: Centrado perfecto con flexbox puro */
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        /* Resetear propiedades que pueden interferir */
+        line-height: 1 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        align-self: center !important;
+      }
+
+      .profile-item img {
+        width: 28pt !important;
+        height: 28pt !important;
+      }
+
+      /* Text content - controlled height */
+      .profile-item div[style*="flex: 1"],
+      .tag-item div[style*="flex: 1"] {
+        flex: 1 !important;
+        min-width: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        overflow: hidden !important;
+      }
+
+      .profile-item div[style*="font-size: 10pt"],
+      .tag-item div[style*="font-size: 10pt"] {
+        font-size: 8pt !important;
+        line-height: 1.2 !important;
+        margin: 0 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+      }
+
+      .profile-item div[style*="font-size: 8pt"],
+      .tag-item div[style*="font-size: 8pt"] {
+        font-size: 6.5pt !important;
+        line-height: 1.2 !important;
+        margin-top: 2pt !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+      }
+
+      /* Metrics - exact size */
+      .profile-item div[style*="font-size: 16pt"],
+      .tag-item div[style*="font-size: 16pt"] {
+        font-size: 12pt !important;
+        line-height: 1 !important;
+        margin: 0 !important;
+      }
+
+      .profile-item > div:last-child,
+      .tag-item > div:last-child {
+        padding: 5pt 8pt !important;
+        flex-shrink: 0 !important;
+        flex-grow: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-width: 55pt !important;
+      }
+
+      .profile-item > div:last-child > div:last-child,
+      .tag-item > div:last-child > div:last-child {
+        font-size: 6pt !important;
+        line-height: 1 !important;
+        margin-top: 2pt !important;
+      }
+
+      /* CRITICAL: Print-specific rules for PDF */
+      @media print {
+        .profile-item,
+        .tag-item {
+          height: 46pt !important;
+          min-height: 46pt !important;
+          max-height: 46pt !important;
+          box-sizing: border-box !important;
+          overflow: hidden !important;
+        }
+
+        /* Forzar centrado perfecto del círculo y emoji en print */
+        .profile-item > div:nth-child(2),
+        .tag-item > div:nth-child(2) {
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          align-self: center !important;
+          line-height: 1 !important;
+          padding: 0 !important;
+          margin: 0 !important;
+        }
+      }
+
+      /* ===== TWEET CARDS - Vertical List Layout (8-10 tweets per page) ===== */
+      
+      .tweet-card {
+        padding: 8pt 12pt !important;
+        border: 1pt solid !important;
+        border-radius: 6pt !important;
+        margin-bottom: 8pt !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 12pt !important;
+      }
+
+      /* Tweet card ranking badge - smaller */
+      .tweet-card > div:first-child {
+        flex: 0 0 auto !important;
+      }
+
+      .tweet-card > div:first-child > span {
+        width: 24pt !important;
+        height: 24pt !important;
+        font-size: 11pt !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+
+      /* Tweet card content area */
+      .tweet-card-content {
+        flex: 1 !important;
+        min-width: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 4pt !important;
+      }
+
+      /* Tweet card header */
+      .tweet-card-header {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8pt !important;
+      }
+
+      /* Tweet text - single line truncated */
+      .tweet-card p {
+        margin: 0 !important;
+        font-size: 7pt !important;
+        line-height: 1.4 !important;
+        color: #6b7280 !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+        max-width: 100% !important;
+      }
+
+      /* Tweet metrics as inline text */
+      .tweet-card-metrics {
+        display: flex !important;
+        gap: 10pt !important;
+        font-size: 6.5pt !important;
+        color: #6b7280 !important;
+        flex-wrap: wrap !important;
+      }
+
+      .tweet-card-metrics span {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 3pt !important;
+      }
+
+      .tweet-card-metrics strong {
+        color: #1f2937 !important;
+        font-weight: 700 !important;
       }
     </style>
   </head>
@@ -145,45 +496,45 @@
             topic_name: @topic.name do %>
 
         <%# Lista de Etiquetas con Rankings %>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32pt;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20pt;">
 
           <%# Columna 1: Top Etiquetas por Tweets %>
           <div>
-            <h3 style="margin: 0 0 20pt 0; font-size: 14pt; font-weight: 700; color: #1f2937; padding-left: 12pt; border-left: 4pt solid #1DA1F2;">
+            <h3 style="margin: 0 0 16pt 0; font-size: 13pt; font-weight: 700; color: #1f2937; padding-left: 10pt; border-left: 3pt solid #1DA1F2;">
               🏷️ Top Etiquetas por Tweets
             </h3>
 
-            <div style="display: flex; flex-direction: column; gap: 12pt;">
-              <% @tag_counts.take(10).each_with_index do |tag, index| %>
+            <div style="display: flex; flex-direction: column; gap: 6pt;">
+              <% @tag_counts.take(8).each_with_index do |tag, index| %>
                 <% tag_name = tag.respond_to?(:name) ? tag.name : tag.to_s %>
                 <% count = tag.respond_to?(:count) ? tag.count : 0 %>
-                <div class="tag-item" style="display: flex; align-items: center; gap: 12pt; padding: 12pt 16pt; background: white; border: 1.5pt solid #e5e7eb; border-radius: 10pt; box-shadow: 0 1pt 4pt rgba(0, 0, 0, 0.06);">
+                <div class="tag-item" style="display: flex; align-items: center; gap: 8pt; padding: 6pt 10pt; background: white; border: 1pt solid #e5e7eb; border-radius: 6pt; min-height: 46pt; max-height: 46pt;">
                   <%# Ranking Badge %>
-                  <div style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 28pt; height: 28pt; background: linear-gradient(135deg, #1DA1F2 0%, #0c7abf 100%); color: white; border-radius: 50%; font-size: 12pt; font-weight: 900; box-shadow: 0 2pt 4pt rgba(29, 161, 242, 0.3);">
+                  <div style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 22pt; height: 22pt; background: linear-gradient(135deg, #1DA1F2 0%, #0c7abf 100%); color: white; border-radius: 50%; font-size: 10pt; font-weight: 900;">
                     <%= index + 1 %>
                   </div>
 
                   <%# Tag Icon %>
-                  <div style="flex: 0 0 auto; width: 40pt; height: 40pt; border-radius: 50%; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); display: flex; align-items: center; justify-content: center; font-size: 18pt; border: 2pt solid #93c5fd;">
+                  <div style="flex: 0 0 auto; width: 28pt; height: 28pt; border-radius: 50%; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); display: flex; align-items: center; justify-content: center; font-size: 14pt; border: 1.5pt solid #93c5fd;">
                     🏷️
                   </div>
 
                   <%# Info %>
-                  <div style="flex: 1; min-width: 0;">
-                    <div style="font-weight: 700; font-size: 10pt; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                  <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center;">
+                    <div style="font-weight: 700; font-size: 8pt; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; margin: 0;">
                       <%= tag_name %>
                     </div>
-                    <div style="font-size: 8pt; color: #6b7280; margin-top: 2pt;">
+                    <div style="font-size: 6.5pt; color: #6b7280; margin-top: 2pt; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                       Etiqueta de contenido
                     </div>
                   </div>
 
                   <%# Métrica %>
-                  <div style="flex: 0 0 auto; text-align: right; padding: 8pt 12pt; background: #dbeafe; border-radius: 6pt;">
-                    <div style="font-size: 16pt; font-weight: 900; color: #1DA1F2; line-height: 1;">
+                  <div style="flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 5pt 8pt; background: #dbeafe; border-radius: 6pt; min-width: 55pt;">
+                    <div style="font-size: 12pt; font-weight: 900; color: #1DA1F2; line-height: 1; margin: 0;">
                       <%= count %>
                     </div>
-                    <div style="font-size: 7pt; color: #0c7abf; text-transform: uppercase; font-weight: 600; margin-top: 2pt;">
+                    <div style="font-size: 6pt; color: #0c7abf; text-transform: uppercase; font-weight: 600; margin-top: 2pt; line-height: 1;">
                       tweets
                     </div>
                   </div>
@@ -194,44 +545,39 @@
 
           <%# Columna 2: Top Etiquetas por Interacciones %>
           <div>
-            <h3 style="margin: 0 0 20pt 0; font-size: 14pt; font-weight: 700; color: #1f2937; padding-left: 12pt; border-left: 4pt solid #10b981;">
+            <h3 style="margin: 0 0 16pt 0; font-size: 13pt; font-weight: 700; color: #1f2937; padding-left: 10pt; border-left: 3pt solid #10b981;">
               👍 Top Etiquetas por Interacciones
             </h3>
 
-            <div style="display: flex; flex-direction: column; gap: 12pt;">
-              <% @tag_interactions.sort_by { |k, v| -v }.take(10).each_with_index do |(tag_name, interactions), index| %>
-                <%
-                  # Buscar el objeto tag para obtener el count
-                  tag_obj = @tag_counts.find { |t| t.respond_to?(:name) && t.name == tag_name }
-                  tweet_count = tag_obj&.respond_to?(:count) ? tag_obj.count : 0
-                %>
-                <div class="tag-item" style="display: flex; align-items: center; gap: 12pt; padding: 12pt 16pt; background: white; border: 1.5pt solid #e5e7eb; border-radius: 10pt; box-shadow: 0 1pt 4pt rgba(0, 0, 0, 0.06);">
+            <div style="display: flex; flex-direction: column; gap: 6pt;">
+              <% @tag_interactions.sort_by { |k, v| -v }.take(8).each_with_index do |(tag_name, interactions), index| %>
+                <div class="tag-item" style="display: flex; align-items: center; gap: 8pt; padding: 6pt 10pt; background: white; border: 1pt solid #e5e7eb; border-radius: 6pt; min-height: 46pt; max-height: 46pt;">
                   <%# Ranking Badge %>
-                  <div style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 28pt; height: 28pt; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border-radius: 50%; font-size: 12pt; font-weight: 900; box-shadow: 0 2pt 4pt rgba(16, 185, 129, 0.3);">
+                  <div style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 22pt; height: 22pt; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border-radius: 50%; font-size: 10pt; font-weight: 900;">
                     <%= index + 1 %>
                   </div>
 
                   <%# Tag Icon %>
-                  <div style="flex: 0 0 auto; width: 40pt; height: 40pt; border-radius: 50%; background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); display: flex; align-items: center; justify-content: center; font-size: 18pt; border: 2pt solid #6ee7b7;">
+                  <div style="flex: 0 0 auto; width: 28pt; height: 28pt; border-radius: 50%; background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); display: flex; align-items: center; justify-content: center; font-size: 14pt; border: 1.5pt solid #6ee7b7;">
                     🏷️
                   </div>
 
                   <%# Info %>
-                  <div style="flex: 1; min-width: 0;">
-                    <div style="font-weight: 700; font-size: 10pt; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                  <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center;">
+                    <div style="font-weight: 700; font-size: 8pt; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; margin: 0;">
                       <%= tag_name %>
                     </div>
-                    <div style="font-size: 8pt; color: #6b7280; margin-top: 2pt;">
-                      <%= tweet_count %> tweets
+                    <div style="font-size: 6.5pt; color: #6b7280; margin-top: 2pt; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                      Etiqueta de contenido
                     </div>
                   </div>
 
                   <%# Métrica %>
-                  <div style="flex: 0 0 auto; text-align: right; padding: 8pt 12pt; background: #d1fae5; border-radius: 6pt;">
-                    <div style="font-size: 16pt; font-weight: 900; color: #10b981; line-height: 1;">
+                  <div style="flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 5pt 8pt; background: #d1fae5; border-radius: 6pt; min-width: 55pt;">
+                    <div style="font-size: 12pt; font-weight: 900; color: #10b981; line-height: 1; margin: 0;">
                       <%= pdf_format_number(interactions) %>
                     </div>
-                    <div style="font-size: 7pt; color: #059669; text-transform: uppercase; font-weight: 600; margin-top: 2pt;">
+                    <div style="font-size: 6pt; color: #059669; text-transform: uppercase; font-weight: 600; margin-top: 2pt; line-height: 1;">
                       interac.
                     </div>
                   </div>
@@ -256,46 +602,46 @@
             topic_name: @topic.name do %>
 
         <%# Lista de Perfiles con Rankings %>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32pt;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20pt;">
 
           <%# Columna 1: Top Perfiles por Tweets %>
           <div>
-            <h3 style="margin: 0 0 20pt 0; font-size: 14pt; font-weight: 700; color: #1f2937; padding-left: 12pt; border-left: 4pt solid #1DA1F2;">
+            <h3 style="margin: 0 0 16pt 0; font-size: 13pt; font-weight: 700; color: #1f2937; padding-left: 10pt; border-left: 3pt solid #1DA1F2;">
               🐦 Top Perfiles por Tweets
             </h3>
 
-            <div style="display: flex; flex-direction: column; gap: 12pt;">
-              <% @profiles_count.sort_by { |k, v| -v }.take(10).each_with_index do |(profile_name, count), index| %>
+            <div style="display: flex; flex-direction: column; gap: 6pt;">
+              <% @profiles_count.sort_by { |k, v| -v }.take(8).each_with_index do |(profile_name, count), index| %>
                 <%
                   # Buscar el perfil para obtener el avatar
                   profile = TwitterProfile.find_by(name: profile_name)
                 %>
-                <div class="fanpage-item" style="display: flex; align-items: center; gap: 12pt; padding: 12pt 16pt; background: white; border: 1.5pt solid #e5e7eb; border-radius: 10pt; box-shadow: 0 1pt 4pt rgba(0, 0, 0, 0.06);">
+                <div class="profile-item" style="display: flex; align-items: center; gap: 8pt; padding: 6pt 10pt; background: white; border: 1pt solid #e5e7eb; border-radius: 6pt; min-height: 46pt; max-height: 46pt;">
                   <%# Ranking Badge %>
-                  <div style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 28pt; height: 28pt; background: linear-gradient(135deg, #1DA1F2 0%, #0c7abf 100%); color: white; border-radius: 50%; font-size: 12pt; font-weight: 900; box-shadow: 0 2pt 4pt rgba(29, 161, 242, 0.3);">
+                  <div style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 22pt; height: 22pt; background: linear-gradient(135deg, #1DA1F2 0%, #0c7abf 100%); color: white; border-radius: 50%; font-size: 10pt; font-weight: 900;">
                     <%= index + 1 %>
                   </div>
 
                   <%# Avatar %>
                   <% if profile&.picture.present? %>
                     <img src="<%= profile.picture %>"
-                         style="flex: 0 0 auto; width: 40pt; height: 40pt; border-radius: 50%; object-fit: cover; border: 2pt solid #e5e7eb;"
+                         style="flex: 0 0 auto; width: 28pt; height: 28pt; border-radius: 50%; object-fit: cover; border: 1.5pt solid #e5e7eb;"
                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                    <div style="display: none; flex: 0 0 auto; width: 40pt; height: 40pt; border-radius: 50%; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); align-items: center; justify-content: center; font-size: 18pt; border: 2pt solid #93c5fd;">
+                    <div style="display: none; flex: 0 0 auto; width: 28pt; height: 28pt; border-radius: 50%; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); align-items: center; justify-content: center; font-size: 14pt; border: 1.5pt solid #93c5fd;">
                       🐦
                     </div>
                   <% else %>
-                    <div style="flex: 0 0 auto; width: 40pt; height: 40pt; border-radius: 50%; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); display: flex; align-items: center; justify-content: center; font-size: 18pt; border: 2pt solid #93c5fd;">
+                    <div style="flex: 0 0 auto; width: 28pt; height: 28pt; border-radius: 50%; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); display: flex; align-items: center; justify-content: center; font-size: 14pt; border: 1.5pt solid #93c5fd;">
                       🐦
                     </div>
                   <% end %>
 
                   <%# Info %>
-                  <div style="flex: 1; min-width: 0;">
-                    <div style="font-weight: 700; font-size: 10pt; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                  <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center;">
+                    <div style="font-weight: 700; font-size: 8pt; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; margin: 0;">
                       <%= profile_name %>
                     </div>
-                    <div style="font-size: 8pt; color: #6b7280; margin-top: 2pt;">
+                    <div style="font-size: 6.5pt; color: #6b7280; margin-top: 2pt; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                       <% if profile&.username.present? %>
                         @<%= profile.username %>
                       <% else %>
@@ -305,11 +651,11 @@
                   </div>
 
                   <%# Métrica %>
-                  <div style="flex: 0 0 auto; text-align: right; padding: 8pt 12pt; background: #dbeafe; border-radius: 6pt;">
-                    <div style="font-size: 16pt; font-weight: 900; color: #1DA1F2; line-height: 1;">
+                  <div style="flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 5pt 8pt; background: #dbeafe; border-radius: 6pt; min-width: 55pt;">
+                    <div style="font-size: 12pt; font-weight: 900; color: #1DA1F2; line-height: 1; margin: 0;">
                       <%= pdf_format_number(count) %>
                     </div>
-                    <div style="font-size: 7pt; color: #0c7abf; text-transform: uppercase; font-weight: 600; margin-top: 2pt;">
+                    <div style="font-size: 6pt; color: #0c7abf; text-transform: uppercase; font-weight: 600; margin-top: 2pt; line-height: 1;">
                       tweets
                     </div>
                   </div>
@@ -320,52 +666,56 @@
 
           <%# Columna 2: Top Perfiles por Interacciones %>
           <div>
-            <h3 style="margin: 0 0 20pt 0; font-size: 14pt; font-weight: 700; color: #1f2937; padding-left: 12pt; border-left: 4pt solid #10b981;">
+            <h3 style="margin: 0 0 16pt 0; font-size: 13pt; font-weight: 700; color: #1f2937; padding-left: 10pt; border-left: 3pt solid #10b981;">
               👍 Top Perfiles por Interacciones
             </h3>
 
-            <div style="display: flex; flex-direction: column; gap: 12pt;">
-              <% @profiles_interactions.sort_by { |k, v| -v }.take(10).each_with_index do |(profile_name, interactions), index| %>
+            <div style="display: flex; flex-direction: column; gap: 6pt;">
+              <% @profiles_interactions.sort_by { |k, v| -v }.take(8).each_with_index do |(profile_name, interactions), index| %>
                 <%
                   # Buscar el perfil para obtener el avatar
                   profile = TwitterProfile.find_by(name: profile_name)
                 %>
-                <div class="fanpage-item" style="display: flex; align-items: center; gap: 12pt; padding: 12pt 16pt; background: white; border: 1.5pt solid #e5e7eb; border-radius: 10pt; box-shadow: 0 1pt 4pt rgba(0, 0, 0, 0.06);">
+                <div class="profile-item" style="display: flex; align-items: center; gap: 8pt; padding: 6pt 10pt; background: white; border: 1pt solid #e5e7eb; border-radius: 6pt; min-height: 46pt; max-height: 46pt;">
                   <%# Ranking Badge %>
-                  <div style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 28pt; height: 28pt; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border-radius: 50%; font-size: 12pt; font-weight: 900; box-shadow: 0 2pt 4pt rgba(16, 185, 129, 0.3);">
+                  <div style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 22pt; height: 22pt; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border-radius: 50%; font-size: 10pt; font-weight: 900;">
                     <%= index + 1 %>
                   </div>
 
                   <%# Avatar %>
                   <% if profile&.picture.present? %>
                     <img src="<%= profile.picture %>"
-                         style="flex: 0 0 auto; width: 40pt; height: 40pt; border-radius: 50%; object-fit: cover; border: 2pt solid #e5e7eb;"
+                         style="flex: 0 0 auto; width: 28pt; height: 28pt; border-radius: 50%; object-fit: cover; border: 1.5pt solid #e5e7eb;"
                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                    <div style="display: none; flex: 0 0 auto; width: 40pt; height: 40pt; border-radius: 50%; background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); align-items: center; justify-content: center; font-size: 18pt; border: 2pt solid #6ee7b7;">
+                    <div style="display: none; flex: 0 0 auto; width: 28pt; height: 28pt; border-radius: 50%; background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); align-items: center; justify-content: center; font-size: 14pt; border: 1.5pt solid #6ee7b7;">
                       🐦
                     </div>
                   <% else %>
-                    <div style="flex: 0 0 auto; width: 40pt; height: 40pt; border-radius: 50%; background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); display: flex; align-items: center; justify-content: center; font-size: 18pt; border: 2pt solid #6ee7b7;">
+                    <div style="flex: 0 0 auto; width: 28pt; height: 28pt; border-radius: 50%; background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); display: flex; align-items: center; justify-content: center; font-size: 14pt; border: 1.5pt solid #6ee7b7;">
                       🐦
                     </div>
                   <% end %>
 
                   <%# Info %>
-                  <div style="flex: 1; min-width: 0;">
-                    <div style="font-weight: 700; font-size: 10pt; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                  <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center;">
+                    <div style="font-weight: 700; font-size: 8pt; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; margin: 0;">
                       <%= profile_name %>
                     </div>
-                    <div style="font-size: 8pt; color: #6b7280; margin-top: 2pt;">
-                      <%= @profiles_count[profile_name] || 0 %> tweets
+                    <div style="font-size: 6.5pt; color: #6b7280; margin-top: 2pt; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                      <% if profile&.username.present? %>
+                        @<%= profile.username %>
+                      <% else %>
+                        Perfil de Twitter
+                      <% end %>
                     </div>
                   </div>
 
                   <%# Métrica %>
-                  <div style="flex: 0 0 auto; text-align: right; padding: 8pt 12pt; background: #d1fae5; border-radius: 6pt;">
-                    <div style="font-size: 16pt; font-weight: 900; color: #10b981; line-height: 1;">
+                  <div style="flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 5pt 8pt; background: #d1fae5; border-radius: 6pt; min-width: 55pt;">
+                    <div style="font-size: 12pt; font-weight: 900; color: #10b981; line-height: 1; margin: 0;">
                       <%= pdf_format_number(interactions) %>
                     </div>
-                    <div style="font-size: 7pt; color: #059669; text-transform: uppercase; font-weight: 600; margin-top: 2pt;">
+                    <div style="font-size: 6pt; color: #059669; text-transform: uppercase; font-weight: 600; margin-top: 2pt; line-height: 1;">
                       interac.
                     </div>
                   </div>
@@ -486,7 +836,7 @@
     <% end %>
 
     <%# SLIDE 6: Top Tweets %>
-    <%= render 'shared/pdf_section_wrapper', section_id: 'section-6' do %>
+    <%= render 'shared/pdf_section_wrapper', section_id: 'section-6', force_new_page: true do %>
     <% if @top_posts.present? && @top_posts.any? %>
       <%= render 'shared/pdf_slide',
             slide_number: 6,
@@ -495,43 +845,41 @@
             report_type: :twitter,
             topic_name: @topic.name do %>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20pt;">
-          <% @top_posts.take(8).each_with_index do |post, index| %>
-            <div class="post-card" style="background: white; border: 2pt solid #e0f2fe; border-radius: 10pt; padding: 14pt 16pt; box-shadow: 0 2pt 6pt rgba(29, 161, 242, 0.06);">
-              <%# Header %>
-              <div style="display: flex; align-items: center; gap: 10pt; margin-bottom: 10pt;">
-                <span style="display: flex; align-items: center; justify-content: center; width: 28pt; height: 28pt; background: linear-gradient(135deg, #1DA1F2 0%, #0c7abf 100%); color: white; border-radius: 50%; font-size: 12pt; font-weight: 900;">#<%= index + 1 %></span>
-                <div style="flex: 1; min-width: 0;">
-                  <div style="font-weight: 700; color: #1f2937; font-size: 9pt; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">@<%= post.twitter_profile&.username || 'Unknown' %></div>
-                  <div style="font-size: 7pt; color: #9ca3af;"><%= post.posted_at&.strftime("%d/%m/%Y") %></div>
-                </div>
+        <%# Lista vertical de tweets (8-10 tweets) %>
+        <div style="display: flex; flex-direction: column;">
+          <% @top_posts.take(10).each_with_index do |post, index| %>
+            <div class="tweet-card" style="background: white; border: 1pt solid #e0f2fe; border-radius: 6pt;">
+              <%# Ranking badge %>
+              <div>
+                <span style="background: linear-gradient(135deg, #1DA1F2 0%, #0c7abf 100%); color: white; border-radius: 50%;">#<%= index + 1 %></span>
               </div>
 
-              <%# Tweet Text %>
-              <% if post.text.present? %>
-                <p style="margin: 0 0 10pt 0; font-size: 8pt; line-height: 1.5; color: #4b5563; height: 48pt; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical;"><%= post.text %></p>
-              <% end %>
+              <%# Content area %>
+              <div class="tweet-card-content">
+                <%# Header: Username + Date %>
+                <div class="tweet-card-header">
+                  <div style="font-weight: 700; color: #1f2937; font-size: 8pt;">@<%= post.twitter_profile&.username || 'Unknown' %></div>
+                  <div style="font-size: 6.5pt; color: #9ca3af;">•</div>
+                  <div style="font-size: 6.5pt; color: #9ca3af;"><%= post.posted_at&.strftime("%d/%m/%Y") %></div>
+                </div>
 
-              <%# Metrics Compact %>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6pt; font-size: 8pt;">
-                <div style="background: #fef3c7; padding: 6pt; border-radius: 4pt; text-align: center;">
-                  <div style="color: #92400e;">❤️</div>
-                  <div style="font-weight: 700; color: #1f2937;"><%= pdf_format_number(post.favorite_count || 0) %></div>
-                </div>
-                <div style="background: #d1fae5; padding: 6pt; border-radius: 4pt; text-align: center;">
-                  <div style="color: #065f46;">🔁</div>
-                  <div style="font-weight: 700; color: #1f2937;"><%= pdf_format_number(post.retweet_count || 0) %></div>
-                </div>
-                <div style="background: #dbeafe; padding: 6pt; border-radius: 4pt; text-align: center;">
-                  <div style="color: #1e40af;">💬</div>
-                  <div style="font-weight: 700; color: #1f2937;"><%= pdf_format_number(post.reply_count || 0) %></div>
-                </div>
-                <% if post.views_count && post.views_count > 0 %>
-                  <div style="background: #f3f4f6; padding: 6pt; border-radius: 4pt; text-align: center;">
-                    <div style="color: #9ca3af;">👁️</div>
-                    <div style="font-weight: 700; color: #1f2937;"><%= pdf_format_number(post.views_count) %></div>
-                  </div>
+                <%# Tweet text - truncated single line %>
+                <% if post.text.present? %>
+                  <p><%= post.text %></p>
                 <% end %>
+
+                <%# Metrics as inline text %>
+                <div class="tweet-card-metrics">
+                  <span>❤️ <strong><%= pdf_format_number(post.favorite_count || 0) %></strong> likes</span>
+                  <span>•</span>
+                  <span>🔁 <strong><%= pdf_format_number(post.retweet_count || 0) %></strong> retweets</span>
+                  <span>•</span>
+                  <span>💬 <strong><%= pdf_format_number(post.reply_count || 0) %></strong> respuestas</span>
+                  <% if post.views_count && post.views_count > 0 %>
+                    <span>•</span>
+                    <span>👁️ <strong><%= pdf_format_number(post.views_count) %></strong> vistas</span>
+                  <% end %>
+                </div>
               </div>
             </div>
           <% end %>

@@ -3,27 +3,527 @@
   <head>
     <meta charset="utf-8">
     <title>Reporte Facebook: <%= @topic.name %> - Morfeo Analytics</title>
-    <!-- Chartkick for Charts -->
+    <!-- Google Charts for visualization -->
     <script src="https://www.gstatic.com/charts/loader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartkick@4.2.0/dist/chartkick.min.js"></script>
 
-    <%# Auto-print on page load %>
+    <%# Auto-print on page load with 500ms delay for chart rendering %>
     <script>
-      window.onload = function() {
-        window.print();
-      };
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          window.print();
+        }, 500);
+      });
     </script>
 
     <%# Include professional PDF styles %>
     <%= render 'shared/pdf_professional_styles' %>
 
     <style>
+      /* ======================================
+         Facebook PDF - Exact A4 Page Fitting
+         ======================================= */
+
+      /* A4 Portrait: 210mm × 297mm
+         Margins: 2cm top/bottom, 1.5cm left/right
+         Content area: 18cm × 25.7cm (510pt × 729pt) */
+
+      @page {
+        size: A4 portrait;
+        margin: 2cm 1.5cm 2cm 1.5cm;
+      }
+
       /* Facebook-specific color variables */
       :root {
         --fb-primary: #1877f2;
         --fb-secondary: #0c63d4;
+        --a4-content-height: 729pt; /* 25.7cm available height */
+        --a4-content-width: 510pt;  /* 18cm available width */
+      }
+
+      /* Global container - strict A4 enforcement */
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        max-width: 21cm;
+        overflow-x: hidden;
+        box-sizing: border-box;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      /* ===== SLIDE HEIGHT CONTROL ===== */
+      /* Each slide must fit in exactly 729pt (25.7cm) */
+
+      .pdf-slide {
+        max-height: 729pt !important;
+        height: auto;
+        padding: 24pt 20pt !important; /* Reduced from 48pt 16pt */
+        overflow: hidden;
+      }
+
+      .pdf-slide-header {
+        margin-bottom: 16pt !important; /* Reduced from 32pt */
+      }
+
+      .pdf-slide-title {
+        font-size: 20pt !important; /* Reduced from 24pt */
+        margin: 6pt 0 !important;
+        line-height: 1.1 !important;
+      }
+
+      .pdf-slide-subtitle {
+        font-size: 10pt !important; /* Reduced from 11pt */
+        margin: 4pt 0 0 calc(12pt + 6pt) !important;
+      }
+
+      .pdf-slide-number-badge {
+        width: 28pt !important; /* Reduced from 32pt */
+        height: 28pt !important;
+        line-height: 28pt !important;
+        font-size: 12pt !important;
+        margin-bottom: 8pt !important;
+      }
+
+      /* ===== KPI CARDS - Compact for 1 page ===== */
+
+      .pdf-kpi-slide-grid {
+        gap: 12pt !important; /* Reduced from 16pt */
+        margin: 16pt 0 !important;
+      }
+
+      .pdf-kpi-slide-card {
+        padding: 16pt !important; /* Reduced from 24pt */
+        border: 1.5pt solid var(--color-gray-200) !important;
+      }
+
+      .pdf-kpi-slide-icon {
+        font-size: 28pt !important; /* Reduced from 32pt */
+        margin-bottom: 8pt !important;
+      }
+
+      .pdf-kpi-large .pdf-kpi-slide-value {
+        font-size: 32pt !important; /* Reduced from 48pt */
+        margin-bottom: 6pt !important;
+      }
+
+      .pdf-kpi-large .pdf-kpi-slide-label {
+        font-size: 11pt !important;
+        margin-bottom: 4pt !important;
+      }
+
+      .pdf-kpi-slide-sublabel {
+        font-size: 7.5pt !important; /* Reduced from 8pt */
+      }
+
+      /* ===== CHARTS - Optimized heights ===== */
+
+      .fb-chart-temporal-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 10pt 0 !important; /* Reduced from 16pt */
+        width: 100%;
+      }
+
+      .fb-chart-temporal-wrapper {
+        width: 100%;
+        max-width: 680px;
+        margin: 0 auto;
+        padding: 14pt !important; /* Reduced from 20pt */
+        border: 1.5pt solid #e5e7eb !important;
+      }
+
+      /* Chart headers - compact */
+      .fb-chart-temporal-wrapper h3,
+      h3.chart-title {
+        margin: 0 0 10pt 0 !important; /* Reduced from 16pt */
+        font-size: 12pt !important; /* Reduced from 14pt */
+        padding-left: 10pt !important;
+        border-left: 3pt solid !important;
+      }
+
+      /* Chart insight boxes - compact */
+      .fb-chart-temporal-wrapper + p,
+      p.chart-insight {
+        margin: 8pt 0 0 0 !important; /* Reduced from 12pt */
+        padding: 8pt 12pt !important; /* Reduced from 12pt 16pt */
+        font-size: 9pt !important; /* Reduced from 10pt */
+        line-height: 1.4 !important;
+      }
+
+      /* ===== SENTIMENT & REACTION CARDS - 2x2 Grid Compact ===== */
+
+      .sentiment-card,
+      .reaction-card {
+        padding: 10pt 12pt !important; /* Reduced from 14pt 16pt */
+        border: 1.5pt solid #e5e7eb !important;
+        border-radius: 8pt !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+
+      /* Card emoji icons */
+      .sentiment-card > div > div:first-child > div:first-child,
+      .reaction-card > div > div:first-child > div:first-child {
+        width: 32pt !important; /* Reduced from 40pt */
+        height: 32pt !important;
+        font-size: 20pt !important; /* Reduced from 24pt */
+      }
+
+      /* Card titles */
+      .sentiment-card div[style*="font-size: 12pt"],
+      .reaction-card div[style*="font-size: 12pt"] {
+        font-size: 11pt !important;
+      }
+
+      /* Card metrics */
+      .sentiment-card div[style*="font-size: 24pt"],
+      .reaction-card div[style*="font-size: 24pt"] {
+        font-size: 20pt !important; /* Reduced from 24pt */
+      }
+
+      .sentiment-card div[style*="font-size: 16pt"],
+      .reaction-card div[style*="font-size: 16pt"] {
+        font-size: 14pt !important; /* Reduced from 16pt */
+      }
+
+      /* Card descriptions */
+      .sentiment-card div[style*="font-size: 7pt"],
+      .reaction-card div[style*="font-size: 7pt"] {
+        font-size: 6.5pt !important;
+      }
+
+      /* ===== POST CARDS - Vertical List Layout (8-10 posts per page) ===== */
+
+      .post-card {
+        padding: 8pt 12pt !important;
+        border: 1pt solid !important;
+        border-radius: 6pt !important;
+        margin-bottom: 8pt !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 12pt !important;
+      }
+
+      /* Post card ranking badge - smaller */
+      .post-card > div:first-child {
+        flex: 0 0 auto !important;
+      }
+
+      .post-card > div:first-child > span {
+        width: 24pt !important;
+        height: 24pt !important;
+        font-size: 11pt !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+
+      /* Post card content area */
+      .post-card-content {
+        flex: 1 !important;
+        min-width: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 4pt !important;
+      }
+
+      /* Post card header */
+      .post-card-header {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8pt !important;
+      }
+
+      /* Post message - single line truncated */
+      .post-card p {
+        margin: 0 !important;
+        font-size: 7pt !important;
+        line-height: 1.4 !important;
+        color: #6b7280 !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+        max-width: 100% !important;
+      }
+
+      /* Post metrics as inline text */
+      .post-card-metrics {
+        display: flex !important;
+        gap: 10pt !important;
+        font-size: 6.5pt !important;
+        color: #6b7280 !important;
+        flex-wrap: wrap !important;
+      }
+
+      .post-card-metrics span {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 3pt !important;
+      }
+
+      .post-card-metrics strong {
+        color: #1f2937 !important;
+        font-weight: 700 !important;
+      }
+
+      /* ===== FANPAGE & TAG ITEMS - Fixed Height for Consistency ===== */
+
+      .fanpage-item,
+      .tag-item {
+        padding: 6pt 10pt !important; /* Reducido de 8pt 12pt */
+        gap: 8pt !important;
+        margin-bottom: 6pt !important; /* Reducido de 8pt */
+        border: 1pt solid #e5e7eb !important;
+        border-radius: 6pt !important; /* Reducido de 8pt */
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        /* CRITICAL: Fixed height for all items */
+        height: 46pt !important; /* Forzar altura exacta */
+        min-height: 46pt !important; /* Reducido de 52pt */
+        max-height: 46pt !important;
+        display: flex !important;
+        align-items: center !important;
+        box-sizing: border-box !important; /* CRÍTICO: Incluir padding/border en altura */
+        overflow: hidden !important; /* Evitar expansión */
+      }
+
+      /* Ranking badges - exact size */
+      .fanpage-item > div:first-child,
+      .tag-item > div:first-child {
+        width: 22pt !important; /* Reducido de 24pt */
+        height: 22pt !important;
+        font-size: 10pt !important; /* Reducido de 11pt */
+        flex-shrink: 0 !important;
+        flex-grow: 0 !important; /* No crecer */
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+
+      /* Avatar/Icon - exact size */
+      .fanpage-item > div:nth-child(2),
+      .tag-item > div:nth-child(2) {
+        width: 28pt !important; /* Reducido de 32pt */
+        height: 28pt !important;
+        font-size: 14pt !important; /* Reducido de 16pt */
+        flex-shrink: 0 !important;
+        flex-grow: 0 !important; /* No crecer */
+        /* CRÍTICO: Centrado perfecto con flexbox puro */
+        display: flex !important;
+        align-items: center !important; /* Centrar verticalmente */
+        justify-content: center !important; /* Centrar horizontalmente */
+        /* Resetear propiedades que pueden interferir */
+        line-height: 1 !important; /* Línea de altura mínima */
+        padding: 0 !important;
+        margin: 0 !important;
+        align-self: center !important; /* Centrar el círculo dentro del card */
+      }
+
+      .fanpage-item img {
+        width: 28pt !important; /* Reducido de 32pt */
+        height: 28pt !important;
+      }
+
+      /* Text content - controlled height */
+      .fanpage-item div[style*="flex: 1"],
+      .tag-item div[style*="flex: 1"] {
+        flex: 1 !important;
+        min-width: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        overflow: hidden !important;
+      }
+
+      .fanpage-item div[style*="font-size: 10pt"],
+      .tag-item div[style*="font-size: 10pt"] {
+        font-size: 8pt !important; /* Reducido de 9pt */
+        line-height: 1.2 !important;
+        margin: 0 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+      }
+
+      .fanpage-item div[style*="font-size: 8pt"],
+      .tag-item div[style*="font-size: 8pt"] {
+        font-size: 6.5pt !important; /* Reducido de 7pt */
+        line-height: 1.2 !important;
+        margin-top: 2pt !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+      }
+
+      /* Metrics - exact size */
+      .fanpage-item div[style*="font-size: 16pt"],
+      .tag-item div[style*="font-size: 16pt"] {
+        font-size: 12pt !important; /* Reducido de 14pt */
+        line-height: 1 !important;
+        margin: 0 !important;
+      }
+
+      .fanpage-item > div:last-child,
+      .tag-item > div:last-child {
+        padding: 5pt 8pt !important; /* Reducido de 6pt 10pt */
+        flex-shrink: 0 !important;
+        flex-grow: 0 !important; /* No crecer */
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-width: 55pt !important; /* Reducido de 60pt */
+      }
+
+      .fanpage-item > div:last-child > div:last-child,
+      .tag-item > div:last-child > div:last-child {
+        font-size: 6pt !important; /* Reducido de 6.5pt */
+        line-height: 1 !important;
+        margin-top: 2pt !important;
+      }
+
+      /* CRITICAL: Print-specific rules for PDF */
+      @media print {
+        .fanpage-item,
+        .tag-item {
+          height: 46pt !important;
+          min-height: 46pt !important;
+          max-height: 46pt !important;
+          box-sizing: border-box !important;
+          overflow: hidden !important;
+        }
+
+        /* Forzar centrado perfecto del círculo y emoji en print */
+        .fanpage-item > div:nth-child(2),
+        .tag-item > div:nth-child(2) {
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          align-self: center !important;
+          line-height: 1 !important;
+          padding: 0 !important;
+          margin: 0 !important;
+        }
+      }
+
+      /* ===== METHODOLOGY BOX - Compact ===== */
+
+      div[style*="linear-gradient(135deg, #eff6ff"] {
+        padding: 14pt 18pt !important; /* Reduced from 20pt 24pt */
+        margin-top: 16pt !important;
+      }
+
+      div[style*="linear-gradient(135deg, #eff6ff"] h4 {
+        font-size: 11pt !important; /* Reduced from 13pt */
+        margin-bottom: 8pt !important;
+      }
+
+      div[style*="linear-gradient(135deg, #eff6ff"] p {
+        font-size: 9pt !important; /* Reduced from 10pt */
+        line-height: 1.5 !important;
+        margin-bottom: 8pt !important;
+      }
+
+      div[style*="linear-gradient(135deg, #eff6ff"] > div[style*="display: grid"] {
+        gap: 6pt !important; /* Reduced from 8pt */
+      }
+
+      div[style*="linear-gradient(135deg, #eff6ff"] > div[style*="display: grid"] > div {
+        padding: 6pt !important; /* Reduced from 8pt */
+      }
+
+      /* ===== INSIGHT BARS - Compact ===== */
+
+      div[style*="linear-gradient(135deg, #d1fae5"],
+      div[style*="linear-gradient(135deg, #eff6ff 0%, #dbeafe"] {
+        padding: 8pt 12pt !important; /* Reduced from 12pt 16pt */
+        margin-top: 12pt !important;
+        gap: 8pt !important;
+      }
+
+      div[style*="linear-gradient(135deg, #d1fae5"] span[style*="font-size: 24pt"],
+      div[style*="linear-gradient(135deg, #eff6ff 0%, #dbeafe"] span[style*="font-size: 24pt"] {
+        font-size: 20pt !important;
+      }
+
+      div[style*="linear-gradient(135deg, #d1fae5"] p,
+      div[style*="linear-gradient(135deg, #eff6ff 0%, #dbeafe"] p {
+        font-size: 8.5pt !important; /* Reduced from 9pt */
+        line-height: 1.3 !important;
+      }
+
+      /* ===== GRID SPACING - 2x2 and 2 columns ===== */
+
+      div[style*="display: grid; grid-template-columns: 1fr 1fr"] {
+        gap: 12pt !important; /* Reduced from 16pt or 20pt */
+      }
+
+      div[style*="display: grid; grid-template-columns: 1fr 1fr; gap: 32pt"] {
+        gap: 16pt !important; /* Reduced from 32pt */
+      }
+
+      /* ===== SECTION TITLES (H3) ===== */
+
+      h3[style*="margin: 0 0 20pt 0"] {
+        margin: 0 0 12pt 0 !important; /* Reduced from 20pt */
+        font-size: 12pt !important; /* Reduced from 14pt */
+        padding-left: 10pt !important;
+        border-left: 3pt solid !important;
+      }
+
+      /* ===== PAGE BREAK CONTROL ===== */
+
+      .pdf-section-wrapper {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+
+      .pdf-section-wrapper.force-new-page {
+        page-break-before: always !important;
+        break-before: page !important;
+      }
+
+      /* Ensure content fits */
+      .pdf-slide-content {
+        max-height: 650pt; /* Leave room for header/footer */
+        overflow: hidden;
+      }
+
+      /* ===== SOURCE NOTES ===== */
+
+      p[style*="font-size: 7pt"][style*="text-align: center"] {
+        margin: 8pt 0 0 0 !important;
+        font-size: 6.5pt !important;
+      }
+
+      /* ===== PRINT OPTIMIZATIONS ===== */
+
+      @media print {
+        body {
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+
+        .pdf-section-wrapper {
+          page-break-inside: avoid !important;
+        }
+
+        .pdf-section-wrapper.force-new-page {
+          page-break-before: always !important;
+        }
+
+        /* Ensure each slide is exactly 1 page */
+        .pdf-slide {
+          max-height: 729pt !important;
+          page-break-after: always;
+        }
       }
     </style>
   </head>
@@ -89,22 +589,24 @@
           report_type: :facebook,
           topic_name: @topic.name do %>
 
-      <%# Gráficas apiladas verticalmente %>
+      <%
+        # Get chart configuration based on date range
+        chart_config = pdf_chart_config_for_range(@days_range)
+      %>
+
+      <%# Gráficas apiladas verticalmente con configuración optimizada %>
       <div style="display: flex; flex-direction: column; gap: 24pt;">
         <%# Posts por Día %>
         <div>
           <h3 style="margin: 0 0 16pt 0; font-size: 14pt; font-weight: 700; color: #1f2937; padding-left: 12pt; border-left: 4pt solid #1877f2;">
             📊 Posts por Día
           </h3>
-          <div style="background: white; border: 2pt solid #e5e7eb; border-radius: 12pt; padding: 20pt; box-shadow: 0 2pt 8pt rgba(0, 0, 0, 0.06);">
-            <%= column_chart @chart_posts,
-                  colors: ['#1877f2'],
-                  height: '240px',
-                  library: {
-                    chart: { backgroundColor: 'transparent' },
-                    xAxis: { labels: { style: { fontSize: '9pt', fontWeight: '600' } } },
-                    yAxis: { labels: { style: { fontSize: '9pt', fontWeight: '600' } } }
-                  } %>
+          <div class="fb-chart-temporal-container">
+            <div class="fb-chart-temporal-wrapper" style="background: white; border: 2pt solid #e5e7eb; border-radius: 12pt; padding: 20pt; box-shadow: 0 2pt 8pt rgba(0, 0, 0, 0.06);">
+              <%= column_chart @chart_posts,
+                    colors: ['#1877f2'],
+                    **chart_config %>
+            </div>
           </div>
           <p style="margin: 12pt 0 0 0; padding: 12pt 16pt; background: #eff6ff; border-left: 4pt solid #3b82f6; border-radius: 6pt; font-size: 10pt; line-height: 1.6; color: #1e40af;">
             💡 Promedio de <strong><%= (@total_posts.to_f / @days_range).round(1) %></strong> posts por día durante el período analizado.
@@ -116,15 +618,12 @@
           <h3 style="margin: 0 0 16pt 0; font-size: 14pt; font-weight: 700; color: #1f2937; padding-left: 12pt; border-left: 4pt solid #10b981;">
             👍 Interacciones por Día
           </h3>
-          <div style="background: white; border: 2pt solid #e5e7eb; border-radius: 12pt; padding: 20pt; box-shadow: 0 2pt 8pt rgba(0, 0, 0, 0.06);">
-            <%= column_chart @chart_interactions,
-                  colors: ['#10b981'],
-                  height: '240px',
-                  library: {
-                    chart: { backgroundColor: 'transparent' },
-                    xAxis: { labels: { style: { fontSize: '9pt', fontWeight: '600' } } },
-                    yAxis: { labels: { style: { fontSize: '9pt', fontWeight: '600' } } }
-                  } %>
+          <div class="fb-chart-temporal-container">
+            <div class="fb-chart-temporal-wrapper" style="background: white; border: 2pt solid #e5e7eb; border-radius: 12pt; padding: 20pt; box-shadow: 0 2pt 8pt rgba(0, 0, 0, 0.06);">
+              <%= column_chart @chart_interactions,
+                    colors: ['#10b981'],
+                    **chart_config %>
+            </div>
           </div>
           <p style="margin: 12pt 0 0 0; padding: 12pt 16pt; background: #d1fae5; border-left: 4pt solid #10b981; border-radius: 6pt; font-size: 10pt; line-height: 1.6; color: #065f46;">
             💡 <%= @chart_interactions.values.max > @chart_interactions.values.min * 2 ? 'Alta variabilidad' : 'Consistencia' %> en las interacciones a lo largo del período.
@@ -349,7 +848,7 @@
     <% end %>
 
     <%# SLIDE 5: Desglose de Reacciones %>
-    <%= render 'shared/pdf_section_wrapper', section_id: 'section-5' do %>
+    <%= render 'shared/pdf_section_wrapper', section_id: 'section-5', force_new_page: true do %>
     <% if @sentiment_summary.present? && @reaction_breakdown.present? %>
       <%
         presenter = FacebookSentimentPresenter.new(
@@ -488,7 +987,7 @@
     <% end %>
 
     <%# SLIDE 6: Top Posts Positivos %>
-    <%= render 'shared/pdf_section_wrapper', section_id: 'section-6' do %>
+    <%= render 'shared/pdf_section_wrapper', section_id: 'section-6', force_new_page: true do %>
     <% if @top_positive_posts.present? && @top_positive_posts.any? %>
       <%= render 'shared/pdf_slide',
                 slide_number: 6,
@@ -497,44 +996,43 @@
                 report_type: :facebook,
                 topic_name: @topic.name do %>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20pt;">
-          <% @top_positive_posts.take(8).each_with_index do |post, index| %>
-            <div class="post-card" style="background: white; border: 2pt solid #d1fae5; border-radius: 10pt; padding: 14pt 16pt; box-shadow: 0 2pt 6pt rgba(5, 150, 105, 0.06);">
-              <%# Header %>
-              <div style="display: flex; align-items: center; gap: 10pt; margin-bottom: 10pt;">
-                <span style="display: flex; align-items: center; justify-content: center; width: 28pt; height: 28pt; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border-radius: 50%; font-size: 12pt; font-weight: 900;">#<%= index + 1 %></span>
-                <div style="flex: 1; min-width: 0;">
-                  <div style="font-weight: 700; color: #1f2937; font-size: 9pt; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><%= post.page&.name || 'Unknown' %></div>
-                  <div style="font-size: 7pt; color: #9ca3af;"><%= post.posted_at&.strftime("%d/%m/%Y") %></div>
-                  <div style="font-size: 8pt; color: #10b981; font-weight: 700;"><%= pdf_sentiment_emoji(post.sentiment_score, system: :facebook) %> <%= number_with_precision(post.sentiment_score, precision: 2) %></div>
-                </div>
+        <%# Lista vertical de posts (8-10 posts) %>
+        <div style="display: flex; flex-direction: column;">
+          <% @top_positive_posts.take(10).each_with_index do |post, index| %>
+            <div class="post-card" style="background: white; border: 1pt solid #d1fae5; border-radius: 6pt;">
+              <%# Ranking badge %>
+              <div>
+                <span style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border-radius: 50%;">#<%= index + 1 %></span>
               </div>
 
-              <%# Message %>
-              <% if post.message.present? %>
-                <p style="margin: 0 0 10pt 0; font-size: 8pt; line-height: 1.5; color: #4b5563; height: 48pt; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical;"><%= post.message %></p>
-              <% end %>
+              <%# Content area %>
+              <div class="post-card-content">
+                <%# Header: Page name + Date + Sentiment %>
+                <div class="post-card-header">
+                  <div style="font-weight: 700; color: #1f2937; font-size: 8pt;"><%= post.page&.name || 'Unknown' %></div>
+                  <div style="font-size: 6.5pt; color: #9ca3af;">•</div>
+                  <div style="font-size: 6.5pt; color: #9ca3af;"><%= post.posted_at&.strftime("%d/%m/%Y") %></div>
+                  <div style="font-size: 6.5pt; color: #9ca3af;">•</div>
+                  <div style="font-size: 7pt; color: #10b981; font-weight: 700;"><%= pdf_sentiment_emoji(post.sentiment_score, system: :facebook) %> <%= number_with_precision(post.sentiment_score, precision: 2) %></div>
+                </div>
 
-              <%# Metrics Compact %>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6pt; font-size: 8pt;">
-                <div style="background: #f3f4f6; padding: 6pt; border-radius: 4pt; text-align: center;">
-                  <div style="color: #9ca3af;">❤️</div>
-                  <div style="font-weight: 700; color: #1f2937;"><%= pdf_format_number(post.reactions_total_count) %></div>
-                </div>
-                <div style="background: #f3f4f6; padding: 6pt; border-radius: 4pt; text-align: center;">
-                  <div style="color: #9ca3af;">💬</div>
-                  <div style="font-weight: 700; color: #1f2937;"><%= pdf_format_number(post.comments_count) %></div>
-                </div>
-                <div style="background: #f3f4f6; padding: 6pt; border-radius: 4pt; text-align: center;">
-                  <div style="color: #9ca3af;">🔗</div>
-                  <div style="font-weight: 700; color: #1f2937;"><%= pdf_format_number(post.share_count) %></div>
-                </div>
-                <% if post.views_count && post.views_count > 0 %>
-                  <div style="background: #f3f4f6; padding: 6pt; border-radius: 4pt; text-align: center;">
-                    <div style="color: #9ca3af;">👁️</div>
-                    <div style="font-weight: 700; color: #1f2937;"><%= pdf_format_number(post.views_count) %></div>
-                  </div>
+                <%# Message - truncated single line %>
+                <% if post.message.present? %>
+                  <p><%= post.message %></p>
                 <% end %>
+
+                <%# Metrics as inline text %>
+                <div class="post-card-metrics">
+                  <span>❤️ <strong><%= pdf_format_number(post.reactions_total_count) %></strong> reacciones</span>
+                  <span>•</span>
+                  <span>💬 <strong><%= pdf_format_number(post.comments_count) %></strong> comentarios</span>
+                  <span>•</span>
+                  <span>🔗 <strong><%= pdf_format_number(post.share_count) %></strong> shares</span>
+                  <% if post.views_count && post.views_count > 0 %>
+                    <span>•</span>
+                    <span>👁️ <strong><%= pdf_format_number(post.views_count) %></strong> vistas</span>
+                  <% end %>
+                </div>
               </div>
             </div>
           <% end %>
@@ -544,7 +1042,7 @@
     <% end %>
 
     <%# SLIDE 7: Top Posts Negativos %>
-    <%= render 'shared/pdf_section_wrapper', section_id: 'section-7' do %>
+    <%= render 'shared/pdf_section_wrapper', section_id: 'section-7', force_new_page: true do %>
     <% if @top_negative_posts.present? && @top_negative_posts.any? %>
       <%= render 'shared/pdf_slide',
                 slide_number: 7,
@@ -553,44 +1051,43 @@
                 report_type: :facebook,
                 topic_name: @topic.name do %>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20pt;">
-          <% @top_negative_posts.take(8).each_with_index do |post, index| %>
-            <div class="post-card" style="background: white; border: 2pt solid #fee2e2; border-radius: 10pt; padding: 14pt 16pt; box-shadow: 0 2pt 6pt rgba(220, 38, 38, 0.06);">
-              <%# Header %>
-              <div style="display: flex; align-items: center; gap: 10pt; margin-bottom: 10pt;">
-                <span style="display: flex; align-items: center; justify-content: center; width: 28pt; height: 28pt; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border-radius: 50%; font-size: 12pt; font-weight: 900;">#<%= index + 1 %></span>
-                <div style="flex: 1; min-width: 0;">
-                  <div style="font-weight: 700; color: #1f2937; font-size: 9pt; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><%= post.page&.name || 'Unknown' %></div>
-                  <div style="font-size: 7pt; color: #9ca3af;"><%= post.posted_at&.strftime("%d/%m/%Y") %></div>
-                  <div style="font-size: 8pt; color: #ef4444; font-weight: 700;"><%= pdf_sentiment_emoji(post.sentiment_score, system: :facebook) %> <%= number_with_precision(post.sentiment_score, precision: 2) %></div>
-                </div>
+        <%# Lista vertical de posts (8-10 posts) %>
+        <div style="display: flex; flex-direction: column;">
+          <% @top_negative_posts.take(10).each_with_index do |post, index| %>
+            <div class="post-card" style="background: white; border: 1pt solid #fee2e2; border-radius: 6pt;">
+              <%# Ranking badge %>
+              <div>
+                <span style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border-radius: 50%;">#<%= index + 1 %></span>
               </div>
 
-              <%# Message %>
-              <% if post.message.present? %>
-                <p style="margin: 0 0 10pt 0; font-size: 8pt; line-height: 1.5; color: #4b5563; height: 48pt; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical;"><%= post.message %></p>
-              <% end %>
+              <%# Content area %>
+              <div class="post-card-content">
+                <%# Header: Page name + Date + Sentiment %>
+                <div class="post-card-header">
+                  <div style="font-weight: 700; color: #1f2937; font-size: 8pt;"><%= post.page&.name || 'Unknown' %></div>
+                  <div style="font-size: 6.5pt; color: #9ca3af;">•</div>
+                  <div style="font-size: 6.5pt; color: #9ca3af;"><%= post.posted_at&.strftime("%d/%m/%Y") %></div>
+                  <div style="font-size: 6.5pt; color: #9ca3af;">•</div>
+                  <div style="font-size: 7pt; color: #ef4444; font-weight: 700;"><%= pdf_sentiment_emoji(post.sentiment_score, system: :facebook) %> <%= number_with_precision(post.sentiment_score, precision: 2) %></div>
+                </div>
 
-              <%# Metrics Compact %>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6pt; font-size: 8pt;">
-                <div style="background: #f3f4f6; padding: 6pt; border-radius: 4pt; text-align: center;">
-                  <div style="color: #9ca3af;">❤️</div>
-                  <div style="font-weight: 700; color: #1f2937;"><%= pdf_format_number(post.reactions_total_count) %></div>
-                </div>
-                <div style="background: #f3f4f6; padding: 6pt; border-radius: 4pt; text-align: center;">
-                  <div style="color: #9ca3af;">💬</div>
-                  <div style="font-weight: 700; color: #1f2937;"><%= pdf_format_number(post.comments_count) %></div>
-                </div>
-                <div style="background: #f3f4f6; padding: 6pt; border-radius: 4pt; text-align: center;">
-                  <div style="color: #9ca3af;">🔗</div>
-                  <div style="font-weight: 700; color: #1f2937;"><%= pdf_format_number(post.share_count) %></div>
-                </div>
-                <% if post.views_count && post.views_count > 0 %>
-                  <div style="background: #f3f4f6; padding: 6pt; border-radius: 4pt; text-align: center;">
-                    <div style="color: #9ca3af;">👁️</div>
-                    <div style="font-weight: 700; color: #1f2937;"><%= pdf_format_number(post.views_count) %></div>
-                  </div>
+                <%# Message - truncated single line %>
+                <% if post.message.present? %>
+                  <p><%= post.message %></p>
                 <% end %>
+
+                <%# Metrics as inline text %>
+                <div class="post-card-metrics">
+                  <span>❤️ <strong><%= pdf_format_number(post.reactions_total_count) %></strong> reacciones</span>
+                  <span>•</span>
+                  <span>💬 <strong><%= pdf_format_number(post.comments_count) %></strong> comentarios</span>
+                  <span>•</span>
+                  <span>🔗 <strong><%= pdf_format_number(post.share_count) %></strong> shares</span>
+                  <% if post.views_count && post.views_count > 0 %>
+                    <span>•</span>
+                    <span>👁️ <strong><%= pdf_format_number(post.views_count) %></strong> vistas</span>
+                  <% end %>
+                </div>
               </div>
             </div>
           <% end %>
@@ -609,56 +1106,56 @@
             topic_name: @topic.name do %>
 
         <%# Lista de Fanpages con Rankings %>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32pt;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20pt;">
 
           <%# Columna 1: Top Fanpages por Posts %>
           <div>
-            <h3 style="margin: 0 0 20pt 0; font-size: 14pt; font-weight: 700; color: #1f2937; padding-left: 12pt; border-left: 4pt solid #1877f2;">
-              📝 Top Fanpages por Posts
+            <h3 style="margin: 0 0 16pt 0; font-size: 13pt; font-weight: 700; color: #1f2937; padding-left: 10pt; border-left: 3pt solid #1877f2;">
+              📊 Top Fanpages por Posts
             </h3>
 
-            <div style="display: flex; flex-direction: column; gap: 12pt;">
-              <% @pages_count.take(10).each_with_index do |(page_name, count), index| %>
+            <div style="display: flex; flex-direction: column; gap: 6pt;">
+              <% @pages_count.sort_by { |k, v| -v }.take(8).each_with_index do |(page_name, count), index| %>
                 <%
                   # Buscar la página para obtener el avatar
                   page = Page.find_by(name: page_name)
                 %>
-                <div class="fanpage-item" style="display: flex; align-items: center; gap: 12pt; padding: 12pt 16pt; background: white; border: 1.5pt solid #e5e7eb; border-radius: 10pt; box-shadow: 0 1pt 4pt rgba(0, 0, 0, 0.06);">
+                <div class="fanpage-item" style="display: flex; align-items: center; gap: 8pt; padding: 6pt 10pt; background: white; border: 1pt solid #e5e7eb; border-radius: 6pt; box-shadow: 0 1pt 4pt rgba(0, 0, 0, 0.06); min-height: 46pt; max-height: 46pt;">
                   <%# Ranking Badge %>
-                  <div style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 28pt; height: 28pt; background: linear-gradient(135deg, #1877f2 0%, #0c63d4 100%); color: white; border-radius: 50%; font-size: 12pt; font-weight: 900; box-shadow: 0 2pt 4pt rgba(24, 119, 242, 0.3);">
+                  <div style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 22pt; height: 22pt; background: linear-gradient(135deg, #1877f2 0%, #0c63d4 100%); color: white; border-radius: 50%; font-size: 10pt; font-weight: 900; box-shadow: 0 2pt 4pt rgba(24, 119, 242, 0.3);">
                     <%= index + 1 %>
                   </div>
 
                   <%# Avatar %>
                   <% if page&.picture.present? %>
                     <img src="<%= page.picture %>"
-                         style="flex: 0 0 auto; width: 40pt; height: 40pt; border-radius: 50%; object-fit: cover; border: 2pt solid #e5e7eb;"
+                         style="flex: 0 0 auto; width: 28pt; height: 28pt; border-radius: 50%; object-fit: cover; border: 2pt solid #e5e7eb;"
                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                    <div style="display: none; flex: 0 0 auto; width: 40pt; height: 40pt; border-radius: 50%; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); align-items: center; justify-content: center; font-size: 18pt; border: 2pt solid #93c5fd;">
+                    <div style="display: none; flex: 0 0 auto; width: 28pt; height: 28pt; border-radius: 50%; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); align-items: center; justify-content: center; font-size: 14pt; border: 2pt solid #93c5fd;">
                       👤
                     </div>
                   <% else %>
-                    <div style="flex: 0 0 auto; width: 40pt; height: 40pt; border-radius: 50%; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); display: flex; align-items: center; justify-content: center; font-size: 18pt; border: 2pt solid #93c5fd;">
+                    <div style="flex: 0 0 auto; width: 28pt; height: 28pt; border-radius: 50%; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); display: flex; align-items: center; justify-content: center; font-size: 14pt; border: 2pt solid #93c5fd;">
                       👤
                     </div>
                   <% end %>
 
                   <%# Info %>
                   <div style="flex: 1; min-width: 0;">
-                    <div style="font-weight: 700; font-size: 10pt; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    <div style="font-weight: 700; font-size: 8pt; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; margin: 0;">
                       <%= page_name %>
                     </div>
-                    <div style="font-size: 8pt; color: #6b7280; margin-top: 2pt;">
+                    <div style="font-size: 6.5pt; color: #6b7280; margin-top: 2pt; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                       Fanpage oficial
                     </div>
                   </div>
 
                   <%# Métrica %>
-                  <div style="flex: 0 0 auto; text-align: right; padding: 8pt 12pt; background: #eff6ff; border-radius: 6pt;">
-                    <div style="font-size: 16pt; font-weight: 900; color: #1877f2; line-height: 1;">
+                  <div style="flex: 0 0 auto; text-align: center; padding: 5pt 8pt; background: #eff6ff; border-radius: 6pt; min-width: 55pt;">
+                    <div style="font-size: 12pt; font-weight: 900; color: #1877f2; line-height: 1; margin: 0;">
                       <%= count %>
                     </div>
-                    <div style="font-size: 7pt; color: #3b82f6; text-transform: uppercase; font-weight: 600; margin-top: 2pt;">
+                    <div style="font-size: 6pt; color: #0c63d4; text-transform: uppercase; font-weight: 600; margin-top: 2pt; line-height: 1;">
                       posts
                     </div>
                   </div>
@@ -669,52 +1166,52 @@
 
           <%# Columna 2: Top Fanpages por Interacciones %>
           <div>
-            <h3 style="margin: 0 0 20pt 0; font-size: 14pt; font-weight: 700; color: #1f2937; padding-left: 12pt; border-left: 4pt solid #10b981;">
+            <h3 style="margin: 0 0 16pt 0; font-size: 13pt; font-weight: 700; color: #1f2937; padding-left: 10pt; border-left: 3pt solid #10b981;">
               👍 Top Fanpages por Interacciones
             </h3>
 
-            <div style="display: flex; flex-direction: column; gap: 12pt;">
-              <% @pages_interactions.sort_by { |k, v| -v }.take(10).each_with_index do |(page_name, interactions), index| %>
+            <div style="display: flex; flex-direction: column; gap: 6pt;">
+              <% @pages_interactions.sort_by { |k, v| -v }.take(8).each_with_index do |(page_name, interactions), index| %>
                 <%
                   # Buscar la página para obtener el avatar
                   page = Page.find_by(name: page_name)
                 %>
-                <div class="fanpage-item" style="display: flex; align-items: center; gap: 12pt; padding: 12pt 16pt; background: white; border: 1.5pt solid #e5e7eb; border-radius: 10pt; box-shadow: 0 1pt 4pt rgba(0, 0, 0, 0.06);">
+                <div class="fanpage-item" style="display: flex; align-items: center; gap: 8pt; padding: 6pt 10pt; background: white; border: 1pt solid #e5e7eb; border-radius: 6pt; box-shadow: 0 1pt 4pt rgba(0, 0, 0, 0.06); min-height: 46pt; max-height: 46pt;">
                   <%# Ranking Badge %>
-                  <div style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 28pt; height: 28pt; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border-radius: 50%; font-size: 12pt; font-weight: 900; box-shadow: 0 2pt 4pt rgba(16, 185, 129, 0.3);">
+                  <div style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 22pt; height: 22pt; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border-radius: 50%; font-size: 10pt; font-weight: 900; box-shadow: 0 2pt 4pt rgba(16, 185, 129, 0.3);">
                     <%= index + 1 %>
                   </div>
 
                   <%# Avatar %>
                   <% if page&.picture.present? %>
                     <img src="<%= page.picture %>"
-                         style="flex: 0 0 auto; width: 40pt; height: 40pt; border-radius: 50%; object-fit: cover; border: 2pt solid #e5e7eb;"
+                         style="flex: 0 0 auto; width: 28pt; height: 28pt; border-radius: 50%; object-fit: cover; border: 2pt solid #e5e7eb;"
                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                    <div style="display: none; flex: 0 0 auto; width: 40pt; height: 40pt; border-radius: 50%; background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); align-items: center; justify-content: center; font-size: 18pt; border: 2pt solid #6ee7b7;">
+                    <div style="display: none; flex: 0 0 auto; width: 28pt; height: 28pt; border-radius: 50%; background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); align-items: center; justify-content: center; font-size: 14pt; border: 2pt solid #6ee7b7;">
                       👤
                     </div>
                   <% else %>
-                    <div style="flex: 0 0 auto; width: 40pt; height: 40pt; border-radius: 50%; background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); display: flex; align-items: center; justify-content: center; font-size: 18pt; border: 2pt solid #6ee7b7;">
+                    <div style="flex: 0 0 auto; width: 28pt; height: 28pt; border-radius: 50%; background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); display: flex; align-items: center; justify-content: center; font-size: 14pt; border: 2pt solid #6ee7b7;">
                       👤
                     </div>
                   <% end %>
 
                   <%# Info %>
                   <div style="flex: 1; min-width: 0;">
-                    <div style="font-weight: 700; font-size: 10pt; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    <div style="font-weight: 700; font-size: 8pt; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; margin: 0;">
                       <%= page_name %>
                     </div>
-                    <div style="font-size: 8pt; color: #6b7280; margin-top: 2pt;">
+                    <div style="font-size: 6.5pt; color: #6b7280; margin-top: 2pt; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                       <%= @pages_count[page_name] || 0 %> posts
                     </div>
                   </div>
 
                   <%# Métrica %>
-                  <div style="flex: 0 0 auto; text-align: right; padding: 8pt 12pt; background: #d1fae5; border-radius: 6pt;">
-                    <div style="font-size: 16pt; font-weight: 900; color: #10b981; line-height: 1;">
+                  <div style="flex: 0 0 auto; text-align: center; padding: 5pt 8pt; background: #d1fae5; border-radius: 6pt; min-width: 55pt;">
+                    <div style="font-size: 12pt; font-weight: 900; color: #10b981; line-height: 1; margin: 0;">
                       <%= pdf_format_number(interactions) %>
                     </div>
-                    <div style="font-size: 7pt; color: #059669; text-transform: uppercase; font-weight: 600; margin-top: 2pt;">
+                    <div style="font-size: 6pt; color: #059669; text-transform: uppercase; font-weight: 600; margin-top: 2pt; line-height: 1;">
                       interac.
                     </div>
                   </div>
@@ -739,43 +1236,43 @@
             topic_name: @topic.name do %>
 
         <%# Lista de Etiquetas con Rankings %>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32pt;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20pt;">
 
           <%# Columna 1: Top Etiquetas por Posts %>
           <div>
-            <h3 style="margin: 0 0 20pt 0; font-size: 14pt; font-weight: 700; color: #1f2937; padding-left: 12pt; border-left: 4pt solid #8b5cf6;">
+            <h3 style="margin: 0 0 16pt 0; font-size: 13pt; font-weight: 700; color: #1f2937; padding-left: 10pt; border-left: 3pt solid #8b5cf6;">
               🏷️ Top Etiquetas por Posts
             </h3>
 
-            <div style="display: flex; flex-direction: column; gap: 12pt;">
-              <% @tag_counts.take(10).each_with_index do |tag, index| %>
-                <div class="tag-item" style="display: flex; align-items: center; gap: 12pt; padding: 12pt 16pt; background: white; border: 1.5pt solid #e5e7eb; border-radius: 10pt; box-shadow: 0 1pt 4pt rgba(0, 0, 0, 0.06);">
+            <div style="display: flex; flex-direction: column; gap: 6pt;">
+              <% @tag_counts.take(8).each_with_index do |tag, index| %>
+                <div class="tag-item" style="display: flex; align-items: center; gap: 8pt; padding: 6pt 10pt; background: white; border: 1pt solid #e5e7eb; border-radius: 6pt; min-height: 46pt; max-height: 46pt;">
                   <%# Ranking Badge %>
-                  <div style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 28pt; height: 28pt; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; border-radius: 50%; font-size: 12pt; font-weight: 900; box-shadow: 0 2pt 4pt rgba(139, 92, 246, 0.3);">
+                  <div style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 22pt; height: 22pt; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; border-radius: 50%; font-size: 10pt; font-weight: 900;">
                     <%= index + 1 %>
                   </div>
 
                   <%# Tag Icon %>
-                  <div style="flex: 0 0 auto; width: 40pt; height: 40pt; border-radius: 50%; background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%); display: flex; align-items: center; justify-content: center; font-size: 18pt; border: 2pt solid #c4b5fd;">
+                  <div style="flex: 0 0 auto; width: 28pt; height: 28pt; border-radius: 50%; background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%); display: flex; align-items: center; justify-content: center; font-size: 14pt; border: 1.5pt solid #c4b5fd;">
                     🏷️
                   </div>
 
                   <%# Info %>
-                  <div style="flex: 1; min-width: 0;">
-                    <div style="font-weight: 700; font-size: 10pt; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                  <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center;">
+                    <div style="font-weight: 700; font-size: 8pt; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; margin: 0;">
                       <%= tag.name %>
                     </div>
-                    <div style="font-size: 8pt; color: #6b7280; margin-top: 2pt;">
+                    <div style="font-size: 6.5pt; color: #6b7280; margin-top: 2pt; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                       Etiqueta de contenido
                     </div>
                   </div>
 
                   <%# Métrica %>
-                  <div style="flex: 0 0 auto; text-align: right; padding: 8pt 12pt; background: #f5f3ff; border-radius: 6pt;">
-                    <div style="font-size: 16pt; font-weight: 900; color: #8b5cf6; line-height: 1;">
+                  <div style="flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 5pt 8pt; background: #f5f3ff; border-radius: 6pt; min-width: 55pt;">
+                    <div style="font-size: 12pt; font-weight: 900; color: #8b5cf6; line-height: 1; margin: 0;">
                       <%= tag.count %>
                     </div>
-                    <div style="font-size: 7pt; color: #7c3aed; text-transform: uppercase; font-weight: 600; margin-top: 2pt;">
+                    <div style="font-size: 6pt; color: #7c3aed; text-transform: uppercase; font-weight: 600; margin-top: 2pt; line-height: 1;">
                       posts
                     </div>
                   </div>
@@ -786,43 +1283,39 @@
 
           <%# Columna 2: Top Etiquetas por Interacciones %>
           <div>
-            <h3 style="margin: 0 0 20pt 0; font-size: 14pt; font-weight: 700; color: #1f2937; padding-left: 12pt; border-left: 4pt solid #10b981;">
+            <h3 style="margin: 0 0 16pt 0; font-size: 13pt; font-weight: 700; color: #1f2937; padding-left: 10pt; border-left: 3pt solid #10b981;">
               👍 Top Etiquetas por Interacciones
             </h3>
 
-            <div style="display: flex; flex-direction: column; gap: 12pt;">
-              <% @tag_interactions.sort_by { |k, v| -v }.take(10).each_with_index do |(tag_name, interactions), index| %>
-                <%
-                  # Buscar el objeto tag para obtener el count
-                  tag_obj = @tag_counts.find { |t| t.name == tag_name }
-                %>
-                <div class="tag-item" style="display: flex; align-items: center; gap: 12pt; padding: 12pt 16pt; background: white; border: 1.5pt solid #e5e7eb; border-radius: 10pt; box-shadow: 0 1pt 4pt rgba(0, 0, 0, 0.06);">
+            <div style="display: flex; flex-direction: column; gap: 6pt;">
+              <% @tag_interactions.sort_by { |k, v| -v }.take(8).each_with_index do |(tag_name, interactions), index| %>
+                <div class="tag-item" style="display: flex; align-items: center; gap: 8pt; padding: 6pt 10pt; background: white; border: 1pt solid #e5e7eb; border-radius: 6pt; min-height: 46pt; max-height: 46pt;">
                   <%# Ranking Badge %>
-                  <div style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 28pt; height: 28pt; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border-radius: 50%; font-size: 12pt; font-weight: 900; box-shadow: 0 2pt 4pt rgba(16, 185, 129, 0.3);">
+                  <div style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 22pt; height: 22pt; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border-radius: 50%; font-size: 10pt; font-weight: 900;">
                     <%= index + 1 %>
                   </div>
 
                   <%# Tag Icon %>
-                  <div style="flex: 0 0 auto; width: 40pt; height: 40pt; border-radius: 50%; background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); display: flex; align-items: center; justify-content: center; font-size: 18pt; border: 2pt solid #6ee7b7;">
+                  <div style="flex: 0 0 auto; width: 28pt; height: 28pt; border-radius: 50%; background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); display: flex; align-items: center; justify-content: center; font-size: 14pt; border: 1.5pt solid #6ee7b7;">
                     🏷️
                   </div>
 
                   <%# Info %>
-                  <div style="flex: 1; min-width: 0;">
-                    <div style="font-weight: 700; font-size: 10pt; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                  <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center;">
+                    <div style="font-weight: 700; font-size: 8pt; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; margin: 0;">
                       <%= tag_name %>
                     </div>
-                    <div style="font-size: 8pt; color: #6b7280; margin-top: 2pt;">
-                      <%= tag_obj&.count || 0 %> posts
+                    <div style="font-size: 6.5pt; color: #6b7280; margin-top: 2pt; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                      Etiqueta de contenido
                     </div>
                   </div>
 
                   <%# Métrica %>
-                  <div style="flex: 0 0 auto; text-align: right; padding: 8pt 12pt; background: #d1fae5; border-radius: 6pt;">
-                    <div style="font-size: 16pt; font-weight: 900; color: #10b981; line-height: 1;">
+                  <div style="flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 5pt 8pt; background: #d1fae5; border-radius: 6pt; min-width: 55pt;">
+                    <div style="font-size: 12pt; font-weight: 900; color: #10b981; line-height: 1; margin: 0;">
                       <%= pdf_format_number(interactions) %>
                     </div>
-                    <div style="font-size: 7pt; color: #059669; text-transform: uppercase; font-weight: 600; margin-top: 2pt;">
+                    <div style="font-size: 6pt; color: #059669; text-transform: uppercase; font-weight: 600; margin-top: 2pt; line-height: 1;">
                       interac.
                     </div>
                   </div>
@@ -846,43 +1339,41 @@
             report_type: :facebook,
             topic_name: @topic.name do %>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20pt;">
-          <% @top_posts.take(8).each_with_index do |post, index| %>
-            <div class="post-card" style="background: white; border: 2pt solid #e5e7eb; border-radius: 10pt; padding: 14pt 16pt; box-shadow: 0 2pt 6pt rgba(0, 0, 0, 0.06);">
-              <%# Header %>
-              <div style="display: flex; align-items: center; gap: 10pt; margin-bottom: 10pt;">
-                <span style="display: flex; align-items: center; justify-content: center; width: 28pt; height: 28pt; background: linear-gradient(135deg, #1877f2 0%, #0c63d4 100%); color: white; border-radius: 50%; font-size: 12pt; font-weight: 900;">#<%= index + 1 %></span>
-                <div style="flex: 1; min-width: 0;">
-                  <div style="font-weight: 700; color: #1f2937; font-size: 9pt; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><%= post.page&.name || 'Unknown' %></div>
-                  <div style="font-size: 7pt; color: #9ca3af;"><%= post.posted_at&.strftime("%d/%m/%Y") %></div>
-                </div>
+        <%# Lista vertical de posts (8-10 posts) %>
+        <div style="display: flex; flex-direction: column;">
+          <% @top_posts.take(10).each_with_index do |post, index| %>
+            <div class="post-card" style="background: white; border: 1pt solid #e5e7eb; border-radius: 6pt;">
+              <%# Ranking badge %>
+              <div>
+                <span style="background: linear-gradient(135deg, #1877f2 0%, #0c63d4 100%); color: white; border-radius: 50%;">#<%= index + 1 %></span>
               </div>
 
-              <%# Message %>
-              <% if post.message.present? %>
-                <p style="margin: 0 0 10pt 0; font-size: 8pt; line-height: 1.5; color: #4b5563; height: 48pt; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical;"><%= post.message %></p>
-              <% end %>
+              <%# Content area %>
+              <div class="post-card-content">
+                <%# Header: Page name + Date %>
+                <div class="post-card-header">
+                  <div style="font-weight: 700; color: #1f2937; font-size: 8pt;"><%= post.page&.name || 'Unknown' %></div>
+                  <div style="font-size: 6.5pt; color: #9ca3af;">•</div>
+                  <div style="font-size: 6.5pt; color: #9ca3af;"><%= post.posted_at&.strftime("%d/%m/%Y") %></div>
+                </div>
 
-              <%# Metrics Compact %>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6pt; font-size: 8pt;">
-                <div style="background: #f3f4f6; padding: 6pt; border-radius: 4pt; text-align: center;">
-                  <div style="color: #9ca3af;">❤️</div>
-                  <div style="font-weight: 700; color: #1f2937;"><%= pdf_format_number(post.reactions_total_count) %></div>
-                </div>
-                <div style="background: #f3f4f6; padding: 6pt; border-radius: 4pt; text-align: center;">
-                  <div style="color: #9ca3af;">💬</div>
-                  <div style="font-weight: 700; color: #1f2937;"><%= pdf_format_number(post.comments_count) %></div>
-                </div>
-                <div style="background: #f3f4f6; padding: 6pt; border-radius: 4pt; text-align: center;">
-                  <div style="color: #9ca3af;">🔗</div>
-                  <div style="font-weight: 700; color: #1f2937;"><%= pdf_format_number(post.share_count) %></div>
-                </div>
-                <% if post.views_count && post.views_count > 0 %>
-                  <div style="background: #f3f4f6; padding: 6pt; border-radius: 4pt; text-align: center;">
-                    <div style="color: #9ca3af;">👁️</div>
-                    <div style="font-weight: 700; color: #1f2937;"><%= pdf_format_number(post.views_count) %></div>
-                  </div>
+                <%# Message - truncated single line %>
+                <% if post.message.present? %>
+                  <p><%= post.message %></p>
                 <% end %>
+
+                <%# Metrics as inline text %>
+                <div class="post-card-metrics">
+                  <span>❤️ <strong><%= pdf_format_number(post.reactions_total_count) %></strong> reacciones</span>
+                  <span>•</span>
+                  <span>💬 <strong><%= pdf_format_number(post.comments_count) %></strong> comentarios</span>
+                  <span>•</span>
+                  <span>🔗 <strong><%= pdf_format_number(post.share_count) %></strong> shares</span>
+                  <% if post.views_count && post.views_count > 0 %>
+                    <span>•</span>
+                    <span>👁️ <strong><%= pdf_format_number(post.views_count) %></strong> vistas</span>
+                  <% end %>
+                </div>
               </div>
             </div>
           <% end %>
