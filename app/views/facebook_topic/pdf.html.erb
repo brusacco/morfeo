@@ -3,8 +3,9 @@
   <head>
     <meta charset="utf-8">
     <title>Reporte Facebook: <%= @topic.name %> - Morfeo Analytics</title>
-    <!-- Google Charts for visualization -->
-    <script src="https://www.gstatic.com/charts/loader.js"></script>
+    <!-- Chart.js for visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartkick@4.2.0/dist/chartkick.min.js"></script>
 
     <%# Auto-print on page load with 500ms delay for chart rendering %>
@@ -590,8 +591,15 @@
           topic_name: @topic.name do %>
 
       <%
-        # Get chart configuration based on date range
-        chart_config = pdf_chart_config_for_range(@days_range)
+        # Simple chart configuration (matching Twitter PDF style)
+        simple_chart_config = {
+          height: '240px',
+          library: {
+            chart: { backgroundColor: 'transparent' },
+            xAxis: { labels: { style: { fontSize: '9pt', fontWeight: '600' } } },
+            yAxis: { labels: { style: { fontSize: '9pt', fontWeight: '600' } } }
+          }
+        }
       %>
 
       <%# Gráficas apiladas verticalmente con configuración optimizada %>
@@ -605,7 +613,7 @@
             <div class="fb-chart-temporal-wrapper" style="background: white; border: 2pt solid #e5e7eb; border-radius: 12pt; padding: 20pt; box-shadow: 0 2pt 8pt rgba(0, 0, 0, 0.06);">
               <%= column_chart @chart_posts,
                     colors: ['#1877f2'],
-                    **chart_config %>
+                    **simple_chart_config %>
             </div>
           </div>
           <p style="margin: 12pt 0 0 0; padding: 12pt 16pt; background: #eff6ff; border-left: 4pt solid #3b82f6; border-radius: 6pt; font-size: 10pt; line-height: 1.6; color: #1e40af;">
@@ -622,7 +630,7 @@
             <div class="fb-chart-temporal-wrapper" style="background: white; border: 2pt solid #e5e7eb; border-radius: 12pt; padding: 20pt; box-shadow: 0 2pt 8pt rgba(0, 0, 0, 0.06);">
               <%= column_chart @chart_interactions,
                     colors: ['#10b981'],
-                    **chart_config %>
+                    **simple_chart_config %>
             </div>
           </div>
           <p style="margin: 12pt 0 0 0; padding: 12pt 16pt; background: #d1fae5; border-left: 4pt solid #10b981; border-radius: 6pt; font-size: 10pt; line-height: 1.6; color: #065f46;">

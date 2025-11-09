@@ -3,17 +3,18 @@
   <head>
     <meta charset="utf-8">
     <title>Reporte Twitter: <%= @topic.name %> - Morfeo Analytics</title>
-    <!-- Chartkick for Charts -->
-    <script src="https://www.gstatic.com/charts/loader.js"></script>
+    <!-- Chart.js for visualization -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartkick@4.2.0/dist/chartkick.min.js"></script>
 
-    <%# Auto-print on page load %>
+    <%# Auto-print on page load with 500ms delay for chart rendering %>
     <script>
-      window.onload = function() {
-        window.print();
-      };
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          window.print();
+        }, 500);
+      });
     </script>
 
     <%# Include professional PDF styles %>
