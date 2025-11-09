@@ -2,67 +2,254 @@
 <html lang="es">
   <head>
     <meta charset="utf-8">
-    <title>Reporte: <%= @topic.name %> - Morfeo Analytics</title>
-    <!-- Chartkick for Charts -->
-    <script src="https://www.gstatic.com/charts/loader.js"></script>
+    <title>Reporte Digital: <%= @topic.name %> - Morfeo Analytics</title>
+    <!-- Chart.js for visualization -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartkick@4.2.0/dist/chartkick.min.js"></script>
-    
-    <%# Auto-print on page load %>
+
+    <%# Auto-print on page load with 500ms delay for chart rendering %>
     <script>
-      window.onload = function() {
-        window.print();
-      };
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          window.print();
+        }, 500);
+      });
     </script>
     
     <%# Include professional PDF styles %>
     <%= render 'shared/pdf_professional_styles' %>
     
     <style>
+      /* =======================================
+         DIGITAL PDF - A4 FORCED LAYOUT
+         ======================================= */
+
+      /* A4 Portrait: 210mm × 297mm
+         Margins: 2cm top/bottom, 1.5cm left/right
+         Content area: 18cm × 25.7cm (510pt × 729pt) */
+
+      @page {
+        size: A4 portrait;
+        margin: 2cm 1.5cm 2cm 1.5cm;
+      }
+
+      /* Digital-specific color variables */
+      :root {
+        --digital-primary: #1e3a8a;
+        --digital-secondary: #1e40af;
+        --a4-content-height: 729pt; /* 25.7cm available height */
+        --a4-content-width: 510pt;  /* 18cm available width */
+      }
+
+      /* Global container - strict A4 enforcement */
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        max-width: 21cm;
+        overflow-x: hidden;
+        box-sizing: border-box;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      /* ===== SLIDE HEIGHT CONTROL ===== */
+      /* Each slide must fit in exactly 729pt (25.7cm) */
+
+      .pdf-slide {
+        max-height: 729pt !important;
+        height: auto;
+        padding: 24pt 20pt !important;
+        overflow: hidden;
+      }
+
+      .pdf-slide-header {
+        margin-bottom: 16pt !important;
+      }
+
+      .pdf-slide-title {
+        font-size: 20pt !important;
+        margin: 6pt 0 !important;
+        line-height: 1.1 !important;
+      }
+
+      .pdf-slide-subtitle {
+        font-size: 10pt !important;
+        margin: 4pt 0 0 calc(12pt + 6pt) !important;
+      }
+
+      .pdf-slide-number-badge {
+        width: 28pt !important;
+        height: 28pt !important;
+        line-height: 28pt !important;
+        font-size: 12pt !important;
+        margin-bottom: 8pt !important;
+      }
+
+      /* ===== KPI CARDS - Compact for 1 page ===== */
+
+      .pdf-kpi-slide-grid {
+        gap: 12pt !important;
+        margin: 16pt 0 !important;
+      }
+
+      .pdf-kpi-slide-card {
+        padding: 16pt !important;
+        border: 1.5pt solid var(--color-gray-200) !important;
+      }
+
+      .pdf-kpi-slide-icon {
+        font-size: 28pt !important;
+        margin-bottom: 8pt !important;
+      }
+
+      .pdf-kpi-large .pdf-kpi-slide-value {
+        font-size: 32pt !important;
+        margin-bottom: 6pt !important;
+      }
+
+      .pdf-kpi-large .pdf-kpi-slide-label {
+        font-size: 11pt !important;
+        margin-bottom: 4pt !important;
+      }
+
+      .pdf-kpi-slide-sublabel {
+        font-size: 7.5pt !important;
+      }
+
+      /* ===== CHARTS - Optimized heights ===== */
+
+      div[style*="background: white"][style*="border: 2pt"] {
+        padding: 14pt !important;
+        border: 1.5pt solid #e5e7eb !important;
+      }
+
+      /* Chart headers - compact */
+      h3[style*="font-size: 14pt"] {
+        margin: 0 0 10pt 0 !important;
+        font-size: 12pt !important;
+        padding-left: 10pt !important;
+        border-left: 3pt solid !important;
+      }
+
+      /* ===== NEWS/ENTRY CARDS - Vertical List Layout (8-10 entries per page) ===== */
+      
+      .entry-card {
+        padding: 8pt 12pt !important;
+        border: 1pt solid !important;
+        border-radius: 6pt !important;
+        margin-bottom: 8pt !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 12pt !important;
+      }
+
+      /* Entry card ranking badge - smaller */
+      .entry-card > div:first-child {
+        flex: 0 0 auto !important;
+      }
+
+      .entry-card > div:first-child > span {
+        width: 24pt !important;
+        height: 24pt !important;
+        font-size: 11pt !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+
+      /* Entry card content area */
+      .entry-card-content {
+        flex: 1 !important;
+        min-width: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 4pt !important;
+      }
+
+      /* Entry card header */
+      .entry-card-header {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8pt !important;
+      }
+
+      /* Entry title - single line truncated */
+      .entry-card h4 {
+        margin: 0 !important;
+        font-size: 7.5pt !important;
+        line-height: 1.4 !important;
+        color: #1f2937 !important;
+        font-weight: 700 !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+        max-width: 100% !important;
+      }
+
+      /* Entry description - single line truncated */
+      .entry-card p {
+        margin: 0 !important;
+        font-size: 7pt !important;
+        line-height: 1.4 !important;
+        color: #6b7280 !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+        max-width: 100% !important;
+      }
+
+      /* Entry metrics as inline text */
+      .entry-card-metrics {
+        display: flex !important;
+        gap: 10pt !important;
+        font-size: 6.5pt !important;
+        color: #6b7280 !important;
+        flex-wrap: wrap !important;
+      }
+
+      .entry-card-metrics span {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 3pt !important;
+      }
+
+      .entry-card-metrics strong {
+        color: #1f2937 !important;
+        font-weight: 700 !important;
+      }
+
+      /* ===== PRINT MEDIA RULES ===== */
+      @media print {
+        html, body {
+          overflow-x: hidden !important;
+          width: 100% !important;
+          max-width: 21cm !important;
+        }
+
+        .pdf-slide {
+          page-break-after: always;
+        }
+
+        .pdf-section-wrapper.force-new-page {
+          page-break-before: always !important;
+          break-before: page !important;
+        }
+
+        .entry-card {
+          page-break-inside: avoid !important;
+          break-inside: avoid !important;
+        }
+      }
+      
       /* Digital-specific PDF color overrides */
       h1, .pdf-page-title {
         color: #1e3a8a; /* Dark blue for digital */
-      }
-      
-      /* Enhanced Header Styles */
-      .pdf-header-enhanced {
-        background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
-        color: white;
-        padding: 24pt 32pt;
-        margin: -20pt -20pt 24pt -20pt;
-        border-radius: 0;
-        box-shadow: 0 4pt 12pt rgba(30, 58, 138, 0.2);
-      }
-      
-      .pdf-header-title {
-        margin: 0 0 12pt 0;
-        font-size: 26pt;
-        font-weight: 800;
-        color: white !important;
-        letter-spacing: -0.5pt;
-        line-height: 1.2;
-      }
-      
-      .pdf-header-meta {
-        margin: 0;
-        font-size: 11pt;
-        font-weight: 500;
-        opacity: 0.95;
-        display: flex;
-        align-items: center;
-        gap: 8pt;
-      }
-      
-      .pdf-header-meta-item {
-        display: inline-flex;
-        align-items: center;
-        gap: 4pt;
-      }
-      
-      .pdf-header-meta-separator {
-        opacity: 0.6;
-        font-weight: 300;
       }
       
       /* Enhanced KPI Cards */
@@ -140,45 +327,103 @@
             days_range: @days_range
           ) %>
 
-      <!-- Enhanced Header -->
-      <div class="pdf-header-enhanced">
-        <h1 class="pdf-header-title">Reporte Medios Digitales: <%= @topic.name %></h1>
-        <p class="pdf-header-meta">
-          <span class="pdf-header-meta-item">📅 <%= pdf_date_range(days_range: @days_range) %></span>
-          <span class="pdf-header-meta-separator">|</span>
-          <span class="pdf-header-meta-item">🕐 Generado: <%= Time.current.strftime("%d/%m/%Y %H:%M") %></span>
-        </p>
-      </div>
+      <!-- Main KPI Section (Using Presenter) -->
+      <%= render 'shared/pdf_section_wrapper', section_id: 'main-kpis', force_new_page: true do %>
+        <%= render 'shared/pdf_slide',
+              slide_number: 1,
+              title: "Métricas Principales",
+              subtitle: "Rendimiento General del Período",
+              report_type: :digital,
+              topic_name: @topic.name do %>
 
-      <!-- KPI Section (Using Presenter) -->
-      <div class="pdf-section">
-        <h2>Métricas Principales</h2>
-        <%= render 'shared/pdf_kpis_grid', metrics: @presenter.kpi_metrics %>
-      </div>
+          <%# KPIs en grid 2x2 para mejor visibilidad %>
+          <%= render 'shared/pdf_kpi_slide',
+              kpis: [
+                {
+                  value: @presenter.formatted_entries_count,
+                  label: "Notas",
+                  icon: "📰",
+                  sublabel: "artículos publicados"
+                },
+                {
+                  value: @presenter.formatted_interactions_count,
+                  label: "Interacciones",
+                  icon: "📊",
+                  sublabel: "reacciones, comentarios, shares"
+                },
+                {
+                  value: @presenter.formatted_estimated_reach,
+                  label: "Alcance Est.",
+                  icon: "🎯",
+                  sublabel: "lectores estimados (x3)"
+                },
+                {
+                  value: @presenter.formatted_average_interactions,
+                  label: "Promedio",
+                  icon: "📈",
+                  sublabel: "interacciones por nota"
+                }
+              ],
+              columns: 2,
+              size: 'large' %>
+        <% end %>
+      <% end %>
 
-      <!-- Main Charts Section (Using Presenter) -->
-      <div class="pdf-section">
-        <h2>Evolución Temporal</h2>
-        <%= render 'shared/pdf_charts_row', 
-              charts: [
-                build_pdf_chart_config_enhanced(
-                  title: "Notas por Día",
-                  data: @presenter.chart_entries_counts,
-                  type: :column_chart,
-                  xtitle: "Fecha",
-                  ytitle: "Notas",
-                  colors: ['#1e3a8a']
-                ),
-                build_pdf_chart_config_enhanced(
-                  title: "Interacciones por Día",
-                  data: @presenter.chart_entries_sums,
-                  type: :column_chart,
-                  xtitle: "Fecha",
-                  ytitle: "Interacciones",
-                  colors: ['#10b981']
-                )
-              ] %>
-      </div>
+      <!-- Temporal Evolution Section (Using Presenter) -->
+      <%= render 'shared/pdf_section_wrapper', section_id: 'temporal-evolution', force_new_page: true do %>
+        <%= render 'shared/pdf_slide',
+              slide_number: 2,
+              title: "Evolución Temporal",
+              subtitle: "Notas e Interacciones por Día",
+              report_type: :digital,
+              topic_name: @topic.name do %>
+
+        <%
+          # Simple chart configuration (matching FB/TW PDF style)
+          simple_chart_config = {
+            height: '240px',
+            library: {
+              chart: { backgroundColor: 'transparent' },
+              xAxis: { labels: { style: { fontSize: '9pt', fontWeight: '600' } } },
+              yAxis: { labels: { style: { fontSize: '9pt', fontWeight: '600' } } }
+            }
+          }
+        %>
+
+        <%# Gráficas apiladas verticalmente con configuración optimizada %>
+        <div style="display: flex; flex-direction: column; gap: 24pt;">
+          <%# Notas por Día %>
+          <div>
+            <h3 style="margin: 0 0 16pt 0; font-size: 14pt; font-weight: 700; color: #1f2937; padding-left: 12pt; border-left: 4pt solid #1e3a8a;">
+              📊 Notas por Día
+            </h3>
+            <div style="background: white; border: 2pt solid #e5e7eb; border-radius: 12pt; padding: 20pt; box-shadow: 0 2pt 8pt rgba(0, 0, 0, 0.06);">
+              <%= column_chart @presenter.chart_entries_counts,
+                    colors: ['#1e3a8a'],
+                    **simple_chart_config %>
+            </div>
+            <p style="margin: 12pt 0 0 0; padding: 12pt 16pt; background: #eff6ff; border-left: 4pt solid #1e3a8a; border-radius: 6pt; font-size: 10pt; line-height: 1.6; color: #1e40af;">
+              💡 Promedio de <strong><%= (@presenter.entries_count.to_f / @days_range).round(1) %></strong> notas por día durante el período analizado.
+            </p>
+          </div>
+
+          <%# Interacciones por Día %>
+          <div>
+            <h3 style="margin: 0 0 16pt 0; font-size: 14pt; font-weight: 700; color: #1f2937; padding-left: 12pt; border-left: 4pt solid #10b981;">
+              👍 Interacciones por Día
+            </h3>
+            <div style="background: white; border: 2pt solid #e5e7eb; border-radius: 12pt; padding: 20pt; box-shadow: 0 2pt 8pt rgba(0, 0, 0, 0.06);">
+              <%= column_chart @presenter.chart_entries_sums,
+                    colors: ['#10b981'],
+                    **simple_chart_config %>
+            </div>
+            <p style="margin: 12pt 0 0 0; padding: 12pt 16pt; background: #d1fae5; border-left: 4pt solid #10b981; border-radius: 6pt; font-size: 10pt; line-height: 1.6; color: #065f46;">
+              💡 <%= @presenter.chart_entries_sums.values.max > @presenter.chart_entries_sums.values.min * 2 ? 'Alta variabilidad' : 'Consistencia' %> en las interacciones a lo largo del período.
+            </p>
+          </div>
+        </div>
+      <% end %>
+      <% end %>
 
       <!-- Summary Section (Using Presenter) -->
       <div class="pdf-section">
@@ -200,199 +445,834 @@
 
       <!-- Sentiment Analysis Section (Using Presenter) -->
       <% if @presenter.has_sentiment_data? %>
-        <div class="pdf-section">
-          <h2>Análisis de Sentimiento</h2>
-          
-          <!-- Sentiment Overview -->
-          <div class="pdf-stats-grid">
-            <div class="pdf-stats-card">
-              <div class="pdf-stats-label">Notas Positivas</div>
-              <div class="pdf-stats-value" style="color: #10b981">
-                <%= pdf_sentiment_emoji(1, system: :digital) %>
-                <%= pdf_format_number(@presenter.positive_sentiment[:count]) %>
-              </div>
-              <div class="pdf-stats-sublabel">
-                <%= pdf_format_number(@presenter.positive_sentiment[:interactions]) %> interacciones
-              </div>
-            </div>
-            <div class="pdf-stats-card">
-              <div class="pdf-stats-label">Notas Neutrales</div>
-              <div class="pdf-stats-value" style="color: #6b7280">
-                <%= pdf_sentiment_emoji(0, system: :digital) %>
-                <%= pdf_format_number(@presenter.neutral_sentiment[:count]) %>
-              </div>
-              <div class="pdf-stats-sublabel">
-                <%= pdf_format_number(@presenter.neutral_sentiment[:interactions]) %> interacciones
-              </div>
-            </div>
-            <div class="pdf-stats-card">
-              <div class="pdf-stats-label">Notas Negativas</div>
-              <div class="pdf-stats-value" style="color: #ef4444">
-                <%= pdf_sentiment_emoji(2, system: :digital) %>
-                <%= pdf_format_number(@presenter.negative_sentiment[:count]) %>
-              </div>
-              <div class="pdf-stats-sublabel">
-                <%= pdf_format_number(@presenter.negative_sentiment[:interactions]) %> interacciones
-              </div>
-            </div>
-          </div>
-          
-          <!-- Sentiment Charts -->
-          <% if @presenter.chart_sentiment_counts.present? && @presenter.chart_sentiment_sums.present? %>
-            <%= render 'shared/pdf_charts_row',
-                  charts: [
-                    build_pdf_chart_config_enhanced(
-                      title: "Notas por Sentimiento",
-                      data: @presenter.chart_sentiment_counts,
-                      type: :line_chart,
-                      xtitle: "Fecha",
-                      ytitle: "Notas",
-                      colors: sentiment_colors
-                    ),
-                    build_pdf_chart_config_enhanced(
-                      title: "Interacciones por Sentimiento",
-                      data: @presenter.chart_sentiment_sums,
-                      type: :line_chart,
-                      xtitle: "Fecha",
-                      ytitle: "Interacciones",
-                      colors: sentiment_colors
-                    )
-                  ] %>
-          <% end %>
-        </div>
-      <% end %>
+        <%= render 'shared/pdf_section_wrapper', section_id: 'sentiment-analysis' do %>
+          <%= render 'shared/pdf_slide',
+                slide_number: 'S1',
+                title: "Análisis de Sentimiento",
+                subtitle: "Percepción en Medios Digitales",
+                report_type: :digital,
+                topic_name: @topic.name do %>
 
-      <!-- Sites Analysis Section (Using Presenter) -->
-      <% if @presenter.has_site_data? %>
-        <div class="pdf-section">
-          <h2>Análisis de Medios</h2>
-          
-          <%= render 'shared/pdf_charts_row',
-                charts: [
-                  build_pdf_chart_config_enhanced(
-                    title: "Notas por Medio",
-                    data: @presenter.site_counts,
-                    type: :pie_chart,
-                    donut: true,
-                    colors: ['#1e3a8a', '#F97316', '#10B981', '#F59E0B', '#EC4899']
-                  ),
-                  build_pdf_chart_config_enhanced(
-                    title: "Interacciones por Medio",
-                    data: @presenter.site_sums,
-                    type: :pie_chart,
-                    donut: true,
-                    colors: ['#0284c7', '#6366F1', '#22C55E', '#D97706', '#EF4444']
-                  )
-                ] %>
-          
-          <!-- Top Sites List -->
-          <h3>Medios Destacados</h3>
-          <div class="pdf-media-list">
-            <% @presenter.site_counts.take(12).each do |site_name, count| %>
-              <div class="pdf-media-item">
-                <div class="pdf-media-name"><%= site_name %></div>
-                <div class="pdf-media-count">
-                  <%= count %> notas · 
-                  <%= pdf_format_number(@presenter.site_sums[site_name] || 0) %> interacciones
+            <%# KPIs de Sentimiento en grid 1x3 %>
+            <%= render 'shared/pdf_kpi_slide',
+                  kpis: [
+                    {
+                      value: pdf_format_number(@presenter.positive_sentiment[:count]),
+                      label: "Notas Positivas",
+                      icon: pdf_sentiment_emoji(1, system: :digital),
+                      sublabel: "#{pdf_format_number(@presenter.positive_sentiment[:interactions])} interacciones"
+                    },
+                    {
+                      value: pdf_format_number(@presenter.neutral_sentiment[:count]),
+                      label: "Notas Neutrales",
+                      icon: pdf_sentiment_emoji(0, system: :digital),
+                      sublabel: "#{pdf_format_number(@presenter.neutral_sentiment[:interactions])} interacciones"
+                    },
+                    {
+                      value: pdf_format_number(@presenter.negative_sentiment[:count]),
+                      label: "Notas Negativas",
+                      icon: pdf_sentiment_emoji(2, system: :digital),
+                      sublabel: "#{pdf_format_number(@presenter.negative_sentiment[:interactions])} interacciones"
+                    }
+                  ],
+                  columns: 3,
+                  size: 'large' %>
+
+            <%# Methodology Note %>
+            <div style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-left: 6pt solid #1e3a8a; border-radius: 12pt; padding: 16pt 20pt; margin-top: 20pt;">
+              <h4 style="margin: 0 0 10pt 0; color: #1e40af; font-size: 12pt; display: flex; align-items: center; gap: 8pt;">
+                <span style="font-size: 20pt;">💡</span>
+                ¿Cómo medimos el sentimiento?
+              </h4>
+              <p style="margin: 0; font-size: 9pt; line-height: 1.6; color: #1e3a8a;">
+                Analizamos automáticamente el <strong>contenido de cada nota</strong> usando inteligencia artificial.
+                El sistema clasifica cada artículo como
+                <span style="color: #10b981; font-weight: 700;">Positivo</span>,
+                <span style="color: #6b7280; font-weight: 700;">Neutral</span> o
+                <span style="color: #ef4444; font-weight: 700;">Negativo</span>
+                según el tono y las palabras utilizadas en el título y descripción.
+              </p>
+            </div>
+          <% end %>
+        <% end %>
+
+        <%# SLIDE S2: Gráficas de Sentimiento (una debajo de otra) %>
+        <% if @presenter.chart_sentiment_counts.present? && @presenter.chart_sentiment_sums.present? %>
+          <%= render 'shared/pdf_section_wrapper', section_id: 'sentiment-charts', force_new_page: true do %>
+            <%= render 'shared/pdf_slide',
+                  slide_number: 'S2',
+                  title: "Evolución de Sentimiento",
+                  subtitle: "Tendencias en el Tiempo",
+                  report_type: :digital,
+                  topic_name: @topic.name do %>
+
+              <%# Gráficas apiladas verticalmente %>
+              <div style="display: flex; flex-direction: column; gap: 24pt;">
+                
+                <%# Gráfica 1: Notas por Sentimiento %>
+                <div style="background: white; border: 1pt solid #e5e7eb; border-radius: 8pt; padding: 16pt;">
+                  <h3 style="margin: 0 0 12pt 0; font-size: 12pt; font-weight: 700; color: #1f2937; padding-left: 10pt; border-left: 3pt solid #1e3a8a;">
+                    📊 Notas por Sentimiento
+                  </h3>
+                  <%= line_chart @presenter.chart_sentiment_counts,
+                        colors: ['#10b981', '#6b7280', '#ef4444'],
+                        height: '180px',
+                        library: {
+                          chart: { backgroundColor: 'transparent' },
+                          xAxis: { 
+                            labels: { style: { fontSize: '9pt', fontWeight: '600' } },
+                            title: { text: 'Fecha', style: { fontSize: '9pt', fontWeight: '700' } }
+                          },
+                          yAxis: { 
+                            labels: { style: { fontSize: '9pt', fontWeight: '600' } },
+                            title: { text: 'Cantidad de Notas', style: { fontSize: '9pt', fontWeight: '700' } }
+                          },
+                          legend: { 
+                            itemStyle: { fontSize: '9pt', fontWeight: '600' }
+                          }
+                        } %>
+                </div>
+
+                <%# Gráfica 2: Interacciones por Sentimiento %>
+                <div style="background: white; border: 1pt solid #e5e7eb; border-radius: 8pt; padding: 16pt;">
+                  <h3 style="margin: 0 0 12pt 0; font-size: 12pt; font-weight: 700; color: #1f2937; padding-left: 10pt; border-left: 3pt solid #10b981;">
+                    💬 Interacciones por Sentimiento
+                  </h3>
+                  <%= line_chart @presenter.chart_sentiment_sums,
+                        colors: ['#10b981', '#6b7280', '#ef4444'],
+                        height: '180px',
+                        library: {
+                          chart: { backgroundColor: 'transparent' },
+                          xAxis: { 
+                            labels: { style: { fontSize: '9pt', fontWeight: '600' } },
+                            title: { text: 'Fecha', style: { fontSize: '9pt', fontWeight: '700' } }
+                          },
+                          yAxis: { 
+                            labels: { style: { fontSize: '9pt', fontWeight: '600' } },
+                            title: { text: 'Total de Interacciones', style: { fontSize: '9pt', fontWeight: '700' } }
+                          },
+                          legend: { 
+                            itemStyle: { fontSize: '9pt', fontWeight: '600' }
+                          }
+                        } %>
                 </div>
               </div>
             <% end %>
-          </div>
-        </div>
-      <% end %>
-
-      <!-- Tags Analysis Section (Using Presenter) -->
-      <% if @presenter.has_tag_data? %>
-        <div class="pdf-section">
-          <h2>Análisis de Etiquetas</h2>
-          <%= render 'shared/pdf_charts_row',
-                charts: [
-                  build_pdf_chart_config_enhanced(
-                    title: "Notas por Etiqueta",
-                    data: @presenter.tag_counts,
-                    type: :pie_chart,
-                    donut: true,
-                    colors: ['#1e3a8a', '#8B5CF6', '#EC4899', '#14B8A6', '#F59E0B']
-                  ),
-                  build_pdf_chart_config_enhanced(
-                    title: "Interacciones por Etiqueta",
-                    data: @presenter.tag_interactions,
-                    type: :pie_chart,
-                    donut: true,
-                    colors: ['#0284c7', '#7C3AED', '#D97706', '#0EA5E9', '#EF4444']
-                  )
-                ] %>
-        </div>
-      <% end %>
-
-      <!-- Words Analysis Section (Using Presenter) -->
-      <% if @presenter.has_word_data? %>
-        <div class="pdf-section">
-          <h2>Análisis de Palabras</h2>
-          
-          <h3>Palabras Más Frecuentes en Titulares</h3>
-          <div class="pdf-words">
-            <% @presenter.word_occurrences.take(50).each do |word, count| %>
-              <span class="pdf-word"><%= word %> (<%= count %>)</span>
-            <% end %>
-          </div>
-          
-          <% if @presenter.has_bigram_data? %>
-            <h3>Bigramas Más Frecuentes</h3>
-            <div class="pdf-words">
-              <% @presenter.bigram_occurrences.take(30).each do |bigram, count| %>
-                <span class="pdf-word"><%= bigram %> (<%= count %>)</span>
-              <% end %>
-            </div>
           <% end %>
-        </div>
+        <% end %>
       <% end %>
 
-      <!-- Top Articles Section (Using Presenter) -->
+      <%# SLIDE P1: Top Notas Positivas (Página 1 - Notas 1-8) %>
       <% if @entries.present? %>
-        <% top_entries = @presenter.top_entries(@entries, limit: 15) %>
-        <% if top_entries.any? %>
-          <div class="pdf-section break-before">
-            <h2>Top Notas con Más Interacciones</h2>
-            <% top_entries.each_with_index do |entry, index| %>
-              <div class="pdf-post-item">
-                <div class="pdf-post-header">
-                  <span class="pdf-post-rank">#<%= index + 1 %></span>
-                  <span class="pdf-post-page"><%= entry.site&.name || 'Unknown' %></span>
-                  <span class="pdf-post-date"><%= entry.published_at&.strftime("%d/%m/%Y") %></span>
-                  <span class="pdf-post-interactions">
-                    <%= pdf_format_number(entry.total_count) %> interacciones
-                  </span>
-                </div>
-                
-                <% if entry.title.present? %>
-                  <h4 class="pdf-post-title"><%= entry.title %></h4>
-                <% end %>
-                
-                <% if entry.description.present? %>
-                  <p class="pdf-post-message"><%= truncate(entry.description, length: 200) %></p>
-                <% end %>
-                
-                <div class="pdf-post-metrics">
-                  <span class="pdf-metric">❤️ <strong><%= pdf_format_number(entry.reaction_count) %></strong> Reacciones</span>
-                  <span class="pdf-metric">💬 <strong><%= pdf_format_number(entry.comment_count) %></strong> Comentarios</span>
-                  <span class="pdf-metric">🔗 <strong><%= pdf_format_number(entry.share_count) %></strong> Compartidos</span>
-                </div>
-                
-                <% if entry.polarity %>
-                  <div class="pdf-post-metrics" style="border-top: 1pt solid #e5e7eb; margin-top: 8pt; padding-top: 8pt;">
-                    <span class="pdf-metric">
-                      Sentimiento: 
-                      <strong style="color: <%= entry.polarity == 1 || entry.polarity == 'positive' ? '#10b981' : entry.polarity == 2 || entry.polarity == 'negative' ? '#ef4444' : '#6b7280' %>">
-                        <%= pdf_sentiment_emoji(entry.polarity, system: :digital) %>
-                        <%= entry.polarity == 1 || entry.polarity == 'positive' ? 'Positivo' : entry.polarity == 2 || entry.polarity == 'negative' ? 'Negativo' : 'Neutral' %>
-                      </strong>
-                    </span>
+        <% 
+          # Obtener notas positivas ordenadas por interacciones
+          positive_entries = @entries.respond_to?(:relation) ? 
+            @entries.relation.where(polarity: [1, 'positive']).order(total_count: :desc).limit(15) :
+            @entries.select { |e| e.polarity == 1 || e.polarity == 'positive' }.sort_by { |e| -(e.total_count || 0) }.take(15)
+        %>
+        <% if positive_entries.any? %>
+          <%= render 'shared/pdf_section_wrapper', section_id: 'positive-entries-1', force_new_page: true do %>
+            <%= render 'shared/pdf_slide',
+                  slide_number: 'P1',
+                  title: "Notas Más Positivas",
+                  subtitle: "Contenido con Mejor Recepción (1-8)",
+                  report_type: :digital,
+                  topic_name: @topic.name do %>
+
+              <%# Lista vertical de notas (primeras 8 notas) %>
+              <div style="display: flex; flex-direction: column;">
+                <% positive_entries.take(8).each_with_index do |entry, index| %>
+                  <div class="entry-card" style="background: white; border: 1pt solid #d1fae5; border-radius: 6pt;">
+                    <%# Ranking badge %>
+                    <div>
+                      <span style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border-radius: 50%;">#<%= index + 1 %></span>
+                    </div>
+
+                    <%# Content area %>
+                    <div class="entry-card-content">
+                      <%# Header: Site name + Date + Sentiment %>
+                      <div class="entry-card-header">
+                        <div style="font-weight: 700; color: #1f2937; font-size: 8pt;"><%= entry.site&.name || 'Unknown' %></div>
+                        <div style="font-size: 6.5pt; color: #9ca3af;">•</div>
+                        <div style="font-size: 6.5pt; color: #9ca3af;"><%= entry.published_at&.strftime("%d/%m/%Y") %></div>
+                        <div style="font-size: 6.5pt; color: #9ca3af;">•</div>
+                        <div style="font-size: 7pt; color: #10b981; font-weight: 700;"><%= pdf_sentiment_emoji(entry.polarity, system: :digital) %> Positivo</div>
+                      </div>
+
+                      <%# Title - truncated single line %>
+                      <% if entry.title.present? %>
+                        <h4><%= entry.title %></h4>
+                      <% end %>
+
+                      <%# Description - truncated single line %>
+                      <% if entry.description.present? %>
+                        <p><%= entry.description %></p>
+                      <% end %>
+
+                      <%# Metrics as inline text %>
+                      <div class="entry-card-metrics">
+                        <span>❤️ <strong><%= pdf_format_number(entry.reaction_count || 0) %></strong> reacciones</span>
+                        <span>•</span>
+                        <span>💬 <strong><%= pdf_format_number(entry.comment_count || 0) %></strong> comentarios</span>
+                        <span>•</span>
+                        <span>🔗 <strong><%= pdf_format_number(entry.share_count || 0) %></strong> shares</span>
+                        <span>•</span>
+                        <span>📊 <strong><%= pdf_format_number(entry.total_count || 0) %></strong> total</span>
+                      </div>
+                    </div>
                   </div>
                 <% end %>
               </div>
             <% end %>
-          </div>
+          <% end %>
+        <% end %>
+
+        <%# SLIDE P2: Top Notas Positivas (Página 2 - Notas 9-15) %>
+        <% if positive_entries.to_a.size > 8 %>
+          <%= render 'shared/pdf_section_wrapper', section_id: 'positive-entries-2', force_new_page: true do %>
+            <%= render 'shared/pdf_slide',
+                  slide_number: 'P2',
+                  title: "Notas Más Positivas",
+                  subtitle: "Contenido con Mejor Recepción (9-15)",
+                  report_type: :digital,
+                  topic_name: @topic.name do %>
+
+              <%# Lista vertical de notas (notas 9-15) %>
+              <div style="display: flex; flex-direction: column;">
+                <% positive_entries.drop(8).take(7).each_with_index do |entry, index| %>
+                  <div class="entry-card" style="background: white; border: 1pt solid #d1fae5; border-radius: 6pt;">
+                    <%# Ranking badge %>
+                    <div>
+                      <span style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border-radius: 50%;">#<%= index + 9 %></span>
+                    </div>
+
+                    <%# Content area %>
+                    <div class="entry-card-content">
+                      <%# Header: Site name + Date + Sentiment %>
+                      <div class="entry-card-header">
+                        <div style="font-weight: 700; color: #1f2937; font-size: 8pt;"><%= entry.site&.name || 'Unknown' %></div>
+                        <div style="font-size: 6.5pt; color: #9ca3af;">•</div>
+                        <div style="font-size: 6.5pt; color: #9ca3af;"><%= entry.published_at&.strftime("%d/%m/%Y") %></div>
+                        <div style="font-size: 6.5pt; color: #9ca3af;">•</div>
+                        <div style="font-size: 7pt; color: #10b981; font-weight: 700;"><%= pdf_sentiment_emoji(entry.polarity, system: :digital) %> Positivo</div>
+                      </div>
+
+                      <%# Title - truncated single line %>
+                      <% if entry.title.present? %>
+                        <h4><%= entry.title %></h4>
+                      <% end %>
+
+                      <%# Description - truncated single line %>
+                      <% if entry.description.present? %>
+                        <p><%= entry.description %></p>
+                      <% end %>
+
+                      <%# Metrics as inline text %>
+                      <div class="entry-card-metrics">
+                        <span>❤️ <strong><%= pdf_format_number(entry.reaction_count || 0) %></strong> reacciones</span>
+                        <span>•</span>
+                        <span>💬 <strong><%= pdf_format_number(entry.comment_count || 0) %></strong> comentarios</span>
+                        <span>•</span>
+                        <span>🔗 <strong><%= pdf_format_number(entry.share_count || 0) %></strong> shares</span>
+                        <span>•</span>
+                        <span>📊 <strong><%= pdf_format_number(entry.total_count || 0) %></strong> total</span>
+                      </div>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            <% end %>
+          <% end %>
+        <% end %>
+      <% end %>
+
+      <%# SLIDE N1: Top Notas Negativas (Página 1 - Notas 1-8) %>
+      <% if @entries.present? %>
+        <% 
+          # Obtener notas negativas ordenadas por interacciones
+          negative_entries = @entries.respond_to?(:relation) ? 
+            @entries.relation.where(polarity: [2, 'negative']).order(total_count: :desc).limit(15) :
+            @entries.select { |e| e.polarity == 2 || e.polarity == 'negative' }.sort_by { |e| -(e.total_count || 0) }.take(15)
+        %>
+        <% if negative_entries.any? %>
+          <%= render 'shared/pdf_section_wrapper', section_id: 'negative-entries-1', force_new_page: true do %>
+            <%= render 'shared/pdf_slide',
+                  slide_number: 'N1',
+                  title: "Notas Más Negativas",
+                  subtitle: "Contenido con Mayor Crítica (1-8)",
+                  report_type: :digital,
+                  topic_name: @topic.name do %>
+
+              <%# Lista vertical de notas (primeras 8 notas) %>
+              <div style="display: flex; flex-direction: column;">
+                <% negative_entries.take(8).each_with_index do |entry, index| %>
+                  <div class="entry-card" style="background: white; border: 1pt solid #fee2e2; border-radius: 6pt;">
+                    <%# Ranking badge %>
+                    <div>
+                      <span style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border-radius: 50%;">#<%= index + 1 %></span>
+                    </div>
+
+                    <%# Content area %>
+                    <div class="entry-card-content">
+                      <%# Header: Site name + Date + Sentiment %>
+                      <div class="entry-card-header">
+                        <div style="font-weight: 700; color: #1f2937; font-size: 8pt;"><%= entry.site&.name || 'Unknown' %></div>
+                        <div style="font-size: 6.5pt; color: #9ca3af;">•</div>
+                        <div style="font-size: 6.5pt; color: #9ca3af;"><%= entry.published_at&.strftime("%d/%m/%Y") %></div>
+                        <div style="font-size: 6.5pt; color: #9ca3af;">•</div>
+                        <div style="font-size: 7pt; color: #ef4444; font-weight: 700;"><%= pdf_sentiment_emoji(entry.polarity, system: :digital) %> Negativo</div>
+                      </div>
+
+                      <%# Title - truncated single line %>
+                      <% if entry.title.present? %>
+                        <h4><%= entry.title %></h4>
+                      <% end %>
+
+                      <%# Description - truncated single line %>
+                      <% if entry.description.present? %>
+                        <p><%= entry.description %></p>
+                      <% end %>
+
+                      <%# Metrics as inline text %>
+                      <div class="entry-card-metrics">
+                        <span>❤️ <strong><%= pdf_format_number(entry.reaction_count || 0) %></strong> reacciones</span>
+                        <span>•</span>
+                        <span>💬 <strong><%= pdf_format_number(entry.comment_count || 0) %></strong> comentarios</span>
+                        <span>•</span>
+                        <span>🔗 <strong><%= pdf_format_number(entry.share_count || 0) %></strong> shares</span>
+                        <span>•</span>
+                        <span>📊 <strong><%= pdf_format_number(entry.total_count || 0) %></strong> total</span>
+                      </div>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            <% end %>
+          <% end %>
+        <% end %>
+
+        <%# SLIDE N2: Top Notas Negativas (Página 2 - Notas 9-15) %>
+        <% if negative_entries.to_a.size > 8 %>
+          <%= render 'shared/pdf_section_wrapper', section_id: 'negative-entries-2', force_new_page: true do %>
+            <%= render 'shared/pdf_slide',
+                  slide_number: 'N2',
+                  title: "Notas Más Negativas",
+                  subtitle: "Contenido con Mayor Crítica (9-15)",
+                  report_type: :digital,
+                  topic_name: @topic.name do %>
+
+              <%# Lista vertical de notas (notas 9-15) %>
+              <div style="display: flex; flex-direction: column;">
+                <% negative_entries.drop(8).take(7).each_with_index do |entry, index| %>
+                  <div class="entry-card" style="background: white; border: 1pt solid #fee2e2; border-radius: 6pt;">
+                    <%# Ranking badge %>
+                    <div>
+                      <span style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border-radius: 50%;">#<%= index + 9 %></span>
+                    </div>
+
+                    <%# Content area %>
+                    <div class="entry-card-content">
+                      <%# Header: Site name + Date + Sentiment %>
+                      <div class="entry-card-header">
+                        <div style="font-weight: 700; color: #1f2937; font-size: 8pt;"><%= entry.site&.name || 'Unknown' %></div>
+                        <div style="font-size: 6.5pt; color: #9ca3af;">•</div>
+                        <div style="font-size: 6.5pt; color: #9ca3af;"><%= entry.published_at&.strftime("%d/%m/%Y") %></div>
+                        <div style="font-size: 6.5pt; color: #9ca3af;">•</div>
+                        <div style="font-size: 7pt; color: #ef4444; font-weight: 700;"><%= pdf_sentiment_emoji(entry.polarity, system: :digital) %> Negativo</div>
+                      </div>
+
+                      <%# Title - truncated single line %>
+                      <% if entry.title.present? %>
+                        <h4><%= entry.title %></h4>
+                      <% end %>
+
+                      <%# Description - truncated single line %>
+                      <% if entry.description.present? %>
+                        <p><%= entry.description %></p>
+                      <% end %>
+
+                      <%# Metrics as inline text %>
+                      <div class="entry-card-metrics">
+                        <span>❤️ <strong><%= pdf_format_number(entry.reaction_count || 0) %></strong> reacciones</span>
+                        <span>•</span>
+                        <span>💬 <strong><%= pdf_format_number(entry.comment_count || 0) %></strong> comentarios</span>
+                        <span>•</span>
+                        <span>🔗 <strong><%= pdf_format_number(entry.share_count || 0) %></strong> shares</span>
+                        <span>•</span>
+                        <span>📊 <strong><%= pdf_format_number(entry.total_count || 0) %></strong> total</span>
+                      </div>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            <% end %>
+          <% end %>
+        <% end %>
+      <% end %>
+
+      <!-- Sites Analysis Section (Using Presenter) -->
+      <% if @presenter.has_site_data? %>
+        <%= render 'shared/pdf_section_wrapper', section_id: 'sites-analysis' do %>
+          <%= render 'shared/pdf_slide',
+                slide_number: 'M1',
+                title: "Medios Destacados",
+                subtitle: "Distribución de Notas e Interacciones por Medio",
+                report_type: :digital,
+                topic_name: @topic.name do %>
+
+            <%# Lista de Medios con Rankings %>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20pt;">
+
+              <%# Columna 1: Top Medios por Notas %>
+              <div>
+                <h3 style="margin: 0 0 16pt 0; font-size: 13pt; font-weight: 700; color: #1f2937; padding-left: 10pt; border-left: 3pt solid #1e3a8a;">
+                  📰 Top Medios por Notas
+                </h3>
+
+                <div style="display: flex; flex-direction: column; gap: 6pt;">
+                  <% @presenter.site_counts.take(8).each_with_index do |(site_name, count), index| %>
+                    <%
+                      # Buscar el sitio para obtener el logo/image64
+                      site = Site.find_by(name: site_name)
+                    %>
+                    <div class="fanpage-item" style="display: flex; align-items: center; gap: 8pt; padding: 6pt 10pt; background: white; border: 1pt solid #e5e7eb; border-radius: 6pt; min-height: 46pt; max-height: 46pt;">
+                      <%# Ranking Badge %>
+                      <div style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 22pt; height: 22pt; background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); color: white; border-radius: 50%; font-size: 10pt; font-weight: 900;">
+                        <%= index + 1 %>
+                      </div>
+
+                      <%# Logo/Avatar %>
+                      <% if site&.image64.present? %>
+                        <img src="<%= site.image64 %>"
+                             style="flex: 0 0 auto; width: 28pt; height: 28pt; border-radius: 50%; object-fit: cover; border: 2pt solid #e5e7eb;"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div style="display: none; flex: 0 0 auto; width: 28pt; height: 28pt; border-radius: 50%; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); align-items: center; justify-content: center; font-size: 14pt; border: 2pt solid #93c5fd;">
+                          📰
+                        </div>
+                      <% else %>
+                        <div style="flex: 0 0 auto; width: 28pt; height: 28pt; border-radius: 50%; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); display: flex; align-items: center; justify-content: center; font-size: 14pt; border: 2pt solid #93c5fd;">
+                          📰
+                        </div>
+                      <% end %>
+
+                      <%# Info %>
+                      <div style="flex: 1; min-width: 0;">
+                        <div style="font-weight: 700; font-size: 8pt; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; margin: 0;">
+                          <%= site_name %>
+                        </div>
+                        <div style="font-size: 6.5pt; color: #6b7280; margin-top: 2pt; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                          Medio digital
+                        </div>
+                      </div>
+
+                      <%# Métrica %>
+                      <div style="flex: 0 0 auto; text-align: center; padding: 5pt 8pt; background: #dbeafe; border-radius: 6pt; min-width: 55pt;">
+                        <div style="font-size: 12pt; font-weight: 900; color: #1e3a8a; line-height: 1; margin: 0;">
+                          <%= count %>
+                        </div>
+                        <div style="font-size: 6pt; color: #1e40af; text-transform: uppercase; font-weight: 600; margin-top: 2pt; line-height: 1;">
+                          notas
+                        </div>
+                      </div>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+
+              <%# Columna 2: Top Medios por Interacciones %>
+              <div>
+                <h3 style="margin: 0 0 16pt 0; font-size: 13pt; font-weight: 700; color: #1f2937; padding-left: 10pt; border-left: 3pt solid #10b981;">
+                  👍 Top Medios por Interacciones
+                </h3>
+
+                <div style="display: flex; flex-direction: column; gap: 6pt;">
+                  <% @presenter.site_sums.sort_by { |k, v| -v }.take(8).each_with_index do |(site_name, interactions), index| %>
+                    <%
+                      # Buscar el sitio para obtener el logo/image64
+                      site = Site.find_by(name: site_name)
+                    %>
+                    <div class="fanpage-item" style="display: flex; align-items: center; gap: 8pt; padding: 6pt 10pt; background: white; border: 1pt solid #e5e7eb; border-radius: 6pt; min-height: 46pt; max-height: 46pt;">
+                      <%# Ranking Badge %>
+                      <div style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 22pt; height: 22pt; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border-radius: 50%; font-size: 10pt; font-weight: 900;">
+                        <%= index + 1 %>
+                      </div>
+
+                      <%# Logo/Avatar %>
+                      <% if site&.image64.present? %>
+                        <img src="<%= site.image64 %>"
+                             style="flex: 0 0 auto; width: 28pt; height: 28pt; border-radius: 50%; object-fit: cover; border: 2pt solid #e5e7eb;"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div style="display: none; flex: 0 0 auto; width: 28pt; height: 28pt; border-radius: 50%; background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); align-items: center; justify-content: center; font-size: 14pt; border: 2pt solid #6ee7b7;">
+                          📰
+                        </div>
+                      <% else %>
+                        <div style="flex: 0 0 auto; width: 28pt; height: 28pt; border-radius: 50%; background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); display: flex; align-items: center; justify-content: center; font-size: 14pt; border: 2pt solid #6ee7b7;">
+                          📰
+                        </div>
+                      <% end %>
+
+                      <%# Info %>
+                      <div style="flex: 1; min-width: 0;">
+                        <div style="font-weight: 700; font-size: 8pt; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; margin: 0;">
+                          <%= site_name %>
+                        </div>
+                        <div style="font-size: 6.5pt; color: #6b7280; margin-top: 2pt; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                          <%= @presenter.site_counts[site_name] || 0 %> notas
+                        </div>
+                      </div>
+
+                      <%# Métrica %>
+                      <div style="flex: 0 0 auto; text-align: center; padding: 5pt 8pt; background: #d1fae5; border-radius: 6pt; min-width: 55pt;">
+                        <div style="font-size: 12pt; font-weight: 900; color: #10b981; line-height: 1; margin: 0;">
+                          <%= pdf_format_number(interactions) %>
+                        </div>
+                        <div style="font-size: 6pt; color: #059669; text-transform: uppercase; font-weight: 600; margin-top: 2pt; line-height: 1;">
+                          interac.
+                        </div>
+                      </div>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        <% end %>
+      <% end %>
+
+      <!-- Tags Analysis Section (Using Presenter) -->
+      <% if @presenter.has_tag_data? %>
+        <%= render 'shared/pdf_section_wrapper', section_id: 'tags-analysis' do %>
+          <%= render 'shared/pdf_slide',
+                slide_number: 'T1',
+                title: "Análisis por Etiquetas",
+                subtitle: "Distribución de Contenido por Tags",
+                report_type: :digital,
+                topic_name: @topic.name do %>
+
+            <%# Lista de Etiquetas con Rankings %>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20pt;">
+
+              <%# Columna 1: Top Etiquetas por Notas %>
+              <div>
+                <h3 style="margin: 0 0 16pt 0; font-size: 13pt; font-weight: 700; color: #1f2937; padding-left: 10pt; border-left: 3pt solid #1e3a8a;">
+                  🏷️ Top Etiquetas por Notas
+                </h3>
+
+                <div style="display: flex; flex-direction: column; gap: 6pt;">
+                  <% @presenter.tag_counts.take(8).each_with_index do |(tag_name, count), index| %>
+                    <div class="tag-item" style="display: flex; align-items: center; gap: 8pt; padding: 6pt 10pt; background: white; border: 1pt solid #e5e7eb; border-radius: 6pt; min-height: 46pt; max-height: 46pt;">
+                      <%# Ranking Badge %>
+                      <div style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 22pt; height: 22pt; background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); color: white; border-radius: 50%; font-size: 10pt; font-weight: 900;">
+                        <%= index + 1 %>
+                      </div>
+
+                      <%# Tag Icon %>
+                      <div style="flex: 0 0 auto; width: 28pt; height: 28pt; border-radius: 50%; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); display: flex; align-items: center; justify-content: center; font-size: 14pt; border: 1.5pt solid #93c5fd; align-self: center; line-height: 1; padding: 0; margin: 0;">
+                        🏷️
+                      </div>
+
+                      <%# Info %>
+                      <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center;">
+                        <div style="font-weight: 700; font-size: 8pt; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; margin: 0;">
+                          <%= tag_name %>
+                        </div>
+                        <div style="font-size: 6.5pt; color: #6b7280; margin-top: 2pt; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                          Etiqueta de contenido
+                        </div>
+                      </div>
+
+                      <%# Métrica %>
+                      <div style="flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 5pt 8pt; background: #dbeafe; border-radius: 6pt; min-width: 55pt;">
+                        <div style="font-size: 12pt; font-weight: 900; color: #1e3a8a; line-height: 1; margin: 0;">
+                          <%= count %>
+                        </div>
+                        <div style="font-size: 6pt; color: #1e40af; text-transform: uppercase; font-weight: 600; margin-top: 2pt; line-height: 1;">
+                          notas
+                        </div>
+                      </div>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+
+              <%# Columna 2: Top Etiquetas por Interacciones %>
+              <div>
+                <h3 style="margin: 0 0 16pt 0; font-size: 13pt; font-weight: 700; color: #1f2937; padding-left: 10pt; border-left: 3pt solid #10b981;">
+                  👍 Top Etiquetas por Interacciones
+                </h3>
+
+                <div style="display: flex; flex-direction: column; gap: 6pt;">
+                  <% @presenter.tag_interactions.sort_by { |k, v| -v }.take(8).each_with_index do |(tag_name, interactions), index| %>
+                    <div class="tag-item" style="display: flex; align-items: center; gap: 8pt; padding: 6pt 10pt; background: white; border: 1pt solid #e5e7eb; border-radius: 6pt; min-height: 46pt; max-height: 46pt;">
+                      <%# Ranking Badge %>
+                      <div style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 22pt; height: 22pt; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border-radius: 50%; font-size: 10pt; font-weight: 900;">
+                        <%= index + 1 %>
+                      </div>
+
+                      <%# Tag Icon %>
+                      <div style="flex: 0 0 auto; width: 28pt; height: 28pt; border-radius: 50%; background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); display: flex; align-items: center; justify-content: center; font-size: 14pt; border: 1.5pt solid #6ee7b7; align-self: center; line-height: 1; padding: 0; margin: 0;">
+                        🏷️
+                      </div>
+
+                      <%# Info %>
+                      <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center;">
+                        <div style="font-weight: 700; font-size: 8pt; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; margin: 0;">
+                          <%= tag_name %>
+                        </div>
+                        <div style="font-size: 6.5pt; color: #6b7280; margin-top: 2pt; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                          Etiqueta de contenido
+                        </div>
+                      </div>
+
+                      <%# Métrica %>
+                      <div style="flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 5pt 8pt; background: #d1fae5; border-radius: 6pt; min-width: 55pt;">
+                        <div style="font-size: 12pt; font-weight: 900; color: #10b981; line-height: 1; margin: 0;">
+                          <%= pdf_format_number(interactions) %>
+                        </div>
+                        <div style="font-size: 6pt; color: #059669; text-transform: uppercase; font-weight: 600; margin-top: 2pt; line-height: 1;">
+                          interac.
+                        </div>
+                      </div>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        <% end %>
+      <% end %>
+
+      <!-- Words Analysis Section (Using Presenter) -->
+      <% if @presenter.has_word_data? %>
+        <%= render 'shared/pdf_section_wrapper', section_id: 'words-analysis' do %>
+          <%= render 'shared/pdf_slide',
+                slide_number: 'W1',
+                title: "Análisis de Palabras",
+                subtitle: "Términos Más Frecuentes en Titulares",
+                report_type: :digital,
+                topic_name: @topic.name do %>
+
+            <%# Lista de Palabras con Rankings %>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20pt;">
+
+              <%# Columna 1: Top 8 Palabras Individuales %>
+              <div>
+                <h3 style="margin: 0 0 16pt 0; font-size: 13pt; font-weight: 700; color: #1f2937; padding-left: 10pt; border-left: 3pt solid #1e3a8a;">
+                  💬 Top Palabras
+                </h3>
+
+                <div style="display: flex; flex-direction: column; gap: 6pt;">
+                  <% @presenter.word_occurrences.first(8).each_with_index do |word_data, index| %>
+                    <% word, count = word_data %>
+                    <div class="tag-item" style="display: flex; align-items: center; gap: 8pt; padding: 6pt 10pt; background: white; border: 1pt solid #e5e7eb; border-radius: 6pt; min-height: 46pt; max-height: 46pt;">
+                      <%# Ranking Badge %>
+                      <div style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 22pt; height: 22pt; background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); color: white; border-radius: 50%; font-size: 10pt; font-weight: 900;">
+                        <%= index + 1 %>
+                      </div>
+
+                      <%# Word Icon %>
+                      <div style="flex: 0 0 auto; width: 28pt; height: 28pt; border-radius: 50%; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); display: flex; align-items: center; justify-content: center; font-size: 14pt; border: 1.5pt solid #93c5fd; align-self: center; line-height: 1; padding: 0; margin: 0;">
+                        💬
+                      </div>
+
+                      <%# Info %>
+                      <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center;">
+                        <div style="font-weight: 700; font-size: 8pt; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; margin: 0;">
+                          <%= word %>
+                        </div>
+                        <div style="font-size: 6.5pt; color: #6b7280; margin-top: 2pt; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                          Palabra clave
+                        </div>
+                      </div>
+
+                      <%# Métrica %>
+                      <div style="flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 5pt 8pt; background: #dbeafe; border-radius: 6pt; min-width: 55pt;">
+                        <div style="font-size: 12pt; font-weight: 900; color: #1e3a8a; line-height: 1; margin: 0;">
+                          <%= count %>
+                        </div>
+                        <div style="font-size: 6pt; color: #1e40af; text-transform: uppercase; font-weight: 600; margin-top: 2pt; line-height: 1;">
+                          menciones
+                        </div>
+                      </div>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+
+              <%# Columna 2: Top 8 Bigramas (frases de 2 palabras) %>
+              <% if @presenter.has_bigram_data? %>
+                <div>
+                  <h3 style="margin: 0 0 16pt 0; font-size: 13pt; font-weight: 700; color: #1f2937; padding-left: 10pt; border-left: 3pt solid #10b981;">
+                    💬💬 Top Frases
+                  </h3>
+
+                  <div style="display: flex; flex-direction: column; gap: 6pt;">
+                    <% @presenter.bigram_occurrences.first(8).each_with_index do |bigram_data, index| %>
+                      <% bigram, count = bigram_data %>
+                      <div class="tag-item" style="display: flex; align-items: center; gap: 8pt; padding: 6pt 10pt; background: white; border: 1pt solid #e5e7eb; border-radius: 6pt; min-height: 46pt; max-height: 46pt;">
+                        <%# Ranking Badge %>
+                        <div style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 22pt; height: 22pt; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border-radius: 50%; font-size: 10pt; font-weight: 900;">
+                          <%= index + 1 %>
+                        </div>
+
+                        <%# Bigram Icon %>
+                        <div style="flex: 0 0 auto; width: 28pt; height: 28pt; border-radius: 50%; background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); display: flex; align-items: center; justify-content: center; font-size: 14pt; border: 1.5pt solid #6ee7b7; align-self: center; line-height: 1; padding: 0; margin: 0;">
+                          💬
+                        </div>
+
+                        <%# Info %>
+                        <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center;">
+                          <div style="font-weight: 700; font-size: 8pt; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; margin: 0;">
+                            <%= bigram %>
+                          </div>
+                          <div style="font-size: 6.5pt; color: #6b7280; margin-top: 2pt; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            Frase común
+                          </div>
+                        </div>
+
+                        <%# Métrica %>
+                        <div style="flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 5pt 8pt; background: #d1fae5; border-radius: 6pt; min-width: 55pt;">
+                          <div style="font-size: 12pt; font-weight: 900; color: #10b981; line-height: 1; margin: 0;">
+                            <%= count %>
+                          </div>
+                          <div style="font-size: 6pt; color: #059669; text-transform: uppercase; font-weight: 600; margin-top: 2pt; line-height: 1;">
+                            menciones
+                          </div>
+                        </div>
+                      </div>
+                    <% end %>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          <% end %>
+        <% end %>
+      <% end %>
+
+      <!-- Top Articles Section - Página 1 (1-8 noticias) -->
+      <% if @entries.present? %>
+        <% top_entries = @presenter.top_entries(@entries, limit: 15) %>
+        <% if top_entries.any? %>
+          <%= render 'shared/pdf_section_wrapper', section_id: 'top-entries-1', force_new_page: true do %>
+            <%= render 'shared/pdf_slide',
+                  slide_number: 'E1',
+                  title: "Top Notas con Más Interacciones",
+                  subtitle: "Contenido de Mayor Impacto (1-8)",
+                  report_type: :digital,
+                  topic_name: @topic.name do %>
+
+              <%# Lista vertical de noticias (primeras 8 noticias) %>
+              <div style="display: flex; flex-direction: column;">
+                <% top_entries.take(8).each_with_index do |entry, index| %>
+                  <div class="entry-card" style="background: white; border: 1pt solid #e0e7ff; border-radius: 6pt;">
+                    <%# Ranking badge %>
+                    <div>
+                      <span style="background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); color: white; border-radius: 50%;">#<%= index + 1 %></span>
+                    </div>
+
+                    <%# Content area %>
+                    <div class="entry-card-content">
+                      <%# Header: Site name + Date %>
+                      <div class="entry-card-header">
+                        <div style="font-weight: 700; color: #1f2937; font-size: 8pt;"><%= entry.site&.name || 'Unknown' %></div>
+                        <div style="font-size: 6.5pt; color: #9ca3af;">•</div>
+                        <div style="font-size: 6.5pt; color: #9ca3af;"><%= entry.published_at&.strftime("%d/%m/%Y") %></div>
+                        <% if entry.polarity %>
+                          <div style="font-size: 6.5pt; color: #9ca3af;">•</div>
+                          <div style="font-size: 7pt; font-weight: 700; color: <%= entry.polarity == 1 || entry.polarity == 'positive' ? '#10b981' : entry.polarity == 2 || entry.polarity == 'negative' ? '#ef4444' : '#6b7280' %>">
+                            <%= pdf_sentiment_emoji(entry.polarity, system: :digital) %>
+                          </div>
+                        <% end %>
+                      </div>
+
+                      <%# Title - truncated single line %>
+                      <% if entry.title.present? %>
+                        <h4><%= entry.title %></h4>
+                      <% end %>
+
+                      <%# Description - truncated single line %>
+                      <% if entry.description.present? %>
+                        <p><%= entry.description %></p>
+                      <% end %>
+
+                      <%# Metrics as inline text %>
+                      <div class="entry-card-metrics">
+                        <span>❤️ <strong><%= pdf_format_number(entry.reaction_count || 0) %></strong> reacciones</span>
+                        <span>•</span>
+                        <span>💬 <strong><%= pdf_format_number(entry.comment_count || 0) %></strong> comentarios</span>
+                        <span>•</span>
+                        <span>🔗 <strong><%= pdf_format_number(entry.share_count || 0) %></strong> shares</span>
+                        <span>•</span>
+                        <span>📊 <strong><%= pdf_format_number(entry.total_count || 0) %></strong> total</span>
+                      </div>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            <% end %>
+          <% end %>
+
+          <%# Top Articles Section - Página 2 (9-15 noticias) - Solo si hay más de 8 %>
+          <% if top_entries.to_a.size > 8 %>
+            <%= render 'shared/pdf_section_wrapper', section_id: 'top-entries-2', force_new_page: true do %>
+              <%= render 'shared/pdf_slide',
+                    slide_number: 'E2',
+                    title: "Top Notas con Más Interacciones",
+                    subtitle: "Contenido de Mayor Impacto (9-15)",
+                    report_type: :digital,
+                    topic_name: @topic.name do %>
+
+                <%# Lista vertical de noticias (noticias 9-15) %>
+                <div style="display: flex; flex-direction: column;">
+                  <% top_entries.drop(8).take(7).each_with_index do |entry, index| %>
+                    <div class="entry-card" style="background: white; border: 1pt solid #e0e7ff; border-radius: 6pt;">
+                      <%# Ranking badge %>
+                      <div>
+                        <span style="background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); color: white; border-radius: 50%;">#<%= index + 9 %></span>
+                      </div>
+
+                      <%# Content area %>
+                      <div class="entry-card-content">
+                        <%# Header: Site name + Date %>
+                        <div class="entry-card-header">
+                          <div style="font-weight: 700; color: #1f2937; font-size: 8pt;"><%= entry.site&.name || 'Unknown' %></div>
+                          <div style="font-size: 6.5pt; color: #9ca3af;">•</div>
+                          <div style="font-size: 6.5pt; color: #9ca3af;"><%= entry.published_at&.strftime("%d/%m/%Y") %></div>
+                          <% if entry.polarity %>
+                            <div style="font-size: 6.5pt; color: #9ca3af;">•</div>
+                            <div style="font-size: 7pt; font-weight: 700; color: <%= entry.polarity == 1 || entry.polarity == 'positive' ? '#10b981' : entry.polarity == 2 || entry.polarity == 'negative' ? '#ef4444' : '#6b7280' %>">
+                              <%= pdf_sentiment_emoji(entry.polarity, system: :digital) %>
+                            </div>
+                          <% end %>
+                        </div>
+
+                        <%# Title - truncated single line %>
+                        <% if entry.title.present? %>
+                          <h4><%= entry.title %></h4>
+                        <% end %>
+
+                        <%# Description - truncated single line %>
+                        <% if entry.description.present? %>
+                          <p><%= entry.description %></p>
+                        <% end %>
+
+                        <%# Metrics as inline text %>
+                        <div class="entry-card-metrics">
+                          <span>❤️ <strong><%= pdf_format_number(entry.reaction_count || 0) %></strong> reacciones</span>
+                          <span>•</span>
+                          <span>💬 <strong><%= pdf_format_number(entry.comment_count || 0) %></strong> comentarios</span>
+                          <span>•</span>
+                          <span>🔗 <strong><%= pdf_format_number(entry.share_count || 0) %></strong> shares</span>
+                          <span>•</span>
+                          <span>📊 <strong><%= pdf_format_number(entry.total_count || 0) %></strong> total</span>
+                        </div>
+                      </div>
+                    </div>
+                  <% end %>
+                </div>
+              <% end %>
+            <% end %>
+          <% end %>
         <% end %>
       <% end %>
 
