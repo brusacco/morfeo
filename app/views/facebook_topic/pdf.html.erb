@@ -1337,23 +1337,76 @@
     <% end %>
     <% end %>
 
-    <%# SLIDE 10: Top Posts Generales %>
+    <%# SLIDE 10: Top Posts Generales (Página 1 - Posts 1-8) %>
     <%= render 'shared/pdf_section_wrapper', section_id: 'section-10', force_new_page: true do %>
     <% if @top_posts.present? && @top_posts.any? %>
       <%= render 'shared/pdf_slide',
             slide_number: 10,
             title: "Posts con Más Interacciones",
-            subtitle: "Contenido de Mayor Impacto",
+            subtitle: "Contenido de Mayor Impacto (1-8)",
             report_type: :facebook,
             topic_name: @topic.name do %>
 
-        <%# Lista vertical de posts (8-10 posts) %>
+        <%# Lista vertical de posts (primeros 8 posts) %>
         <div style="display: flex; flex-direction: column;">
-          <% @top_posts.take(10).each_with_index do |post, index| %>
+          <% @top_posts.take(8).each_with_index do |post, index| %>
             <div class="post-card" style="background: white; border: 1pt solid #e5e7eb; border-radius: 6pt;">
               <%# Ranking badge %>
               <div>
                 <span style="background: linear-gradient(135deg, #1877f2 0%, #0c63d4 100%); color: white; border-radius: 50%;">#<%= index + 1 %></span>
+              </div>
+
+              <%# Content area %>
+              <div class="post-card-content">
+                <%# Header: Page name + Date %>
+                <div class="post-card-header">
+                  <div style="font-weight: 700; color: #1f2937; font-size: 8pt;"><%= post.page&.name || 'Unknown' %></div>
+                  <div style="font-size: 6.5pt; color: #9ca3af;">•</div>
+                  <div style="font-size: 6.5pt; color: #9ca3af;"><%= post.posted_at&.strftime("%d/%m/%Y") %></div>
+                </div>
+
+                <%# Message - truncated single line %>
+                <% if post.message.present? %>
+                  <p><%= post.message %></p>
+                <% end %>
+
+                <%# Metrics as inline text %>
+                <div class="post-card-metrics">
+                  <span>❤️ <strong><%= pdf_format_number(post.reactions_total_count) %></strong> reacciones</span>
+                  <span>•</span>
+                  <span>💬 <strong><%= pdf_format_number(post.comments_count) %></strong> comentarios</span>
+                  <span>•</span>
+                  <span>🔗 <strong><%= pdf_format_number(post.share_count) %></strong> shares</span>
+                  <% if post.views_count && post.views_count > 0 %>
+                    <span>•</span>
+                    <span>👁️ <strong><%= pdf_format_number(post.views_count) %></strong> vistas</span>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    <% end %>
+    <% end %>
+
+    <%# SLIDE 11: Top Posts Generales (Página 2 - Posts 9-15) %>
+    <%= render 'shared/pdf_section_wrapper', section_id: 'section-11', force_new_page: true do %>
+    <% if @top_posts.present? && @top_posts.to_a.size > 8 %>
+      <%= render 'shared/pdf_slide',
+            slide_number: 11,
+            title: "Posts con Más Interacciones",
+            subtitle: "Contenido de Mayor Impacto (9-15)",
+            report_type: :facebook,
+            topic_name: @topic.name do %>
+
+        <%# Lista vertical de posts (posts 9-15) %>
+        <div style="display: flex; flex-direction: column;">
+          <% @top_posts.drop(8).take(7).each_with_index do |post, index| %>
+            <div class="post-card" style="background: white; border: 1pt solid #e5e7eb; border-radius: 6pt;">
+              <%# Ranking badge %>
+              <div>
+                <span style="background: linear-gradient(135deg, #1877f2 0%, #0c63d4 100%); color: white; border-radius: 50%;">#<%= index + 9 %></span>
               </div>
 
               <%# Content area %>

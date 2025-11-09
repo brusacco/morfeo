@@ -836,23 +836,76 @@
     <% end %>
     <% end %>
 
-    <%# SLIDE 6: Top Tweets %>
+    <%# SLIDE 6: Top Tweets (Página 1 - Tweets 1-8) %>
     <%= render 'shared/pdf_section_wrapper', section_id: 'section-6', force_new_page: true do %>
     <% if @top_posts.present? && @top_posts.any? %>
       <%= render 'shared/pdf_slide',
             slide_number: 6,
             title: "Tweets con Más Interacciones",
-            subtitle: "Contenido de Mayor Impacto",
+            subtitle: "Contenido de Mayor Impacto (1-8)",
             report_type: :twitter,
             topic_name: @topic.name do %>
 
-        <%# Lista vertical de tweets (8-10 tweets) %>
+        <%# Lista vertical de tweets (primeros 8 tweets) %>
         <div style="display: flex; flex-direction: column;">
-          <% @top_posts.take(10).each_with_index do |post, index| %>
+          <% @top_posts.take(8).each_with_index do |post, index| %>
             <div class="tweet-card" style="background: white; border: 1pt solid #e0f2fe; border-radius: 6pt;">
               <%# Ranking badge %>
               <div>
                 <span style="background: linear-gradient(135deg, #1DA1F2 0%, #0c7abf 100%); color: white; border-radius: 50%;">#<%= index + 1 %></span>
+              </div>
+
+              <%# Content area %>
+              <div class="tweet-card-content">
+                <%# Header: Username + Date %>
+                <div class="tweet-card-header">
+                  <div style="font-weight: 700; color: #1f2937; font-size: 8pt;">@<%= post.twitter_profile&.username || 'Unknown' %></div>
+                  <div style="font-size: 6.5pt; color: #9ca3af;">•</div>
+                  <div style="font-size: 6.5pt; color: #9ca3af;"><%= post.posted_at&.strftime("%d/%m/%Y") %></div>
+                </div>
+
+                <%# Tweet text - truncated single line %>
+                <% if post.text.present? %>
+                  <p><%= post.text %></p>
+                <% end %>
+
+                <%# Metrics as inline text %>
+                <div class="tweet-card-metrics">
+                  <span>❤️ <strong><%= pdf_format_number(post.favorite_count || 0) %></strong> likes</span>
+                  <span>•</span>
+                  <span>🔁 <strong><%= pdf_format_number(post.retweet_count || 0) %></strong> retweets</span>
+                  <span>•</span>
+                  <span>💬 <strong><%= pdf_format_number(post.reply_count || 0) %></strong> respuestas</span>
+                  <% if post.views_count && post.views_count > 0 %>
+                    <span>•</span>
+                    <span>👁️ <strong><%= pdf_format_number(post.views_count) %></strong> vistas</span>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    <% end %>
+    <% end %>
+
+    <%# SLIDE 7: Top Tweets (Página 2 - Tweets 9-15) %>
+    <%= render 'shared/pdf_section_wrapper', section_id: 'section-7', force_new_page: true do %>
+    <% if @top_posts.present? && @top_posts.to_a.size > 8 %>
+      <%= render 'shared/pdf_slide',
+            slide_number: 7,
+            title: "Tweets con Más Interacciones",
+            subtitle: "Contenido de Mayor Impacto (9-15)",
+            report_type: :twitter,
+            topic_name: @topic.name do %>
+
+        <%# Lista vertical de tweets (tweets 9-15) %>
+        <div style="display: flex; flex-direction: column;">
+          <% @top_posts.drop(8).take(7).each_with_index do |post, index| %>
+            <div class="tweet-card" style="background: white; border: 1pt solid #e0f2fe; border-radius: 6pt;">
+              <%# Ranking badge %>
+              <div>
+                <span style="background: linear-gradient(135deg, #1DA1F2 0%, #0c7abf 100%); color: white; border-radius: 50%;">#<%= index + 9 %></span>
               </div>
 
               <%# Content area %>
