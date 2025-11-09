@@ -554,25 +554,25 @@
               {
                 value: pdf_format_number(@total_posts),
                 label: "Posts",
-                icon: "📝",
+                icon: heroicon_svg(:document_text, size: '32pt', color: '#1877f2'),
                 sublabel: "publicaciones totales"
               },
               {
                 value: pdf_format_number(@total_interactions),
                 label: "Interacciones",
-                icon: "👍",
+                icon: heroicon_svg(:chart_bar, size: '32pt', color: '#10b981'),
                 sublabel: "likes, comentarios, shares"
               },
               {
                 value: pdf_format_number(@total_views),
                 label: "Vistas",
-                icon: "👁️",
+                icon: heroicon_svg(:eye, size: '32pt', color: '#6366f1'),
                 sublabel: "alcance oficial Meta API"
               },
               {
                 value: pdf_format_number(@average_interactions),
                 label: "Promedio",
-                icon: "📈",
+                icon: heroicon_svg(:arrow_trending_up, size: '32pt', color: '#f59e0b'),
                 sublabel: "interacciones por post"
               }
             ],
@@ -607,7 +607,7 @@
         <%# Posts por Día %>
         <div>
           <h3 style="margin: 0 0 16pt 0; font-size: 14pt; font-weight: 700; color: #1f2937; padding-left: 12pt; border-left: 4pt solid #1877f2;">
-            📊 Posts por Día
+            <%= heroicon_svg(:chart_bar, size: '20pt', color: '#1877f2') %> Posts por Día
           </h3>
           <div class="fb-chart-temporal-container">
             <div class="fb-chart-temporal-wrapper" style="background: white; border: 2pt solid #e5e7eb; border-radius: 12pt; padding: 20pt; box-shadow: 0 2pt 8pt rgba(0, 0, 0, 0.06);">
@@ -617,14 +617,14 @@
             </div>
           </div>
           <p style="margin: 12pt 0 0 0; padding: 12pt 16pt; background: #eff6ff; border-left: 4pt solid #3b82f6; border-radius: 6pt; font-size: 10pt; line-height: 1.6; color: #1e40af;">
-            💡 Promedio de <strong><%= (@total_posts.to_f / @days_range).round(1) %></strong> posts por día durante el período analizado.
+            <%= heroicon_svg(:light_bulb, size: '16pt', color: '#1e40af') %> Promedio de <strong><%= (@total_posts.to_f / @days_range).round(1) %></strong> posts por día durante el período analizado.
           </p>
         </div>
 
         <%# Interacciones por Día %>
         <div>
           <h3 style="margin: 0 0 16pt 0; font-size: 14pt; font-weight: 700; color: #1f2937; padding-left: 12pt; border-left: 4pt solid #10b981;">
-            👍 Interacciones por Día
+            <%= heroicon_svg(:users, size: '20pt', color: '#10b981') %> Interacciones por Día
           </h3>
           <div class="fb-chart-temporal-container">
             <div class="fb-chart-temporal-wrapper" style="background: white; border: 2pt solid #e5e7eb; border-radius: 12pt; padding: 20pt; box-shadow: 0 2pt 8pt rgba(0, 0, 0, 0.06);">
@@ -634,7 +634,7 @@
             </div>
           </div>
           <p style="margin: 12pt 0 0 0; padding: 12pt 16pt; background: #d1fae5; border-left: 4pt solid #10b981; border-radius: 6pt; font-size: 10pt; line-height: 1.6; color: #065f46;">
-            💡 <%= @chart_interactions.values.max > @chart_interactions.values.min * 2 ? 'Alta variabilidad' : 'Consistencia' %> en las interacciones a lo largo del período.
+            <%= heroicon_svg(:light_bulb, size: '16pt', color: '#065f46') %> <%= @chart_interactions.values.max > @chart_interactions.values.min * 2 ? 'Alta variabilidad' : 'Consistencia' %> en las interacciones a lo largo del período.
           </p>
         </div>
       </div>
@@ -1031,14 +1031,14 @@
 
                 <%# Metrics as inline text %>
                 <div class="post-card-metrics">
-                  <span>❤️ <strong><%= pdf_format_number(post.reactions_total_count) %></strong> reacciones</span>
+                  <span><%= heroicon_svg(:heart, size: '12pt', color: '#ef4444') %> <strong><%= pdf_format_number(post.reactions_total_count) %></strong> reacciones</span>
                   <span>•</span>
-                  <span>💬 <strong><%= pdf_format_number(post.comments_count) %></strong> comentarios</span>
+                  <span><%= heroicon_svg(:chat_bubble_oval_left, size: '12pt', color: '#3b82f6') %> <strong><%= pdf_format_number(post.comments_count) %></strong> comentarios</span>
                   <span>•</span>
-                  <span>🔗 <strong><%= pdf_format_number(post.share_count) %></strong> shares</span>
+                  <span><%= heroicon_svg(:share, size: '12pt', color: '#10b981') %> <strong><%= pdf_format_number(post.share_count) %></strong> shares</span>
                   <% if post.views_count && post.views_count > 0 %>
                     <span>•</span>
-                    <span>👁️ <strong><%= pdf_format_number(post.views_count) %></strong> vistas</span>
+                    <span><%= heroicon_svg(:eye, size: '12pt', color: '#6b7280') %> <strong><%= pdf_format_number(post.views_count) %></strong> vistas</span>
                   <% end %>
                 </div>
               </div>
@@ -1086,14 +1086,14 @@
 
                   <%# Metrics as inline text %>
                   <div class="post-card-metrics">
-                    <span>❤️ <strong><%= pdf_format_number(post.reactions_total_count) %></strong> reacciones</span>
+                    <span><%= heroicon_svg(:heart, size: '12pt', color: '#ef4444') %> <strong><%= pdf_format_number(post.reactions_total_count) %></strong> reacciones</span>
                     <span>•</span>
-                    <span>💬 <strong><%= pdf_format_number(post.comments_count) %></strong> comentarios</span>
+                    <span><%= heroicon_svg(:chat_bubble_oval_left, size: '12pt', color: '#3b82f6') %> <strong><%= pdf_format_number(post.comments_count) %></strong> comentarios</span>
                     <span>•</span>
-                    <span>🔗 <strong><%= pdf_format_number(post.share_count) %></strong> shares</span>
+                    <span><%= heroicon_svg(:share, size: '12pt', color: '#10b981') %> <strong><%= pdf_format_number(post.share_count) %></strong> shares</span>
                     <% if post.views_count && post.views_count > 0 %>
                       <span>•</span>
-                      <span>👁️ <strong><%= pdf_format_number(post.views_count) %></strong> vistas</span>
+                      <span><%= heroicon_svg(:eye, size: '12pt', color: '#6b7280') %> <strong><%= pdf_format_number(post.views_count) %></strong> vistas</span>
                     <% end %>
                   </div>
                 </div>
@@ -1141,14 +1141,14 @@
 
                 <%# Metrics as inline text %>
                 <div class="post-card-metrics">
-                  <span>❤️ <strong><%= pdf_format_number(post.reactions_total_count) %></strong> reacciones</span>
+                  <span><%= heroicon_svg(:heart, size: '12pt', color: '#ef4444') %> <strong><%= pdf_format_number(post.reactions_total_count) %></strong> reacciones</span>
                   <span>•</span>
-                  <span>💬 <strong><%= pdf_format_number(post.comments_count) %></strong> comentarios</span>
+                  <span><%= heroicon_svg(:chat_bubble_oval_left, size: '12pt', color: '#3b82f6') %> <strong><%= pdf_format_number(post.comments_count) %></strong> comentarios</span>
                   <span>•</span>
-                  <span>🔗 <strong><%= pdf_format_number(post.share_count) %></strong> shares</span>
+                  <span><%= heroicon_svg(:share, size: '12pt', color: '#10b981') %> <strong><%= pdf_format_number(post.share_count) %></strong> shares</span>
                   <% if post.views_count && post.views_count > 0 %>
                     <span>•</span>
-                    <span>👁️ <strong><%= pdf_format_number(post.views_count) %></strong> vistas</span>
+                    <span><%= heroicon_svg(:eye, size: '12pt', color: '#6b7280') %> <strong><%= pdf_format_number(post.views_count) %></strong> vistas</span>
                   <% end %>
                 </div>
               </div>
@@ -1196,14 +1196,14 @@
 
                   <%# Metrics as inline text %>
                   <div class="post-card-metrics">
-                    <span>❤️ <strong><%= pdf_format_number(post.reactions_total_count) %></strong> reacciones</span>
+                    <span><%= heroicon_svg(:heart, size: '12pt', color: '#ef4444') %> <strong><%= pdf_format_number(post.reactions_total_count) %></strong> reacciones</span>
                     <span>•</span>
-                    <span>💬 <strong><%= pdf_format_number(post.comments_count) %></strong> comentarios</span>
+                    <span><%= heroicon_svg(:chat_bubble_oval_left, size: '12pt', color: '#3b82f6') %> <strong><%= pdf_format_number(post.comments_count) %></strong> comentarios</span>
                     <span>•</span>
-                    <span>🔗 <strong><%= pdf_format_number(post.share_count) %></strong> shares</span>
+                    <span><%= heroicon_svg(:share, size: '12pt', color: '#10b981') %> <strong><%= pdf_format_number(post.share_count) %></strong> shares</span>
                     <% if post.views_count && post.views_count > 0 %>
                       <span>•</span>
-                      <span>👁️ <strong><%= pdf_format_number(post.views_count) %></strong> vistas</span>
+                      <span><%= heroicon_svg(:eye, size: '12pt', color: '#6b7280') %> <strong><%= pdf_format_number(post.views_count) %></strong> vistas</span>
                     <% end %>
                   </div>
                 </div>
@@ -1229,7 +1229,7 @@
           <%# Columna 1: Top Fanpages por Posts %>
           <div>
             <h3 style="margin: 0 0 16pt 0; font-size: 13pt; font-weight: 700; color: #1f2937; padding-left: 10pt; border-left: 3pt solid #1877f2;">
-              📊 Top Fanpages por Posts
+              <%= heroicon_svg(:users, size: '18pt', color: '#1877f2') %> Top Fanpages por Posts
             </h3>
 
             <div style="display: flex; flex-direction: column; gap: 6pt;">
@@ -1285,7 +1285,7 @@
           <%# Columna 2: Top Fanpages por Interacciones %>
           <div>
             <h3 style="margin: 0 0 16pt 0; font-size: 13pt; font-weight: 700; color: #1f2937; padding-left: 10pt; border-left: 3pt solid #10b981;">
-              👍 Top Fanpages por Interacciones
+              <%= heroicon_svg(:chart_bar, size: '18pt', color: '#10b981') %> Top Fanpages por Interacciones
             </h3>
 
             <div style="display: flex; flex-direction: column; gap: 6pt;">
@@ -1359,7 +1359,7 @@
           <%# Columna 1: Top Etiquetas por Posts %>
           <div>
             <h3 style="margin: 0 0 16pt 0; font-size: 13pt; font-weight: 700; color: #1f2937; padding-left: 10pt; border-left: 3pt solid #8b5cf6;">
-              🏷️ Top Etiquetas por Posts
+              <%= heroicon_svg(:hashtag, size: '18pt', color: '#8b5cf6') %> Top Etiquetas por Posts
             </h3>
 
             <div style="display: flex; flex-direction: column; gap: 6pt;">
@@ -1402,7 +1402,7 @@
           <%# Columna 2: Top Etiquetas por Interacciones %>
           <div>
             <h3 style="margin: 0 0 16pt 0; font-size: 13pt; font-weight: 700; color: #1f2937; padding-left: 10pt; border-left: 3pt solid #10b981;">
-              👍 Top Etiquetas por Interacciones
+              <%= heroicon_svg(:chart_bar, size: '18pt', color: '#10b981') %> Top Etiquetas por Interacciones
             </h3>
 
             <div style="display: flex; flex-direction: column; gap: 6pt;">
@@ -1482,14 +1482,14 @@
 
                 <%# Metrics as inline text %>
                 <div class="post-card-metrics">
-                  <span>❤️ <strong><%= pdf_format_number(post.reactions_total_count) %></strong> reacciones</span>
+                  <span><%= heroicon_svg(:heart, size: '12pt', color: '#ef4444') %> <strong><%= pdf_format_number(post.reactions_total_count) %></strong> reacciones</span>
                   <span>•</span>
-                  <span>💬 <strong><%= pdf_format_number(post.comments_count) %></strong> comentarios</span>
+                  <span><%= heroicon_svg(:chat_bubble_oval_left, size: '12pt', color: '#3b82f6') %> <strong><%= pdf_format_number(post.comments_count) %></strong> comentarios</span>
                   <span>•</span>
-                  <span>🔗 <strong><%= pdf_format_number(post.share_count) %></strong> shares</span>
+                  <span><%= heroicon_svg(:share, size: '12pt', color: '#10b981') %> <strong><%= pdf_format_number(post.share_count) %></strong> shares</span>
                   <% if post.views_count && post.views_count > 0 %>
                     <span>•</span>
-                    <span>👁️ <strong><%= pdf_format_number(post.views_count) %></strong> vistas</span>
+                    <span><%= heroicon_svg(:eye, size: '12pt', color: '#6b7280') %> <strong><%= pdf_format_number(post.views_count) %></strong> vistas</span>
                   <% end %>
                 </div>
               </div>
@@ -1535,14 +1535,14 @@
 
                   <%# Metrics as inline text %>
                   <div class="post-card-metrics">
-                    <span>❤️ <strong><%= pdf_format_number(post.reactions_total_count) %></strong> reacciones</span>
+                    <span><%= heroicon_svg(:heart, size: '12pt', color: '#ef4444') %> <strong><%= pdf_format_number(post.reactions_total_count) %></strong> reacciones</span>
                     <span>•</span>
-                    <span>💬 <strong><%= pdf_format_number(post.comments_count) %></strong> comentarios</span>
+                    <span><%= heroicon_svg(:chat_bubble_oval_left, size: '12pt', color: '#3b82f6') %> <strong><%= pdf_format_number(post.comments_count) %></strong> comentarios</span>
                     <span>•</span>
-                    <span>🔗 <strong><%= pdf_format_number(post.share_count) %></strong> shares</span>
+                    <span><%= heroicon_svg(:share, size: '12pt', color: '#10b981') %> <strong><%= pdf_format_number(post.share_count) %></strong> shares</span>
                     <% if post.views_count && post.views_count > 0 %>
                       <span>•</span>
-                      <span>👁️ <strong><%= pdf_format_number(post.views_count) %></strong> vistas</span>
+                      <span><%= heroicon_svg(:eye, size: '12pt', color: '#6b7280') %> <strong><%= pdf_format_number(post.views_count) %></strong> vistas</span>
                     <% end %>
                   </div>
                 </div>

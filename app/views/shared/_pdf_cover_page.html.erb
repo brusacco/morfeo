@@ -51,7 +51,7 @@
   <div class="pdf-cover-meta">
     <div class="pdf-cover-meta-row">
       <div class="pdf-cover-meta-item">
-        <span class="pdf-cover-meta-icon">📅</span>
+        <span class="pdf-cover-meta-icon"><%= heroicon_svg(:calendar_days, size: '24pt', color: color_scheme[:primary]) %></span>
         <div>
           <div class="pdf-cover-meta-label">Período de Análisis</div>
           <div class="pdf-cover-meta-value"><%= period %></div>
@@ -59,15 +59,15 @@
       </div>
       
       <div class="pdf-cover-meta-item">
-        <span class="pdf-cover-meta-icon">📊</span>
+        <span class="pdf-cover-meta-icon"><%= heroicon_svg(:document_text, size: '24pt', color: color_scheme[:primary]) %></span>
         <div>
           <div class="pdf-cover-meta-label">Fecha de Generación</div>
-          <div class="pdf-cover-meta-value"><%= Time.current.strftime("%d de %B de %Y") %></div>
+          <div class="pdf-cover-meta-value"><%= I18n.l(Date.current, format: :cover_page) %></div>
         </div>
       </div>
       
       <div class="pdf-cover-meta-item">
-        <span class="pdf-cover-meta-icon">🕐</span>
+        <span class="pdf-cover-meta-icon"><%= heroicon_svg(:clock, size: '24pt', color: color_scheme[:primary]) %></span>
         <div>
           <div class="pdf-cover-meta-label">Hora</div>
           <div class="pdf-cover-meta-value"><%= Time.current.strftime("%H:%M hrs") %></div>
