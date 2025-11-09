@@ -890,14 +890,14 @@
     <% end %>
 
     <%# SLIDE 7: Top Tweets (Página 2 - Tweets 9-15) %>
-    <%= render 'shared/pdf_section_wrapper', section_id: 'section-7', force_new_page: true do %>
     <% if @top_posts.present? && @top_posts.to_a.size > 8 %>
-      <%= render 'shared/pdf_slide',
-            slide_number: 7,
-            title: "Tweets con Más Interacciones",
-            subtitle: "Contenido de Mayor Impacto (9-15)",
-            report_type: :twitter,
-            topic_name: @topic.name do %>
+      <%= render 'shared/pdf_section_wrapper', section_id: 'section-7', force_new_page: true do %>
+        <%= render 'shared/pdf_slide',
+              slide_number: 7,
+              title: "Tweets con Más Interacciones",
+              subtitle: "Contenido de Mayor Impacto (9-15)",
+              report_type: :twitter,
+              topic_name: @topic.name do %>
 
         <%# Lista vertical de tweets (tweets 9-15) %>
         <div style="display: flex; flex-direction: column;">
