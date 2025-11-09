@@ -425,24 +425,6 @@
       <% end %>
       <% end %>
 
-      <!-- Summary Section (Using Presenter) -->
-      <div class="pdf-section">
-        <div class="pdf-summary">
-          <p>
-            El tópico <strong><%= @topic.name %></strong> en medios digitales durante los últimos 
-            <strong><%= @days_range %></strong> días cuenta con un total de 
-            <strong><%= @presenter.formatted_entries_count %></strong> notas publicadas que generaron 
-            <strong><%= @presenter.formatted_interactions_count %></strong> interacciones totales.
-          </p>
-          <p class="mt-md">
-            El alcance estimado es de <strong><%= @presenter.formatted_estimated_reach %></strong> personas.
-            <%= @presenter.reach_methodology %>
-            El promedio de interacciones por nota es de 
-            <strong><%= @presenter.formatted_average_interactions %></strong>.
-          </p>
-        </div>
-      </div>
-
       <!-- Sentiment Analysis Section (Using Presenter) -->
       <% if @presenter.has_sentiment_data? %>
         <%= render 'shared/pdf_section_wrapper', section_id: 'sentiment-analysis' do %>
