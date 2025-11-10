@@ -22,11 +22,11 @@ class Topic < ApplicationRecord
   has_many :title_entries, through: :entry_title_topics, source: :entry
 
   before_update :remove_words_spaces
-  
+
   # NEW: Auto-sync entries when tags are saved
   # This ensures that when an admin adds/removes tags from a topic,
   # existing entries with those tags are automatically linked
-  # 
+  #
   # Note: For HABTM associations, we queue the sync job after commit
   # since the association is saved after the main record
   after_commit :queue_entry_sync, on: [:create, :update]
@@ -96,7 +96,7 @@ class Topic < ApplicationRecord
 
   def list_entries
     cache_key = "topic_#{id}_list_entries#{ENV['USE_DIRECT_ENTRY_TOPICS'] == 'true' ? '_v2' : ''}"
-    
+
     Rails.cache.fetch(cache_key, expires_in: 30.minutes) do
       if ENV['USE_DIRECT_ENTRY_TOPICS'] == 'true'
         # NEW: Direct association (faster!)
@@ -126,7 +126,7 @@ class Topic < ApplicationRecord
 
   def all_list_entries
     cache_key = "topic_#{id}_all_list_entries#{ENV['USE_DIRECT_ENTRY_TOPICS'] == 'true' ? '_v2' : ''}"
-    
+
     Rails.cache.fetch(cache_key, expires_in: 30.minutes) do
       if ENV['USE_DIRECT_ENTRY_TOPICS'] == 'true'
         # NEW: All entries (no tag filtering, just date range)
@@ -152,7 +152,7 @@ class Topic < ApplicationRecord
 
   def title_list_entries
     cache_key = "topic_#{id}_title_list_entries#{ENV['USE_DIRECT_ENTRY_TOPICS'] == 'true' ? '_v2' : ''}"
-    
+
     Rails.cache.fetch(cache_key, expires_in: 30.minutes) do
       if ENV['USE_DIRECT_ENTRY_TOPICS'] == 'true'
         # NEW: Direct association for title tags
@@ -171,7 +171,7 @@ class Topic < ApplicationRecord
 
   def chart_entries(date)
     cache_key = "topic_#{id}_chart_entries_#{date.to_date}#{ENV['USE_DIRECT_ENTRY_TOPICS'] == 'true' ? '_v2' : ''}"
-    
+
     Rails.cache.fetch(cache_key, expires_in: 30.minutes) do
       if ENV['USE_DIRECT_ENTRY_TOPICS'] == 'true'
         # NEW: Direct association
@@ -197,7 +197,7 @@ class Topic < ApplicationRecord
 
   def title_chart_entries(date)
     cache_key = "topic_#{id}_title_chart_entries_#{date.to_date}#{ENV['USE_DIRECT_ENTRY_TOPICS'] == 'true' ? '_v2' : ''}"
-    
+
     Rails.cache.fetch(cache_key, expires_in: 30.minutes) do
       if ENV['USE_DIRECT_ENTRY_TOPICS'] == 'true'
         # NEW: Direct association for title tags
@@ -237,12 +237,12 @@ class Topic < ApplicationRecord
       # Get entry IDs without joins to avoid GROUP BY issues
       entry_ids = list_entries.pluck(:id)
       entries_with_engagement = Entry.where(id: entry_ids).where('entries.total_count > 0')
-      
+
       hourly_data = entries_with_engagement
         .group("HOUR(entries.published_at)")
         .select("HOUR(entries.published_at) as hour, AVG(entries.total_count) as avg_engagement, COUNT(*) as entry_count")
         .order("hour")
-      
+
       result = {}
       hourly_data.each do |data|
         hour = data.hour.to_i
@@ -261,15 +261,15 @@ class Topic < ApplicationRecord
       # Get entry IDs without joins to avoid GROUP BY issues
       entry_ids = list_entries.pluck(:id)
       entries_with_engagement = Entry.where(id: entry_ids).where('entries.total_count > 0')
-      
+
       daily_data = entries_with_engagement
         .group("DAYOFWEEK(entries.published_at)")
         .select("DAYOFWEEK(entries.published_at) as day, AVG(entries.total_count) as avg_engagement, COUNT(*) as entry_count")
         .order("day")
-      
+
       result = {}
       day_names = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
-      
+
       daily_data.each do |data|
         day_num = data.day.to_i - 1 # MySQL DAYOFWEEK returns 1-7, convert to 0-6
         result[day_names[day_num]] = {
@@ -288,7 +288,7 @@ class Topic < ApplicationRecord
       # Get entry IDs without joins to avoid GROUP BY issues
       entry_ids = list_entries.pluck(:id)
       entries_with_engagement = Entry.where(id: entry_ids).where('entries.total_count > 0')
-      
+
       heatmap_data = entries_with_engagement
         .group("DAYOFWEEK(entries.published_at)", "HOUR(entries.published_at)")
         .select(
@@ -297,14 +297,14 @@ class Topic < ApplicationRecord
           "AVG(entries.total_count) as avg_engagement",
           "COUNT(*) as entry_count"
         )
-      
+
       result = []
       day_names = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
-      
+
       heatmap_data.each do |data|
         day_num = data.day.to_i - 1
         hour_num = data.hour.to_i
-        
+
         result << {
           day: day_names[day_num],
           day_number: day_num,
@@ -322,7 +322,7 @@ class Topic < ApplicationRecord
     Rails.cache.fetch("topic_#{id}_optimal_time", expires_in: 30.minutes) do
       heatmap = engagement_heatmap_data
       return nil if heatmap.empty?
-      
+
       best = heatmap.max_by { |d| d[:avg_engagement] }
       {
         day: best[:day],
@@ -341,19 +341,19 @@ class Topic < ApplicationRecord
                                    .where('entries.total_count > 0')
                                    .order('entries.published_at DESC')
                                    .limit(100)
-      
+
       return nil if recent_entries.empty?
-      
+
       half_lives = []
-      
+
       recent_entries.each do |entry|
         # Estimate half-life: time when 50% of total engagement was reached
         # For simplicity, we'll use a heuristic: most engagement happens in first 24-48 hours
         age_in_hours = ((Time.current - entry.published_at) / 1.hour).to_i
-        
+
         # If entry is less than 24 hours old, skip (not enough data)
         next if age_in_hours < 24
-        
+
         # Heuristic: high-engagement entries stay relevant longer
         if entry.total_count > 100
           estimated_half_life = 36 # hours
@@ -364,12 +364,12 @@ class Topic < ApplicationRecord
         else
           estimated_half_life = 12
         end
-        
+
         half_lives << estimated_half_life
       end
-      
+
       return nil if half_lives.empty?
-      
+
       {
         median_hours: median(half_lives),
         average_hours: (half_lives.sum.to_f / half_lives.size).round(1),
@@ -384,7 +384,7 @@ class Topic < ApplicationRecord
     Rails.cache.fetch("topic_#{id}_trend_velocity", expires_in: 30.minutes) do
       recent_count = list_entries.where(published_at: 24.hours.ago..Time.current).count
       previous_count = list_entries.where(published_at: 48.hours.ago..24.hours.ago).count
-      
+
       # Return hash structure even when there is no previous count
       return {
         velocity_percent: 0,
@@ -393,9 +393,9 @@ class Topic < ApplicationRecord
         trend: 'estable',
         direction: 'stable'
       } if previous_count.zero?
-      
+
       velocity = ((recent_count - previous_count).to_f / previous_count * 100).round(1)
-      
+
       {
         velocity_percent: velocity,
         recent_count: recent_count,
@@ -411,7 +411,7 @@ class Topic < ApplicationRecord
     Rails.cache.fetch("topic_#{id}_engagement_velocity", expires_in: 30.minutes) do
       recent_interactions = list_entries.where(published_at: 24.hours.ago..Time.current).sum(:total_count)
       previous_interactions = list_entries.where(published_at: 48.hours.ago..24.hours.ago).sum(:total_count)
-      
+
       # Return hash structure even when there are no previous interactions
       return {
         velocity_percent: 0,
@@ -420,9 +420,9 @@ class Topic < ApplicationRecord
         trend: 'moderado',
         direction: 'stable'
       } if previous_interactions.zero?
-      
+
       velocity = ((recent_interactions - previous_interactions).to_f / previous_interactions * 100).round(1)
-      
+
       {
         velocity_percent: velocity,
         recent_interactions: recent_interactions,
@@ -439,26 +439,26 @@ class Topic < ApplicationRecord
     Rails.cache.fetch("topic_#{id}_decay_curve", expires_in: 30.minutes) do
       entries_with_data = list_entries.where('entries.published_at > ?', 7.days.ago)
                                       .where('entries.total_count > 0')
-      
+
       return [] if entries_with_data.empty?
-      
+
       decay_points = []
-      
+
       # Group by hours since publication
       (0..168).step(12).each do |hours_ago|
         start_time = hours_ago.hours.ago
         end_time = (hours_ago + 12).hours.ago
-        
+
         entries_in_window = entries_with_data.where('entries.published_at': end_time..start_time)
         avg_engagement = entries_in_window.any? ? entries_in_window.average('entries.total_count').to_f.round(2) : 0
-        
+
         decay_points << {
           hours_since_publication: hours_ago,
           avg_engagement: avg_engagement,
           entry_count: entries_in_window.count
         }
       end
-      
+
       decay_points.reverse
     end
   end
@@ -471,7 +471,7 @@ class Topic < ApplicationRecord
       hourly_frequency = Entry.where(id: entry_ids)
         .group("HOUR(entries.published_at)")
         .count
-      
+
       Hash[hourly_frequency.map { |hour, count| [hour.to_i, count] }].sort.to_h
     end
   end
@@ -496,7 +496,7 @@ class Topic < ApplicationRecord
     Rails.cache.fetch("topic_#{id}_fb_peak_times_hour", expires_in: 30.minutes) do
       tag_names = tags.pluck(:name)
       return {} if tag_names.empty?
-      
+
       hourly_data = FacebookEntry
         .from(FacebookEntry.table_name)
         .where('facebook_entries.posted_at >= ?', DAYS_RANGE.days.ago)
@@ -505,7 +505,7 @@ class Topic < ApplicationRecord
         .unscope(:select)
         .group("HOUR(facebook_entries.posted_at)")
         .select("HOUR(facebook_entries.posted_at) as hour, AVG(reactions_total_count + comments_count + share_count) as avg_engagement, COUNT(*) as entry_count")
-      
+
       result = {}
       hourly_data.each do |data|
         hour = data.hour.to_i
@@ -522,7 +522,7 @@ class Topic < ApplicationRecord
     Rails.cache.fetch("topic_#{id}_fb_peak_times_day", expires_in: 30.minutes) do
       tag_names = tags.pluck(:name)
       return {} if tag_names.empty?
-      
+
       daily_data = FacebookEntry
         .from(FacebookEntry.table_name)
         .where('facebook_entries.posted_at >= ?', DAYS_RANGE.days.ago)
@@ -531,10 +531,10 @@ class Topic < ApplicationRecord
         .unscope(:select)
         .group("DAYOFWEEK(facebook_entries.posted_at)")
         .select("DAYOFWEEK(facebook_entries.posted_at) as day, AVG(reactions_total_count + comments_count + share_count) as avg_engagement, COUNT(*) as entry_count")
-      
+
       result = {}
       day_names = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
-      
+
       daily_data.each do |data|
         day_num = data.day.to_i - 1
         result[day_names[day_num]] = {
@@ -551,7 +551,7 @@ class Topic < ApplicationRecord
     Rails.cache.fetch("topic_#{id}_fb_engagement_heatmap", expires_in: 30.minutes) do
       tag_names = tags.pluck(:name)
       return [] if tag_names.empty?
-      
+
       heatmap_data = FacebookEntry
         .from(FacebookEntry.table_name)
         .where('facebook_entries.posted_at >= ?', DAYS_RANGE.days.ago)
@@ -565,14 +565,14 @@ class Topic < ApplicationRecord
           "AVG(reactions_total_count + comments_count + share_count) as avg_engagement",
           "COUNT(*) as entry_count"
         )
-      
+
       result = []
       day_names = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
-      
+
       heatmap_data.each do |data|
         day_num = data.day.to_i - 1
         hour_num = data.hour.to_i
-        
+
         result << {
           day: day_names[day_num],
           day_number: day_num,
@@ -589,7 +589,7 @@ class Topic < ApplicationRecord
     Rails.cache.fetch("topic_#{id}_fb_optimal_time", expires_in: 30.minutes) do
       heatmap = facebook_engagement_heatmap_data
       return nil if heatmap.empty?
-      
+
       best = heatmap.max_by { |d| d[:avg_engagement] }
       {
         day: best[:day],
@@ -604,23 +604,23 @@ class Topic < ApplicationRecord
     Rails.cache.fetch("topic_#{id}_fb_trend_velocity", expires_in: 30.minutes) do
       tag_names = tags.pluck(:name)
       return { velocity_percent: 0, direction: 'stable' } if tag_names.empty?
-      
+
       recent_count = FacebookEntry
         .where('facebook_entries.posted_at >= ?', 24.hours.ago)
         .where('facebook_entries.posted_at <= ?', Time.current)
         .tagged_with(tag_names, any: true)
         .size
-        
+
       previous_count = FacebookEntry
         .where('facebook_entries.posted_at >= ?', 48.hours.ago)
         .where('facebook_entries.posted_at < ?', 24.hours.ago)
         .tagged_with(tag_names, any: true)
         .size
-      
+
       return { velocity_percent: 0, direction: 'stable' } if previous_count.zero?
-      
+
       velocity = ((recent_count - previous_count).to_f / previous_count * 100).round(1)
-      
+
       {
         velocity_percent: velocity,
         recent_count: recent_count,
@@ -635,23 +635,23 @@ class Topic < ApplicationRecord
     Rails.cache.fetch("topic_#{id}_fb_engagement_velocity", expires_in: 30.minutes) do
       tag_names = tags.pluck(:name)
       return { velocity_percent: 0, direction: 'stable' } if tag_names.empty?
-      
+
       recent_interactions = FacebookEntry
         .where('facebook_entries.posted_at >= ?', 24.hours.ago)
         .where('facebook_entries.posted_at <= ?', Time.current)
         .tagged_with(tag_names, any: true)
         .sum('reactions_total_count + comments_count + share_count')
-      
+
       previous_interactions = FacebookEntry
         .where('facebook_entries.posted_at >= ?', 48.hours.ago)
         .where('facebook_entries.posted_at < ?', 24.hours.ago)
         .tagged_with(tag_names, any: true)
         .sum('reactions_total_count + comments_count + share_count')
-      
+
       return { velocity_percent: 0, direction: 'stable' } if previous_interactions.zero?
-      
+
       velocity = ((recent_interactions - previous_interactions).to_f / previous_interactions * 100).round(1)
-      
+
       {
         velocity_percent: velocity,
         recent_interactions: recent_interactions,
@@ -666,24 +666,24 @@ class Topic < ApplicationRecord
     Rails.cache.fetch("topic_#{id}_fb_content_half_life", expires_in: 30.minutes) do
       tag_names = tags.pluck(:name)
       return nil if tag_names.empty?
-      
+
       recent_entries = FacebookEntry
         .where('facebook_entries.posted_at >= ?', 30.days.ago)
         .where('reactions_total_count + comments_count + share_count > 0')
         .tagged_with(tag_names, any: true)
         .order('facebook_entries.posted_at DESC')
         .limit(100)
-      
+
       return nil if recent_entries.empty?
-      
+
       half_lives = []
-      
+
       recent_entries.each do |entry|
         age_in_hours = ((Time.current - entry.posted_at) / 1.hour).to_i
         next if age_in_hours < 24
-        
+
         total_interactions = entry.reactions_total_count + entry.comments_count + entry.share_count
-        
+
         if total_interactions > 100
           estimated_half_life = 36
         elsif total_interactions > 50
@@ -693,12 +693,12 @@ class Topic < ApplicationRecord
         else
           estimated_half_life = 12
         end
-        
+
         half_lives << estimated_half_life
       end
-      
+
       return nil if half_lives.empty?
-      
+
       {
         median_hours: median(half_lives),
         average_hours: (half_lives.sum.to_f / half_lives.size).round(1),
@@ -726,7 +726,7 @@ class Topic < ApplicationRecord
     Rails.cache.fetch("topic_#{id}_tw_peak_times_hour", expires_in: 30.minutes) do
       tag_names = tags.pluck(:name)
       return {} if tag_names.empty?
-      
+
       hourly_data = TwitterPost
         .from(TwitterPost.table_name)
         .where('twitter_posts.posted_at >= ?', DAYS_RANGE.days.ago)
@@ -735,7 +735,7 @@ class Topic < ApplicationRecord
         .unscope(:select)
         .group("HOUR(twitter_posts.posted_at)")
         .select("HOUR(twitter_posts.posted_at) as hour, AVG(favorite_count + retweet_count + reply_count + quote_count) as avg_engagement, COUNT(*) as entry_count")
-      
+
       result = {}
       hourly_data.each do |data|
         hour = data.hour.to_i
@@ -752,7 +752,7 @@ class Topic < ApplicationRecord
     Rails.cache.fetch("topic_#{id}_tw_peak_times_day", expires_in: 30.minutes) do
       tag_names = tags.pluck(:name)
       return {} if tag_names.empty?
-      
+
       daily_data = TwitterPost
         .from(TwitterPost.table_name)
         .where('twitter_posts.posted_at >= ?', DAYS_RANGE.days.ago)
@@ -761,10 +761,10 @@ class Topic < ApplicationRecord
         .unscope(:select)
         .group("DAYOFWEEK(twitter_posts.posted_at)")
         .select("DAYOFWEEK(twitter_posts.posted_at) as day, AVG(favorite_count + retweet_count + reply_count + quote_count) as avg_engagement, COUNT(*) as entry_count")
-      
+
       result = {}
       day_names = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
-      
+
       daily_data.each do |data|
         day_num = data.day.to_i - 1
         result[day_names[day_num]] = {
@@ -781,7 +781,7 @@ class Topic < ApplicationRecord
     Rails.cache.fetch("topic_#{id}_tw_engagement_heatmap", expires_in: 30.minutes) do
       tag_names = tags.pluck(:name)
       return [] if tag_names.empty?
-      
+
       heatmap_data = TwitterPost
         .from(TwitterPost.table_name)
         .where('twitter_posts.posted_at >= ?', DAYS_RANGE.days.ago)
@@ -795,14 +795,14 @@ class Topic < ApplicationRecord
           "AVG(favorite_count + retweet_count + reply_count + quote_count) as avg_engagement",
           "COUNT(*) as entry_count"
         )
-      
+
       result = []
       day_names = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
-      
+
       heatmap_data.each do |data|
         day_num = data.day.to_i - 1
         hour_num = data.hour.to_i
-        
+
         result << {
           day: day_names[day_num],
           day_number: day_num,
@@ -819,7 +819,7 @@ class Topic < ApplicationRecord
     Rails.cache.fetch("topic_#{id}_tw_optimal_time", expires_in: 30.minutes) do
       heatmap = twitter_engagement_heatmap_data
       return nil if heatmap.empty?
-      
+
       best = heatmap.max_by { |d| d[:avg_engagement] }
       {
         day: best[:day],
@@ -834,23 +834,23 @@ class Topic < ApplicationRecord
     Rails.cache.fetch("topic_#{id}_tw_trend_velocity", expires_in: 30.minutes) do
       tag_names = tags.pluck(:name)
       return { velocity_percent: 0, direction: 'stable' } if tag_names.empty?
-      
+
       recent_count = TwitterPost
         .where('twitter_posts.posted_at >= ?', 24.hours.ago)
         .where('twitter_posts.posted_at <= ?', Time.current)
         .tagged_with(tag_names, any: true)
         .size
-        
+
       previous_count = TwitterPost
         .where('twitter_posts.posted_at >= ?', 48.hours.ago)
         .where('twitter_posts.posted_at < ?', 24.hours.ago)
         .tagged_with(tag_names, any: true)
         .size
-      
+
       return { velocity_percent: 0, direction: 'stable' } if previous_count.zero?
-      
+
       velocity = ((recent_count - previous_count).to_f / previous_count * 100).round(1)
-      
+
       {
         velocity_percent: velocity,
         recent_count: recent_count,
@@ -865,23 +865,23 @@ class Topic < ApplicationRecord
     Rails.cache.fetch("topic_#{id}_tw_engagement_velocity", expires_in: 30.minutes) do
       tag_names = tags.pluck(:name)
       return { velocity_percent: 0, direction: 'stable' } if tag_names.empty?
-      
+
       recent_interactions = TwitterPost
         .where('twitter_posts.posted_at >= ?', 24.hours.ago)
         .where('twitter_posts.posted_at <= ?', Time.current)
         .tagged_with(tag_names, any: true)
         .sum('favorite_count + retweet_count + reply_count + quote_count')
-      
+
       previous_interactions = TwitterPost
         .where('twitter_posts.posted_at >= ?', 48.hours.ago)
         .where('twitter_posts.posted_at < ?', 24.hours.ago)
         .tagged_with(tag_names, any: true)
         .sum('favorite_count + retweet_count + reply_count + quote_count')
-      
+
       return { velocity_percent: 0, direction: 'stable' } if previous_interactions.zero?
-      
+
       velocity = ((recent_interactions - previous_interactions).to_f / previous_interactions * 100).round(1)
-      
+
       {
         velocity_percent: velocity,
         recent_interactions: recent_interactions,
@@ -896,24 +896,24 @@ class Topic < ApplicationRecord
     Rails.cache.fetch("topic_#{id}_tw_content_half_life", expires_in: 30.minutes) do
       tag_names = tags.pluck(:name)
       return nil if tag_names.empty?
-      
+
       recent_posts = TwitterPost
         .where('twitter_posts.posted_at >= ?', 30.days.ago)
         .where('favorite_count + retweet_count + reply_count + quote_count > 0')
         .tagged_with(tag_names, any: true)
         .order('twitter_posts.posted_at DESC')
         .limit(100)
-      
+
       return nil if recent_posts.empty?
-      
+
       half_lives = []
-      
+
       recent_posts.each do |post|
         age_in_hours = ((Time.current - post.posted_at) / 1.hour).to_i
         next if age_in_hours < 24
-        
+
         total_interactions = post.favorite_count + post.retweet_count + post.reply_count + post.quote_count
-        
+
         if total_interactions > 100
           estimated_half_life = 36
         elsif total_interactions > 50
@@ -923,12 +923,12 @@ class Topic < ApplicationRecord
         else
           estimated_half_life = 12
         end
-        
+
         half_lives << estimated_half_life
       end
-      
+
       return nil if half_lives.empty?
-      
+
       {
         median_hours: median(half_lives),
         average_hours: (half_lives.sum.to_f / half_lives.size).round(1),
@@ -956,15 +956,15 @@ class Topic < ApplicationRecord
     Rails.cache.fetch("topic_#{id}_fb_sentiment_v2_#{start_time.to_date}_#{end_time.to_date}", expires_in: 30.minutes) do
       entries = FacebookEntry.for_topic(self, start_time:, end_time:)
                             .where('reactions_total_count > 0')
-      
+
       return nil if entries.empty?
-      
+
       # Calculate statistical validity (load to array to avoid groupdate issues)
       entries_array = entries.to_a
       total_reactions = entries_array.sum(&:reactions_total_count)
       total_posts = entries_array.size
       significant_posts = entries_array.count { |e| e.statistically_significant? }
-      
+
       {
         average_sentiment: entries.average(:sentiment_score).to_f.round(2),
         sentiment_distribution: calculate_sentiment_distribution(entries),
@@ -1000,24 +1000,24 @@ class Topic < ApplicationRecord
       recent = FacebookEntry.for_topic(self, start_time: 24.hours.ago)
                            .where('reactions_total_count > 0')
                            .average(:sentiment_score).to_f
-                           
+
       previous = FacebookEntry.for_topic(self, start_time: 48.hours.ago, end_time: 24.hours.ago)
                              .where('reactions_total_count > 0')
                              .average(:sentiment_score).to_f
-      
+
       # Return default values if no data
       if recent.zero? || previous.zero?
-        return { 
-          trend: 'stable', 
-          change_percent: 0.0, 
-          recent_score: 0.0, 
+        return {
+          trend: 'stable',
+          change_percent: 0.0,
+          recent_score: 0.0,
           previous_score: 0.0,
           direction: 'stable'
         }
       end
-      
+
       change = ((recent - previous) / previous.abs * 100).round(1)
-      
+
       {
         recent_score: recent.round(2),
         previous_score: previous.round(2),
@@ -1033,17 +1033,17 @@ class Topic < ApplicationRecord
     entries_array = entries.to_a
     total = entries_array.size
     return {} if total.zero?
-    
+
     # Count occurrences using Ruby
     counts = entries_array.group_by(&:sentiment_label).transform_values(&:count)
-    
+
     # Map enum string keys to counts
     very_positive_count = counts['very_positive'] || 0
     positive_count = counts['positive'] || 0
     neutral_count = counts['neutral'] || 0
     negative_count = counts['negative'] || 0
     very_negative_count = counts['very_negative'] || 0
-    
+
     {
       very_positive: {
         count: very_positive_count,
@@ -1091,23 +1091,23 @@ class Topic < ApplicationRecord
   def emotional_intensity_analysis(entries)
     # Get IDs to avoid groupdate wrapping issues
     entry_ids = entries.pluck(:id)
-    
+
     {
       average_intensity: FacebookEntry.where(id: entry_ids).average(:emotional_intensity).to_f.round(2),
       high_intensity_count: FacebookEntry.where(id: entry_ids).where('emotional_intensity > ?', FacebookEntry::HIGH_EMOTION_THRESHOLD).count,
       low_intensity_count: FacebookEntry.where(id: entry_ids).where('emotional_intensity < ?', 20.0).count
     }
   end
-  
+
   def calculate_overall_confidence(entries)
     # Calculate weighted average confidence based on reaction counts
     total_reactions = entries.sum(:reactions_total_count)
     return 0.0 if total_reactions.zero?
-    
+
     weighted_confidence = entries.sum do |entry|
       entry.sentiment_confidence * entry.reactions_total_count
     end
-    
+
     (weighted_confidence / total_reactions).round(2)
   end
 
