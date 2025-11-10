@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_11_01_230906) do
+ActiveRecord::Schema[7.0].define(version: 2025_11_10_014104) do
   create_table "active_admin_comments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "namespace"
     t.text "body"
@@ -185,6 +185,69 @@ ActiveRecord::Schema[7.0].define(version: 2025_11_01_230906) do
     t.index ["sentiment_label", "sentiment_score"], name: "index_fb_entries_on_sentiment_label_and_score"
     t.index ["sentiment_label"], name: "index_facebook_entries_on_sentiment_label"
     t.index ["sentiment_score"], name: "index_facebook_entries_on_sentiment_score"
+  end
+
+  create_table "instagram_posts", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.string "shortcode", null: false
+    t.string "url"
+    t.text "caption"
+    t.string "media_type"
+    t.string "product_type"
+    t.integer "likes_count", default: 0
+    t.integer "comments_count", default: 0
+    t.bigint "video_view_count"
+    t.integer "total_count", default: 0
+    t.datetime "posted_at", null: false
+    t.datetime "fetched_at"
+    t.bigint "instagram_profile_id", null: false
+    t.bigint "entry_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["entry_id"], name: "index_instagram_posts_on_entry_id"
+    t.index ["instagram_profile_id", "posted_at"], name: "index_instagram_posts_on_instagram_profile_id_and_posted_at"
+    t.index ["instagram_profile_id"], name: "index_instagram_posts_on_instagram_profile_id"
+    t.index ["media_type"], name: "index_instagram_posts_on_media_type"
+    t.index ["posted_at"], name: "index_instagram_posts_on_posted_at"
+    t.index ["product_type"], name: "index_instagram_posts_on_product_type"
+    t.index ["shortcode"], name: "index_instagram_posts_on_shortcode", unique: true
+  end
+
+  create_table "instagram_profiles", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.string "uid", null: false
+    t.string "username", null: false
+    t.string "full_name"
+    t.text "biography"
+    t.string "profile_type"
+    t.integer "followers", default: 0
+    t.integer "following", default: 0
+    t.boolean "is_verified", default: false
+    t.boolean "is_business_account", default: false
+    t.boolean "is_professional_account", default: false
+    t.boolean "is_private", default: false
+    t.string "country_string"
+    t.string "category_name"
+    t.string "business_category_name"
+    t.text "profile_pic_url"
+    t.text "profile_pic_url_hd"
+    t.decimal "engagement_rate", precision: 10, scale: 2
+    t.integer "total_posts", default: 0
+    t.integer "total_videos", default: 0
+    t.integer "total_likes_count", default: 0
+    t.integer "total_comments_count", default: 0
+    t.bigint "total_video_view_count", default: 0
+    t.integer "total_interactions_count", default: 0
+    t.integer "median_interactions", default: 0
+    t.integer "median_video_views", default: 0
+    t.integer "estimated_reach", default: 0
+    t.decimal "estimated_reach_percentage", precision: 10, scale: 2
+    t.datetime "last_synced_at"
+    t.bigint "site_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["last_synced_at"], name: "index_instagram_profiles_on_last_synced_at"
+    t.index ["site_id"], name: "index_instagram_profiles_on_site_id"
+    t.index ["uid"], name: "index_instagram_profiles_on_uid", unique: true
+    t.index ["username"], name: "index_instagram_profiles_on_username", unique: true
   end
 
   create_table "newspaper_texts", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -431,6 +494,9 @@ ActiveRecord::Schema[7.0].define(version: 2025_11_01_230906) do
   add_foreign_key "entry_topics", "topics"
   add_foreign_key "facebook_entries", "entries"
   add_foreign_key "facebook_entries", "pages"
+  add_foreign_key "instagram_posts", "entries"
+  add_foreign_key "instagram_posts", "instagram_profiles"
+  add_foreign_key "instagram_profiles", "sites"
   add_foreign_key "newspaper_texts", "newspapers"
   add_foreign_key "newspapers", "sites"
   add_foreign_key "reports", "topics"
