@@ -232,8 +232,8 @@ module TwitterDashboardServices
 
     def empty_profiles_data
       {
-        profiles_count: {},
-        profiles_interactions: {},
+        profiles_count: [],
+        profiles_interactions: [],
         site_top_counts: {},
         site_counts: {},
         site_sums: {}

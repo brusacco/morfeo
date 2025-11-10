@@ -268,8 +268,8 @@ module FacebookDashboardServices
 
     def empty_pages_data
       {
-        pages_count: {},
-        pages_interactions: {},
+        pages_count: [],
+        pages_interactions: [],
         site_top_counts: {},
         site_counts: {},
         site_sums: {}
