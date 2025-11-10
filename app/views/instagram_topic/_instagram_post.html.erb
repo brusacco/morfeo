@@ -1,0 +1,164 @@
+<div class="group relative rounded-lg border border-gray-200 bg-white hover:shadow-lg transition-shadow duration-200 flex flex-col h-full min-h-[420px]">
+  <div class="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-t-lg bg-gray-50 flex-shrink-0">
+    <% if instagram_post.display_image_url.present? %>
+      <%= image_tag instagram_post.display_image_url, 
+        loading: 'lazy', 
+        onerror: "this.onerror=null;this.src='#{instagram_post.instagram_profile&.profile_pic_url || asset_path('default-avatar.png')}';", 
+        class: 'h-full w-full object-cover object-center group-hover:opacity-90 transition-opacity',
+        alt: "Instagram post: #{instagram_post.caption.to_s.truncate(50)}" %>
+    <% elsif instagram_post.instagram_profile&.profile_pic_url.present? %>
+      <%= image_tag instagram_post.instagram_profile.profile_pic_url, 
+        loading: 'lazy', 
+        onerror: "this.onerror=null;this.src='#{asset_path('default-avatar.png')}';", 
+        class: 'h-full w-full object-cover object-center group-hover:opacity-90 transition-opacity',
+        alt: "Perfil: #{instagram_post.instagram_profile.username}" %>
+    <% else %>
+      <div class="h-full w-full flex items-center justify-center bg-gradient-to-br from-pink-50 to-purple-50">
+        <svg class="w-16 h-16 text-pink-400" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path fill-rule="evenodd" d="M1.5 6a2.25 2.25 0 012.25-2.25h16.5A2.25 2.25 0 0122.5 6v12a2.25 2.25 0 01-2.25 2.25H3.75A2.25 2.25 0 011.5 18V6zM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0021 18v-1.94l-2.69-2.689a1.5 1.5 0 00-2.12 0l-.88.879.97.97a.75.75 0 11-1.06 1.06l-5.16-5.159a1.5 1.5 0 00-2.12 0L3 16.061zm10.125-7.81a1.125 1.125 0 112.25 0 1.125 1.125 0 01-2.25 0z" clip-rule="evenodd" />
+        </svg>
+      </div>
+    <% end %>
+    <!-- Post Type Badge -->
+    <% if instagram_post.is_reel? || instagram_post.has_video? || instagram_post.is_carousel? %>
+      <div class="absolute top-2 right-2 z-10">
+        <% if instagram_post.is_reel? %>
+          <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-bold bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg">
+            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path fill-rule="evenodd" d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653z" clip-rule="evenodd" />
+            </svg>
+            Reel
+          </span>
+        <% elsif instagram_post.has_video? %>
+          <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-bold bg-purple-500 text-white shadow-lg">
+            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path fill-rule="evenodd" d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653z" clip-rule="evenodd" />
+            </svg>
+            Video
+          </span>
+        <% elsif instagram_post.is_carousel? %>
+          <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-bold bg-blue-500 text-white shadow-lg">
+            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M7.5 3.375c0-1.036.84-1.875 1.875-1.875h.375a3.75 3.75 0 013.75 3.75v1.875C13.5 8.161 14.34 9 15.375 9h1.875A3.75 3.75 0 0121 12.75v3.375C21 17.16 20.16 18 19.125 18h-9.75A1.875 1.875 0 017.5 16.125V3.375z" />
+              <path d="M15 5.25a5.23 5.23 0 00-1.279-3.434 9.768 9.768 0 016.963 6.963A5.23 5.23 0 0017.25 7.5h-1.875A.375.375 0 0115 7.125V5.25zM4.875 6H6v10.125A3.375 3.375 0 009.375 19.5H19.5v1.125c0 1.035-.84 1.875-1.875 1.875h-9.75A3.375 3.375 0 014.5 19.125V7.875C4.5 6.839 5.34 6 6.375 6H4.875z" />
+            </svg>
+            Carrusel
+          </span>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+  <div class="p-4 flex flex-col flex-grow min-h-0">
+    <div class="mb-3 flex-shrink-0">
+      <% if instagram_post.instagram_url.present? %>
+        <%= link_to instagram_post.instagram_url, target: '_blank', rel: 'noopener noreferrer',
+            class: 'text-sm font-medium text-gray-900 hover:text-pink-600 line-clamp-3 block visited:text-purple-600',
+            'aria-label': "Ver post de Instagram: #{instagram_post.caption.to_s.truncate(50)}" do %>
+          <%= instagram_post.caption.to_s.truncate(120) %>
+          <i class="fa-solid fa-external-link text-xs text-gray-400 ml-1" aria-hidden="true"></i>
+        <% end %>
+      <% else %>
+        <p class="text-sm text-gray-900 line-clamp-3"><%= instagram_post.caption.to_s.truncate(120) %></p>
+      <% end %>
+    </div>
+    <div class="space-y-2 flex-grow min-h-0 mb-3">
+      <div class="flex items-center text-xs text-gray-600">
+        <i class="fa-solid fa-user mr-1.5 text-gray-400" aria-hidden="true"></i>
+        <span class="font-medium">@<%= instagram_post.instagram_profile&.username || 'Unknown' %></span>
+      </div>
+      <div class="flex items-center justify-between text-xs text-gray-500">
+        <div class="flex items-center">
+          <i class="fa-regular fa-calendar mr-1.5" aria-hidden="true"></i>
+          <time datetime="<%= instagram_post.posted_at.iso8601 %>" 
+                class="hover:text-gray-700 transition-colors">
+            <%= instagram_post.posted_at.strftime('%d/%m/%Y') %>
+          </time>
+        </div>
+      </div>
+      <% if instagram_post.tag_list.any? %>
+        <div class="flex flex-wrap gap-1 pt-2 pb-2 border-t border-gray-100"
+             <% if instagram_post.tag_list.size > 2 %>
+               title="Todas las etiquetas: <%= instagram_post.tag_list.join(', ') %>"
+             <% end %>>
+          <% instagram_post.tag_list.first(2).each do |tag| %>
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">
+              <%= tag %>
+            </span>
+          <% end %>
+          <% if instagram_post.tag_list.size > 2 %>
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-500 cursor-help"
+                  title="<%= instagram_post.tag_list[2..-1].join(', ') %>">
+              +<%= instagram_post.tag_list.size - 2 %> más
+            </span>
+          <% end %>
+        </div>
+      <% end %>
+      <% if instagram_post.entry.present? %>
+        <div class="pt-2 pb-2 border-t border-gray-100">
+          <%= link_to instagram_post.entry.url, 
+              target: '_blank',
+              rel: 'noopener noreferrer',
+              class: "inline-flex items-center px-3 py-1.5 rounded-md text-xs font-medium bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-700 border border-emerald-200 hover:from-emerald-100 hover:to-teal-100 hover:border-emerald-300 hover:shadow-sm transition-all duration-200 group/link w-full justify-center",
+              title: "Ver noticia relacionada: #{instagram_post.entry.title.to_s.truncate(60)}" do %>
+            <i class="fa-solid fa-newspaper text-emerald-600 mr-1.5 group-hover/link:scale-110 transition-transform" aria-hidden="true"></i>
+            <span class="font-semibold">Noticia vinculada</span>
+            <i class="fa-solid fa-external-link text-emerald-500 ml-1.5 group-hover/link:translate-x-1 transition-transform text-xs" aria-hidden="true"></i>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+    <div class="mt-auto pt-4 border-t border-gray-200 flex-shrink-0">
+      <div class="grid grid-cols-4 gap-2 text-center">
+        <div class="group/metric" role="group" aria-label="Likes: <%= number_with_delimiter(instagram_post.likes_count) %>">
+          <div class="text-xs text-gray-500 mb-1">
+            <i class="fa-solid fa-heart text-red-600" aria-hidden="true"></i>
+            <span class="sr-only">Likes</span>
+          </div>
+          <div class="text-sm font-semibold text-red-600 group-hover/metric:scale-110 transition-transform">
+            <%= number_with_delimiter(instagram_post.likes_count) %>
+          </div>
+        </div>
+        <div class="group/metric" role="group" aria-label="Comentarios: <%= number_with_delimiter(instagram_post.comments_count) %>">
+          <div class="text-xs text-gray-500 mb-1">
+            <i class="fa-solid fa-comment text-green-600" aria-hidden="true"></i>
+            <span class="sr-only">Comentarios</span>
+          </div>
+          <div class="text-sm font-semibold text-green-600 group-hover/metric:scale-110 transition-transform">
+            <%= number_with_delimiter(instagram_post.comments_count) %>
+          </div>
+        </div>
+        <% if instagram_post.has_video? %>
+          <div class="group/metric" role="group" aria-label="Vistas: <%= number_with_delimiter(instagram_post.video_view_count || 0) %>">
+            <div class="text-xs text-gray-500 mb-1">
+              <i class="fa-solid fa-play text-purple-600" aria-hidden="true"></i>
+              <span class="sr-only">Vistas</span>
+            </div>
+            <div class="text-sm font-semibold text-purple-600 group-hover/metric:scale-110 transition-transform">
+              <%= number_with_delimiter(instagram_post.video_view_count || 0) %>
+            </div>
+          </div>
+        <% else %>
+          <div class="group/metric" role="group" aria-label="Alcance estimado">
+            <div class="text-xs text-gray-500 mb-1">
+              <i class="fa-solid fa-eye text-amber-600" aria-hidden="true"></i>
+              <span class="sr-only">Alcance</span>
+            </div>
+            <div class="text-sm font-semibold text-amber-600 group-hover/metric:scale-110 transition-transform">
+              <%= number_with_delimiter((instagram_post.total_interactions * 10).round) %>
+            </div>
+          </div>
+        <% end %>
+        <div class="group/metric" role="group" aria-label="Total: <%= number_with_delimiter(instagram_post.total_interactions) %>">
+          <div class="text-xs text-gray-500 mb-1">
+            <i class="fa-solid fa-chart-line text-pink-600" aria-hidden="true"></i>
+            <span class="sr-only">Total</span>
+          </div>
+          <div class="text-sm font-bold text-pink-600 bg-pink-50 rounded px-1 py-0.5 group-hover/metric:scale-110 transition-transform">
+            <%= number_with_delimiter(instagram_post.total_interactions) %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
