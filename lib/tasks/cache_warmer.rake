@@ -32,14 +32,17 @@ namespace :cache do
         # 5. Warm up Twitter Dashboard Service Cache
         TwitterDashboardServices::AggregatorService.call(topic: topic, top_posts_limit: 20)
         
-        # 6. Warm up General Dashboard Service Cache (CEO reporting)
+        # 6. Warm up Instagram Dashboard Service Cache
+        InstagramDashboardServices::AggregatorService.call(topic: topic, top_posts_limit: 20)
+        
+        # 7. Warm up General Dashboard Service Cache (CEO reporting)
         GeneralDashboardServices::AggregatorService.call(
           topic: topic,
           start_date: DAYS_RANGE.days.ago.beginning_of_day,
           end_date: Time.zone.now.end_of_day
         )
         
-        { success: true, topic_id: topic.id, topic_name: topic.name, dashboards: 4 }
+        { success: true, topic_id: topic.id, topic_name: topic.name, dashboards: 5 }
       rescue => e
         { success: false, topic_id: topic.id, topic_name: topic.name, error: e.message }
       end
@@ -49,7 +52,7 @@ namespace :cache do
     successful = results.select { |r| r[:success] }
     failed = results.reject { |r| r[:success] }
     
-    puts "\n✅ Warmed #{successful.count} topics (#{successful.count * 4} dashboards)"
+    puts "\n✅ Warmed #{successful.count} topics (#{successful.count * 5} dashboards)"
     
     if failed.any?
       puts "\n⚠️  #{failed.count} topics failed:"
@@ -97,9 +100,9 @@ namespace :cache do
     puts "\n⏱️  Cache warming completed in #{minutes > 0 ? "#{minutes}m " : ""}#{seconds}s"
     puts "🎯 Summary:"
     puts "   Topics: #{successful.count} successful, #{failed.count} failed"
-    puts "   Dashboards: #{successful.count * 4}"
+    puts "   Dashboards: #{successful.count * 5}"
     puts "   Tags: #{tags_successful.count} successful, #{tags_failed.count} failed"
-    puts "   Total items cached: #{successful.count + (successful.count * 4) + tags_successful.count}"
+    puts "   Total items cached: #{successful.count + (successful.count * 5) + tags_successful.count}"
   end
   
   desc 'Warm cache for a specific topic by ID'
@@ -122,6 +125,9 @@ namespace :cache do
     
     puts "  🐦 Warming Twitter Dashboard..."
     TwitterDashboardServices::AggregatorService.call(topic: topic, top_posts_limit: 20)
+    
+    puts "  📸 Warming Instagram Dashboard..."
+    InstagramDashboardServices::AggregatorService.call(topic: topic, top_posts_limit: 20)
     
     puts "  📈 Warming General Dashboard..."
     GeneralDashboardServices::AggregatorService.call(
@@ -157,6 +163,7 @@ namespace :cache do
     Rails.cache.delete_matched("digital_dashboard_*")
     Rails.cache.delete_matched("facebook_dashboard_*")
     Rails.cache.delete_matched("twitter_dashboard_*")
+    Rails.cache.delete_matched("instagram_dashboard_*")
     Rails.cache.delete_matched("general_dashboard_*")
     Rails.cache.delete_matched("home_dashboard_*")
     
@@ -198,6 +205,9 @@ namespace :cache do
         # Twitter Dashboard
         TwitterDashboardServices::AggregatorService.call(topic: topic, top_posts_limit: 20)
         
+        # Instagram Dashboard
+        InstagramDashboardServices::AggregatorService.call(topic: topic, top_posts_limit: 20)
+        
         # General Dashboard
         GeneralDashboardServices::AggregatorService.call(
           topic: topic,
@@ -220,7 +230,7 @@ namespace :cache do
     
     puts "\n\n✅ Dashboard warming complete!"
     puts "⏱️  Time: #{minutes > 0 ? "#{minutes}m " : ""}#{seconds}s"
-    puts "📊 Topics: #{successful.count} successful (#{successful.count * 4} dashboards)"
+    puts "📊 Topics: #{successful.count} successful (#{successful.count * 5} dashboards)"
     
     if failed.any?
       puts "\n⚠️  #{failed.count} topics failed:"
