@@ -26,6 +26,7 @@ ActiveAdmin.register Site do
     end
     column :page
     column :twitter_profile
+    column :instagram_profile
     column :entries_count
     column :filter
     column :negative_filter
