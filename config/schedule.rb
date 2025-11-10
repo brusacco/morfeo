@@ -42,6 +42,7 @@ end
 # =============================================================================
 every 4.hours do
   rake 'repeated_notes'  # Detect and mark duplicate articles
+  rake 'instagram:posts_crawler' # Crawl Instagram posts
   # rake 'title_tagger' removed - tagger already handles both tags and title_tags
 end
 
@@ -54,6 +55,7 @@ every 6.hours do
   rake 'ai:set_topic_polarity'     # Set sentiment/polarity for topics
   rake 'facebook:update_fanpages'  # Update Facebook page metadata
   rake 'tagger' # Re-tag entries from last 7 days (default)
+  rake 'instagram:posts_crawler' # Crawl Instagram posts
 end
 # =============================================================================
 # 🆕 DAILY at 3:00 AM - Deep re-tagging (NEW!)
