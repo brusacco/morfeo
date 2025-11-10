@@ -28,6 +28,7 @@ class CreateInstagramProfiles < ActiveRecord::Migration[7.0]
       # Profile Images
       t.text :profile_pic_url
       t.text :profile_pic_url_hd
+      t.text :avatar_image_url # Direct avatar URL from API
 
       # Analytics & Metrics
       t.decimal :engagement_rate, precision: 10, scale: 2

@@ -16,7 +16,7 @@ class InstagramProfile < ApplicationRecord
   before_validation :fetch_uid_from_api, on: :create
   after_create :update_profile_data
   after_update :update_site_image
-  after_save :download_profile_image, if: :profile_pic_url_hd_changed?
+  after_save :download_profile_image, if: :should_download_avatar?
 
   # Scopes
   scope :active, -> { where('last_synced_at >= ?', 7.days.ago) }
@@ -141,33 +141,50 @@ class InstagramProfile < ApplicationRecord
     Rails.logger.error "Error updating site image for Instagram profile @#{username}: #{e.message}"
   end
 
+  # Check if avatar image should be downloaded
+  # Triggers when any of the avatar URL fields change
+  def should_download_avatar?
+    saved_change_to_avatar_image_url? || 
+    saved_change_to_profile_pic_url_hd? || 
+    saved_change_to_profile_pic_url?
+  end
+
   # Downloads profile image from Instagram and saves locally
   # Avoids CORS issues by serving from local public directory
   # NOTE: Always downloads and overwrites existing image (profile pictures can change)
   def download_profile_image
     return unless uid.present?
-    return unless profile_pic_url_hd.present? || profile_pic_url.present?
-
-    image_url = profile_pic_url_hd.presence || profile_pic_url
     
+    # Use avatar_image_url as the primary source (new API field)
+    # Fallback to profile_pic_url_hd or profile_pic_url if not available
+    image_url = avatar_image_url.presence || profile_pic_url_hd.presence || profile_pic_url.presence
+    
+    return unless image_url.present?
+
     # Create directory if it doesn't exist
     directory = Rails.root.join('public', 'images', 'instagram', uid)
-    FileUtils.mkdir_p(directory) unless File.directory?(directory)
+    FileUtils.mkdir_p(directory)
     
     # Download and save image as avatar.jpg (overwrites if exists)
     file_path = directory.join('avatar.jpg')
     
-    response = HTTParty.get(image_url, timeout: 30)
+    Rails.logger.info "Attempting to download Instagram profile image for @#{username} from: #{image_url}"
+    
+    response = HTTParty.get(image_url, timeout: 30, follow_redirects: true)
     
     if response.success?
       File.open(file_path, 'wb') do |file|
         file.write(response.body)
       end
-      Rails.logger.info "Successfully downloaded Instagram profile image for @#{username} (UID: #{uid})"
+      Rails.logger.info "Successfully downloaded Instagram profile image for @#{username} to: #{file_path}"
+      true
     else
       Rails.logger.error "Failed to download Instagram profile image for @#{username}: HTTP #{response.code}"
+      false
     end
   rescue StandardError => e
     Rails.logger.error "Error downloading Instagram profile image for @#{username}: #{e.message}"
+    Rails.logger.error e.backtrace.join("\n")
+    false
   end
 end

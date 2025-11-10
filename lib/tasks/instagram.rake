@@ -206,13 +206,94 @@ namespace :instagram do
       end
       
       puts # New line
-      sleep(0.5) # Be nice to Instagram servers
     end
     
     puts "\n" + "=" * 50
     puts "Download complete!"
     puts "Total: #{total}"
     puts "Success: #{success}"
+    puts "Failed: #{failed}"
+    puts "=" * 50
+  end
+
+  desc 'Fix missing Instagram profile images (only download missing ones)'
+  task fix_missing_images: :environment do
+    puts "Checking for missing Instagram profile images..."
+    
+    profiles = InstagramProfile.all
+    total = profiles.count
+    missing = 0
+    fixed = 0
+    failed = 0
+    
+    profiles.each_with_index do |profile, index|
+      unless profile.local_image_exists?
+        missing += 1
+        print "[#{index + 1}/#{total}] @#{profile.username} - Missing image, downloading..."
+        
+        begin
+          if profile.download_profile_image
+            fixed += 1
+            puts " ✅"
+          else
+            failed += 1
+            puts " ❌ Failed to download"
+          end
+        rescue StandardError => e
+          failed += 1
+          puts " ❌ Error: #{e.message}"
+        end
+      else
+        print "\r[#{index + 1}/#{total}] @#{profile.username} - OK"
+      end
+    end
+    
+    puts "\n" + "=" * 50
+    puts "Fix complete!"
+    puts "Total profiles: #{total}"
+    puts "Missing images: #{missing}"
+    puts "Fixed: #{fixed}"
+    puts "Failed: #{failed}"
+    puts "=" * 50
+  end
+
+  desc 'Fix missing Instagram post images (only download missing ones)'
+  task fix_missing_post_images: :environment do
+    puts "Checking for missing Instagram post images..."
+    
+    posts = InstagramPost.includes(:instagram_profile).order(posted_at: :desc)
+    total = posts.count
+    missing = 0
+    fixed = 0
+    failed = 0
+    
+    posts.each_with_index do |post, index|
+      unless post.local_image_exists?
+        missing += 1
+        print "[#{index + 1}/#{total}] #{post.shortcode} (@#{post.instagram_profile.username}) - Missing image, downloading..."
+        
+        begin
+          if post.download_post_image
+            fixed += 1
+            puts " ✅"
+          else
+            failed += 1
+            puts " ❌ Failed to download"
+          end
+        rescue StandardError => e
+          failed += 1
+          puts " ❌ Error: #{e.message}"
+        end
+      else
+        print "\r[#{index + 1}/#{total}] #{post.shortcode} - OK"
+      end
+    end
+    
+    puts "\n" + "=" * 50
+    puts "Fix complete!"
+    puts "Total posts: #{total}"
+    puts "Missing images: #{missing}"
+    puts "Fixed: #{fixed}"
     puts "Failed: #{failed}"
     puts "=" * 50
   end

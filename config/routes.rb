@@ -37,6 +37,11 @@ Rails.application.routes.draw do
     get :pdf, on: :member
   end
 
+  resources :instagram_topics, only: [:show], controller: 'instagram_topic' do
+    get :entries_data, on: :collection
+    get :pdf, on: :member
+  end
+
   resources :general_dashboards, only: [:show], controller: 'general_dashboard' do
     get :pdf, on: :member
   end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_11_10_014104) do
+ActiveRecord::Schema[7.0].define(version: 2025_11_10_041127) do
   create_table "active_admin_comments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "namespace"
     t.text "body"
@@ -203,6 +203,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_11_10_014104) do
     t.bigint "entry_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.text "post_image_url"
     t.index ["entry_id"], name: "index_instagram_posts_on_entry_id"
     t.index ["instagram_profile_id", "posted_at"], name: "index_instagram_posts_on_instagram_profile_id_and_posted_at"
     t.index ["instagram_profile_id"], name: "index_instagram_posts_on_instagram_profile_id"
@@ -244,6 +245,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_11_10_014104) do
     t.bigint "site_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.text "avatar_image_url"
     t.index ["last_synced_at"], name: "index_instagram_profiles_on_last_synced_at"
     t.index ["site_id"], name: "index_instagram_profiles_on_site_id"
     t.index ["uid"], name: "index_instagram_profiles_on_uid", unique: true

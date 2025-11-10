@@ -8,6 +8,7 @@ CHART_CONFIG = {
     primary: '#3B82F6',    # blue-500
     success: '#10B981',    # green-500
     purple: '#8B5CF6',     # purple-500
+    pink: '#EC4899',       # pink-500 (Instagram)
     warning: '#F59E0B',    # amber-500
     danger: '#EF4444',     # red-500
     indigo: '#6366F1',     # indigo-500

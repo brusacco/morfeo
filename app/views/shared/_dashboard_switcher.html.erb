@@ -24,6 +24,14 @@
       badge: 'BETA'
     },
     {
+      name: 'Instagram',
+      path: instagram_topic_path(topic),
+      icon: 'fa-brands fa-instagram',
+      color: 'pink',
+      active: request.path.include?('instagram_topic'),
+      badge: 'BETA'
+    },
+    {
       name: 'General',
       path: general_dashboard_path(topic),
       icon: 'fa-solid fa-chart-pie',
@@ -88,6 +96,12 @@
   .bg-sky-50 { background-color: rgb(240 249 255); }
   .text-sky-600 { color: rgb(2 132 199); }
   
+  .bg-pink-100 { background-color: rgb(252 231 243); }
+  .text-pink-700 { color: rgb(190 24 93); }
+  .ring-pink-500 { --tw-ring-color: rgb(236 72 153); }
+  .bg-pink-50 { background-color: rgb(253 242 248); }
+  .text-pink-600 { color: rgb(219 39 119); }
+  
   .bg-purple-100 { background-color: rgb(243 232 255); }
   .text-purple-700 { color: rgb(126 34 206); }
   .ring-purple-500 { --tw-ring-color: rgb(168 85 247); }
@@ -98,4 +112,5 @@
   .bg-indigo-500 { background-color: rgb(99 102 241); }
   .bg-blue-500 { background-color: rgb(59 130 246); }
   .bg-sky-500 { background-color: rgb(14 165 233); }
+  .bg-pink-500 { background-color: rgb(236 72 153); }
 </style>

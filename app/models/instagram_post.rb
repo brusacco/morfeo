@@ -44,12 +44,12 @@ class InstagramPost < ApplicationRecord
 
   # Grouped interactions by date
   def self.grouped_interactions(scope = all, format: '%d/%m')
-    scope.except(:includes).reorder(nil).group_by_day(:posted_at, format:).sum(:total_count)
+    scope.except(:includes).reorder(nil).group_by_day(:posted_at, format:).sum(Arel.sql('likes_count + comments_count'))
   end
 
   # Total interactions for scope
   def self.total_interactions(scope = all)
-    scope.except(:includes).reorder(nil).sum(:total_count)
+    scope.except(:includes).reorder(nil).sum(Arel.sql('likes_count + comments_count'))
   end
 
   # Total views for scope (video posts only)
@@ -89,7 +89,7 @@ class InstagramPost < ApplicationRecord
   # Instagram post URL
   def instagram_url
     return unless shortcode.present?
-    
+
     "https://www.instagram.com/p/#{shortcode}/"
   end
 
@@ -144,7 +144,7 @@ class InstagramPost < ApplicationRecord
   # Extract external URLs from caption
   def external_urls
     return [] if caption.blank?
-    
+
     # Simple URL extraction
     uri_pattern = URI::DEFAULT_PARSER.make_regexp(%w[http https])
     caption.scan(uri_pattern).flatten.compact.uniq
@@ -178,23 +178,23 @@ class InstagramPost < ApplicationRecord
   end
 
   # Estimated reach based on engagement
-  # Conservative estimate: total_count * 10 (similar to Twitter)
+  # Conservative estimate: total_interactions * 10 (similar to Twitter)
   def estimated_reach
-    return 0 if total_count.zero?
-    
+    return 0 if total_interactions.zero?
+
     # Base: 10x engagement (conservative)
-    base_reach = total_count * 10
-    
+    base_reach = total_interactions * 10
+
     # Video/Reel multiplier (they get more reach)
     multiplier = has_video? ? 1.5 : 1.0
-    
+
     (base_reach * multiplier).round
   end
 
   # Engagement rate (interactions / follower count of profile)
   def engagement_rate
     return 0 if instagram_profile.nil? || instagram_profile.followers.zero?
-    
+
     ((total_interactions.to_f / instagram_profile.followers) * 100).round(2)
   end
 
@@ -202,74 +202,85 @@ class InstagramPost < ApplicationRecord
   # Format: /images/instagram/{uid}/{year}/{month}/{day}/{shortcode}.jpg
   def local_post_image_path
     return nil unless instagram_profile&.uid.present? && posted_at.present? && shortcode.present?
-    
+
     year = posted_at.strftime('%Y')
     month = posted_at.strftime('%m')
     day = posted_at.strftime('%d')
-    
+
     "/images/instagram/#{instagram_profile.uid}/#{year}/#{month}/#{day}/#{shortcode}.jpg"
   end
 
   # Check if local post image exists
   def local_image_exists?
     return false unless instagram_profile&.uid.present? && posted_at.present? && shortcode.present?
-    
+
     year = posted_at.strftime('%Y')
     month = posted_at.strftime('%m')
     day = posted_at.strftime('%d')
-    
+
     file_path = Rails.root.join('public', 'images', 'instagram', instagram_profile.uid, year, month, day, "#{shortcode}.jpg")
     File.exist?(file_path)
   end
 
-  # Get post image URL (local if available, otherwise construct Instagram media URL)
-  def post_image_url
+  # Get the best available image URL for display
+  # Prefers local image if available, otherwise uses the stored post_image_url field from API
+  def display_image_url
     if local_image_exists?
       local_post_image_path
+    elsif post_image_url.present?
+      # Use the URL from API (could be influencers.com.py or Instagram direct)
+      post_image_url
     else
-      # Instagram media URL pattern (may not always work due to CORS)
+      # Fallback to Instagram media URL pattern (may not always work due to CORS)
       "https://www.instagram.com/p/#{shortcode}/media/?size=l"
     end
   end
 
   # Download post image from Instagram
-  # This is more complex as Instagram doesn't provide direct image URLs in our API
-  # We'll use a pattern to construct the media URL
+  # Uses the new post_image_url field from API as primary source
+  # Falls back to constructed Instagram URL if not available
   # NOTE: Only downloads once - skips if image already exists (posts are immutable)
   def download_post_image
     return unless instagram_profile&.uid.present?
     return unless posted_at.present?
     return unless shortcode.present?
 
-    # Instagram media URL
-    image_url = "https://www.instagram.com/p/#{shortcode}/media/?size=l"
-    
+    # Use post_image_url as primary source (new API field)
+    # Fallback to Instagram's media URL pattern
+    image_url = post_image_url.presence || "https://www.instagram.com/p/#{shortcode}/media/?size=l"
+
     # Create directory structure: public/images/instagram/{uid}/{year}/{month}/{day}/
     year = posted_at.strftime('%Y')
     month = posted_at.strftime('%m')
     day = posted_at.strftime('%d')
-    
+
     directory = Rails.root.join('public', 'images', 'instagram', instagram_profile.uid, year, month, day)
     FileUtils.mkdir_p(directory) unless File.directory?(directory)
-    
+
     # Download and save image
     file_path = directory.join("#{shortcode}.jpg")
-    
+
     # Skip if already exists (posts don't change, no need to re-download)
     return if File.exist?(file_path)
-    
+
+    Rails.logger.info "Attempting to download Instagram post image for #{shortcode} from: #{image_url}"
+
     response = HTTParty.get(image_url, timeout: 30, follow_redirects: true)
-    
+
     if response.success?
       File.open(file_path, 'wb') do |file|
         file.write(response.body)
       end
-      Rails.logger.info "Successfully downloaded Instagram post image for #{shortcode} (@#{instagram_profile.username})"
+      Rails.logger.info "Successfully downloaded Instagram post image for #{shortcode} (@#{instagram_profile.username}) to: #{file_path}"
+      true
     else
       Rails.logger.warn "Could not download Instagram post image for #{shortcode}: HTTP #{response.code}"
+      false
     end
   rescue StandardError => e
     Rails.logger.error "Error downloading Instagram post image for #{shortcode}: #{e.message}"
+    Rails.logger.error e.backtrace.join("\n")
+    false
   end
 
   private
@@ -280,7 +291,7 @@ class InstagramPost < ApplicationRecord
     return false unless instagram_profile&.uid.present?
     return false unless posted_at.present?
     return false unless shortcode.present?
-    
+
     # Only download if this is a new record (just created)
     saved_change_to_id?
   end

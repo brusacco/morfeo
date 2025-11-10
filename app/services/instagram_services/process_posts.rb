@@ -61,6 +61,7 @@ module InstagramServices
         caption: post_data['caption'],
         media_type: post_data['media'],
         product_type: post_data['product_type'],
+        post_image_url: post_data['post_image_url'], # New direct image URL from API
         posted_at: parse_timestamp(post_data['posted_at']),
         likes_count: post_data['likes_count'] || 0,
         comments_count: post_data['comments_count'] || 0,

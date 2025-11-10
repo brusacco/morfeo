@@ -62,6 +62,7 @@ module InstagramServices
         business_category_name: data['business_category_name'],
         profile_pic_url: data['profile_pic_url'],
         profile_pic_url_hd: data['profile_pic_url_hd'],
+        avatar_image_url: data['avatar_image_url'], # New direct avatar URL from API
         engagement_rate: data['engagement_rate'],
         total_posts: data['total_posts'],
         total_videos: data['total_videos'],

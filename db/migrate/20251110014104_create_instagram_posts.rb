@@ -13,6 +13,7 @@ class CreateInstagramPosts < ActiveRecord::Migration[7.0]
       # Media Information
       t.string :media_type                      # GraphImage, GraphVideo, GraphSidecar
       t.string :product_type                    # feed, clips, igtv
+      t.text :post_image_url                    # Direct post image URL from API
 
       # Engagement Metrics
       t.integer :likes_count, default: 0

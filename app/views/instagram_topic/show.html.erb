@@ -1,0 +1,361 @@
+<% content_for :extra_stylesheets do %>
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+  <style>
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    html, body { overflow-x: hidden; overflow-y: auto; height: 100%; }
+    html { scroll-behavior: smooth; scroll-padding-top: 4rem; }
+    #instagram-nav {
+      position: sticky; position: -webkit-sticky; top: 0; z-index: 9999;
+      background: white; width: 100%;
+    }
+    .chart-container, .highcharts-container, .highcharts-container *,
+    .highcharts-root, svg[class*="highcharts"], [data-controller="topics"],
+    div[class*="w-full"][class*="overflow-hidden"] { z-index: 1 !important; }
+    section .bg-white { isolation: auto; }
+  </style>
+<% end %>
+
+<% content_for :extra_javascripts do %>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <%= javascript_include_tag 'datatables_config', 'data-turbo-track': 'reload' %>
+<% end %>
+
+<header class="bg-white shadow-sm border-b border-gray-200">
+  <div class="mx-auto px-4 py-6 sm:px-6 lg:px-8">
+    <div class="md:flex md:items-center md:justify-between">
+      <div class="flex-1 min-w-0">
+        <h1 class="text-3xl font-bold text-gray-900 tracking-tight">
+          <svg class="w-8 h-8 text-sky-500 mr-2 inline-block" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill-rule="evenodd" d="M1.5 6a2.25 2.25 0 012.25-2.25h16.5A2.25 2.25 0 0122.5 6v12a2.25 2.25 0 01-2.25 2.25H3.75A2.25 2.25 0 011.5 18V6zM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0021 18v-1.94l-2.69-2.689a1.5 1.5 0 00-2.12 0l-.88.879.97.97a.75.75 0 11-1.06 1.06l-5.16-5.159a1.5 1.5 0 00-2.12 0L3 16.061zm10.125-7.81a1.125 1.125 0 112.25 0 1.125 1.125 0 01-2.25 0z" clip-rule="evenodd" />
+          </svg>
+          <%= @topic.name %> · Instagram <span class="text-xs text-gray-500">(BETA)</span>
+        </h1>
+        <p class="mt-1 text-sm text-gray-600">Análisis de posts - Últimos <%= DAYS_RANGE %> días</p>
+      </div>
+      <%# Botones PDF comentados temporalmente
+      <div class="mt-4 flex flex-col sm:flex-row gap-2 md:mt-0 md:ml-4">
+        <%#= link_to pdf_instagram_topic_path(@topic, days_range: 7), target: '_blank', 
+            rel: 'noopener noreferrer',
+            class: 'inline-flex items-center justify-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 transition-colors',
+            'aria-label': "Generar PDF - 7 días" do %>
+          <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+            <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clip-rule="evenodd" />
+          </svg>
+          PDF 7d
+        <%# end %>
+        <%#= link_to pdf_instagram_topic_path(@topic, days_range: 15), target: '_blank', 
+            rel: 'noopener noreferrer',
+            class: 'inline-flex items-center justify-center px-3 py-2 border border-pink-600 text-sm font-medium rounded-md text-pink-600 bg-white hover:bg-pink-50 transition-colors' do %>
+          15d
+        <%# end %>
+        <%#= link_to pdf_instagram_topic_path(@topic, days_range: 30), target: '_blank', 
+            rel: 'noopener noreferrer',
+            class: 'inline-flex items-center justify-center px-3 py-2 border border-pink-600 text-sm font-medium rounded-md text-pink-600 bg-white hover:bg-pink-50 transition-colors' do %>
+          30d
+        <%# end %>
+      </div>
+      %>
+    </div>
+  </div>
+</header>
+
+<%= render 'shared/breadcrumbs', items: [
+  { label: 'Inicio', path: root_path, icon: 'home' },
+  { label: 'Instagram', path: nil },
+  { label: @topic.name, path: nil, current: true }
+] %>
+
+<%= render 'shared/dashboard_switcher', topic: @topic %>
+
+<nav class="border-b border-gray-200 shadow-md" id="instagram-nav">
+  <div class="mx-auto px-4 sm:px-6 lg:px-8 bg-white">
+    <div class="flex items-center justify-between h-12 overflow-x-auto scrollbar-hide">
+      <div class="flex space-x-1 md:space-x-4">
+        <a href="#kpis" data-turbo="false" class="px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-700 hover:text-pink-600 hover:bg-pink-50 rounded-md transition-colors whitespace-nowrap">
+          Métricas
+        </a>
+        <a href="#charts" data-turbo="false" class="px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-700 hover:text-pink-600 hover:bg-pink-50 rounded-md transition-colors whitespace-nowrap">
+          Evolución
+        </a>
+        <a href="#tags" data-turbo="false" class="px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-700 hover:text-pink-600 hover:bg-pink-50 rounded-md transition-colors whitespace-nowrap">
+          Etiquetas
+        </a>
+        <a href="#profiles" data-turbo="false" class="px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-700 hover:text-pink-600 hover:bg-pink-50 rounded-md transition-colors whitespace-nowrap">
+          Perfiles
+        </a>
+        <a href="#posts" data-turbo="false" class="px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-700 hover:text-pink-600 hover:bg-pink-50 rounded-md transition-colors whitespace-nowrap">
+          Posts
+        </a>
+        <% if @viral_content&.any? %>
+          <a href="#viral-content" data-turbo="false" class="inline-flex items-center px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-red-700 hover:text-red-800 hover:bg-red-50 rounded-md transition-colors whitespace-nowrap">
+            <span class="hidden sm:inline">Viral (<%= @viral_content.size %>)</span>
+            <span class="sm:hidden"><%= @viral_content.size %></span>
+          </a>
+        <% end %>
+      </div>
+      <a href="#" id="backToTop" class="ml-4 inline-flex items-center px-3 py-2 text-sm font-medium text-pink-600 hover:text-pink-700 hover:bg-pink-50 rounded-md transition-colors cursor-pointer whitespace-nowrap">
+        <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd" />
+        </svg>
+        Arriba
+      </a>
+    </div>
+  </div>
+</nav>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const backToTopLink = document.getElementById('backToTop');
+    if (backToTopLink) {
+      backToTopLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+      });
+    }
+  });
+</script>
+
+<main class="bg-gray-50 min-h-screen">
+  <div class="mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-8">
+    
+    <!-- KPI Cards -->
+    <section id="kpis" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-medium text-gray-600">Total Posts</p>
+            <p class="text-3xl font-bold text-gray-900 mt-2"><%= number_with_delimiter(@total_posts) %></p>
+          </div>
+          <div class="p-3 bg-pink-100 rounded-lg">
+            <svg class="w-8 h-8 text-pink-600" fill="currentColor" viewBox="0 0 24 24">
+              <path fill-rule="evenodd" d="M1.5 6a2.25 2.25 0 012.25-2.25h16.5A2.25 2.25 0 0122.5 6v12a2.25 2.25 0 01-2.25 2.25H3.75A2.25 2.25 0 011.5 18V6zM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0021 18v-1.94l-2.69-2.689a1.5 1.5 0 00-2.12 0l-.88.879.97.97a.75.75 0 11-1.06 1.06l-5.16-5.159a1.5 1.5 0 00-2.12 0L3 16.061zm10.125-7.81a1.125 1.125 0 112.25 0 1.125 1.125 0 01-2.25 0z" clip-rule="evenodd" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-medium text-gray-600">Interacciones</p>
+            <p class="text-3xl font-bold text-gray-900 mt-2"><%= number_with_delimiter(@total_interactions) %></p>
+            <p class="text-xs text-gray-500 mt-1">Likes + Comentarios</p>
+          </div>
+          <div class="p-3 bg-blue-100 rounded-lg">
+            <svg class="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-medium text-gray-600">Vistas de Video</p>
+            <p class="text-3xl font-bold text-gray-900 mt-2"><%= number_with_delimiter(@total_views || 0) %></p>
+            <p class="text-xs text-gray-500 mt-1">Solo videos</p>
+          </div>
+          <div class="p-3 bg-purple-100 rounded-lg">
+            <svg class="w-8 h-8 text-purple-600" fill="currentColor" viewBox="0 0 24 24">
+              <path fill-rule="evenodd" d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653z" clip-rule="evenodd" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-medium text-gray-600">Promedio</p>
+            <p class="text-3xl font-bold text-gray-900 mt-2"><%= number_with_delimiter(@average_interactions) %></p>
+            <p class="text-xs text-gray-500 mt-1">Por post</p>
+          </div>
+          <div class="p-3 bg-green-100 rounded-lg">
+            <svg class="w-8 h-8 text-green-600" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v15.75c0 1.035.84 1.875 1.875 1.875h.75c1.035 0 1.875-.84 1.875-1.875V4.125c0-1.036-.84-1.875-1.875-1.875h-.75zM9.75 8.625c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v11.25c0 1.035-.84 1.875-1.875 1.875h-.75a1.875 1.875 0 01-1.875-1.875V8.625zM3 13.125c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v6.75c0 1.035-.84 1.875-1.875 1.875h-.75A1.875 1.875 0 013 19.875v-6.75z" />
+            </svg>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Charts -->
+    <section id="charts" class="space-y-6">
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">Evolución Temporal</h2>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Posts Chart -->
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-semibold text-gray-700">Posts por día</h3>
+              <span class="text-sm text-gray-500">Haz clic para ver detalle</span>
+            </div>
+            <%= render_column_chart(@chart_posts,
+                  chart_id: 'instagramPostsChart',
+                  url: entries_data_instagram_topics_path,
+                  topic_id: @topic.id,
+                  label: 'Posts',
+                  color: :pink,
+                  xtitle: 'Fecha',
+                  ytitle: 'Posts') %>
+          </div>
+
+          <!-- Interactions Chart -->
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-semibold text-gray-700">Interacciones por día</h3>
+              <span class="text-sm text-gray-500">Haz clic para ver detalle</span>
+            </div>
+            <%= render_column_chart(@chart_interactions,
+                  chart_id: 'instagramInteractionsChart',
+                  url: entries_data_instagram_topics_path,
+                  topic_id: @topic.id,
+                  label: 'Interacciones',
+                  color: :success,
+                  xtitle: 'Fecha',
+                  ytitle: 'Interacciones') %>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tags -->
+    <section id="tags" class="space-y-6">
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">Etiquetas Más Mencionadas</h2>
+        <% if @tag_counts.any? %>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <% @tag_counts.first(12).each do |tag| %>
+              <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-pink-50 transition-colors">
+                <span class="text-gray-700 font-medium">#<%= tag.name %></span>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-pink-100 text-pink-800">
+                  <%= tag.taggings_count %>
+                </span>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <p class="text-gray-500 text-center py-8">No hay etiquetas disponibles para este período.</p>
+        <% end %>
+      </div>
+    </section>
+
+    <!-- Profiles -->
+    <section id="profiles" class="space-y-6">
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">Análisis por Perfiles</h2>
+        <% if @profiles_count.any? %>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h3 class="text-lg font-semibold text-gray-700 mb-4">Top Perfiles por Posts</h3>
+              <% @profiles_count.sort_by { |k, v| -v }.take(5).each do |profile_name, count| %>
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg mb-2">
+                  <span class="text-gray-700"><%= profile_name %></span>
+                  <span class="font-bold text-pink-600"><%= number_with_delimiter(count) %></span>
+                </div>
+              <% end %>
+            </div>
+            <div>
+              <h3 class="text-lg font-semibold text-gray-700 mb-4">Top Perfiles por Interacciones</h3>
+              <% @profiles_interactions.sort_by { |k, v| -v }.take(5).each do |profile_name, interactions| %>
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg mb-2">
+                  <span class="text-gray-700"><%= profile_name %></span>
+                  <span class="font-bold text-green-600"><%= number_with_delimiter(interactions) %></span>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% else %>
+          <p class="text-gray-500 text-center py-8">No hay datos de perfiles disponibles.</p>
+        <% end %>
+      </div>
+    </section>
+
+    <!-- Top Posts -->
+    <section id="posts" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">Top Posts por Interacciones</h2>
+      <% if @top_posts.any? %>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Post</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Perfil</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Likes</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Comentarios</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <% @top_posts.each do |post| %>
+                <tr class="hover:bg-gray-50">
+                  <td class="px-6 py-4">
+                    <%= link_to post.instagram_url, target: '_blank', class: 'text-pink-600 hover:text-pink-800' do %>
+                      <%= truncate(post.caption, length: 100) %>
+                    <% end %>
+                  </td>
+                  <td class="px-6 py-4 text-sm text-gray-900">
+                    <%= post.instagram_profile&.username || 'N/A' %>
+                  </td>
+                  <td class="px-6 py-4 text-sm text-gray-900">
+                    <%= number_with_delimiter(post.likes_count) %>
+                  </td>
+                  <td class="px-6 py-4 text-sm text-gray-900">
+                    <%= number_with_delimiter(post.comments_count) %>
+                  </td>
+                  <td class="px-6 py-4 text-sm text-gray-500">
+                    <%= post.posted_at.strftime('%d/%m/%Y %H:%M') %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <p class="text-gray-500 text-center py-8">No hay posts disponibles para este período.</p>
+      <% end %>
+    </section>
+
+    <!-- Viral Content -->
+    <% if @viral_content&.any? %>
+      <section id="viral-content" class="bg-gradient-to-r from-red-50 to-orange-50 rounded-lg shadow-sm border border-red-200 p-6">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl font-bold text-gray-900">Contenido Viral (Últimas 24h)</h2>
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-red-100 text-red-800">
+            <%= @viral_content.size %> posts
+          </span>
+        </div>
+        <div class="space-y-4">
+          <% @viral_content.each do |viral| %>
+            <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+              <div class="flex items-start justify-between">
+                <div class="flex-1">
+                  <%= link_to viral[:post].instagram_url, target: '_blank', class: 'text-pink-600 hover:text-pink-800 font-medium' do %>
+                    <%= truncate(viral[:post].caption, length: 150) %>
+                  <% end %>
+                  <p class="text-sm text-gray-500 mt-2">
+                    @<%= viral[:post].instagram_profile&.username %> · 
+                    <%= time_ago_in_words(viral[:posted_at]) %> ago
+                  </p>
+                </div>
+                <div class="ml-4 flex flex-col items-end">
+                  <span class="inline-flex items-center px-3 py-1 rounded-full text-lg font-bold bg-red-100 text-red-800">
+                    <%= viral[:multiplier] %>x
+                  </span>
+                  <p class="text-sm text-gray-600 mt-2">
+                    <%= number_with_delimiter(viral[:engagement]) %> interacciones
+                  </p>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </section>
+    <% end %>
+
+  </div>
+</main>
