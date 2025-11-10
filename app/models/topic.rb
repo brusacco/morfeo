@@ -23,16 +23,20 @@ class Topic < ApplicationRecord
 
   before_update :remove_words_spaces
   
-  # NEW: Auto-sync entries when tags change
+  # NEW: Auto-sync entries when tags are saved
   # This ensures that when an admin adds/removes tags from a topic,
   # existing entries with those tags are automatically linked
-  after_commit :queue_entry_sync, if: :saved_change_to_tag_ids?
+  # 
+  # Note: For HABTM associations, we queue the sync job after commit
+  # since the association is saved after the main record
+  after_commit :queue_entry_sync, on: [:create, :update]
 
   def queue_entry_sync
     # Queue background job to avoid blocking admin UI
     # Syncs entries from last 60 days
+    # The job itself will determine if there's anything new to sync
     SyncTopicEntriesJob.perform_later(id, 60)
-    Rails.logger.info "Topic #{id}: Queued entry sync job (tags changed)"
+    Rails.logger.info "Topic #{id}: Queued entry sync job"
   rescue => e
     Rails.logger.error "Topic #{id}: Failed to queue entry sync - #{e.message}"
     # Don't raise - this shouldn't break topic saving
