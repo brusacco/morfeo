@@ -671,22 +671,9 @@
       </section>
     <% end %>
     <!-- Related Tags Analysis Section -->
-    <section class="mb-8">
-      <h2 class="text-2xl font-bold text-gray-900 mb-6">
-        <i class="fa-solid fa-tags text-blue-600 mr-2"></i>
-        Análisis de Tags Relacionados
-      </h2>
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Cantidad de Notas por Tag Relacionados</h3>
-          <%= pie_chart @tags_count, donut: true %>
-        </div>
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Cantidad de Interacciones por Tag Relacionados</h3>
-          <%= pie_chart @tags_interactions, donut: true %>
-        </div>
-      </div>
-    </section>
+    <%= render 'topic/tag_insights', 
+          tags_count: @tags_count, 
+          tags_interactions: @tags_interactions %>
     <!-- Top Media Sources with Avatars -->
     <%= render 'topic/site_insights', 
           site_top_counts: @site_top_counts, 

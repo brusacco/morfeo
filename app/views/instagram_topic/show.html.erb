@@ -213,25 +213,9 @@
     </section>
 
     <!-- Tags -->
-    <section id="tags" class="space-y-6">
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h2 class="text-2xl font-bold text-gray-900 mb-6">Etiquetas Más Mencionadas</h2>
-        <% if @tag_counts.any? %>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <% @tag_counts.first(12).each do |tag| %>
-              <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-pink-50 transition-colors">
-                <span class="text-gray-700 font-medium">#<%= tag.name %></span>
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-pink-100 text-pink-800">
-                  <%= tag.taggings_count %>
-                </span>
-              </div>
-            <% end %>
-          </div>
-        <% else %>
-          <p class="text-gray-500 text-center py-8">No hay etiquetas disponibles para este período.</p>
-        <% end %>
-      </div>
-    </section>
+    <%= render 'instagram_topic/tag_insights', 
+          tag_counts: @tag_counts, 
+          tag_interactions: @tag_interactions %>
 
     <!-- Profile Insights -->
     <%= render 'instagram_topic/profile_insights', 

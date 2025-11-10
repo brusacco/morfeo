@@ -238,8 +238,10 @@
           topic_id: @topic.id,
           url_path: entries_data_twitter_topics_path %>
     
-    <!-- Tag insights (Refactored) -->
-    <%= render 'shared/twitter_tag_insights', presenter: @presenter %>
+    <!-- Tag insights -->
+    <%= render 'twitter_topic/tag_insights', 
+          tag_counts: @tag_counts, 
+          tag_interactions: @tag_interactions %>
     
     <!-- Top Profiles with Avatars -->
     <%= render 'twitter_topic/profile_insights', 
