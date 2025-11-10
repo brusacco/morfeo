@@ -43,6 +43,9 @@ namespace :instagram do
           end
         end
         
+        # Remove 'Instagram' tag from found tags
+        tags_found.delete('Instagram')
+        
         # If no tags found through text matching, try to inherit from linked entry
         if tags_found.empty? && post.entry.present? && post.entry.tag_list.any?
           entry_tags = post.entry.tag_list.dup
@@ -57,14 +60,14 @@ namespace :instagram do
           end
         end
         
-        # Apply found tags
+        # Apply found tags only if we have valid tags
         if tags_found.any?
-          tags_found.delete('Instagram')
           post.tag_list = tags_found
           post.save!
           puts "\r[#{processed}/#{total}] ✅ #{post.shortcode} - Tagged: #{tags_found.join(', ')}"
           tagged += 1
         else
+          # No tags found - skip this post (don't try to save empty list)
           no_tags_found += 1
         end
         
