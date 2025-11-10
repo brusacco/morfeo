@@ -16,7 +16,7 @@ namespace :instagram do
 
     InstagramProfile.find_each do |profile|
       processed += 1
-      
+
       puts "\n[#{processed}/#{total_profiles}] Processing: #{profile.display_name} (@#{profile.username})"
       puts "  Current data:"
       puts "    Followers: #{number_with_delimiter(profile.followers)}"
@@ -26,13 +26,13 @@ namespace :instagram do
       begin
         profile.sync_from_api
         profile.reload
-        
+
         puts "  ✅ Updated successfully!"
         puts "    New followers: #{number_with_delimiter(profile.followers)}"
         puts "    New posts: #{profile.total_posts}"
         puts "    Engagement: #{profile.engagement_rate}%"
         puts "    Image: #{profile.local_image_exists? ? '✅ Downloaded' : '⏳ Pending'}"
-        
+
         success += 1
       rescue StandardError => e
         puts "  ❌ Error: #{e.message}"
@@ -69,7 +69,7 @@ namespace :instagram do
 
     InstagramProfile.find_each do |profile|
       processed += 1
-      
+
       puts "\n[#{processed}/#{total_profiles}] Processing: #{profile.display_name} (@#{profile.username})"
       puts "  Current posts in DB: #{profile.instagram_posts.count}"
       puts "  Latest post in DB: #{profile.instagram_posts.order(posted_at: :desc).first&.posted_at || 'None'}"
@@ -94,10 +94,10 @@ namespace :instagram do
           # Count new vs updated
           new_posts = posts.select { |p| p.created_at == p.updated_at }.count
           updated_posts = posts.count - new_posts
-          
+
           total_posts_created += new_posts
           total_posts_updated += updated_posts
-          
+
           total_count = profile.instagram_posts.count
           latest = profile.instagram_posts.order(posted_at: :desc).first
 
