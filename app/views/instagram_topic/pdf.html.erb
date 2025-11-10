@@ -607,15 +607,17 @@
 
           <%# Columna 1: Top Perfiles por Tweets %>
           <div>
-            <h3 style="margin: 0 0 16pt 0; font-size: 13pt; font-weight: 700; color: #1f2937; padding-left: 10pt; border-left: 3pt solid #1DA1F2;">
-              <%= heroicon_svg(:at_symbol, size: '18pt', color: '#1DA1F2') %> Top Perfiles por Tweets
+            <h3 style="margin: 0 0 16pt 0; font-size: 13pt; font-weight: 700; color: #1f2937; padding-left: 10pt; border-left: 3pt solid #E1306C;">
+              <%= heroicon_svg(:at_symbol, size: '18pt', color: '#E1306C') %> Top Perfiles por Posts
             </h3>
 
             <div style="display: flex; flex-direction: column; gap: 6pt;">
-              <% @profiles_count.sort_by { |k, v| -v }.take(8).each_with_index do |(profile_name, count), index| %>
+              <% @profiles_count.take(8).each_with_index do |profile_data, index| %>
                 <%
-                  # Buscar el perfil para obtener el avatar
-                  profile = TwitterProfile.find_by(name: profile_name)
+                  # Extract data from hash structure (already sorted by service)
+                  profile = profile_data[:profile]
+                  profile_name = profile_data[:name]
+                  count = profile_data[:count]
                 %>
                 <div class="profile-item" style="display: flex; align-items: center; gap: 8pt; padding: 6pt 10pt; background: white; border: 1pt solid #e5e7eb; border-radius: 6pt; min-height: 46pt; max-height: 46pt;">
                   <%# Ranking Badge %>
@@ -672,10 +674,12 @@
             </h3>
 
             <div style="display: flex; flex-direction: column; gap: 6pt;">
-              <% @profiles_interactions.sort_by { |k, v| -v }.take(8).each_with_index do |(profile_name, interactions), index| %>
+              <% @profiles_interactions.take(8).each_with_index do |profile_data, index| %>
                 <%
-                  # Buscar el perfil para obtener el avatar
-                  profile = TwitterProfile.find_by(name: profile_name)
+                  # Extract data from hash structure (already sorted by service)
+                  profile = profile_data[:profile]
+                  profile_name = profile_data[:name]
+                  interactions = profile_data[:interactions]
                 %>
                 <div class="profile-item" style="display: flex; align-items: center; gap: 8pt; padding: 6pt 10pt; background: white; border: 1pt solid #e5e7eb; border-radius: 6pt; min-height: 46pt; max-height: 46pt;">
                   <%# Ranking Badge %>
