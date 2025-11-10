@@ -287,38 +287,3 @@
 
   </div>
 </main>
-
-<!-- Floating Back to Top Button -->
-<button id="floatingBackToTop" 
-        class="fixed bottom-6 right-6 bg-pink-600 hover:bg-pink-700 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 opacity-0 invisible z-50"
-        aria-label="Volver arriba">
-  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
-  </svg>
-</button>
-
-<script>
-  // Floating button show/hide on scroll
-  (function() {
-    const floatingBtn = document.getElementById('floatingBackToTop');
-    if (!floatingBtn) return;
-
-    function toggleFloatingButton() {
-      if (window.pageYOffset > 300) {
-        floatingBtn.classList.remove('opacity-0', 'invisible');
-        floatingBtn.classList.add('opacity-100', 'visible');
-      } else {
-        floatingBtn.classList.add('opacity-0', 'invisible');
-        floatingBtn.classList.remove('opacity-100', 'visible');
-      }
-    }
-
-    floatingBtn.addEventListener('click', function() {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
-
-    window.addEventListener('scroll', toggleFloatingButton);
-    document.addEventListener('turbo:load', toggleFloatingButton);
-    toggleFloatingButton(); // Initial check
-  })();
-</script>
