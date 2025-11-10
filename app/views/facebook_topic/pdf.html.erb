@@ -1233,10 +1233,12 @@
             </h3>
 
             <div style="display: flex; flex-direction: column; gap: 6pt;">
-              <% @pages_count.sort_by { |k, v| -v }.take(8).each_with_index do |(page_name, count), index| %>
+              <% @pages_count.take(8).each_with_index do |page_data, index| %>
                 <%
-                  # Buscar la página para obtener el avatar
-                  page = Page.find_by(name: page_name)
+                  # Extract data from hash structure (already sorted by service)
+                  page = page_data[:page]
+                  page_name = page_data[:name]
+                  count = page_data[:count]
                 %>
                 <div class="fanpage-item" style="display: flex; align-items: center; gap: 8pt; padding: 6pt 10pt; background: white; border: 1pt solid #e5e7eb; border-radius: 6pt; box-shadow: 0 1pt 4pt rgba(0, 0, 0, 0.06); min-height: 46pt; max-height: 46pt;">
                   <%# Ranking Badge %>
@@ -1289,10 +1291,12 @@
             </h3>
 
             <div style="display: flex; flex-direction: column; gap: 6pt;">
-              <% @pages_interactions.sort_by { |k, v| -v }.take(8).each_with_index do |(page_name, interactions), index| %>
+              <% @pages_interactions.take(8).each_with_index do |page_data, index| %>
                 <%
-                  # Buscar la página para obtener el avatar
-                  page = Page.find_by(name: page_name)
+                  # Extract data from hash structure (already sorted by service)
+                  page = page_data[:page]
+                  page_name = page_data[:name]
+                  interactions = page_data[:interactions]
                 %>
                 <div class="fanpage-item" style="display: flex; align-items: center; gap: 8pt; padding: 6pt 10pt; background: white; border: 1pt solid #e5e7eb; border-radius: 6pt; box-shadow: 0 1pt 4pt rgba(0, 0, 0, 0.06); min-height: 46pt; max-height: 46pt;">
                   <%# Ranking Badge %>
@@ -1320,7 +1324,7 @@
                       <%= page_name %>
                     </div>
                     <div style="font-size: 6.5pt; color: #6b7280; margin-top: 2pt; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                      <%= @pages_count[page_name] || 0 %> posts
+                      Fanpage oficial
                     </div>
                   </div>
 
