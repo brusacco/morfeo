@@ -4,6 +4,13 @@ ActiveAdmin.register Site do
   menu parent: 'Settings', label: 'Digital Profiles'
   permit_params :name, :url, :filter, :content_filter, :negative_filter, :page, :status, :is_js
 
+  # Include associations for better query performance
+  controller do
+    def scoped_collection
+      super.includes(:page, :twitter_profile, :instagram_profile)
+    end
+  end
+
   filter :name
   filter :url
   filter :status, label: 'Estado'
@@ -26,7 +33,13 @@ ActiveAdmin.register Site do
     end
     column :page
     column :twitter_profile
-    column :instagram_profile
+    column 'Instagram' do |site|
+      if site.respond_to?(:instagram_profile) && site.instagram_profile.present?
+        link_to site.instagram_profile.display_name, admin_instagram_profile_path(site.instagram_profile)
+      else
+        status_tag('None', class: 'warning')
+      end
+    end
     column :entries_count
     column :filter
     column :negative_filter
