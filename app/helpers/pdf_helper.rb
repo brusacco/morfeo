@@ -222,7 +222,8 @@ module PdfHelper
   # @return [String] Localized title
   def pdf_title(type, topic_name)
     title_key = "pdf.titles.#{type}_report"
-    "#{I18n.t(title_key)}: #{topic_name}"
+    date_str = Date.current.strftime('%d-%b-%Y').downcase
+    "#{I18n.t(title_key)} - #{topic_name} - #{date_str}"
   end
 
   # Get localized section title
