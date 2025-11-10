@@ -17,9 +17,6 @@ namespace :instagram do
     already_tagged = 0
     no_tags_found = 0
 
-    # Load all tags once for performance
-    all_tags = Tag.all.to_a
-
     posts.each_with_index do |post, index|
       processed += 1
       print "\r[#{processed}/#{total}] Processing #{post.shortcode}..."
@@ -31,43 +28,15 @@ namespace :instagram do
       end
 
       begin
-        tags_found = []
-        caption_lower = post.caption.to_s.downcase
+        # Use ExtractTags service
+        result = InstagramServices::ExtractTags.call(post.id)
 
-        # Check all tags
-        all_tags.each do |tag|
-          tag_names = [tag.name, tag.variations].flatten.compact.map(&:downcase)
-
-          if tag_names.any? { |name| caption_lower.include?(name) }
-            tags_found << tag.name
-          end
-        end
-
-        # Remove 'Instagram' tag from found tags
-        tags_found.delete('Instagram')
-
-        # If no tags found through text matching, try to inherit from linked entry
-        if tags_found.empty? && post.entry.present? && post.entry.tag_list.any?
-          entry_tags = post.entry.tag_list.dup
-          entry_tags.delete('Instagram')
-
-          if entry_tags.any?
-            post.tag_list = entry_tags
-            post.save!
-            puts "\r[#{processed}/#{total}] ✅ #{post.shortcode} - Tagged with inherited tags: #{entry_tags.join(', ')}"
-            tagged += 1
-            next
-          end
-        end
-
-        # Apply found tags only if we have valid tags
-        if tags_found.any?
-          post.tag_list = tags_found
-          post.save!
-          puts "\r[#{processed}/#{total}] ✅ #{post.shortcode} - Tagged: #{tags_found.join(', ')}"
+        if result.success?
+          tags = result.data
+          puts "\r[#{processed}/#{total}] ✅ #{post.shortcode} - Tagged: #{tags.join(', ')}"
           tagged += 1
         else
-          # No tags found - skip this post (don't try to save empty list)
+          # No tags found
           no_tags_found += 1
         end
 

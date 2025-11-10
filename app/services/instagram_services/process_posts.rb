@@ -75,7 +75,7 @@ module InstagramServices
       # Link to Entry if matching URL is found
       link_to_entry(instagram_post)
       
-      # Tag the post immediately after saving
+      # Tag the post using ExtractTags service
       tag_post(instagram_post)
       
       instagram_post
@@ -114,35 +114,12 @@ module InstagramServices
     end
 
     def tag_post(instagram_post)
-      # Tag based on caption text matching against all tags
-      tags_found = []
+      # Use ExtractTags service for consistent tagging logic
+      result = InstagramServices::ExtractTags.call(instagram_post.id)
       
-      Tag.find_each do |tag|
-        # Check if tag name or variations appear in caption
-        tag_names = [tag.name, tag.variations].flatten.compact.map(&:downcase)
-        caption_lower = instagram_post.caption.to_s.downcase
-        
-        if tag_names.any? { |name| caption_lower.include?(name) }
-          tags_found << tag.name
-        end
-      end
-
-      # If no tags found through text matching, try to inherit from linked entry
-      if tags_found.empty? && instagram_post.entry.present? && instagram_post.entry.tag_list.any?
-        entry_tags = instagram_post.entry.tag_list.dup
-        entry_tags.delete('Instagram')
-        
-        instagram_post.tag_list = entry_tags
-        instagram_post.save!
-        Rails.logger.info("[InstagramServices::ProcessPosts] Tagged post #{instagram_post.shortcode} with inherited tags: #{entry_tags.join(', ')}")
-        return
-      end
-
-      if tags_found.any?
-        tags_found.delete('Instagram')
-        instagram_post.tag_list = tags_found
-        instagram_post.save!
-        Rails.logger.info("[InstagramServices::ProcessPosts] Tagged post #{instagram_post.shortcode} with tags: #{tags_found.join(', ')}")
+      if result.success?
+        tags = result.data
+        Rails.logger.info("[InstagramServices::ProcessPosts] Tagged post #{instagram_post.shortcode} with tags: #{tags.join(', ')}")
       else
         Rails.logger.debug("[InstagramServices::ProcessPosts] No tags found for post #{instagram_post.shortcode}")
       end
