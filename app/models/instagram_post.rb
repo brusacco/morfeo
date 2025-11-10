@@ -11,6 +11,9 @@ class InstagramPost < ApplicationRecord
   validates :instagram_profile, presence: true
   validates :posted_at, presence: true
 
+  # Callbacks
+  after_save :download_post_image, if: :should_download_image?
+
   # Scopes
   scope :recent, -> { order(posted_at: :desc) }
   scope :for_profile, lambda { |profile_username|
@@ -193,5 +196,92 @@ class InstagramPost < ApplicationRecord
     return 0 if instagram_profile.nil? || instagram_profile.followers.zero?
     
     ((total_interactions.to_f / instagram_profile.followers) * 100).round(2)
+  end
+
+  # Get local post image path (for serving from public directory)
+  # Format: /images/instagram/{uid}/{year}/{month}/{day}/{shortcode}.jpg
+  def local_post_image_path
+    return nil unless instagram_profile&.uid.present? && posted_at.present? && shortcode.present?
+    
+    year = posted_at.strftime('%Y')
+    month = posted_at.strftime('%m')
+    day = posted_at.strftime('%d')
+    
+    "/images/instagram/#{instagram_profile.uid}/#{year}/#{month}/#{day}/#{shortcode}.jpg"
+  end
+
+  # Check if local post image exists
+  def local_image_exists?
+    return false unless instagram_profile&.uid.present? && posted_at.present? && shortcode.present?
+    
+    year = posted_at.strftime('%Y')
+    month = posted_at.strftime('%m')
+    day = posted_at.strftime('%d')
+    
+    file_path = Rails.root.join('public', 'images', 'instagram', instagram_profile.uid, year, month, day, "#{shortcode}.jpg")
+    File.exist?(file_path)
+  end
+
+  # Get post image URL (local if available, otherwise construct Instagram media URL)
+  def post_image_url
+    if local_image_exists?
+      local_post_image_path
+    else
+      # Instagram media URL pattern (may not always work due to CORS)
+      "https://www.instagram.com/p/#{shortcode}/media/?size=l"
+    end
+  end
+
+  # Download post image from Instagram
+  # This is more complex as Instagram doesn't provide direct image URLs in our API
+  # We'll use a pattern to construct the media URL
+  # NOTE: Only downloads once - skips if image already exists (posts are immutable)
+  def download_post_image
+    return unless instagram_profile&.uid.present?
+    return unless posted_at.present?
+    return unless shortcode.present?
+
+    # Instagram media URL
+    image_url = "https://www.instagram.com/p/#{shortcode}/media/?size=l"
+    
+    # Create directory structure: public/images/instagram/{uid}/{year}/{month}/{day}/
+    year = posted_at.strftime('%Y')
+    month = posted_at.strftime('%m')
+    day = posted_at.strftime('%d')
+    
+    directory = Rails.root.join('public', 'images', 'instagram', instagram_profile.uid, year, month, day)
+    FileUtils.mkdir_p(directory) unless File.directory?(directory)
+    
+    # Download and save image
+    file_path = directory.join("#{shortcode}.jpg")
+    
+    # Skip if already exists (posts don't change, no need to re-download)
+    return if File.exist?(file_path)
+    
+    response = HTTParty.get(image_url, timeout: 30, follow_redirects: true)
+    
+    if response.success?
+      File.open(file_path, 'wb') do |file|
+        file.write(response.body)
+      end
+      Rails.logger.info "Successfully downloaded Instagram post image for #{shortcode} (@#{instagram_profile.username})"
+    else
+      Rails.logger.warn "Could not download Instagram post image for #{shortcode}: HTTP #{response.code}"
+    end
+  rescue StandardError => e
+    Rails.logger.error "Error downloading Instagram post image for #{shortcode}: #{e.message}"
+  end
+
+  private
+
+  # Determine if we should download the image
+  # Only download for new posts (not on updates)
+  def should_download_image?
+    return false unless instagram_profile&.uid.present?
+    return false unless posted_at.present?
+    return false unless shortcode.present?
+    
+    # Only download if this is a new record (just created)
+    saved_change_to_id?
   end
 end

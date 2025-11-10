@@ -41,9 +41,6 @@ namespace :instagram do
       end
 
       puts "  " + "-" * 76
-
-      # Sleep between profiles to avoid rate limiting
-      sleep(rand(2..5)) if processed < total_profiles
     end
 
     puts "\n" + "=" * 80
@@ -126,9 +123,6 @@ namespace :instagram do
       end
 
       puts "  " + "-" * 76
-
-      # Sleep between profiles to avoid rate limiting
-      sleep(rand(2..5)) if processed < total_profiles
     end
 
     puts "\n" + "=" * 80

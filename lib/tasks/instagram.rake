@@ -217,37 +217,196 @@ namespace :instagram do
     puts "=" * 50
   end
 
-  desc 'Clean up orphaned Instagram profile images'
+  desc 'Clean up orphaned Instagram images'
   task cleanup_images: :environment do
-    puts "Cleaning up orphaned Instagram profile images..."
+    puts "Cleaning up orphaned Instagram images..."
     
-    directory = Rails.root.join('public', 'images', 'instagram', 'profiles')
+    base_directory = Rails.root.join('public', 'images', 'instagram')
     
-    unless File.directory?(directory)
-      puts "Directory doesn't exist: #{directory}"
+    unless File.directory?(base_directory)
+      puts "Directory doesn't exist: #{base_directory}"
       exit 0
     end
     
     valid_uids = InstagramProfile.pluck(:uid).compact
-    image_files = Dir.glob(directory.join('*.jpg'))
+    deleted_profiles = 0
+    deleted_posts = 0
+    empty_dirs_removed = 0
     
-    deleted = 0
-    
-    image_files.each do |file_path|
-      filename = File.basename(file_path, '.jpg')
+    # Check each UID directory
+    Dir.glob(base_directory.join('*')).each do |uid_dir|
+      next unless File.directory?(uid_dir)
       
-      unless valid_uids.include?(filename)
-        File.delete(file_path)
-        puts "Deleted: #{filename}.jpg (no matching profile)"
-        deleted += 1
+      uid = File.basename(uid_dir)
+      
+      unless valid_uids.include?(uid)
+        FileUtils.rm_rf(uid_dir)
+        puts "Deleted directory: #{uid}/ (no matching profile)"
+        deleted_profiles += 1
+        next
+      end
+      
+      # Clean up post images for this profile
+      profile = InstagramProfile.find_by(uid: uid)
+      next unless profile
+      
+      valid_shortcodes = profile.instagram_posts.pluck(:shortcode).compact
+      
+      # Navigate through year/month/day structure
+      Dir.glob(File.join(uid_dir, '*')).each do |year_dir|
+        next unless File.directory?(year_dir)
+        next if File.basename(year_dir) == 'avatar.jpg' # Skip avatar file
+        
+        # Process each year directory
+        Dir.glob(File.join(year_dir, '*')).each do |month_dir|
+          next unless File.directory?(month_dir)
+          
+          # Process each month directory
+          Dir.glob(File.join(month_dir, '*')).each do |day_dir|
+            next unless File.directory?(day_dir)
+            
+            # Process each day directory
+            Dir.glob(File.join(day_dir, '*.jpg')).each do |image_path|
+              shortcode = File.basename(image_path, '.jpg')
+              
+              unless valid_shortcodes.include?(shortcode)
+                File.delete(image_path)
+                relative_path = "#{uid}/#{File.basename(year_dir)}/#{File.basename(month_dir)}/#{File.basename(day_dir)}/#{shortcode}.jpg"
+                puts "Deleted: #{relative_path} (no matching post)"
+                deleted_posts += 1
+              end
+            end
+            
+            # Remove empty day directories
+            if Dir.empty?(day_dir)
+              Dir.rmdir(day_dir)
+              empty_dirs_removed += 1
+            end
+          end
+          
+          # Remove empty month directories
+          if Dir.empty?(month_dir)
+            Dir.rmdir(month_dir)
+            empty_dirs_removed += 1
+          end
+        end
+        
+        # Remove empty year directories
+        if Dir.empty?(year_dir)
+          Dir.rmdir(year_dir)
+          empty_dirs_removed += 1
+        end
       end
     end
     
-    if deleted.zero?
+    if deleted_profiles.zero? && deleted_posts.zero?
       puts "✅ No orphaned images found"
     else
-      puts "\n✅ Cleaned up #{deleted} orphaned image(s)"
+      puts "\n✅ Cleanup complete:"
+      puts "   Profile directories deleted: #{deleted_profiles}"
+      puts "   Post images deleted: #{deleted_posts}"
+      puts "   Empty directories removed: #{empty_dirs_removed}" if empty_dirs_removed > 0
     end
+  end
+
+  desc 'Migrate Instagram post images to new directory structure (year/month/day)'
+  task migrate_post_images: :environment do
+    puts "=" * 80
+    puts "MIGRATING INSTAGRAM POST IMAGES TO NEW STRUCTURE"
+    puts "=" * 80
+    puts "From: /images/instagram/{uid}/{YYYY-MM-DD}/{shortcode}.jpg"
+    puts "To:   /images/instagram/{uid}/{YYYY}/{MM}/{DD}/{shortcode}.jpg"
+    puts "-" * 80
+    
+    base_directory = Rails.root.join('public', 'images', 'instagram')
+    
+    unless File.directory?(base_directory)
+      puts "❌ Directory doesn't exist: #{base_directory}"
+      exit 0
+    end
+    
+    migrated = 0
+    failed = 0
+    skipped = 0
+    
+    # Check each UID directory
+    Dir.glob(base_directory.join('*')).each do |uid_dir|
+      next unless File.directory?(uid_dir)
+      
+      uid = File.basename(uid_dir)
+      puts "\nProcessing profile: #{uid}"
+      
+      # Look for old date format directories (YYYY-MM-DD)
+      Dir.glob(File.join(uid_dir, '*')).each do |date_dir|
+        next unless File.directory?(date_dir)
+        
+        date_str = File.basename(date_dir)
+        
+        # Skip if not in YYYY-MM-DD format (e.g., skip "avatar.jpg" or year directories)
+        next unless date_str =~ /^\d{4}-\d{2}-\d{2}$/
+        
+        puts "  Found old format directory: #{date_str}"
+        
+        # Parse date
+        begin
+          date = Date.parse(date_str)
+          year = date.strftime('%Y')
+          month = date.strftime('%m')
+          day = date.strftime('%d')
+        rescue ArgumentError
+          puts "    ❌ Invalid date format: #{date_str}"
+          failed += 1
+          next
+        end
+        
+        # Process each image in this directory
+        Dir.glob(File.join(date_dir, '*.jpg')).each do |old_image_path|
+          shortcode = File.basename(old_image_path, '.jpg')
+          
+          # Create new directory structure
+          new_directory = Rails.root.join('public', 'images', 'instagram', uid, year, month, day)
+          FileUtils.mkdir_p(new_directory) unless File.directory?(new_directory)
+          
+          # New file path
+          new_image_path = new_directory.join("#{shortcode}.jpg")
+          
+          # Skip if already exists in new location
+          if File.exist?(new_image_path)
+            puts "    ⏭️  Skipped: #{shortcode}.jpg (already exists in new location)"
+            skipped += 1
+            next
+          end
+          
+          # Move file
+          begin
+            FileUtils.mv(old_image_path, new_image_path)
+            puts "    ✅ Migrated: #{shortcode}.jpg → #{year}/#{month}/#{day}/"
+            migrated += 1
+          rescue StandardError => e
+            puts "    ❌ Failed to migrate #{shortcode}.jpg: #{e.message}"
+            failed += 1
+          end
+        end
+        
+        # Remove old directory if empty
+        begin
+          if Dir.empty?(date_dir)
+            Dir.rmdir(date_dir)
+            puts "    🗑️  Removed empty directory: #{date_str}/"
+          end
+        rescue StandardError => e
+          puts "    ⚠️  Could not remove directory #{date_str}/: #{e.message}"
+        end
+      end
+    end
+    
+    puts "\n" + "=" * 80
+    puts "MIGRATION COMPLETED"
+    puts "=" * 80
+    puts "Images migrated: #{migrated}"
+    puts "Images skipped: #{skipped}"
+    puts "Failed: #{failed}"
+    puts "=" * 80
   end
 end
 

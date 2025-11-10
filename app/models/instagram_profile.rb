@@ -72,14 +72,14 @@ class InstagramProfile < ApplicationRecord
   def local_profile_image_path
     return nil unless uid.present?
     
-    "/images/instagram/profiles/#{uid}.jpg"
+    "/images/instagram/#{uid}/avatar.jpg"
   end
 
   # Check if local image exists
   def local_image_exists?
     return false unless uid.present?
     
-    File.exist?(Rails.root.join('public', 'images', 'instagram', 'profiles', "#{uid}.jpg"))
+    File.exist?(Rails.root.join('public', 'images', 'instagram', uid, 'avatar.jpg'))
   end
 
   # Get profile image URL (local if available, otherwise Instagram URL)
@@ -143,6 +143,7 @@ class InstagramProfile < ApplicationRecord
 
   # Downloads profile image from Instagram and saves locally
   # Avoids CORS issues by serving from local public directory
+  # NOTE: Always downloads and overwrites existing image (profile pictures can change)
   def download_profile_image
     return unless uid.present?
     return unless profile_pic_url_hd.present? || profile_pic_url.present?
@@ -150,11 +151,11 @@ class InstagramProfile < ApplicationRecord
     image_url = profile_pic_url_hd.presence || profile_pic_url
     
     # Create directory if it doesn't exist
-    directory = Rails.root.join('public', 'images', 'instagram', 'profiles')
+    directory = Rails.root.join('public', 'images', 'instagram', uid)
     FileUtils.mkdir_p(directory) unless File.directory?(directory)
     
-    # Download and save image
-    file_path = directory.join("#{uid}.jpg")
+    # Download and save image as avatar.jpg (overwrites if exists)
+    file_path = directory.join('avatar.jpg')
     
     response = HTTParty.get(image_url, timeout: 30)
     
