@@ -221,36 +221,10 @@
       </div>
     </section>
 
-    <!-- Profiles -->
-    <section id="profiles" class="space-y-6">
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h2 class="text-2xl font-bold text-gray-900 mb-6">Análisis por Perfiles</h2>
-        <% if @profiles_count.any? %>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h3 class="text-lg font-semibold text-gray-700 mb-4">Top Perfiles por Posts</h3>
-              <% @profiles_count.sort_by { |k, v| -v }.take(5).each do |profile_name, count| %>
-                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg mb-2">
-                  <span class="text-gray-700"><%= profile_name %></span>
-                  <span class="font-bold text-pink-600"><%= number_with_delimiter(count) %></span>
-                </div>
-              <% end %>
-            </div>
-            <div>
-              <h3 class="text-lg font-semibold text-gray-700 mb-4">Top Perfiles por Interacciones</h3>
-              <% @profiles_interactions.sort_by { |k, v| -v }.take(5).each do |profile_name, interactions| %>
-                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg mb-2">
-                  <span class="text-gray-700"><%= profile_name %></span>
-                  <span class="font-bold text-green-600"><%= number_with_delimiter(interactions) %></span>
-                </div>
-              <% end %>
-            </div>
-          </div>
-        <% else %>
-          <p class="text-gray-500 text-center py-8">No hay datos de perfiles disponibles.</p>
-        <% end %>
-      </div>
-    </section>
+    <!-- Profile Insights -->
+    <%= render 'instagram_topic/profile_insights', 
+          profiles_count: @profiles_count, 
+          profiles_interactions: @profiles_interactions %>
 
     <!-- Viral Content -->
     <% if @viral_content&.any? %>
@@ -288,6 +262,27 @@
         </div>
       </section>
     <% end %>
+
+    <!-- Word Analysis -->
+    <section class="space-y-6">
+      <%= render partial: "tag/word_cloud_modern", 
+                 locals: { 
+                   title: "Análisis de Palabras en Posts",
+                   icon: "fa-spell-check",
+                   icon_color: "text-green-600",
+                   word_data: @word_occurrences,
+                   description: "Análisis de frecuencia de palabras clave que aparecen en los posts de Instagram"
+                 } %>
+      
+      <%= render partial: "tag/word_cloud_modern", 
+                 locals: { 
+                   title: "Análisis de Bigramas en Posts",
+                   icon: "fa-comments",
+                   icon_color: "text-blue-600",
+                   word_data: @bigram_occurrences,
+                   description: "Análisis de pares de palabras consecutivas (bigramas) en los posts de Instagram"
+                 } %>
+    </section>
 
     <!-- Top Posts -->
     <section id="posts">

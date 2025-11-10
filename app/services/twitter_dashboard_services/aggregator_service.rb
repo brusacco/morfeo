@@ -139,13 +139,16 @@ module TwitterDashboardServices
     end
 
     def calculate_profiles_metrics(profiles_group)
-      profiles_count = profiles_group.transform_values(&:size)
-                                     .sort_by { |_, count| -count }
-                                     .to_h
+      # Transform to include profile object with metrics
+      profiles_count = profiles_group.map do |profile_name, posts|
+        profile = posts.first&.twitter_profile
+        { profile: profile, name: profile_name, count: posts.size }
+      end.sort_by { |data| -data[:count] }
 
-      profiles_interactions = profiles_group.transform_values { |posts| posts.sum(&:total_interactions) }
-                                            .sort_by { |_, value| -value }
-                                            .to_h
+      profiles_interactions = profiles_group.map do |profile_name, posts|
+        profile = posts.first&.twitter_profile
+        { profile: profile, name: profile_name, interactions: posts.sum(&:total_interactions) }
+      end.sort_by { |data| -data[:interactions] }
 
       {
         profiles_count: profiles_count,

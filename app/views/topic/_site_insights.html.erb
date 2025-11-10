@@ -1,0 +1,62 @@
+<!-- Sites -->
+<section id="sites-list" class="space-y-6 mb-8">
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6">
+      <i class="fa-solid fa-newspaper text-orange-600 mr-2"></i>
+      Los medios que más han mencionado este tópico
+    </h2>
+    <% if site_top_counts.any? %>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <h3 class="text-lg font-semibold text-gray-700 mb-4">Top Medios por Publicaciones</h3>
+          <% site_top_counts.take(5).each do |site_data| %>
+            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg mb-2 hover:bg-orange-50 transition-colors group">
+              <div class="flex items-center space-x-3 flex-1 min-w-0">
+                <% if site_data[:site]&.page&.picture.present? %>
+                  <%= image_tag site_data[:site].page.picture, class: 'h-10 w-10 flex-shrink-0 rounded-full bg-gray-300', alt: site_data[:name] %>
+                <% elsif site_data[:site]&.image64.present? %>
+                  <%= image_tag site_data[:site].image64, class: 'h-10 w-10 flex-shrink-0 rounded-full bg-gray-300', alt: site_data[:name] %>
+                <% else %>
+                  <img class="h-10 w-10 flex-shrink-0 rounded-full bg-gray-300" src="https://placehold.co/300x300" alt="">
+                <% end %>
+                <div class="flex-1 truncate">
+                  <h3 class="truncate text-sm font-medium text-gray-900"><%= site_data[:name] %></h3>
+                  <% if site_data[:site]&.url.present? %>
+                    <p class="truncate text-xs text-gray-500"><%= site_data[:site].url.gsub(/^https?:\/\/(www\.)?/, '') %></p>
+                  <% end %>
+                </div>
+              </div>
+              <span class="font-bold text-orange-600"><%= number_with_delimiter(site_data[:count]) %></span>
+            </div>
+          <% end %>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold text-gray-700 mb-4">Top Medios por Interacciones</h3>
+          <% site_top_interactions.take(5).each do |site_data| %>
+            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg mb-2 hover:bg-green-50 transition-colors group">
+              <div class="flex items-center space-x-3 flex-1 min-w-0">
+                <% if site_data[:site]&.page&.picture.present? %>
+                  <%= image_tag site_data[:site].page.picture, class: 'h-10 w-10 flex-shrink-0 rounded-full bg-gray-300', alt: site_data[:name] %>
+                <% elsif site_data[:site]&.image64.present? %>
+                  <%= image_tag site_data[:site].image64, class: 'h-10 w-10 flex-shrink-0 rounded-full bg-gray-300', alt: site_data[:name] %>
+                <% else %>
+                  <img class="h-10 w-10 flex-shrink-0 rounded-full bg-gray-300" src="https://placehold.co/300x300" alt="">
+                <% end %>
+                <div class="flex-1 truncate">
+                  <h3 class="truncate text-sm font-medium text-gray-900"><%= site_data[:name] %></h3>
+                  <% if site_data[:site]&.url.present? %>
+                    <p class="truncate text-xs text-gray-500"><%= site_data[:site].url.gsub(/^https?:\/\/(www\.)?/, '') %></p>
+                  <% end %>
+                </div>
+              </div>
+              <span class="font-bold text-green-600"><%= number_with_delimiter(site_data[:interactions]) %></span>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% else %>
+      <p class="text-gray-500 text-center py-8">No hay datos de medios disponibles.</p>
+    <% end %>
+  </div>
+</section>
+

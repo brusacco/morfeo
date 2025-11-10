@@ -266,17 +266,29 @@ module DigitalDashboardServices
 
       tags_count = tags.each_with_object({}) { |tag, hash| hash[tag.name] = tag.count }
 
-      # Convert site_counts (by name) to site_top_counts (by id) for view compatibility
-      # View expects { site_id => count } format
-      site_name_counts = topic_data[:site_counts].sort_by { |_, count| -count }.first(12).to_h
-      site_id_map = Site.where(name: site_name_counts.keys).pluck(:name, :id).to_h
-      site_top_counts = site_name_counts.transform_keys { |name| site_id_map[name] }.compact
+      # Convert site_counts to include site objects for avatar display
+      site_name_counts = topic_data[:site_counts].sort_by { |_, count| -count }.first(12)
+      site_name_interactions = topic_data[:site_sums].sort_by { |_, sum| -sum }.first(12)
+      
+      # Load Site objects with their data
+      site_names = (site_name_counts.map(&:first) + site_name_interactions.map(&:first)).uniq
+      sites_by_name = Site.where(name: site_names).index_by(&:name)
+      
+      # Build arrays with site objects
+      site_top_counts = site_name_counts.map do |site_name, count|
+        { site: sites_by_name[site_name], name: site_name, count: count }
+      end
+      
+      site_top_interactions = site_name_interactions.map do |site_name, interactions|
+        { site: sites_by_name[site_name], name: site_name, interactions: interactions }
+      end
 
       {
         tags: tags,
         tags_interactions: tags_interactions,
         tags_count: tags_count,
-        site_top_counts: site_top_counts
+        site_top_counts: site_top_counts,
+        site_top_interactions: site_top_interactions
       }
     end
 

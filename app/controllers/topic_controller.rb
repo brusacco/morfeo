@@ -277,6 +277,7 @@ class TopicController < ApplicationController
     @tags_interactions = data[:tags_interactions]
     @tags_count = data[:tags_count]
     @site_top_counts = data[:site_top_counts]
+    @site_top_interactions = data[:site_top_interactions]
   end
 
   def assign_temporal_intelligence(data)

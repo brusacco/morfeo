@@ -142,10 +142,10 @@
           <i class="fa-solid fa-tags mr-1 md:mr-2" aria-hidden="true"></i>
           <span class="hidden sm:inline">Etiquetas</span>
         </a>
-        <a href="#media"
+        <a href="#sites-list"
            data-turbo="false"
            class="px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1"
-           aria-label="Ir a distribución por medios">
+           aria-label="Ir a medios destacados">
           <i class="fa-solid fa-building mr-1 md:mr-2" aria-hidden="true"></i>
           <span class="hidden sm:inline">Medios</span>
         </a>
@@ -687,27 +687,10 @@
         </div>
       </div>
     </section>
-    <!-- Media Distribution Analysis Section -->
-    <section class="mb-8" id="media">
-      <h2 class="text-2xl font-bold text-gray-900 mb-6">
-        <i class="fa-solid fa-building text-orange-600 mr-2"></i>
-        Distribución por Medios
-      </h2>
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Cantidad de Notas por medio</h3>
-          <%= pie_chart @site_counts, donut: true %>
-        </div>
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Cantidad de Interacciones por medio</h3>
-          <%= pie_chart @site_sums, donut: true %>
-        </div>
-      </div>
-    </section>
-    <!-- Top Media Sources Section -->
-    <section class="mb-8">
-      <%= render partial: 'site/sites', locals: { sites: @site_top_counts, title: 'Los medios que mas han mencionado' } %>
-    </section>
+    <!-- Top Media Sources with Avatars -->
+    <%= render 'topic/site_insights', 
+          site_top_counts: @site_top_counts, 
+          site_top_interactions: @site_top_interactions %>
     <!-- Latest News Section -->
     <section id="entries">
       <%= render partial: 'entry/entries_table', locals: { entries: @entries, title: "Todas las publicaciones etiquetadas con #{@topic.name}" } %>

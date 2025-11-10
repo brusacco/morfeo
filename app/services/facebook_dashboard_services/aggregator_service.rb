@@ -140,13 +140,16 @@ module FacebookDashboardServices
     end
 
     def calculate_pages_metrics(pages_group)
-      pages_count = pages_group.transform_values(&:size)
-                               .sort_by { |_, count| -count }
-                               .to_h
+      # Transform to include page object with metrics
+      pages_count = pages_group.map do |page_name, posts|
+        page = posts.first&.page
+        { page: page, name: page_name, count: posts.size }
+      end.sort_by { |data| -data[:count] }
 
-      pages_interactions = pages_group.transform_values { |posts| posts.sum(&:total_interactions) }
-                                      .sort_by { |_, value| -value }
-                                      .to_h
+      pages_interactions = pages_group.map do |page_name, posts|
+        page = posts.first&.page
+        { page: page, name: page_name, interactions: posts.sum(&:total_interactions) }
+      end.sort_by { |data| -data[:interactions] }
 
       {
         pages_count: pages_count,
