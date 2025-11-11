@@ -6,7 +6,7 @@ module ProxyCrawlerServices
   class ProxyClient
     MAX_RETRIES = 3
     BASE_DELAY = 2 # seconds
-    REQUEST_TIMEOUT = 60 # seconds
+    REQUEST_TIMEOUT = 90 # seconds (increased for JS rendering)
     
     class ProxyRequestError < StandardError; end
     
@@ -69,8 +69,17 @@ module ProxyCrawlerServices
     end
     
     def build_api_url(target_url)
-      # Use HTTPS for security
-      "https://api.scrape.do?token=#{@api_token}&url=#{CGI.escape(target_url)}&render=True"
+      # Build API URL with proper rendering parameters
+      params = {
+        token: @api_token,
+        url: target_url,
+        render: 'true',                    # Enable JavaScript rendering
+        wait_for_timeout: '5000',          # Wait 5 seconds for JS to execute
+        wait_for_selector: 'body',         # Wait for body to load
+        block_resources: 'false'           # Load all resources (images, CSS, JS)
+      }
+      
+      "https://api.scrape.do?" + URI.encode_www_form(params)
     end
   end
 end
