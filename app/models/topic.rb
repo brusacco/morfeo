@@ -949,6 +949,237 @@ class Topic < ApplicationRecord
   end
 
   # ============================================
+  # INSTAGRAM TEMPORAL INTELLIGENCE METHODS
+  # ============================================
+
+  def instagram_peak_publishing_times_by_hour
+    Rails.cache.fetch("topic_#{id}_ig_peak_times_hour", expires_in: 30.minutes) do
+      tag_names = tags.pluck(:name)
+      return {} if tag_names.empty?
+
+      hourly_data = InstagramPost
+        .from(InstagramPost.table_name)
+        .where('instagram_posts.posted_at >= ?', DAYS_RANGE.days.ago)
+        .where('likes_count + comments_count > 0')
+        .tagged_with(tag_names, any: true)
+        .unscope(:select)
+        .group("HOUR(instagram_posts.posted_at)")
+        .select("HOUR(instagram_posts.posted_at) as hour, AVG(likes_count + comments_count) as avg_engagement, COUNT(*) as entry_count")
+
+      result = {}
+      hourly_data.each do |data|
+        hour = data.hour.to_i
+        result[hour] = {
+          avg_engagement: data.avg_engagement.to_f.round(2),
+          entry_count: data.entry_count
+        }
+      end
+      result
+    end
+  end
+
+  def instagram_peak_publishing_times_by_day
+    Rails.cache.fetch("topic_#{id}_ig_peak_times_day", expires_in: 30.minutes) do
+      tag_names = tags.pluck(:name)
+      return {} if tag_names.empty?
+
+      daily_data = InstagramPost
+        .from(InstagramPost.table_name)
+        .where('instagram_posts.posted_at >= ?', DAYS_RANGE.days.ago)
+        .where('likes_count + comments_count > 0')
+        .tagged_with(tag_names, any: true)
+        .unscope(:select)
+        .group("DAYOFWEEK(instagram_posts.posted_at)")
+        .select("DAYOFWEEK(instagram_posts.posted_at) as day, AVG(likes_count + comments_count) as avg_engagement, COUNT(*) as entry_count")
+
+      result = {}
+      day_names = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
+
+      daily_data.each do |data|
+        day_num = data.day.to_i - 1
+        result[day_names[day_num]] = {
+          avg_engagement: data.avg_engagement.to_f.round(2),
+          entry_count: data.entry_count,
+          day_number: day_num
+        }
+      end
+      result
+    end
+  end
+
+  def instagram_engagement_heatmap_data
+    Rails.cache.fetch("topic_#{id}_ig_engagement_heatmap", expires_in: 30.minutes) do
+      tag_names = tags.pluck(:name)
+      return [] if tag_names.empty?
+
+      heatmap_data = InstagramPost
+        .from(InstagramPost.table_name)
+        .where('instagram_posts.posted_at >= ?', DAYS_RANGE.days.ago)
+        .where('likes_count + comments_count > 0')
+        .tagged_with(tag_names, any: true)
+        .unscope(:select)
+        .group("DAYOFWEEK(instagram_posts.posted_at)", "HOUR(instagram_posts.posted_at)")
+        .select(
+          "DAYOFWEEK(instagram_posts.posted_at) as day",
+          "HOUR(instagram_posts.posted_at) as hour",
+          "AVG(likes_count + comments_count) as avg_engagement",
+          "COUNT(*) as entry_count"
+        )
+
+      result = []
+      day_names = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
+
+      heatmap_data.each do |data|
+        day_num = data.day.to_i - 1
+        hour_num = data.hour.to_i
+
+        result << {
+          day: day_names[day_num],
+          day_number: day_num,
+          hour: hour_num,
+          avg_engagement: data.avg_engagement.to_f.round(2),
+          entry_count: data.entry_count
+        }
+      end
+      result
+    end
+  end
+
+  def instagram_optimal_publishing_time
+    Rails.cache.fetch("topic_#{id}_ig_optimal_time", expires_in: 30.minutes) do
+      heatmap = instagram_engagement_heatmap_data
+      return nil if heatmap.empty?
+
+      best = heatmap.max_by { |d| d[:avg_engagement] }
+      {
+        day: best[:day],
+        hour: best[:hour],
+        avg_engagement: best[:avg_engagement],
+        recommendation: "#{best[:day]} a las #{best[:hour]}:00 hrs"
+      }
+    end
+  end
+
+  def instagram_trend_velocity
+    Rails.cache.fetch("topic_#{id}_ig_trend_velocity", expires_in: 30.minutes) do
+      tag_names = tags.pluck(:name)
+      return { velocity_percent: 0, direction: 'stable' } if tag_names.empty?
+
+      recent_count = InstagramPost
+        .where('instagram_posts.posted_at >= ?', 24.hours.ago)
+        .where('instagram_posts.posted_at <= ?', Time.current)
+        .tagged_with(tag_names, any: true)
+        .size
+
+      previous_count = InstagramPost
+        .where('instagram_posts.posted_at >= ?', 48.hours.ago)
+        .where('instagram_posts.posted_at < ?', 24.hours.ago)
+        .tagged_with(tag_names, any: true)
+        .size
+
+      return { velocity_percent: 0, direction: 'stable' } if previous_count.zero?
+
+      velocity = ((recent_count - previous_count).to_f / previous_count * 100).round(1)
+
+      {
+        velocity_percent: velocity,
+        recent_count: recent_count,
+        previous_count: previous_count,
+        trend: velocity > 10 ? 'creciendo' : (velocity < -10 ? 'decreciendo' : 'estable'),
+        direction: velocity > 0 ? 'up' : (velocity < 0 ? 'down' : 'stable')
+      }
+    end
+  end
+
+  def instagram_engagement_velocity
+    Rails.cache.fetch("topic_#{id}_ig_engagement_velocity", expires_in: 30.minutes) do
+      tag_names = tags.pluck(:name)
+      return { velocity_percent: 0, direction: 'stable' } if tag_names.empty?
+
+      recent_interactions = InstagramPost
+        .where('instagram_posts.posted_at >= ?', 24.hours.ago)
+        .where('instagram_posts.posted_at <= ?', Time.current)
+        .tagged_with(tag_names, any: true)
+        .sum('likes_count + comments_count')
+
+      previous_interactions = InstagramPost
+        .where('instagram_posts.posted_at >= ?', 48.hours.ago)
+        .where('instagram_posts.posted_at < ?', 24.hours.ago)
+        .tagged_with(tag_names, any: true)
+        .sum('likes_count + comments_count')
+
+      return { velocity_percent: 0, direction: 'stable' } if previous_interactions.zero?
+
+      velocity = ((recent_interactions - previous_interactions).to_f / previous_interactions * 100).round(1)
+
+      {
+        velocity_percent: velocity,
+        recent_interactions: recent_interactions,
+        previous_interactions: previous_interactions,
+        trend: velocity > 15 ? 'alto' : (velocity < -15 ? 'bajo' : 'moderado'),
+        direction: velocity > 0 ? 'up' : (velocity < 0 ? 'down' : 'stable')
+      }
+    end
+  end
+
+  def instagram_content_half_life
+    Rails.cache.fetch("topic_#{id}_ig_content_half_life", expires_in: 30.minutes) do
+      tag_names = tags.pluck(:name)
+      return nil if tag_names.empty?
+
+      recent_posts = InstagramPost
+        .where('instagram_posts.posted_at >= ?', 30.days.ago)
+        .where('likes_count + comments_count > 0')
+        .tagged_with(tag_names, any: true)
+        .order('instagram_posts.posted_at DESC')
+        .limit(100)
+
+      return nil if recent_posts.empty?
+
+      half_lives = []
+
+      recent_posts.each do |post|
+        age_in_hours = ((Time.current - post.posted_at) / 1.hour).to_i
+        next if age_in_hours < 24
+
+        total_interactions = post.likes_count + post.comments_count
+
+        # Instagram content typically has a longer half-life than Twitter
+        if total_interactions > 100
+          estimated_half_life = 48  # 2 days for high engagement
+        elsif total_interactions > 50
+          estimated_half_life = 36  # 1.5 days
+        elsif total_interactions > 20
+          estimated_half_life = 24  # 1 day
+        else
+          estimated_half_life = 18  # 18 hours
+        end
+
+        half_lives << estimated_half_life
+      end
+
+      return nil if half_lives.empty?
+
+      {
+        median_hours: median(half_lives),
+        average_hours: (half_lives.sum.to_f / half_lives.size).round(1),
+        sample_size: half_lives.size
+      }
+    end
+  end
+
+  def instagram_temporal_intelligence_summary
+    {
+      optimal_time: instagram_optimal_publishing_time,
+      trend_velocity: instagram_trend_velocity,
+      engagement_velocity: instagram_engagement_velocity,
+      content_half_life: instagram_content_half_life,
+      peak_hours: instagram_peak_publishing_times_by_hour.sort_by { |_, v| -v[:avg_engagement] }.first(3),
+      peak_days: instagram_peak_publishing_times_by_day.sort_by { |_, v| -v[:avg_engagement] }.first(3)
+    }
+  end
+
+  # ============================================
   # FACEBOOK SENTIMENT ANALYSIS METHODS
   # ============================================
 
