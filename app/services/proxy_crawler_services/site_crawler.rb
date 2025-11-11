@@ -53,16 +53,8 @@ module ProxyCrawlerServices
       puts "\n🌐 Fetching homepage via proxy..."
       Rails.logger.info("Fetching homepage: #{@site.url}")
 
-      # Use site's content_filter as waitSelector if available
-      # This ensures scrape.do waits for the main content element to appear
-      wait_selector = @site.content_filter.present? ? @site.content_filter : nil
-
-      if wait_selector.present?
-        Rails.logger.info("Using waitSelector: #{wait_selector}")
-        puts "   ⏳ Waiting for element: #{wait_selector}"
-      end
-
-      result = @proxy_client.fetch(@site.url, wait_selector: wait_selector)
+      # Homepage doesn't need waitSelector - content_filter is for article pages only
+      result = @proxy_client.fetch(@site.url, wait_selector: nil)
 
       if result.success?
         puts "✓ Homepage fetched (HTTP #{result.code}), Body size: #{result.body.size} bytes\n"

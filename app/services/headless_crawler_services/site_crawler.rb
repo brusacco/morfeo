@@ -49,7 +49,8 @@ module HeadlessCrawlerServices
     private
 
     def navigate_to_homepage
-      BrowserManager.navigate_to(@driver, @site.url, retries: MAX_RETRIES, site: @site)
+      # Homepage doesn't need content_filter - only article pages use waitSelector
+      BrowserManager.navigate_to(@driver, @site.url, retries: MAX_RETRIES, site: nil)
     rescue StandardError => e
       Rails.logger.error("Failed to navigate to #{@site.url}: #{e.message}")
       raise
