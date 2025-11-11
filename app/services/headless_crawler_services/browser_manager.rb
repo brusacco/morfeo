@@ -17,10 +17,23 @@ module HeadlessCrawlerServices
     end
 
     def call
+      Rails.logger.info("BrowserManager: Starting initialization")
       initialize_driver
-      yield @driver if block_given?
+      Rails.logger.info("BrowserManager: Driver initialized, yielding to block")
+      
+      if block_given?
+        yield @driver
+        Rails.logger.info("BrowserManager: Block execution completed")
+      else
+        Rails.logger.warn("BrowserManager: No block given!")
+      end
+      
       handle_success(driver: @driver)
     rescue StandardError => e
+      puts "\n❌ BrowserManager error: #{e.message}"
+      puts "Backtrace:"
+      puts e.backtrace.first(10).join("\n")
+      
       Rails.logger.error("BrowserManager error: #{e.message}")
       Rails.logger.error(e.backtrace.join("\n"))
       handle_error(e.message)

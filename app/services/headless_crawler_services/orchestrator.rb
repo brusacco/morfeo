@@ -64,12 +64,29 @@ module HeadlessCrawlerServices
     end
 
     def process_sites(sites)
+      puts "\n🌐 Initializing Chrome browser..."
+      Rails.logger.info("Initializing browser for #{sites.size} site(s)")
+      
       # Use browser manager with automatic cleanup
-      BrowserManager.call do |driver|
+      result = BrowserManager.call do |driver|
+        puts "✓ Browser ready\n"
+        Rails.logger.info("Browser initialized successfully")
+        
         sites.each_with_index do |site, index|
           process_single_site(site, driver, index + 1, sites.size)
         end
       end
+      
+      unless result.success?
+        puts "\n❌ Browser initialization failed: #{result.error}"
+        Rails.logger.error("Browser initialization failed: #{result.error}")
+      end
+    rescue StandardError => e
+      puts "\n❌ Error in process_sites: #{e.message}"
+      puts e.backtrace.first(5).join("\n")
+      Rails.logger.error("Error in process_sites: #{e.message}")
+      Rails.logger.error(e.backtrace.join("\n"))
+      raise
     end
 
     def process_single_site(site, driver, current, total)
