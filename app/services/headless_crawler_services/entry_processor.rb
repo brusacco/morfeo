@@ -3,18 +3,21 @@
 module HeadlessCrawlerServices
   # Processes individual article entries: extraction, creation, and enrichment
   class EntryProcessor < ApplicationService
-    def initialize(driver:, site:, url:)
+    def initialize(driver:, site:, url:, skip_exist_check: false)
       @driver = driver
       @site = site
       @url = url
+      @skip_exist_check = skip_exist_check
     end
 
     def call
-      # Check if entry already exists
-      existing_entry = Entry.find_by(url: @url)
-      if existing_entry
-        Rails.logger.info("Entry already exists: #{existing_entry.title}")
-        return handle_success(entry: existing_entry, created: false)
+      # Check if entry already exists (unless already checked in batch)
+      unless @skip_exist_check
+        existing_entry = Entry.find_by(url: @url)
+        if existing_entry
+          Rails.logger.info("Entry already exists: #{existing_entry.title}")
+          return handle_success(entry: existing_entry, created: false)
+        end
       end
 
       # Navigate to article page

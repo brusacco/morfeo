@@ -73,21 +73,48 @@ module HeadlessCrawlerServices
     end
 
     def process_articles(links)
-      links.each_with_index do |link, index|
-        process_single_article(link, index + 1, links.size)
+      # Batch check: Find which URLs already exist in DB (MUCH faster)
+      existing_urls = Entry.where(url: links).pluck(:url).to_set
+      new_links = links.reject { |link| existing_urls.include?(link) }
+      
+      puts "\n📊 Quick Analysis:"
+      puts "   Total links: #{links.size}"
+      puts "   Already in DB: #{existing_urls.size} (will skip)"
+      puts "   New to process: #{new_links.size}"
+      puts ""
+      
+      # Process only new links (skip existing ones)
+      if new_links.empty?
+        puts "✓ All articles already exist in database (nothing to process)"
+        @stats[:existing_entries] = links.size
+        return
+      end
+      
+      # Process new links
+      new_links.each_with_index do |link, index|
+        original_index = links.index(link) + 1
+        process_single_article(link, original_index, links.size, skip_exist_check: true)
         
         # Brief pause between articles to avoid rate limiting
-        sleep(1) if index < links.size - 1
+        sleep(1) if index < new_links.size - 1
       end
+      
+      # Update stats for skipped entries
+      @stats[:existing_entries] = existing_urls.size
     end
 
-    def process_single_article(link, current, total)
+    def process_single_article(link, current, total, skip_exist_check: false)
       puts "   [#{current}/#{total}] #{link[0..80]}..."
       
       Rails.logger.info("-" * 80)
       Rails.logger.info("Processing article #{current}/#{total}: #{link}")
       
-      result = EntryProcessor.call(driver: @driver, site: @site, url: link)
+      result = EntryProcessor.call(
+        driver: @driver, 
+        site: @site, 
+        url: link,
+        skip_exist_check: skip_exist_check
+      )
       
       if result.success?
         if result.created
