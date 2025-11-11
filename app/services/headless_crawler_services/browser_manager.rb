@@ -3,7 +3,7 @@
 module HeadlessCrawlerServices
   # Manages Selenium WebDriver lifecycle and configuration
   # Handles browser initialization, timeout configuration, and cleanup
-  # 
+  #
   # NOTE: This service uses a custom call pattern to support blocks
   class BrowserManager
     # Browser timeouts (in seconds)
@@ -17,7 +17,7 @@ module HeadlessCrawlerServices
     def initialize
       @driver = nil
     end
-    
+
     # Override self.call to support block passing
     def self.call(&block)
       new.call(&block)
@@ -27,20 +27,20 @@ module HeadlessCrawlerServices
       Rails.logger.info("BrowserManager: Starting initialization")
       initialize_driver
       Rails.logger.info("BrowserManager: Driver initialized, yielding to block")
-      
+
       if block
         block.call(@driver)
         Rails.logger.info("BrowserManager: Block execution completed")
       else
         Rails.logger.warn("BrowserManager: No block given!")
       end
-      
+
       OpenStruct.new(success?: true, driver: @driver)
     rescue StandardError => e
       puts "\n❌ BrowserManager error: #{e.message}"
       puts "Backtrace:"
       puts e.backtrace.first(10).join("\n")
-      
+
       Rails.logger.error("BrowserManager error: #{e.message}")
       Rails.logger.error(e.backtrace.join("\n"))
       OpenStruct.new(success?: false, error: e.message)
@@ -75,12 +75,12 @@ module HeadlessCrawlerServices
       options.add_argument('--disable-web-security')
       options.add_argument('--disable-features=IsolateOrigins,site-per-process')
       options.add_argument('--window-size=1920,1080')
-      
+
       # Anti-detection: Remove navigator.webdriver flag
       options.add_argument('--disable-blink-features=AutomationControlled')
       options.add_preference('excludeSwitches', ['enable-automation'])
       options.add_preference('useAutomationExtension', false)
-      
+
       # User agent to avoid detection (real Chrome on Windows)
       user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' \
                    '(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
@@ -92,13 +92,13 @@ module HeadlessCrawlerServices
     def configure_timeouts
       # Set page load timeout to prevent hanging
       @driver.manage.timeouts.page_load = PAGE_LOAD_TIMEOUT
-      
+
       # Set script timeout for JavaScript execution
       @driver.manage.timeouts.script_timeout = SCRIPT_TIMEOUT
-      
+
       # Set implicit wait for element finding
       @driver.manage.timeouts.implicit_wait = IMPLICIT_WAIT
-      
+
       # Remove webdriver property to avoid Cloudflare detection
       @driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
     rescue StandardError => e
@@ -123,16 +123,21 @@ module HeadlessCrawlerServices
         begin
           attempt += 1
           driver.navigate.to(url)
-          
+
           # Wait for page to stabilize
           sleep(STABILIZATION_WAIT)
-          
+
           # Check if Cloudflare challenge is present and wait if needed
           if wait_for_cloudflare && cloudflare_detected?(driver)
+            puts "\n🛡️  Cloudflare protection detected!"
             Rails.logger.info("Cloudflare challenge detected, waiting...")
-            wait_for_cloudflare_clearance(driver)
+
+            unless wait_for_cloudflare_clearance(driver)
+              puts "   ⚠️  WARNING: Could not bypass Cloudflare automatically"
+              puts "   Site may require manual whitelisting or may be in 'Under Attack' mode"
+            end
           end
-          
+
           true
         rescue Net::ReadTimeout, Selenium::WebDriver::Error::TimeoutError => e
           if attempt < retries
@@ -145,25 +150,39 @@ module HeadlessCrawlerServices
           end
         end
       end
-      
+
       private
-      
+
       def cloudflare_detected?(driver)
         # Check for common Cloudflare challenge indicators
         page_source = driver.page_source
-        page_source.include?('Checking your browser') || 
+        page_source.include?('Checking your browser') ||
         page_source.include?('cloudflare') ||
         page_source.include?('cf-browser-verification')
       rescue StandardError
         false
       end
-      
-      def wait_for_cloudflare_clearance(driver, max_wait: 10)
+
+      def wait_for_cloudflare_clearance(driver, max_wait: 30)
         # Wait up to max_wait seconds for Cloudflare to clear
-        max_wait.times do
+        puts "   ⏳ Waiting for Cloudflare (max #{max_wait}s)..."
+
+        max_wait.times do |i|
           sleep(1)
-          return true unless cloudflare_detected?(driver)
+
+          unless cloudflare_detected?(driver)
+            puts "   ✓ Cloudflare cleared after #{i + 1}s"
+            Rails.logger.info("Cloudflare cleared after #{i + 1}s")
+            return true
+          end
+
+          # Show progress every 5 seconds
+          if (i + 1) % 5 == 0
+            puts "   ... still waiting (#{i + 1}s elapsed)"
+          end
         end
+
+        puts "   ✗ Cloudflare challenge still present after #{max_wait}s"
         Rails.logger.warn("Cloudflare challenge still present after #{max_wait}s")
         false
       end
