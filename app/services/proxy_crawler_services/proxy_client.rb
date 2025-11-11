@@ -16,8 +16,10 @@ module ProxyCrawlerServices
     end
     
     # Fetch URL through proxy with retry logic
-    def fetch(url)
-      api_url = build_api_url(url)
+    # @param url [String] Target URL to fetch
+    # @param wait_selector [String, nil] Optional CSS selector to wait for (e.g., '.article-content')
+    def fetch(url, wait_selector: nil)
+      api_url = build_api_url(url, wait_selector: wait_selector)
       last_error = nil
       last_code = nil
       
@@ -93,15 +95,27 @@ module ProxyCrawlerServices
             "Scrape.do API token not found. Set SCRAPE_DO_API_TOKEN environment variable"
     end
     
-    def build_api_url(target_url)
-      # Build API URL with scrape.do's actual parameters
+    def build_api_url(target_url, wait_selector: nil)
+      # Build API URL with scrape.do's headless browser parameters
       # Documentation: https://www.scrape.do/docs/
+      #
+      # Headless Browser Configuration:
+      # - render=true: Use headless browser (Chromium) to render JavaScript
+      # - blockResources=false: Don't block resources (helps avoid blocks)
+      # - customWait=2000: Wait 2 seconds for page to load (customizable)
+      # - waitUntil=networkidle2: Wait until max 2 network connections
+      # - waitSelector: (optional) Wait for specific element to appear
       params = {
         token: @api_token,
         url: target_url,
-        render: 'true',                    # Enable JavaScript rendering with Chromium
-        waitUntil: 'networkidle2'          # Wait until max 2 network connections (good for JS-heavy sites)
+        render: 'true',                    # Use headless browser network
+        blockResources: 'false',          # Don't block resources (helps avoid blocks)
+        customWait: '2000',                # Wait 2 seconds for page to load
+        waitUntil: 'networkidle2'          # Wait until max 2 network connections
       }
+      
+      # Add waitSelector if provided (wait for specific element)
+      params[:waitSelector] = wait_selector if wait_selector.present?
       
       # waitUntil options:
       # - domcontentloaded: DOM parsed (fast, default)
