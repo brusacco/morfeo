@@ -18,32 +18,57 @@ module ProxyCrawlerServices
     # Fetch URL through proxy with retry logic
     def fetch(url)
       api_url = build_api_url(url)
+      last_error = nil
+      last_code = nil
+      
+      Rails.logger.info("ProxyClient: Starting fetch for #{url}")
+      Rails.logger.debug("ProxyClient: API URL: #{api_url.gsub(@api_token, 'TOKEN_HIDDEN')}")
       
       MAX_RETRIES.times do |attempt|
         begin
+          Rails.logger.info("ProxyClient: Attempt #{attempt + 1}/#{MAX_RETRIES}")
           response = HTTParty.get(api_url, timeout: REQUEST_TIMEOUT)
+          last_code = response.code
           
           if response.code == 200
-            Rails.logger.info("Proxy request successful: #{url}")
+            Rails.logger.info("ProxyClient: Success! Status #{response.code}, Body size: #{response.body.size} bytes")
             return OpenStruct.new(success?: true, body: response.body, code: response.code)
           end
           
-          Rails.logger.warn("Proxy request returned #{response.code} (attempt #{attempt + 1}/#{MAX_RETRIES})")
+          # Log non-200 responses with body preview
+          body_preview = response.body[0..200] rescue "N/A"
+          Rails.logger.warn("ProxyClient: Status #{response.code} (attempt #{attempt + 1}/#{MAX_RETRIES})")
+          Rails.logger.warn("ProxyClient: Response preview: #{body_preview}")
+          last_error = "HTTP #{response.code}: #{body_preview}"
           
           # Exponential backoff before retry
-          sleep(BASE_DELAY ** attempt) unless attempt == MAX_RETRIES - 1
+          sleep_time = BASE_DELAY ** attempt
+          Rails.logger.info("ProxyClient: Waiting #{sleep_time}s before retry...")
+          sleep(sleep_time) unless attempt == MAX_RETRIES - 1
+          
+        rescue Net::ReadTimeout => e
+          last_error = "Timeout after #{REQUEST_TIMEOUT}s: #{e.message}"
+          Rails.logger.error("ProxyClient: #{last_error} (attempt #{attempt + 1}/#{MAX_RETRIES})")
+          
+          sleep_time = BASE_DELAY ** attempt
+          sleep(sleep_time) unless attempt == MAX_RETRIES - 1
+          
         rescue StandardError => e
-          Rails.logger.error("Proxy request error (attempt #{attempt + 1}/#{MAX_RETRIES}): #{e.message}")
+          last_error = "#{e.class}: #{e.message}"
+          Rails.logger.error("ProxyClient: #{last_error} (attempt #{attempt + 1}/#{MAX_RETRIES})")
+          Rails.logger.error("ProxyClient: Backtrace: #{e.backtrace.first(3).join(', ')}")
           
           # Retry on network errors
-          sleep(BASE_DELAY ** attempt) unless attempt == MAX_RETRIES - 1
+          sleep_time = BASE_DELAY ** attempt
+          sleep(sleep_time) unless attempt == MAX_RETRIES - 1
         end
       end
       
       # All retries failed
-      error_msg = "Proxy request failed after #{MAX_RETRIES} attempts: #{url}"
-      Rails.logger.error(error_msg)
-      OpenStruct.new(success?: false, error: error_msg, code: nil)
+      error_msg = "Failed after #{MAX_RETRIES} attempts. Last error: #{last_error}"
+      error_msg += " (HTTP #{last_code})" if last_code
+      Rails.logger.error("ProxyClient: #{error_msg}")
+      OpenStruct.new(success?: false, error: error_msg, code: last_code)
     end
     
     private

@@ -25,7 +25,7 @@ module ProxyCrawlerServices
 
       # Fetch site homepage via proxy
       response = fetch_homepage
-      return handle_error("Failed to fetch homepage") unless response.success?
+      return handle_error("Failed to fetch homepage: #{response.error}") unless response.success?
 
       # Parse homepage
       doc = Nokogiri::HTML(response.body)
@@ -51,12 +51,16 @@ module ProxyCrawlerServices
 
     def fetch_homepage
       puts "\n🌐 Fetching homepage via proxy..."
+      Rails.logger.info("Fetching homepage: #{@site.url}")
+      
       result = @proxy_client.fetch(@site.url)
       
       if result.success?
-        puts "✓ Homepage fetched (HTTP #{result.code})\n"
+        puts "✓ Homepage fetched (HTTP #{result.code}), Body size: #{result.body.size} bytes\n"
+        Rails.logger.info("Homepage fetched successfully")
       else
-        puts "✗ Failed to fetch homepage\n"
+        puts "✗ Failed to fetch homepage: #{result.error}\n"
+        Rails.logger.error("Failed to fetch homepage: #{result.error}")
       end
       
       result
