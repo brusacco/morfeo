@@ -19,6 +19,9 @@ module HeadlessCrawlerServices
     end
 
     def call
+      puts "Processing site: #{@site.name} (#{@site.url}) [ID: #{@site.id}]"
+      puts "=" * 80
+      
       Rails.logger.info("=" * 80)
       Rails.logger.info("Processing site: #{@site.name} (#{@site.url}) [ID: #{@site.id}]")
       Rails.logger.info("=" * 80)
@@ -57,12 +60,14 @@ module HeadlessCrawlerServices
       
       unless result.success?
         Rails.logger.error("Link extraction failed: #{result.error}")
+        puts "❌ Link extraction failed: #{result.error}"
         return []
       end
 
       links = result.links
       @stats[:total_links] = links.size
       
+      puts "🔗 Found #{links.size} article link(s)"
       Rails.logger.info("Found #{links.size} article links")
       links
     end
@@ -77,6 +82,8 @@ module HeadlessCrawlerServices
     end
 
     def process_single_article(link, current, total)
+      puts "   [#{current}/#{total}] #{link[0..80]}..."
+      
       Rails.logger.info("-" * 80)
       Rails.logger.info("Processing article #{current}/#{total}: #{link}")
       
@@ -85,23 +92,47 @@ module HeadlessCrawlerServices
       if result.success?
         if result.created
           @stats[:new_entries] += 1
+          print " ✓"
           Rails.logger.info("✓ New entry created")
         else
           @stats[:existing_entries] += 1
+          print " ○"
           Rails.logger.info("○ Entry already exists")
         end
       else
         @stats[:failed_entries] += 1
         @stats[:errors] << { url: link, error: result.error }
+        print " ✗"
         Rails.logger.error("✗ Failed to process entry: #{result.error}")
       end
     rescue StandardError => e
       @stats[:failed_entries] += 1
       @stats[:errors] << { url: link, error: e.message }
+      print " ✗"
       Rails.logger.error("✗ Unexpected error: #{e.message}")
     end
 
     def log_summary
+      puts "\n"
+      puts "=" * 80
+      puts "SUMMARY for #{@site.name}"
+      puts "=" * 80
+      puts "Total links found:    #{@stats[:total_links]}"
+      puts "New entries created:  #{@stats[:new_entries]}"
+      puts "Existing entries:     #{@stats[:existing_entries]}"
+      puts "Failed entries:       #{@stats[:failed_entries]}"
+      
+      if @stats[:errors].any?
+        puts "\nERRORS:"
+        @stats[:errors].first(3).each do |error|
+          puts "  - #{error[:url][0..60]}... : #{error[:error]}"
+        end
+        puts "  ... and #{@stats[:errors].size - 3} more" if @stats[:errors].size > 3
+      end
+      
+      puts "=" * 80
+      
+      # Also log to Rails logger
       Rails.logger.info("")
       Rails.logger.info("=" * 80)
       Rails.logger.info("SUMMARY for #{@site.name}")

@@ -20,11 +20,24 @@ module HeadlessCrawlerServices
       sites = fetch_sites
       
       if sites.empty?
-        Rails.logger.warn("No sites found to process")
-        return ServiceResult.success(stats: @overall_stats)
+        message = "No JavaScript-enabled sites found to process"
+        Rails.logger.warn(message)
+        puts "\n⚠️  #{message}"
+        puts "\nTo enable sites for headless crawling:"
+        puts "  1. Go to ActiveAdmin"
+        puts "  2. Edit a Site"
+        puts "  3. Check 'Is JS' checkbox"
+        puts "  4. Save and run again"
+        return handle_success(stats: @overall_stats, message: message)
       end
 
       Rails.logger.info("Starting headless crawler for #{sites.size} site(s)")
+      puts "\n📋 Found #{sites.size} site(s) to process:"
+      sites.each_with_index do |site, index|
+        puts "   #{index + 1}. #{site.name} (ID: #{site.id})"
+      end
+      puts ""
+      
       start_time = Time.current
 
       # Process sites with browser management
@@ -60,11 +73,15 @@ module HeadlessCrawlerServices
     end
 
     def process_single_site(site, driver, current, total)
-      Rails.logger.info("")
-      Rails.logger.info("╔" + "═" * 78 + "╗")
-      Rails.logger.info("║ SITE #{current}/#{total}: #{site.name.center(70)} ║")
-      Rails.logger.info("╚" + "═" * 78 + "╝")
-      Rails.logger.info("")
+      puts ""
+      puts "╔" + "═" * 78 + "╗"
+      puts "║ SITE #{current}/#{total}: #{site.name.center(70)} ║"
+      puts "╚" + "═" * 78 + "╝"
+      puts ""
+      
+      Rails.logger.info("=" * 80)
+      Rails.logger.info("SITE #{current}/#{total}: #{site.name}")
+      Rails.logger.info("=" * 80)
 
       result = SiteCrawler.call(site: site, driver: driver)
 
@@ -94,17 +111,29 @@ module HeadlessCrawlerServices
     def log_overall_summary(start_time)
       duration = Time.current - start_time
       
-      Rails.logger.info("")
-      Rails.logger.info("╔" + "═" * 78 + "╗")
-      Rails.logger.info("║" + " OVERALL SUMMARY ".center(78) + "║")
-      Rails.logger.info("╠" + "═" * 78 + "╣")
-      Rails.logger.info("║ Duration:             #{format_duration(duration).ljust(58)} ║")
-      Rails.logger.info("║ Sites processed:      #{@overall_stats[:sites_processed].to_s.ljust(58)} ║")
-      Rails.logger.info("║ Sites failed:         #{@overall_stats[:sites_failed].to_s.ljust(58)} ║")
-      Rails.logger.info("║ Total new entries:    #{@overall_stats[:total_new_entries].to_s.ljust(58)} ║")
-      Rails.logger.info("║ Total existing:       #{@overall_stats[:total_existing_entries].to_s.ljust(58)} ║")
-      Rails.logger.info("║ Total failed:         #{@overall_stats[:total_failed_entries].to_s.ljust(58)} ║")
-      Rails.logger.info("╚" + "═" * 78 + "╝")
+      puts ""
+      puts "╔" + "═" * 78 + "╗"
+      puts "║" + " OVERALL SUMMARY ".center(78) + "║"
+      puts "╠" + "═" * 78 + "╣"
+      puts "║ Duration:             #{format_duration(duration).ljust(58)} ║"
+      puts "║ Sites processed:      #{@overall_stats[:sites_processed].to_s.ljust(58)} ║"
+      puts "║ Sites failed:         #{@overall_stats[:sites_failed].to_s.ljust(58)} ║"
+      puts "║ Total new entries:    #{@overall_stats[:total_new_entries].to_s.ljust(58)} ║"
+      puts "║ Total existing:       #{@overall_stats[:total_existing_entries].to_s.ljust(58)} ║"
+      puts "║ Total failed:         #{@overall_stats[:total_failed_entries].to_s.ljust(58)} ║"
+      puts "╚" + "═" * 78 + "╝"
+      
+      # Also log to Rails logger
+      Rails.logger.info("=" * 80)
+      Rails.logger.info("OVERALL SUMMARY")
+      Rails.logger.info("=" * 80)
+      Rails.logger.info("Duration:          #{format_duration(duration)}")
+      Rails.logger.info("Sites processed:   #{@overall_stats[:sites_processed]}")
+      Rails.logger.info("Sites failed:      #{@overall_stats[:sites_failed]}")
+      Rails.logger.info("Total new entries: #{@overall_stats[:total_new_entries]}")
+      Rails.logger.info("Total existing:    #{@overall_stats[:total_existing_entries]}")
+      Rails.logger.info("Total failed:      #{@overall_stats[:total_failed_entries]}")
+      Rails.logger.info("=" * 80)
     end
 
     def format_duration(seconds)
