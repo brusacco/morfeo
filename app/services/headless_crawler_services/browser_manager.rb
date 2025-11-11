@@ -3,7 +3,9 @@
 module HeadlessCrawlerServices
   # Manages Selenium WebDriver lifecycle and configuration
   # Handles browser initialization, timeout configuration, and cleanup
-  class BrowserManager < ApplicationService
+  # 
+  # NOTE: This service uses a custom call pattern to support blocks
+  class BrowserManager
     # Browser timeouts (in seconds)
     PAGE_LOAD_TIMEOUT = 30
     SCRIPT_TIMEOUT = 30
@@ -15,20 +17,25 @@ module HeadlessCrawlerServices
     def initialize
       @driver = nil
     end
+    
+    # Override self.call to support block passing
+    def self.call(&block)
+      new.call(&block)
+    end
 
-    def call
+    def call(&block)
       Rails.logger.info("BrowserManager: Starting initialization")
       initialize_driver
       Rails.logger.info("BrowserManager: Driver initialized, yielding to block")
       
-      if block_given?
-        yield @driver
+      if block
+        block.call(@driver)
         Rails.logger.info("BrowserManager: Block execution completed")
       else
         Rails.logger.warn("BrowserManager: No block given!")
       end
       
-      handle_success(driver: @driver)
+      OpenStruct.new(success?: true, driver: @driver)
     rescue StandardError => e
       puts "\n❌ BrowserManager error: #{e.message}"
       puts "Backtrace:"
@@ -36,7 +43,7 @@ module HeadlessCrawlerServices
       
       Rails.logger.error("BrowserManager error: #{e.message}")
       Rails.logger.error(e.backtrace.join("\n"))
-      handle_error(e.message)
+      OpenStruct.new(success?: false, error: e.message)
     ensure
       cleanup_driver
     end
