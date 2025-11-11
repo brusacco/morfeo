@@ -19,11 +19,11 @@ module HeadlessCrawlerServices
     def call
       initialize_driver
       yield @driver if block_given?
-      ServiceResult.success(driver: @driver)
+      handle_success(driver: @driver)
     rescue StandardError => e
       Rails.logger.error("BrowserManager error: #{e.message}")
       Rails.logger.error(e.backtrace.join("\n"))
-      ServiceResult.failure(error: e.message)
+      handle_error(e.message)
     ensure
       cleanup_driver
     end

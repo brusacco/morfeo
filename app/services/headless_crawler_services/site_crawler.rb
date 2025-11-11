@@ -28,7 +28,7 @@ module HeadlessCrawlerServices
 
       # Extract article links
       links = extract_article_links
-      return ServiceResult.failure(error: "No links found") if links.empty?
+      return handle_error("No links found") if links.empty?
 
       # Process each article
       process_articles(links)
@@ -36,11 +36,11 @@ module HeadlessCrawlerServices
       # Log summary
       log_summary
 
-      ServiceResult.success(stats: @stats)
+      handle_success(stats: @stats)
     rescue StandardError => e
       Rails.logger.error("SiteCrawler failed for #{@site.name}: #{e.message}")
       Rails.logger.error(e.backtrace.first(10).join("\n"))
-      ServiceResult.failure(error: e.message, stats: @stats)
+      handle_error(e.message)
     end
 
     private

@@ -33,11 +33,11 @@ module HeadlessCrawlerServices
       # Log overall summary
       log_overall_summary(start_time)
 
-      ServiceResult.success(stats: @overall_stats)
+      handle_success(stats: @overall_stats)
     rescue StandardError => e
       Rails.logger.error("Orchestrator failed: #{e.message}")
       Rails.logger.error(e.backtrace.first(10).join("\n"))
-      ServiceResult.failure(error: e.message, stats: @overall_stats)
+      handle_error(e.message)
     end
 
     private

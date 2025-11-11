@@ -14,7 +14,7 @@ module HeadlessCrawlerServices
       existing_entry = Entry.find_by(url: @url)
       if existing_entry
         Rails.logger.info("Entry already exists: #{existing_entry.title}")
-        return ServiceResult.success(entry: existing_entry, created: false)
+        return handle_success(entry: existing_entry, created: false)
       end
 
       # Navigate to article page
@@ -28,11 +28,11 @@ module HeadlessCrawlerServices
       enrich_entry(entry, doc)
 
       Rails.logger.info("Successfully processed: #{entry.title}")
-      ServiceResult.success(entry: entry, created: true)
+      handle_success(entry: entry, created: true)
     rescue StandardError => e
       Rails.logger.error("EntryProcessor error for #{@url}: #{e.message}")
       Rails.logger.error(e.backtrace.first(5).join("\n"))
-      ServiceResult.failure(error: e.message, url: @url)
+      handle_error(e.message)
     end
 
     private

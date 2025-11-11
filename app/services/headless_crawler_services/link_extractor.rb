@@ -14,10 +14,10 @@ module HeadlessCrawlerServices
       
       Rails.logger.info("Extracted #{filtered_links.size} valid links from #{@site.name}")
       
-      ServiceResult.success(links: filtered_links)
+      handle_success(links: filtered_links)
     rescue StandardError => e
       Rails.logger.error("LinkExtractor error for #{@site.name}: #{e.message}")
-      ServiceResult.failure(error: e.message)
+      handle_error(e.message)
     end
 
     private
