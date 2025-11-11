@@ -20,6 +20,22 @@ namespace :crawler do
     end
   end
 
+  desc 'Scrape using Chrome Headless WITH scrape.do proxy (bypasses Cloudflare)'
+  task headless_proxy: :environment do
+    puts "\n🚀 Starting Headless Crawler with Proxy..."
+    puts "=" * 80
+
+    result = HeadlessCrawlerServices::Orchestrator.call(use_proxy: true)
+
+    if result.success?
+      puts "\n✅ Crawler completed successfully!"
+      exit 0
+    else
+      puts "\n❌ Crawler failed: #{result.error}"
+      exit 1
+    end
+  end
+
   desc 'Scrape specific site(s) by ID - Usage: rake crawler:headless:site[1,2,3]'
   task :site, [:site_ids] => :environment do |_t, args|
     site_ids = args[:site_ids].to_s.split(',').map { |id| Integer(id, 10) }
@@ -45,7 +61,32 @@ namespace :crawler do
     end
   end
 
-  desc 'Test crawler with first N sites - Usage: rake crawler:headless:test[5]'
+  desc 'Scrape specific site(s) WITH proxy - Usage: rake crawler:site_proxy[1,2,3]'
+  task :site_proxy, [:site_ids] => :environment do |_t, args|
+    site_ids = args[:site_ids].to_s.split(',').map { |id| Integer(id, 10) }
+
+    if site_ids.empty?
+      puts "❌ Please provide at least one site ID"
+      puts "Usage: rake crawler:site_proxy[1,2,3]"
+      exit 1
+    end
+
+    puts "\n🚀 Starting Headless Crawler with Proxy for specific sites..."
+    puts "Sites: #{site_ids.join(', ')}"
+    puts "=" * 80
+
+    result = HeadlessCrawlerServices::Orchestrator.call(site_ids: site_ids, use_proxy: true)
+
+    if result.success?
+      puts "\n✅ Crawler completed successfully!"
+      exit 0
+    else
+      puts "\n❌ Crawler failed: #{result.error}"
+      exit 1
+    end
+  end
+
+  desc 'Test crawler with first N sites - Usage: rake crawler:test[5]'
   task :test, [:limit] => :environment do |_t, args|
     limit = args[:limit] ? Integer(args[:limit], 10) : 1
 
@@ -53,6 +94,24 @@ namespace :crawler do
     puts "=" * 80
 
     result = HeadlessCrawlerServices::Orchestrator.call(limit: limit)
+
+    if result.success?
+      puts "\n✅ Test completed successfully!"
+      exit 0
+    else
+      puts "\n❌ Test failed: #{result.error}"
+      exit 1
+    end
+  end
+
+  desc 'Test crawler WITH proxy - Usage: rake crawler:test_proxy[5]'
+  task :test_proxy, [:limit] => :environment do |_t, args|
+    limit = args[:limit] ? Integer(args[:limit], 10) : 1
+
+    puts "\n🧪 Testing Headless Crawler with Proxy on #{limit} site(s)..."
+    puts "=" * 80
+
+    result = HeadlessCrawlerServices::Orchestrator.call(limit: limit, use_proxy: true)
 
     if result.success?
       puts "\n✅ Test completed successfully!"

@@ -14,13 +14,17 @@ module HeadlessCrawlerServices
     # Page stabilization wait (in seconds)
     STABILIZATION_WAIT = 3
 
-    def initialize
+    # Scrape.do proxy configuration
+    PROXY_SERVER = 'proxy.scrape.do:8080'
+
+    def initialize(use_proxy: false)
       @driver = nil
+      @use_proxy = use_proxy
     end
 
     # Override self.call to support block passing
-    def self.call(&block)
-      new.call(&block)
+    def self.call(use_proxy: false, &block)
+      new(use_proxy: use_proxy).call(&block)
     end
 
     def call(&block)
@@ -52,9 +56,17 @@ module HeadlessCrawlerServices
 
     def initialize_driver
       options = build_chrome_options
+      
+      # Add proxy configuration if enabled
+      if @use_proxy
+        configure_proxy(options)
+      end
+      
       @driver = Selenium::WebDriver.for(:chrome, options: options)
       configure_timeouts
-      Rails.logger.info("Chrome driver initialized successfully")
+      
+      proxy_status = @use_proxy ? " with scrape.do proxy" : ""
+      Rails.logger.info("Chrome driver initialized successfully#{proxy_status}")
     end
 
     def build_chrome_options
@@ -87,6 +99,31 @@ module HeadlessCrawlerServices
       options.add_argument("--user-agent=#{user_agent}")
 
       options
+    end
+
+    def configure_proxy(options)
+      token = ENV['SCRAPE_DO_API_TOKEN']
+      
+      unless token.present?
+        Rails.logger.warn("SCRAPE_DO_API_TOKEN not found, proxy disabled")
+        puts "⚠️  Warning: SCRAPE_DO_API_TOKEN not set, running without proxy"
+        @use_proxy = false
+        return
+      end
+
+      # Configure proxy using scrape.do
+      proxy = Selenium::WebDriver::Proxy.new(
+        http: "http://#{token}:@#{PROXY_SERVER}",
+        ssl: "http://#{token}:@#{PROXY_SERVER}"
+      )
+      
+      options.proxy = proxy
+      Rails.logger.info("Proxy configured: #{PROXY_SERVER}")
+      puts "🌐 Using scrape.do proxy (#{PROXY_SERVER})"
+    rescue StandardError => e
+      Rails.logger.error("Failed to configure proxy: #{e.message}")
+      puts "❌ Failed to configure proxy: #{e.message}"
+      @use_proxy = false
     end
 
     def configure_timeouts

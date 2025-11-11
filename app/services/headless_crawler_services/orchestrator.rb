@@ -4,9 +4,10 @@ module HeadlessCrawlerServices
   # Main orchestrator for headless crawler
   # Manages browser lifecycle and coordinates site crawling
   class Orchestrator < ApplicationService
-    def initialize(site_ids: nil, limit: nil)
+    def initialize(site_ids: nil, limit: nil, use_proxy: false)
       @site_ids = site_ids
       @limit = limit
+      @use_proxy = use_proxy
       @overall_stats = {
         sites_processed: 0,
         sites_failed: 0,
@@ -64,14 +65,15 @@ module HeadlessCrawlerServices
     end
 
     def process_sites(sites)
-      puts "\n🌐 Initializing Chrome browser..."
-      Rails.logger.info("Initializing browser for #{sites.size} site(s)")
-      
+      proxy_msg = @use_proxy ? " with scrape.do proxy" : ""
+      puts "\n🌐 Initializing Chrome browser#{proxy_msg}..."
+      Rails.logger.info("Initializing browser for #{sites.size} site(s), use_proxy: #{@use_proxy}")
+
       # Use browser manager with automatic cleanup
-      result = BrowserManager.call do |driver|
+      result = BrowserManager.call(use_proxy: @use_proxy) do |driver|
         puts "✓ Browser ready\n"
         Rails.logger.info("Browser initialized successfully")
-        
+
         sites.each_with_index do |site, index|
           process_single_site(site, driver, index + 1, sites.size)
         end
