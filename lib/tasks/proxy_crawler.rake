@@ -1,121 +1,66 @@
 # frozen_string_literal: true
 
-desc 'Moopio Morfeo proxy web crawler'
-task proxy_crawler: :environment do
-  Site.enabled.where(is_js: true).find_each do |site|
-    puts "Start processing site #{site.name}..."
-    puts '--------------------------------------------------------------------'
+namespace :crawler do
+  desc 'Scrape JavaScript-rendered news sites using scrape.do proxy service'
+  task proxy: :environment do
+    puts "\n🚀 Starting Proxy Crawler..."
+    puts "=" * 80
 
-    response = proxy_request(site.url)
-    puts response.code
-    puts '--------------------------------------------------------------------'
+    result = ProxyCrawlerServices::Orchestrator.call
 
-    doc = Nokogiri::HTML(response.body)
-    # Process the document as needed
-    links = get_links(doc, site)
-    puts '--------------------------------------------------------------------'
+    if result.success?
+      puts "\n✅ Crawler completed successfully!"
+      exit 0
+    else
+      puts "\n❌ Crawler failed: #{result.error}"
+      exit 1
+    end
+  end
 
-    links.each do |link|
-      # puts link
-      check_entry = Entry.find_by(url: link)
-      if check_entry
-        puts 'NOTICIA YA EXISTE'
-        puts check_entry.title
-        puts check_entry.url
-        puts '------------------------------------------------------'
-      else
-        content = proxy_request(link).body
-        doc = Nokogiri::HTML(content)
+  desc 'Scrape specific site(s) by ID using proxy - Usage: rake crawler:proxy:site[1,2,3]'
+  task :proxy_site, [:site_ids] => :environment do |_t, args|
+    site_ids = args[:site_ids].to_s.split(',').map { |id| Integer(id, 10) }
 
-        Entry.create_with(site: site).find_or_create_by!(url: link) do |entry|
-          puts entry.url
+    if site_ids.empty?
+      puts "❌ Please provide at least one site ID"
+      puts "Usage: rake crawler:proxy:site[1,2,3]"
+      exit 1
+    end
 
-          #---------------------------------------------------------------------------
-          # Basic data extractor
-          #---------------------------------------------------------------------------
-          result = WebExtractorServices::ExtractBasicInfo.call(doc)
-          if result.success?
-            entry.update!(result.data)
-          else
-            puts "ERROR BASIC: #{result.error}"
-          end
+    puts "\n🚀 Starting Proxy Crawler for specific sites..."
+    puts "Sites: #{site_ids.join(', ')}"
+    puts "=" * 80
 
-          #---------------------------------------------------------------------------
-          # Content extractor
-          #---------------------------------------------------------------------------
-          if entry.site.content_filter.present?
-            result = WebExtractorServices::ExtractContent.call(doc, entry.site.content_filter)
-            if result.success?
-              entry.update!(result.data)
-            else
-              puts "ERROR CONTENT: #{result&.error}"
-            end
-          end
+    result = ProxyCrawlerServices::Orchestrator.call(site_ids: site_ids)
 
-          #---------------------------------------------------------------------------
-          # Date extractor
-          #---------------------------------------------------------------------------
-          result = WebExtractorServices::ExtractDate.call(doc)
-          if result.success?
-            entry.update!(result.data)
-            puts result.data
-          else
-            puts "ERROR DATE: #{result&.error}"
-            next
-          end
+    if result.success?
+      puts "\n✅ Crawler completed successfully!"
+      exit 0
+    else
+      puts "\n❌ Crawler failed: #{result.error}"
+      exit 1
+    end
+  end
 
-          #---------------------------------------------------------------------------
-          # Tagger
-          #---------------------------------------------------------------------------
-          result = WebExtractorServices::ExtractTags.call(entry.id)
-          if result.success?
-            entry.tag_list.add(result.data)
-            entry.save!
-            puts result.data
-          else
-            puts "ERROR TAGGER: #{result&.error}"
-          end
+  desc 'Test proxy crawler with first N sites - Usage: rake crawler:proxy:test[5]'
+  task :proxy_test, [:limit] => :environment do |_t, args|
+    limit = args[:limit] ? Integer(args[:limit], 10) : 1
 
-          #---------------------------------------------------------------------------
-          # Stats extractor
-          #---------------------------------------------------------------------------
-          # result = FacebookServices::UpdateStats.call(entry.id)
-          # if result.success?
-          #   entry.update!(result.data)
-          #   puts result.data
-          # else
-          #   puts "ERROR STATS: #{result&.error}"
-          # end
+    puts "\n🧪 Testing Proxy Crawler with #{limit} site(s)..."
+    puts "=" * 80
 
-          #---------------------------------------------------------------------------
-          # Set entry polarity
-          #---------------------------------------------------------------------------
-          entry.set_polarity if entry.belongs_to_any_topic?
-        end
-        puts '----------------------------------------------------'
-      end
+    result = ProxyCrawlerServices::Orchestrator.call(limit: limit)
+
+    if result.success?
+      puts "\n✅ Test completed successfully!"
+      exit 0
+    else
+      puts "\n❌ Test failed: #{result.error}"
+      exit 1
     end
   end
 end
 
-def get_links(doc, site)
-  links = []
-  doc.css('a').each do |link|
-    links.push link.attribute('href').to_s if link.attribute('href').to_s.match(/#{site.filter}/)
-  end
-  links.uniq!
-  links
-end
-
-def proxy_request(url)
-  url = "http://api.scrape.do?token=ed138ed418924138923ced2b81e04d53&url=#{CGI.escape(url)}&render=True"
-  attempts = 0
-  response = nil
-  loop do
-    response = HTTParty.get(url, timeout: 60)
-    break if response.code == 200 || attempts >= 3
-
-    attempts += 1
-  end
-  response
-end
+# Backward compatibility: keep old task name pointing to new implementation
+desc 'Scrape JavaScript-rendered news sites using proxy (alias for crawler:proxy)'
+task proxy_crawler: 'crawler:proxy'
