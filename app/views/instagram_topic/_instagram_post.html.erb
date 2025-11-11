@@ -3,11 +3,11 @@
     <% if instagram_post.display_image_url.present? %>
       <%= image_tag instagram_post.display_image_url, 
         loading: 'lazy', 
-        onerror: "this.onerror=null;this.src='#{instagram_post.instagram_profile&.avatar_image_url || asset_path('default-avatar.png')}';", 
+        onerror: "this.onerror=null;this.src='#{instagram_post.instagram_profile&.profile_image_url || asset_path('default-avatar.png')}';", 
         class: 'h-full w-full object-cover object-center group-hover:opacity-90 transition-opacity',
         alt: "Instagram post: #{instagram_post.caption.to_s.truncate(50)}" %>
-    <% elsif instagram_post.instagram_profile&.avatar_image_url.present? %>
-      <%= image_tag instagram_post.instagram_profile.avatar_image_url, 
+    <% elsif instagram_post.instagram_profile&.profile_image_url.present? %>
+      <%= image_tag instagram_post.instagram_profile.profile_image_url, 
         loading: 'lazy', 
         onerror: "this.onerror=null;this.src='#{asset_path('default-avatar.png')}';", 
         class: 'h-full w-full object-cover object-center group-hover:opacity-90 transition-opacity',

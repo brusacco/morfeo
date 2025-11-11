@@ -626,16 +626,16 @@
                   </div>
 
                   <%# Avatar %>
-                  <% if profile&.picture.present? %>
-                    <img src="<%= profile.picture %>"
+                  <% if profile&.profile_image_url.present? %>
+                    <img src="<%= profile.profile_image_url %>"
                          style="flex: 0 0 auto; width: 28pt; height: 28pt; border-radius: 50%; object-fit: cover; border: 1.5pt solid #e5e7eb;"
                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                    <div style="display: none; flex: 0 0 auto; width: 28pt; height: 28pt; border-radius: 50%; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); align-items: center; justify-content: center; font-size: 14pt; border: 1.5pt solid #93c5fd;">
-                      🐦
+                    <div style="display: none; flex: 0 0 auto; width: 28pt; height: 28pt; border-radius: 50%; background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%); align-items: center; justify-content: center; font-size: 14pt; border: 1.5pt solid #f9a8d4;">
+                      📷
                     </div>
                   <% else %>
-                    <div style="flex: 0 0 auto; width: 28pt; height: 28pt; border-radius: 50%; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); display: flex; align-items: center; justify-content: center; font-size: 14pt; border: 1.5pt solid #93c5fd;">
-                      🐦
+                    <div style="flex: 0 0 auto; width: 28pt; height: 28pt; border-radius: 50%; background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%); display: flex; align-items: center; justify-content: center; font-size: 14pt; border: 1.5pt solid #f9a8d4;">
+                      📷
                     </div>
                   <% end %>
 
@@ -648,18 +648,18 @@
                       <% if profile&.username.present? %>
                         @<%= profile.username %>
                       <% else %>
-                        Perfil de Twitter
+                        Perfil de Instagram
                       <% end %>
                     </div>
                   </div>
 
                   <%# Métrica %>
-                  <div style="flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 5pt 8pt; background: #dbeafe; border-radius: 6pt; min-width: 55pt;">
-                    <div style="font-size: 12pt; font-weight: 900; color: #1DA1F2; line-height: 1; margin: 0;">
+                  <div style="flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 5pt 8pt; background: #fce7f3; border-radius: 6pt; min-width: 55pt;">
+                    <div style="font-size: 12pt; font-weight: 900; color: #ec4899; line-height: 1; margin: 0;">
                       <%= pdf_format_number(count) %>
                     </div>
-                    <div style="font-size: 6pt; color: #0c7abf; text-transform: uppercase; font-weight: 600; margin-top: 2pt; line-height: 1;">
-                      tweets
+                    <div style="font-size: 6pt; color: #db2777; text-transform: uppercase; font-weight: 600; margin-top: 2pt; line-height: 1;">
+                      posts
                     </div>
                   </div>
                 </div>
@@ -688,16 +688,16 @@
                   </div>
 
                   <%# Avatar %>
-                  <% if profile&.picture.present? %>
-                    <img src="<%= profile.picture %>"
+                  <% if profile&.profile_image_url.present? %>
+                    <img src="<%= profile.profile_image_url %>"
                          style="flex: 0 0 auto; width: 28pt; height: 28pt; border-radius: 50%; object-fit: cover; border: 1.5pt solid #e5e7eb;"
                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                     <div style="display: none; flex: 0 0 auto; width: 28pt; height: 28pt; border-radius: 50%; background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); align-items: center; justify-content: center; font-size: 14pt; border: 1.5pt solid #6ee7b7;">
-                      🐦
+                      📷
                     </div>
                   <% else %>
                     <div style="flex: 0 0 auto; width: 28pt; height: 28pt; border-radius: 50%; background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); display: flex; align-items: center; justify-content: center; font-size: 14pt; border: 1.5pt solid #6ee7b7;">
-                      🐦
+                      📷
                     </div>
                   <% end %>
 
@@ -710,7 +710,7 @@
                       <% if profile&.username.present? %>
                         @<%= profile.username %>
                       <% else %>
-                        Perfil de Twitter
+                        Perfil de Instagram
                       <% end %>
                     </div>
                   </div>

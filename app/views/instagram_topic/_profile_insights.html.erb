@@ -14,8 +14,8 @@
           <% profiles_count.take(5).each do |profile_data| %>
             <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg mb-2 hover:bg-pink-50 transition-colors group">
               <div class="flex items-center space-x-3 flex-1 min-w-0">
-                <% if profile_data[:profile]&.avatar_image_url.present? %>
-                  <%= image_tag profile_data[:profile].avatar_image_url, class: 'h-10 w-10 flex-shrink-0 rounded-full bg-gray-300', alt: profile_data[:name] %>
+                <% if profile_data[:profile]&.profile_image_url.present? %>
+                  <%= image_tag profile_data[:profile].profile_image_url, class: 'h-10 w-10 flex-shrink-0 rounded-full bg-gray-300', alt: profile_data[:name] %>
                 <% else %>
                   <img class="h-10 w-10 flex-shrink-0 rounded-full bg-gray-300" src="https://placehold.co/300x300" alt="">
                 <% end %>
@@ -35,8 +35,8 @@
           <% profiles_interactions.take(5).each do |profile_data| %>
             <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg mb-2 hover:bg-green-50 transition-colors group">
               <div class="flex items-center space-x-3 flex-1 min-w-0">
-                <% if profile_data[:profile]&.avatar_image_url.present? %>
-                  <%= image_tag profile_data[:profile].avatar_image_url, class: 'h-10 w-10 flex-shrink-0 rounded-full bg-gray-300', alt: profile_data[:name] %>
+                <% if profile_data[:profile]&.profile_image_url.present? %>
+                  <%= image_tag profile_data[:profile].profile_image_url, class: 'h-10 w-10 flex-shrink-0 rounded-full bg-gray-300', alt: profile_data[:name] %>
                 <% else %>
                   <img class="h-10 w-10 flex-shrink-0 rounded-full bg-gray-300" src="https://placehold.co/300x300" alt="">
                 <% end %>
