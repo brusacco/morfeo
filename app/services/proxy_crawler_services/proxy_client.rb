@@ -94,15 +94,20 @@ module ProxyCrawlerServices
     end
     
     def build_api_url(target_url)
-      # Build API URL with proper rendering parameters
+      # Build API URL with scrape.do's actual parameters
+      # Documentation: https://www.scrape.do/docs/
       params = {
         token: @api_token,
         url: target_url,
-        render: 'true',                    # Enable JavaScript rendering
-        wait_for_timeout: '5000',          # Wait 5 seconds for JS to execute
-        wait_for_selector: 'body',         # Wait for body to load
-        block_resources: 'false'           # Load all resources (images, CSS, JS)
+        render: 'true',                    # Enable JavaScript rendering with Chromium
+        waitUntil: 'networkidle2'          # Wait until max 2 network connections (good for JS-heavy sites)
       }
+      
+      # waitUntil options:
+      # - domcontentloaded: DOM parsed (fast, default)
+      # - networkidle2: Max 2 connections for 500ms (good for dynamic content)
+      # - networkidle0: No connections for 500ms (slowest, most complete)
+      # - load: All resources loaded (images, CSS, JS)
       
       "https://api.scrape.do?" + URI.encode_www_form(params)
     end
