@@ -5,7 +5,7 @@ module FacebookServices
     # Timeouts - Increased to handle slow API responses
     TIMEOUT_SECONDS = 45
     OPEN_TIMEOUT_SECONDS = 15
-    
+
     # Retry configuration
     MAX_RETRIES = 3
     INITIAL_RETRY_DELAY = 2 # seconds
@@ -19,7 +19,7 @@ module FacebookServices
       token = ENV.fetch('FACEBOOK_API_TOKEN') do
         raise ArgumentError, 'FACEBOOK_API_TOKEN environment variable is not set. Please add it to your .env file.'
       end
-      
+
       request = "https://graph.facebook.com/v11.0/?id=#{CGI.escape(entry.url)}&fields=engagement&access_token=#{token}"
 
       # Retry logic with exponential backoff
@@ -44,19 +44,19 @@ module FacebookServices
         if data['error']
           error_message = data['error']['message']
           error_code = data['error']['code']
-          
+
           # Don't retry on authentication errors
           if [190, 102].include?(error_code)
             Rails.logger.error("[FacebookServices::UpdateStats] API auth error (code: #{error_code}) for entry #{@entry_id}: #{error_message}")
             return handle_error("Facebook API authentication error: #{error_message}")
           end
-          
+
           # Don't retry on rate limits (let the caller handle it)
           if [4, 17, 32, 613].include?(error_code)
             Rails.logger.warn("[FacebookServices::UpdateStats] Rate limit (code: #{error_code}) for entry #{@entry_id}")
             return handle_error("Facebook API rate limit: #{error_message}")
           end
-          
+
           Rails.logger.error("[FacebookServices::UpdateStats] API error (code: #{error_code}) for entry #{@entry_id}: #{error_message}")
           return handle_error("Facebook API error: #{error_message}")
         end
@@ -81,7 +81,7 @@ module FacebookServices
       rescue Net::OpenTimeout, Net::ReadTimeout => e
         retries += 1
         last_error = e
-        
+
         if retries < MAX_RETRIES
           delay = INITIAL_RETRY_DELAY * (2 ** (retries - 1)) # Exponential backoff: 2s, 4s, 8s
           Rails.logger.warn("[FacebookServices::UpdateStats] Timeout for entry #{@entry_id} (attempt #{retries}/#{MAX_RETRIES}), retrying in #{delay}s...")
@@ -95,7 +95,7 @@ module FacebookServices
       rescue SocketError, Errno::ECONNREFUSED, Errno::EHOSTUNREACH => e
         retries += 1
         last_error = e
-        
+
         if retries < MAX_RETRIES
           delay = INITIAL_RETRY_DELAY * (2 ** (retries - 1))
           Rails.logger.warn("[FacebookServices::UpdateStats] Network error for entry #{@entry_id} (attempt #{retries}/#{MAX_RETRIES}), retrying in #{delay}s...")
