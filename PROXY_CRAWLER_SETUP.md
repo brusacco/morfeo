@@ -26,6 +26,7 @@ EDITOR="nano" rails credentials:edit
 ```
 
 Add this to the file:
+
 ```yaml
 scrape_do:
   api_token: ed138ed418924138923ced2b81e04d53
@@ -36,6 +37,7 @@ scrape_do:
 If you're in development mode and haven't set up A or B, it will use the hardcoded token automatically.
 
 **Note:** The token is read in this priority order:
+
 1. `ENV['SCRAPE_DO_API_TOKEN']` (recommended)
 2. `Rails.application.credentials` (if ENV not set)
 3. Hardcoded (development only)
@@ -157,24 +159,26 @@ tail -f log/production.log | grep "ProxyCrawler"
 
 ## 🆚 Proxy vs Headless Crawler
 
-| Feature | Proxy Crawler | Headless Crawler |
-|---------|---------------|------------------|
-| **Technology** | scrape.do API | Selenium + Chrome |
-| **Speed** | Faster | Slower |
-| **Cost** | API charges | Server resources |
-| **JavaScript** | Basic support | Full support |
-| **Cloudflare** | Handled by proxy | May get blocked |
-| **Best for** | Simple sites | Complex sites |
+| Feature        | Proxy Crawler    | Headless Crawler  |
+| -------------- | ---------------- | ----------------- |
+| **Technology** | scrape.do API    | Selenium + Chrome |
+| **Speed**      | Faster           | Slower            |
+| **Cost**       | API charges      | Server resources  |
+| **JavaScript** | Basic support    | Full support      |
+| **Cloudflare** | Handled by proxy | May get blocked   |
+| **Best for**   | Simple sites     | Complex sites     |
 
 ### When to Use Which?
 
 **Use Proxy Crawler when:**
+
 - ✅ Site has basic JavaScript
 - ✅ Want faster crawling
 - ✅ Don't mind API costs
 - ✅ Cloudflare protection is strong
 
 **Use Headless Crawler when:**
+
 - ✅ Site has complex JavaScript
 - ✅ Need full browser features
 - ✅ Want to avoid API costs
@@ -203,6 +207,7 @@ end
 ```
 
 Update crontab:
+
 ```bash
 bundle exec whenever --update-crontab
 ```
@@ -218,12 +223,14 @@ bundle exec whenever --update-crontab
 ### Error: "Proxy request failed after 3 attempts"
 
 **Possible causes:**
+
 - Website is down
 - Proxy service is having issues
 - API token is invalid
 - Network connectivity problems
 
 **Solutions:**
+
 1. Check if website loads in browser
 2. Verify API token is correct
 3. Check scrape.do service status
@@ -232,6 +239,7 @@ bundle exec whenever --update-crontab
 ### No Links Found
 
 **Check:**
+
 1. Is the site filter correct? (ActiveAdmin → Sites → Edit)
 2. Does the site actually have matching URLs?
 3. Run with debug output to see sample links
@@ -243,6 +251,7 @@ bundle exec whenever --update-crontab
 ### 1. Test Before Production
 
 Always test with 1 site first:
+
 ```bash
 rake crawler:proxy_test[1]
 ```
@@ -250,6 +259,7 @@ rake crawler:proxy_test[1]
 ### 2. Monitor Costs
 
 Scrape.do charges per request. Monitor usage:
+
 - Each homepage fetch = 1 request
 - Each article fetch = 1 request
 - Site with 20 articles = 21 requests
@@ -257,6 +267,7 @@ Scrape.do charges per request. Monitor usage:
 ### 3. Combine with Headless
 
 Use both crawlers for different sites:
+
 - Proxy crawler for simple sites (faster, costs money)
 - Headless crawler for complex sites (slower, free)
 
@@ -277,4 +288,3 @@ Monitor your scrape.do API limits and usage to avoid hitting caps.
 **Status**: ✅ Production Ready  
 **Last Updated**: November 11, 2025  
 **Requires**: scrape.do API token
-
