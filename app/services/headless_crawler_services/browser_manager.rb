@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require 'httparty'
+require 'uri'
+
 module HeadlessCrawlerServices
   # Manages Selenium WebDriver lifecycle and configuration
   # Handles browser initialization, timeout configuration, and cleanup
@@ -154,8 +157,8 @@ module HeadlessCrawlerServices
     end
 
     class << self
-      # Navigate to URL with retry logic and Cloudflare bypass waiting
-      def navigate_to(driver, url, retries: 3, wait_for_cloudflare: true)
+      # Navigate to URL with retry logic and Cloudflare bypass using scrape.do API
+      def navigate_to(driver, url, retries: 3, wait_for_cloudflare: true, site: nil)
         attempt = 0
         begin
           attempt += 1
@@ -164,14 +167,20 @@ module HeadlessCrawlerServices
           # Wait for page to stabilize
           sleep(STABILIZATION_WAIT)
 
-          # Check if Cloudflare challenge is present and wait if needed
+          # Check if Cloudflare challenge is present
           if wait_for_cloudflare && cloudflare_detected?(driver)
             puts "\n🛡️  Cloudflare protection detected!"
-            Rails.logger.info("Cloudflare challenge detected, waiting...")
-
-            unless wait_for_cloudflare_clearance(driver)
-              puts "   ⚠️  WARNING: Could not bypass Cloudflare automatically"
+            Rails.logger.info("Cloudflare challenge detected, switching to scrape.do API...")
+            
+            # Switch to scrape.do API to bypass Cloudflare
+            if fetch_via_scrape_do_api(driver, url, site)
+              puts "   ✓ Successfully bypassed Cloudflare using scrape.do API"
+              Rails.logger.info("Successfully bypassed Cloudflare using scrape.do API")
+              return true
+            else
+              puts "   ⚠️  WARNING: Could not bypass Cloudflare with scrape.do API"
               puts "   Site may require manual whitelisting or may be in 'Under Attack' mode"
+              Rails.logger.warn("Failed to bypass Cloudflare with scrape.do API")
             end
           end
 
@@ -182,7 +191,30 @@ module HeadlessCrawlerServices
             sleep(2 ** attempt) # Exponential backoff
             retry
           else
-            Rails.logger.error("Navigation failed after #{retries} attempts: #{url}")
+            # After all retries failed, try scrape.do API as fallback
+            Rails.logger.warn("Navigation failed after #{retries} attempts, trying scrape.do API as fallback: #{url}")
+            puts "\n⚠️  Navigation timeout after #{retries} attempts, switching to scrape.do API..."
+            
+            if fetch_via_scrape_do_api(driver, url, site)
+              puts "   ✓ Successfully fetched via scrape.do API (timeout fallback)"
+              Rails.logger.info("Successfully fetched via scrape.do API after timeout")
+              return true
+            else
+              Rails.logger.error("Navigation failed after #{retries} attempts and scrape.do fallback: #{url}")
+              raise
+            end
+          end
+        rescue StandardError => e
+          # For any other navigation error, try scrape.do API as fallback
+          Rails.logger.warn("Navigation error, trying scrape.do API as fallback: #{e.message}")
+          puts "\n⚠️  Navigation error, switching to scrape.do API..."
+          
+          if fetch_via_scrape_do_api(driver, url, site)
+            puts "   ✓ Successfully fetched via scrape.do API (error fallback)"
+            Rails.logger.info("Successfully fetched via scrape.do API after error")
+            return true
+          else
+            Rails.logger.error("Navigation failed and scrape.do fallback also failed: #{url} - #{e.message}")
             raise
           end
         end
@@ -200,28 +232,61 @@ module HeadlessCrawlerServices
         false
       end
 
-      def wait_for_cloudflare_clearance(driver, max_wait: 30)
-        # Wait up to max_wait seconds for Cloudflare to clear
-        puts "   ⏳ Waiting for Cloudflare (max #{max_wait}s)..."
-
-        max_wait.times do |i|
-          sleep(1)
-
-          unless cloudflare_detected?(driver)
-            puts "   ✓ Cloudflare cleared after #{i + 1}s"
-            Rails.logger.info("Cloudflare cleared after #{i + 1}s")
-            return true
-          end
-
-          # Show progress every 5 seconds
-          if (i + 1) % 5 == 0
-            puts "   ... still waiting (#{i + 1}s elapsed)"
-          end
+      # Fetch page via scrape.do API when Cloudflare is detected
+      # Uses the same parameters as proxy_crawler for consistency
+      def fetch_via_scrape_do_api(driver, url, site = nil)
+        token = ENV['SCRAPE_DO_API_TOKEN']
+        
+        unless token.present?
+          Rails.logger.warn("SCRAPE_DO_API_TOKEN not found, cannot use scrape.do API")
+          return false
         end
 
-        puts "   ✗ Cloudflare challenge still present after #{max_wait}s"
-        Rails.logger.warn("Cloudflare challenge still present after #{max_wait}s")
-        false
+        begin
+          Rails.logger.info("Fetching via scrape.do API: #{url}")
+          
+          # Build scrape.do API URL with headless browser parameters
+          # Same parameters as proxy_crawler for consistency
+          params = {
+            token: token,
+            url: url,
+            render: 'true',                    # Use headless browser (Chromium)
+            blockResources: 'false',           # Don't block resources (helps avoid blocks)
+            customWait: '2000',                # Wait 2 seconds for page to load
+            waitUntil: 'networkidle2'          # Wait until max 2 network connections
+          }
+          
+          # Add waitSelector if site has content_filter configured
+          if site&.content_filter.present?
+            params[:waitSelector] = site.content_filter
+            Rails.logger.info("Using waitSelector: #{site.content_filter}")
+          end
+          
+          api_url = "https://api.scrape.do?" + URI.encode_www_form(params)
+          
+          # Fetch via API
+          response = HTTParty.get(api_url, timeout: 90)
+          
+          unless response.success?
+            Rails.logger.error("scrape.do API returned HTTP #{response.code}")
+            return false
+          end
+          
+          # Inject HTML into driver's page source
+          # This allows the rest of the code to work with Selenium as normal
+          escaped_html = response.body.to_json
+          driver.execute_script("document.open(); document.write(#{escaped_html}); document.close();")
+          
+          # Wait for page to stabilize
+          sleep(STABILIZATION_WAIT)
+          
+          Rails.logger.info("Successfully fetched via scrape.do API (body size: #{response.body.size} bytes)")
+          true
+        rescue StandardError => e
+          Rails.logger.error("Failed to fetch via scrape.do API: #{e.message}")
+          Rails.logger.error(e.backtrace.first(5).join("\n"))
+          false
+        end
       end
     end
   end

@@ -21,7 +21,7 @@ module HeadlessCrawlerServices
       end
 
       # Navigate to article page
-      BrowserManager.navigate_to(@driver, @url)
+      BrowserManager.navigate_to(@driver, @url, site: @site)
 
       # Parse page content
       doc = parse_page_content

@@ -49,7 +49,7 @@ module HeadlessCrawlerServices
     private
 
     def navigate_to_homepage
-      BrowserManager.navigate_to(@driver, @site.url, retries: MAX_RETRIES)
+      BrowserManager.navigate_to(@driver, @site.url, retries: MAX_RETRIES, site: @site)
     rescue StandardError => e
       Rails.logger.error("Failed to navigate to #{@site.url}: #{e.message}")
       raise
