@@ -22,7 +22,15 @@ module ProxyCrawlerServices
       end
 
       # Fetch article page via proxy
-      response = @proxy_client.fetch(@url)
+      # Use site's content_filter as waitSelector if available
+      # This ensures scrape.do waits for the main content element to appear (up to 10 seconds)
+      wait_selector = @site.content_filter.present? ? @site.content_filter : nil
+      
+      if wait_selector.present?
+        Rails.logger.info("Using waitSelector for article: #{wait_selector}")
+      end
+      
+      response = @proxy_client.fetch(@url, wait_selector: wait_selector)
       
       unless response.success?
         Rails.logger.error("Failed to fetch #{@url}: #{response.error}")

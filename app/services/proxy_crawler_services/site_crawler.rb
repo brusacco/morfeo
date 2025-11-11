@@ -18,7 +18,7 @@ module ProxyCrawlerServices
     def call
       puts "Processing site: #{@site.name} (#{@site.url}) [ID: #{@site.id}]"
       puts "=" * 80
-      
+
       Rails.logger.info("=" * 80)
       Rails.logger.info("Processing site: #{@site.name} (#{@site.url}) [ID: #{@site.id}]")
       Rails.logger.info("=" * 80)
@@ -52,9 +52,18 @@ module ProxyCrawlerServices
     def fetch_homepage
       puts "\n🌐 Fetching homepage via proxy..."
       Rails.logger.info("Fetching homepage: #{@site.url}")
-      
-      result = @proxy_client.fetch(@site.url)
-      
+
+      # Use site's content_filter as waitSelector if available
+      # This ensures scrape.do waits for the main content element to appear
+      wait_selector = @site.content_filter.present? ? @site.content_filter : nil
+
+      if wait_selector.present?
+        Rails.logger.info("Using waitSelector: #{wait_selector}")
+        puts "   ⏳ Waiting for element: #{wait_selector}"
+      end
+
+      result = @proxy_client.fetch(@site.url, wait_selector: wait_selector)
+
       if result.success?
         puts "✓ Homepage fetched (HTTP #{result.code}), Body size: #{result.body.size} bytes\n"
         Rails.logger.info("Homepage fetched successfully")
@@ -62,13 +71,13 @@ module ProxyCrawlerServices
         puts "✗ Failed to fetch homepage: #{result.error}\n"
         Rails.logger.error("Failed to fetch homepage: #{result.error}")
       end
-      
+
       result
     end
 
     def extract_article_links(doc)
       result = LinkExtractor.call(document: doc, site: @site)
-      
+
       unless result.success?
         Rails.logger.error("Link extraction failed: #{result.error}")
         puts "❌ Link extraction failed: #{result.error}"
@@ -77,7 +86,7 @@ module ProxyCrawlerServices
 
       links = result.links
       @stats[:total_links] = links.size
-      
+
       puts "🔗 Found #{links.size} article link(s)"
       Rails.logger.info("Found #{links.size} article links")
       links
@@ -87,46 +96,46 @@ module ProxyCrawlerServices
       # Batch check: Find which URLs already exist in DB (MUCH faster)
       existing_urls = Entry.where(url: links).pluck(:url).to_set
       new_links = links.reject { |link| existing_urls.include?(link) }
-      
+
       puts "\n📊 Quick Analysis:"
       puts "   Total links: #{links.size}"
       puts "   Already in DB: #{existing_urls.size} (will skip)"
       puts "   New to process: #{new_links.size}"
       puts ""
-      
+
       # Process only new links (skip existing ones)
       if new_links.empty?
         puts "✓ All articles already exist in database (nothing to process)"
         @stats[:existing_entries] = links.size
         return
       end
-      
+
       # Process new links
       new_links.each_with_index do |link, index|
         original_index = links.index(link) + 1
         process_single_article(link, original_index, links.size, skip_exist_check: true)
-        
+
         # Brief pause between articles to avoid rate limiting
         sleep(1) if index < new_links.size - 1
       end
-      
+
       # Update stats for skipped entries
       @stats[:existing_entries] = existing_urls.size
     end
 
     def process_single_article(link, current, total, skip_exist_check: false)
       puts "   [#{current}/#{total}] #{link[0..80]}..."
-      
+
       Rails.logger.info("-" * 80)
       Rails.logger.info("Processing article #{current}/#{total}: #{link}")
-      
+
       result = EntryProcessor.call(
         proxy_client: @proxy_client,
         site: @site,
         url: link,
         skip_exist_check: skip_exist_check
       )
-      
+
       if result.success?
         if result.created
           @stats[:new_entries] += 1
@@ -159,7 +168,7 @@ module ProxyCrawlerServices
       puts "New entries created:  #{@stats[:new_entries]}"
       puts "Existing entries:     #{@stats[:existing_entries]}"
       puts "Failed entries:       #{@stats[:failed_entries]}"
-      
+
       if @stats[:errors].any?
         puts "\nERRORS:"
         @stats[:errors].first(3).each do |error|
@@ -167,9 +176,9 @@ module ProxyCrawlerServices
         end
         puts "  ... and #{@stats[:errors].size - 3} more" if @stats[:errors].size > 3
       end
-      
+
       puts "=" * 80
-      
+
       # Also log to Rails logger
       Rails.logger.info("")
       Rails.logger.info("=" * 80)
@@ -179,7 +188,7 @@ module ProxyCrawlerServices
       Rails.logger.info("New entries created:  #{@stats[:new_entries]}")
       Rails.logger.info("Existing entries:     #{@stats[:existing_entries]}")
       Rails.logger.info("Failed entries:       #{@stats[:failed_entries]}")
-      
+
       if @stats[:errors].any?
         Rails.logger.info("")
         Rails.logger.info("ERRORS:")
@@ -188,7 +197,7 @@ module ProxyCrawlerServices
         end
         Rails.logger.info("  ... and #{@stats[:errors].size - 5} more") if @stats[:errors].size > 5
       end
-      
+
       Rails.logger.info("=" * 80)
     end
   end
