@@ -72,23 +72,29 @@ class InstagramProfile < ApplicationRecord
   def local_profile_image_path
     return nil unless uid.present?
     
-    "/images/instagram/#{uid}/avatar.jpg"
+    "/images/instagram/#{uid.to_s}/avatar.jpg"
   end
 
   # Check if local image exists
   def local_image_exists?
     return false unless uid.present?
     
-    File.exist?(Rails.root.join('public', 'images', 'instagram', uid, 'avatar.jpg'))
+    file_path = Rails.root.join('public', 'images', 'instagram', uid.to_s, 'avatar.jpg')
+    File.exist?(file_path)
   end
 
   # Get profile image URL (local if available, otherwise Instagram URL)
+  # ALWAYS prefers local file if it exists to avoid CORS and improve performance
   def profile_image_url
+    return nil unless uid.present?
+    
+    # Always check for local file first
     if local_image_exists?
-      local_profile_image_path
-    else
-      profile_pic_url_hd.presence || profile_pic_url
+      return local_profile_image_path
     end
+    
+    # Fallback to API URLs only if local file doesn't exist
+    avatar_image_url.presence || profile_pic_url_hd.presence || profile_pic_url
   end
 
   # Public method to sync profile data from API (callable from admin/controllers)
@@ -161,8 +167,8 @@ class InstagramProfile < ApplicationRecord
     
     return unless image_url.present?
 
-    # Create directory if it doesn't exist
-    directory = Rails.root.join('public', 'images', 'instagram', uid)
+    # Create directory if it doesn't exist (ensure uid is string)
+    directory = Rails.root.join('public', 'images', 'instagram', uid.to_s)
     FileUtils.mkdir_p(directory)
     
     # Download and save image as avatar.jpg (overwrites if exists)
