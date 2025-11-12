@@ -432,28 +432,7 @@ def find_site_for_url(url)
 
   return nil if target_domain.blank?
 
-  # Extract base domain (e.g., "npy.com.py" from "www.npy.com.py")
-  base_domain = target_domain.split('.').last(2).join('.')
-
-  # Try exact domain match first (most specific)
-  # Match sites where URL contains the exact domain
-  site = Site.all.find do |s|
-    next false if s.url.blank?
-    begin
-      site_uri = URI.parse(s.url)
-      site_domain = site_uri.host&.downcase
-      next false if site_domain.blank?
-
-      # Exact domain match
-      site_domain == target_domain
-    rescue URI::InvalidURIError
-      false
-    end
-  end
-
-  return site if site
-
-  # Try base domain match if no exact match found
+  # Find site by comparing exact domains from site.url field
   Site.all.find do |s|
     next false if s.url.blank?
     begin
@@ -461,8 +440,8 @@ def find_site_for_url(url)
       site_domain = site_uri.host&.downcase
       next false if site_domain.blank?
 
-      site_base_domain = site_domain.split('.').last(2).join('.')
-      site_base_domain == base_domain
+      # Exact domain match only
+      site_domain == target_domain
     rescue URI::InvalidURIError
       false
     end
