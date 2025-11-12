@@ -4,6 +4,9 @@ require 'nokogiri'
 require 'open-uri'
 require 'parallel'
 
+# List of site IDs to ignore completely
+IGNORED_SITE_IDS = [142].freeze
+
 desc 'Crawl URLs from unlinked social media posts (Twitter and Facebook) and link them to entries'
 task social_crawler: :environment do
   puts '=' * 80
@@ -67,6 +70,13 @@ task social_crawler: :environment do
         end
 
         puts "  → Site: #{site.name}"
+
+        # Check if site is in ignored list
+        if IGNORED_SITE_IDS.include?(site.id)
+          puts "  → Skipping: Site is in ignored list (ID: #{site.id})"
+          stats[:twitter_skipped] += 1
+          next
+        end
 
         # Apply URL filters
         unless url_matches_site_filters?(url, site)
@@ -218,6 +228,13 @@ task social_crawler: :environment do
         end
 
         puts "  → Site: #{site.name}"
+
+        # Check if site is in ignored list
+        if IGNORED_SITE_IDS.include?(site.id)
+          puts "  → Skipping: Site is in ignored list (ID: #{site.id})"
+          stats[:facebook_skipped] += 1
+          next
+        end
 
         # Apply URL filters
         unless url_matches_site_filters?(url, site)
