@@ -249,11 +249,13 @@ img.loaded {
    ================================== */
 
 /* Font display swap for faster rendering */
+/* NOTE: Uncomment and provide actual font file path when custom fonts are needed
 @font-face {
   font-family: 'Inter';
   font-display: swap;
-  src: url('...') format('woff2');
+  src: url('/path/to/inter.woff2') format('woff2');
 }
+*/
 
 /* Fallback system fonts */
 body {
