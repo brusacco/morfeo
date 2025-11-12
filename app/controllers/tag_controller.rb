@@ -4,14 +4,14 @@ class TagController < ApplicationController
   include TagAuthorizable
   
   before_action :authenticate_user!
-  before_action :set_tag, only: [:show, :comments, :report]
-  before_action :authorize_tag_access!, only: [:show, :comments, :report]
+  before_action :set_tag, only: [:show, :comments, :report, :pdf]
+  before_action :authorize_tag_access!, only: [:show, :comments, :report, :pdf]
 
   # Constants
   CACHE_DURATION = 30.minutes
 
-  caches_action :show, :report, expires_in: CACHE_DURATION,
-                cache_path: proc { |c| { tag_id: c.params[:id], user_id: c.current_user.id } }
+  caches_action :show, :report, :pdf, expires_in: CACHE_DURATION,
+                cache_path: proc { |c| { tag_id: c.params[:id], user_id: c.current_user.id, days_range: c.params[:days_range] } }
 
   def entries_data
     tag_id = params[:tag_id]
@@ -168,6 +168,58 @@ class TagController < ApplicationController
     render layout: false
   end
 
+  def pdf
+    # Get days_range from params, default to DAYS_RANGE if not provided or invalid
+    @days_range = (params[:days_range].presence&.to_i || DAYS_RANGE || 7)
+    
+    # Use dedicated PDF service
+    pdf_data = TagPdfServices::PdfService.call(tag: @tag, days_range: @days_range)
+
+    # Assign data to instance variables for the PDF view
+    assign_tag_data(pdf_data[:tag_data])
+    assign_chart_data(pdf_data[:chart_data])
+    assign_tags_and_words(pdf_data[:tags_and_words])
+    assign_percentages(pdf_data[:percentages])
+
+    # Initialize PDF presenter with all data
+    @presenter = TagPdfPresenter.new(
+      data: {
+        tag_data: {
+          entries_count: @entries_count,
+          total_entries: @total_entries,
+          entries_total_sum: @entries_total_sum,
+          total_interactions: @total_interactions,
+          entries_polarity_counts: @entries_polarity_counts,
+          entries_polarity_sums: @entries_polarity_sums,
+          site_counts: @site_counts,
+          site_sums: @site_sums
+        },
+        chart_data: {
+          chart_entries_counts: @chart_entries_counts,
+          chart_entries_sums: @chart_entries_sums,
+          chart_entries_sentiments_counts: @chart_entries_sentiments_counts,
+          chart_entries_sentiments_sums: @chart_entries_sentiments_sums
+        },
+        tags_and_words: {
+          tags_count: @tags_count,
+          tags_interactions: @tags_interactions,
+          word_occurrences: @word_occurrences,
+          bigram_occurrences: @bigram_occurrences
+        },
+        percentages: {
+          positives: @positives,
+          neutrals: @neutrals,
+          negatives: @negatives
+        }
+      },
+      tag: @tag,
+      days_range: @days_range
+    )
+
+    # Render with specific layout for PDF
+    render layout: false
+  end
+
   def search
     query = params[:query].strip
     @tags = Tag.where('name LIKE?', "%#{query}%")
@@ -183,6 +235,134 @@ class TagController < ApplicationController
 
   def safe_percentage(numerator, denominator)
     denominator.positive? ? (Float(numerator) / denominator * 100).round(0) : 0
+  end
+
+  # Assignment methods for PDF data
+  def assign_tag_data(data)
+    @tag_name = data[:tag_name]
+    @entries = data[:entries]
+    @entries_count = data[:entries_count]
+    @entries_total_sum = data[:entries_total_sum]
+    @entries_polarity_counts = data[:entries_polarity_counts]
+    @entries_polarity_sums = data[:entries_polarity_sums]
+    @site_counts = data[:site_counts]
+    @site_sums = data[:site_sums]
+    @total_entries = data[:total_entries]
+    @total_interactions = data[:total_interactions]
+    
+    # For PDF - wrap @entries to provide pre-calculated grouped data
+    if data[:entries_by_site_count] && data[:entries_by_site_sum] && data[:entries_by_site_id]
+      entries_original = @entries
+      by_site_count = data[:entries_by_site_count]
+      by_site_sum = data[:entries_by_site_sum]
+      by_site_id = data[:entries_by_site_id]
+      total_sum = data[:entries_total_sum]
+      
+      @entries = Struct.new(:relation, :by_site_count, :by_site_sum, :by_site_id, :total_sum) do
+        # Delegate most methods to the original relation
+        def method_missing(method, *args, &block)
+          relation.send(method, *args, &block)
+        end
+        
+        def respond_to_missing?(method, include_private = false)
+          relation.respond_to?(method, include_private) || super
+        end
+        
+        # Override group to return pre-calculated data
+        def group(column)
+          TagController::GroupProxy.new(by_site_count, by_site_sum, by_site_id, column)
+        end
+        
+        # Override sum to return pre-calculated total when called directly
+        def sum(field = nil)
+          if field == :total_count || field == 'total_count'
+            total_sum
+          else
+            relation.sum(field)
+          end
+        end
+      end.new(entries_original, by_site_count, by_site_sum, by_site_id, total_sum)
+    end
+  end
+
+  def assign_chart_data(data)
+    @chart_entries_counts = data[:chart_entries_counts]
+    @chart_entries_sums = data[:chart_entries_sums]
+    @chart_entries_sentiments_counts = data[:chart_entries_sentiments_counts]
+    @chart_entries_sentiments_sums = data[:chart_entries_sentiments_sums]
+    @title_chart_entries_counts = data[:title_chart_entries_counts]
+    @title_chart_entries_sums = data[:title_chart_entries_sums]
+    
+    # For PDF - create objects that respond to count and sum methods for chartkick
+    if data[:title_chart_entries_count_data] && data[:title_chart_entries_sum_data]
+      @title_chart_entries = create_chart_object(
+        data[:title_chart_entries_count_data], 
+        data[:title_chart_entries_sum_data]
+      )
+    end
+    
+    if data[:chart_entries_sentiments_count_data] && data[:chart_entries_sentiments_sum_data]
+      @chart_entries_sentiments = create_chart_object(
+        data[:chart_entries_sentiments_count_data],
+        data[:chart_entries_sentiments_sum_data]
+      )
+    end
+  end
+  
+  def create_chart_object(count_data, sum_data)
+    Struct.new(:count_data, :sum_data) do
+      def count(*)
+        count_data
+      end
+      
+      def sum(*)
+        sum_data
+      end
+    end.new(count_data, sum_data)
+  end
+
+  def assign_percentages(data)
+    @percentage_positives = data[:percentage_positives]
+    @percentage_negatives = data[:percentage_negatives]
+    @percentage_neutrals = data[:percentage_neutrals]
+    @promedio = data[:promedio]
+    @most_interactions = data[:most_interactions]
+    @neutrals = data[:neutrals]
+    @positives = data[:positives]
+    @negatives = data[:negatives]
+  end
+
+  def assign_tags_and_words(data)
+    @word_occurrences = data[:word_occurrences]
+    @bigram_occurrences = data[:bigram_occurrences]
+    @report = data[:report]
+    @comments = data[:comments]
+    @comments_word_occurrences = data[:comments_word_occurrences]
+    @positive_words = data[:positive_words]
+    @negative_words = data[:negative_words]
+    @tags = data[:tags]
+    @tags_interactions = data[:tags_interactions]
+    @tags_count = data[:tags_count]
+  end
+
+  # Helper class for grouped data in PDF
+  class GroupProxy
+    attr_reader :count_data, :sum_data, :id_data, :column
+    
+    def initialize(count_data, sum_data, id_data, column)
+      @count_data = count_data
+      @sum_data = sum_data
+      @id_data = id_data
+      @column = column
+    end
+    
+    def count(*)
+      column == 'sites.id' ? id_data : count_data
+    end
+    
+    def sum(field)
+      sum_data
+    end
   end
   
   def load_temporal_intelligence_data

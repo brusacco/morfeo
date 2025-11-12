@@ -16,6 +16,7 @@ Rails.application.routes.draw do
   get '/tag/search', to: 'tag#search', as: 'search_tag'
   get '/tag/:id', to: 'tag#show', as: 'tag'
   get '/tag/:id/report', to: 'tag#report', as: 'report'
+  get '/tag/:id/pdf', to: 'tag#pdf', as: 'tag_pdf'
   get '/tag/:id/comments', to: 'tag#comments', as: 'tag_comments'
   
   resources :tags, only: [] do

@@ -90,6 +90,46 @@ class Tag < ApplicationRecord
     end
   end
 
+  def report_entries(start_date, end_date)
+    if ENV['USE_DIRECT_ENTRY_TOPICS'] == 'true'
+      entries.enabled
+             .where(published_at: start_date.beginning_of_day..end_date.end_of_day)
+             .order(total_count: :desc)
+             .joins(:site)
+    else
+      tag_list = name
+      result = Entry.search(
+        where: {
+          published_at: { gte: start_date.beginning_of_day, lte: end_date.end_of_day },
+          tags: { in: tag_list }
+        },
+        order: { total_count: :desc },
+        fields: ['id']
+      )
+      Entry.enabled.where(id: result.map(&:id)).order(total_count: :desc).joins(:site)
+    end
+  end
+
+  def report_title_entries(start_date, end_date)
+    if ENV['USE_DIRECT_ENTRY_TOPICS'] == 'true'
+      title_entries.enabled
+                   .where(published_at: start_date.beginning_of_day..end_date.end_of_day)
+                   .order(total_count: :desc)
+                   .joins(:site)
+    else
+      tag_list = name
+      result = Entry.search(
+        where: {
+          published_at: { gte: start_date.beginning_of_day, lte: end_date.end_of_day },
+          title_tags: { in: tag_list }
+        },
+        order: { total_count: :desc },
+        fields: ['id']
+      )
+      Entry.enabled.where(id: result.map(&:id)).order(total_count: :desc).joins(:site)
+    end
+  end
+
   private
 
   def tag_entries
