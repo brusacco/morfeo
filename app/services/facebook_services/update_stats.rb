@@ -106,6 +106,34 @@ module FacebookServices
           handle_error("Network error after #{MAX_RETRIES} attempts: #{e.message}")
         end
 
+      rescue Errno::ECONNRESET, Errno::ETIMEDOUT => e
+        retries += 1
+        last_error = e
+
+        if retries < MAX_RETRIES
+          delay = INITIAL_RETRY_DELAY * (2 ** (retries - 1))
+          Rails.logger.warn("[FacebookServices::UpdateStats] Connection reset/timeout for entry #{@entry_id} (attempt #{retries}/#{MAX_RETRIES}), retrying in #{delay}s...")
+          sleep(delay)
+          retry
+        else
+          Rails.logger.error("[FacebookServices::UpdateStats] Connection reset/timeout for entry #{@entry_id} after #{MAX_RETRIES} attempts: #{e.class} - #{e.message}")
+          handle_error("Connection reset/timeout after #{MAX_RETRIES} attempts: #{e.message}")
+        end
+
+      rescue OpenSSL::SSL::SSLError => e
+        retries += 1
+        last_error = e
+
+        if retries < MAX_RETRIES
+          delay = INITIAL_RETRY_DELAY * (2 ** (retries - 1))
+          Rails.logger.warn("[FacebookServices::UpdateStats] SSL error for entry #{@entry_id} (attempt #{retries}/#{MAX_RETRIES}), retrying in #{delay}s...")
+          sleep(delay)
+          retry
+        else
+          Rails.logger.error("[FacebookServices::UpdateStats] SSL error for entry #{@entry_id} after #{MAX_RETRIES} attempts: #{e.class} - #{e.message}")
+          handle_error("SSL error after #{MAX_RETRIES} attempts: #{e.message}")
+        end
+
       rescue JSON::ParserError => e
         Rails.logger.error("[FacebookServices::UpdateStats] Invalid JSON response for entry #{@entry_id}: #{response&.body&.[](0..200)}")
         handle_error('Invalid JSON from Facebook API')
