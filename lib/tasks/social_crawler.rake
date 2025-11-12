@@ -218,13 +218,27 @@ task social_crawler: :environment do
         puts ''
         puts "[FACEBOOK] Processing: #{url}"
 
-        # Find associated site
-        site = find_site_for_url(url)
+        # Get site from Facebook post's page (if available)
+        post_site = post.page&.site
+        if post_site
+          puts "  → Post from Facebook page: #{post.page.name} (Site: #{post_site.name})"
+        end
 
-        unless site
+        # Find associated site from URL
+        url_site = find_site_for_url(url)
+
+        unless url_site
           puts "  → No site found for URL"
           stats[:facebook_skipped] += 1
           next
+        end
+
+        # Use site from URL (the actual content source)
+        # If post site matches URL site, that's ideal, but URL site takes precedence
+        site = url_site
+
+        if post_site && post_site.id != site.id
+          puts "  ⚠ Post from #{post_site.name} but URL is from #{site.name} - using #{site.name}"
         end
 
         puts "  → Site: #{site.name}"
@@ -330,6 +344,11 @@ task social_crawler: :environment do
         post.update!(entry: entry)
         puts "  ✓ Linked facebook post to entry"
 
+        # Track cross-site sharing
+        if post_site && post_site.id != site.id
+          puts "  📊 Cross-site share detected: #{post_site.name} → #{site.name}"
+        end
+
         stats[:facebook_created] += 1
         stats[:facebook_processed] += 1
         puts "  ✅ Successfully processed!"
@@ -409,19 +428,47 @@ def find_site_for_url(url)
   return nil if url.blank?
 
   uri = URI.parse(url)
-  domain = uri.host
+  target_domain = uri.host&.downcase
 
-  # Try exact match first
-  site = Site.find_by('url LIKE ?', "%#{domain}%")
+  return nil if target_domain.blank?
 
-  # Try base domain if no match
-  unless site
-    base_domain = domain.split('.').last(2).join('.')
-    site = Site.find_by('url LIKE ?', "%#{base_domain}%")
+  # Extract base domain (e.g., "npy.com.py" from "www.npy.com.py")
+  base_domain = target_domain.split('.').last(2).join('.')
+
+  # Try exact domain match first (most specific)
+  # Match sites where URL contains the exact domain
+  site = Site.all.find do |s|
+    next false if s.url.blank?
+    begin
+      site_uri = URI.parse(s.url)
+      site_domain = site_uri.host&.downcase
+      next false if site_domain.blank?
+
+      # Exact domain match
+      site_domain == target_domain
+    rescue URI::InvalidURIError
+      false
+    end
   end
 
-  site
-rescue URI::InvalidURIError, StandardError
+  return site if site
+
+  # Try base domain match if no exact match found
+  Site.all.find do |s|
+    next false if s.url.blank?
+    begin
+      site_uri = URI.parse(s.url)
+      site_domain = site_uri.host&.downcase
+      next false if site_domain.blank?
+
+      site_base_domain = site_domain.split('.').last(2).join('.')
+      site_base_domain == base_domain
+    rescue URI::InvalidURIError
+      false
+    end
+  end
+rescue URI::InvalidURIError, StandardError => e
+  puts "  ⚠ Error finding site for URL: #{e.message}"
   nil
 end
 
