@@ -50,7 +50,6 @@ end
 # EVERY 6 HOURS - Deep processing and AI
 # =============================================================================
 every 6.hours do
-  rake 'crawler[3]'                # Deep crawl for missed content (depth: 3)
   rake 'ai:generate_ai_reports'    # Generate AI-powered topic reports
   rake 'ai:set_topic_polarity'     # Set sentiment/polarity for topics
   rake 'facebook:update_fanpages'  # Update Facebook page metadata
@@ -64,6 +63,7 @@ end
 # Runs at 3am when server load is lowest
 # NOTE: tagger already syncs entries to topics via sync_topics_from_tags
 every 1.day, at: '3:00 am' do
+  rake 'crawler[3]' # Deep crawl for missed content (depth: 3)
   rake 'tagger[60]' # Deep re-tag last 60 days (includes automatic sync)
 end
 
