@@ -420,12 +420,14 @@ def url_matches_site_filters?(url, site)
     end
 
     # Check for unwanted directories
+    # Only match complete directory segments (surrounded by / or at start/end)
     unwanted_directories = %w[
       blackhole wp-login wp-admin galerias fotoblog radios page
       etiqueta categoria category pagina auth wp-content img tag
       contacto programa date feed author
     ]
-    directory_pattern = /#{unwanted_directories.join('|')}/i
+    # Match directories as complete path segments: /directory/ or /directory or directory/
+    directory_pattern = /(?:\/|^)(?:#{unwanted_directories.join('|')})(?:\/|$)/i
     if url.match?(directory_pattern)
       puts "  → Skipping: Contains unwanted directory"
       return false
