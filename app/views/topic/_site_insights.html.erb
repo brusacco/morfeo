@@ -3,7 +3,7 @@
   <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
     <h2 class="text-2xl font-bold text-gray-900 mb-6">
       <i class="fa-solid fa-newspaper text-orange-600 mr-2"></i>
-      Los medios que más han mencionado este tópico
+      <%= defined?(title) && title.present? ? title : 'Los medios que más han mencionado este tópico' %>
     </h2>
     <% if site_top_counts.any? %>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
