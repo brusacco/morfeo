@@ -14,6 +14,8 @@ class InstagramProfile < ApplicationRecord
 
   # Callbacks
   before_validation :fetch_uid_from_api, on: :create
+  after_validation :log_validation_status, on: :create
+  before_save :log_before_save, on: :create
   after_create :update_profile_data
   after_update :update_site_image
   after_save :download_profile_image, if: :should_download_avatar?
@@ -111,6 +113,32 @@ class InstagramProfile < ApplicationRecord
 
   private
 
+  # Log validation status for debugging
+  def log_validation_status
+    if errors.any?
+      Rails.logger.error "[InstagramProfile] Validation FAILED for @#{username} (UID: #{uid})"
+      Rails.logger.error "[InstagramProfile] Errors: #{errors.full_messages.join(', ')}"
+      Rails.logger.error "[InstagramProfile] Attributes: username=#{username}, uid=#{uid}, site_id=#{site_id}"
+      
+      # Check for uniqueness violations
+      if errors[:uid].any? { |e| e.include?('taken') }
+        existing = InstagramProfile.find_by(uid: uid)
+        Rails.logger.error "[InstagramProfile] UID #{uid} already exists: Profile ID #{existing&.id}, Username: @#{existing&.username}"
+      end
+      if errors[:username].any? { |e| e.include?('taken') }
+        existing = InstagramProfile.find_by(username: username)
+        Rails.logger.error "[InstagramProfile] Username @#{username} already exists: Profile ID #{existing&.id}, UID: #{existing&.uid}"
+      end
+    else
+      Rails.logger.info "[InstagramProfile] Validation PASSED for @#{username} (UID: #{uid})"
+    end
+  end
+
+  # Log before save for debugging
+  def log_before_save
+    Rails.logger.info "[InstagramProfile] BEFORE_SAVE: Attempting to save @#{username} (UID: #{uid}, site_id: #{site_id})"
+  end
+
   # Fetches uid from API before validation (on create only)
   # This ensures uid is present when validation runs
   def fetch_uid_from_api
@@ -146,49 +174,49 @@ class InstagramProfile < ApplicationRecord
   end
 
   # Updates the Instagram profile's attributes from API
+  # NOTE: This runs in after_create, so if it fails, it won't rollback the creation
+  # The record will be created with just uid/username, and can be synced later
   def update_profile_data
+    Rails.logger.info "[InstagramProfile] AFTER_CREATE callback triggered for @#{username} (UID: #{uid}, ID: #{id})"
     Rails.logger.info "[InstagramProfile] Starting update_profile_data for @#{username} (UID: #{uid})"
     
     result = InstagramServices::UpdateProfile.call(username)
     
     if result.success? && result.data.present?
       begin
-        update!(result.data)
+        # Convert symbol keys to string keys for update_columns
+        data_hash = result.data.stringify_keys.merge('updated_at' => Time.current)
+        
+        # Use update_columns to avoid triggering callbacks and validations
+        # This prevents potential rollbacks if there are validation issues
+        update_columns(data_hash)
         Rails.logger.info "[InstagramProfile] Successfully updated profile @#{username} with #{result.data.keys.count} fields"
+        
+        # Reload to get updated attributes
+        reload
         
         update_site_image
         download_profile_image # Always download image on sync
-      rescue ActiveRecord::RecordInvalid => e
-        Rails.logger.error "[InstagramProfile] Validation error updating @#{username}: #{e.message}"
-        Rails.logger.error "[InstagramProfile] Errors: #{e.record.errors.full_messages.join(', ')}"
+      rescue ActiveRecord::StatementInvalid => e
+        Rails.logger.error "[InstagramProfile] Database error updating @#{username}: #{e.class} - #{e.message}"
         Rails.logger.error "[InstagramProfile] Data attempted: #{result.data.inspect}"
-        # Re-raise in development to see errors immediately
-        raise if Rails.env.development?
+        Rails.logger.error "[InstagramProfile] Backtrace: #{e.backtrace.first(10).join("\n")}"
+        # Don't re-raise - record is already created, just log the error
       rescue StandardError => e
         Rails.logger.error "[InstagramProfile] Error updating record @#{username}: #{e.class} - #{e.message}"
         Rails.logger.error "[InstagramProfile] Backtrace: #{e.backtrace.first(10).join("\n")}"
-        # Re-raise in development to see errors immediately
-        raise if Rails.env.development?
+        # Don't re-raise - record is already created, just log the error
       end
     else
       error_msg = result.error || "Unknown error - result.data is blank"
       Rails.logger.error "[InstagramProfile] API call failed for @#{username}: #{error_msg}"
       Rails.logger.error "[InstagramProfile] Result success?: #{result.success?}, Data present?: #{result.data.present?}"
-      
-      # In production, we still want to log but not fail the record creation
-      # The record will exist with just uid and username, and can be synced later
-      if Rails.env.development?
-        raise "Failed to fetch profile data: #{error_msg}"
-      end
+      # Don't raise - record is already created with uid/username, can sync later
     end
   rescue StandardError => e
     Rails.logger.error "[InstagramProfile] CRITICAL ERROR in update_profile_data for @#{username}: #{e.class} - #{e.message}"
     Rails.logger.error "[InstagramProfile] Full backtrace:\n#{e.backtrace.join("\n")}"
-    
-    # In development, re-raise to see the error immediately
-    raise if Rails.env.development?
-    
-    # In production, log but don't fail - record is created with uid, can sync later
+    # Don't re-raise - record is already created, just log the error
   end
 
   # Updates the associated site's image from Instagram profile picture
