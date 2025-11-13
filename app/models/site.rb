@@ -18,13 +18,13 @@ class Site < ApplicationRecord
 
   def save_image(url)
     response = HTTParty.get(url)
-    update!(image64: Base64.strict_encode64(response))
+    update!(image64: Base64.strict_encode64(response.body))
   end
 
   def image
     if image64
       image_tag(
-        "data:image/jpeg;base64,#{site.image64}",
+        "data:image/jpeg;base64,#{image64}",
         size: 50,
         class: 'h-10 w-10 flex-shrink-0 rounded-full bg-gray-300'
       )
