@@ -13,9 +13,8 @@ class InstagramProfile < ApplicationRecord
   validates :username, presence: true, uniqueness: true
 
   # Callbacks
-  before_validation :fetch_uid_from_api, on: :create
+  before_validation :fetch_uid_from_api, if: :new_record?
   after_create :update_profile_data
-  after_update :update_site_image
   after_save :download_profile_image, if: :should_download_avatar?
 
   # Scopes
@@ -32,7 +31,7 @@ class InstagramProfile < ApplicationRecord
   # Formula: (total_interactions / (total_posts * followers)) * 100
   def calculate_engagement_rate
     return 0 if total_posts.zero? || followers.zero?
-    
+
     ((total_interactions_count.to_f / (total_posts * followers)) * 100).round(2)
   end
 
@@ -61,7 +60,7 @@ class InstagramProfile < ApplicationRecord
   # Get average engagement per post
   def average_engagement
     return 0 if total_posts.zero?
-    
+
     (total_interactions_count.to_f / total_posts).round(2)
   end
 
@@ -78,14 +77,14 @@ class InstagramProfile < ApplicationRecord
   # Get local profile image path (for serving from public directory)
   def local_profile_image_path
     return nil unless uid.present?
-    
+
     "/images/instagram/#{uid.to_s}/avatar.jpg"
   end
 
   # Check if local image exists
   def local_image_exists?
     return false unless uid.present?
-    
+
     file_path = Rails.root.join('public', 'images', 'instagram', uid.to_s, 'avatar.jpg')
     File.exist?(file_path)
   end
@@ -94,12 +93,12 @@ class InstagramProfile < ApplicationRecord
   # ALWAYS prefers local file if it exists to avoid CORS and improve performance
   def profile_image_url
     return nil unless uid.present?
-    
+
     # Always check for local file first
     if local_image_exists?
       return local_profile_image_path
     end
-    
+
     # Fallback to API URLs only if local file doesn't exist
     avatar_image_url.presence || profile_pic_url_hd.presence || profile_pic_url
   end
@@ -119,11 +118,11 @@ class InstagramProfile < ApplicationRecord
 
     # Use UpdateProfile service which formats data correctly and includes uid
     result = InstagramServices::UpdateProfile.call(username)
-    
+
     if result.success? && result.data.present?
       # Try both symbol and string keys for uid
       fetched_uid = result.data[:uid] || result.data['uid']
-      
+
       if fetched_uid.present?
         self.uid = fetched_uid.to_s
         Rails.logger.info "Successfully fetched UID for @#{username}: #{self.uid}"
@@ -148,15 +147,14 @@ class InstagramProfile < ApplicationRecord
   # Updates the Instagram profile's attributes from API
   def update_profile_data
     Rails.logger.info "[InstagramProfile] Starting update_profile_data for @#{username} (UID: #{uid})"
-    
+
     result = InstagramServices::UpdateProfile.call(username)
-    
+
     if result.success? && result.data.present?
       begin
         update!(result.data)
         Rails.logger.info "[InstagramProfile] Successfully updated profile @#{username} with #{result.data.keys.count} fields"
-        
-        update_site_image
+
         download_profile_image # Always download image on sync
       rescue ActiveRecord::RecordInvalid => e
         Rails.logger.error "[InstagramProfile] Validation error updating @#{username}: #{e.message}"
@@ -174,7 +172,7 @@ class InstagramProfile < ApplicationRecord
       error_msg = result.error || "Unknown error - result.data is blank"
       Rails.logger.error "[InstagramProfile] API call failed for @#{username}: #{error_msg}"
       Rails.logger.error "[InstagramProfile] Result success?: #{result.success?}, Data present?: #{result.data.present?}"
-      
+
       # In production, we still want to log but not fail the record creation
       # The record will exist with just uid and username, and can be synced later
       if Rails.env.development?
@@ -184,27 +182,18 @@ class InstagramProfile < ApplicationRecord
   rescue StandardError => e
     Rails.logger.error "[InstagramProfile] CRITICAL ERROR in update_profile_data for @#{username}: #{e.class} - #{e.message}"
     Rails.logger.error "[InstagramProfile] Full backtrace:\n#{e.backtrace.join("\n")}"
-    
+
     # In development, re-raise to see the error immediately
     raise if Rails.env.development?
-    
-    # In production, log but don't fail - record is created with uid, can sync later
-  end
 
-  # Updates the associated site's image from Instagram profile picture
-  def update_site_image
-    return unless site.present? && profile_pic_url_hd.present?
-    
-    site.save_image(profile_pic_url_hd)
-  rescue StandardError => e
-    Rails.logger.error "Error updating site image for Instagram profile @#{username}: #{e.message}"
+    # In production, log but don't fail - record is created with uid, can sync later
   end
 
   # Check if avatar image should be downloaded
   # Triggers when any of the avatar URL fields change
   def should_download_avatar?
-    saved_change_to_avatar_image_url? || 
-    saved_change_to_profile_pic_url_hd? || 
+    saved_change_to_avatar_image_url? ||
+    saved_change_to_profile_pic_url_hd? ||
     saved_change_to_profile_pic_url?
   end
 
@@ -213,24 +202,24 @@ class InstagramProfile < ApplicationRecord
   # NOTE: Always downloads and overwrites existing image (profile pictures can change)
   def download_profile_image
     return unless uid.present?
-    
+
     # Use avatar_image_url as the primary source (new API field)
     # Fallback to profile_pic_url_hd or profile_pic_url if not available
     image_url = avatar_image_url.presence || profile_pic_url_hd.presence || profile_pic_url.presence
-    
+
     return unless image_url.present?
 
     # Create directory if it doesn't exist (ensure uid is string)
     directory = Rails.root.join('public', 'images', 'instagram', uid.to_s)
     FileUtils.mkdir_p(directory)
-    
+
     # Download and save image as avatar.jpg (overwrites if exists)
     file_path = directory.join('avatar.jpg')
-    
+
     Rails.logger.info "Attempting to download Instagram profile image for @#{username} from: #{image_url}"
-    
+
     response = HTTParty.get(image_url, timeout: 30, follow_redirects: true)
-    
+
     if response.success?
       File.open(file_path, 'wb') do |file|
         file.write(response.body)
