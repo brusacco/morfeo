@@ -68,6 +68,23 @@ ActiveAdmin.register TwitterProfile do
     end
   end
 
+  # Custom action to manually update profile data from Twitter API
+  member_action :update_profile, method: :post do
+    result = resource.update_from_api
+    if result[:success]
+      redirect_to resource_path(resource), notice: result[:message]
+    else
+      redirect_to resource_path(resource), alert: result[:message]
+    end
+  end
+
+  action_item :update_profile, only: :show do
+    link_to 'Update from Twitter API',
+            update_profile_admin_twitter_profile_path(twitter_profile),
+            method: :post,
+            class: 'button'
+  end
+
   form do |f|
     unless f.object.new_record?
       panel 'Twitter Profile' do

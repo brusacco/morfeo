@@ -10,6 +10,21 @@ class TwitterProfile < ApplicationRecord
   after_create :update_attributes
   after_update :update_site_image
 
+  # Updates the Twitter profile's attributes based on the Twitter API data.
+  # Can be called manually from admin interface.
+  def update_from_api
+    response = TwitterServices::UpdateProfile.call(uid)
+    if response.success?
+      update!(response.data)
+      update_site_image
+      { success: true, message: 'Profile updated successfully' }
+    else
+      { success: false, message: "Error: #{response.error}" }
+    end
+  rescue StandardError => e
+    { success: false, message: "Error: #{e.message}" }
+  end
+
   private
 
   # Updates the Twitter profile's attributes based on the Twitter API data.
