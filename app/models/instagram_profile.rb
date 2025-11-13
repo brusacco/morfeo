@@ -9,7 +9,7 @@ class InstagramProfile < ApplicationRecord
   acts_as_taggable_on :tags
 
   # Validations
-  validates :uid, presence: true, uniqueness: true
+  # validates :uid, presence: true, uniqueness: true
   validates :username, presence: true, uniqueness: true
 
   # Callbacks
