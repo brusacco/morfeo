@@ -110,16 +110,31 @@ class InstagramProfile < ApplicationRecord
     return if uid.present? # Skip if uid already set
     return unless username.present? # Need username to fetch
 
-    result = InstagramServices::GetProfileData.call(username)
+    # Use UpdateProfile service which formats data correctly and includes uid
+    result = InstagramServices::UpdateProfile.call(username)
     
-    if result.success?
-      self.uid = result.data['uid']
+    if result.success? && result.data.present?
+      # Try both symbol and string keys for uid
+      fetched_uid = result.data[:uid] || result.data['uid']
+      
+      if fetched_uid.present?
+        self.uid = fetched_uid.to_s
+        Rails.logger.info "Successfully fetched UID for @#{username}: #{self.uid}"
+      else
+        Rails.logger.error "API returned success but uid is blank for @#{username}. Response data: #{result.data.inspect}"
+        errors.add(:username, "Instagram API did not return a user ID. The profile may not exist or may be private.")
+      end
+    elsif result.success? && result.data.blank?
+      Rails.logger.error "API returned success but data is nil for @#{username}"
+      errors.add(:username, "Instagram API returned empty data. The profile may not exist.")
     else
-      Rails.logger.error "Failed to fetch UID for @#{username}: #{result.error}"
-      errors.add(:username, "could not fetch profile data from Instagram API: #{result.error}")
+      error_message = result.error || "Unknown error"
+      Rails.logger.error "Failed to fetch UID for @#{username}: #{error_message}"
+      errors.add(:username, "could not fetch profile data from Instagram API: #{error_message}")
     end
   rescue StandardError => e
     Rails.logger.error "Error fetching UID for @#{username}: #{e.message}"
+    Rails.logger.error e.backtrace.join("\n")
     errors.add(:username, "error connecting to Instagram API: #{e.message}")
   end
 
