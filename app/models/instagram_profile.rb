@@ -46,6 +46,13 @@ class InstagramProfile < ApplicationRecord
     last_synced_at.nil? || last_synced_at < 24.hours.ago
   end
 
+  # Check if profile data is incomplete (only has uid/username, missing other fields)
+  def incomplete?
+    return false if last_synced_at.present? # If synced at least once, consider it complete
+    return true if full_name.blank? && followers.zero? # Missing basic data
+    false
+  end
+
   # Get recent posts (from has_many relationship)
   def recent_posts(limit = 10)
     instagram_posts.order(posted_at: :desc).limit(limit)
@@ -140,17 +147,48 @@ class InstagramProfile < ApplicationRecord
 
   # Updates the Instagram profile's attributes from API
   def update_profile_data
+    Rails.logger.info "[InstagramProfile] Starting update_profile_data for @#{username} (UID: #{uid})"
+    
     result = InstagramServices::UpdateProfile.call(username)
     
-    if result.success?
-      update!(result.data)
-      update_site_image
-      download_profile_image # Always download image on sync
+    if result.success? && result.data.present?
+      begin
+        update!(result.data)
+        Rails.logger.info "[InstagramProfile] Successfully updated profile @#{username} with #{result.data.keys.count} fields"
+        
+        update_site_image
+        download_profile_image # Always download image on sync
+      rescue ActiveRecord::RecordInvalid => e
+        Rails.logger.error "[InstagramProfile] Validation error updating @#{username}: #{e.message}"
+        Rails.logger.error "[InstagramProfile] Errors: #{e.record.errors.full_messages.join(', ')}"
+        Rails.logger.error "[InstagramProfile] Data attempted: #{result.data.inspect}"
+        # Re-raise in development to see errors immediately
+        raise if Rails.env.development?
+      rescue StandardError => e
+        Rails.logger.error "[InstagramProfile] Error updating record @#{username}: #{e.class} - #{e.message}"
+        Rails.logger.error "[InstagramProfile] Backtrace: #{e.backtrace.first(10).join("\n")}"
+        # Re-raise in development to see errors immediately
+        raise if Rails.env.development?
+      end
     else
-      Rails.logger.error "Failed to update Instagram profile @#{username}: #{result.error}"
+      error_msg = result.error || "Unknown error - result.data is blank"
+      Rails.logger.error "[InstagramProfile] API call failed for @#{username}: #{error_msg}"
+      Rails.logger.error "[InstagramProfile] Result success?: #{result.success?}, Data present?: #{result.data.present?}"
+      
+      # In production, we still want to log but not fail the record creation
+      # The record will exist with just uid and username, and can be synced later
+      if Rails.env.development?
+        raise "Failed to fetch profile data: #{error_msg}"
+      end
     end
   rescue StandardError => e
-    Rails.logger.error "Error in update_profile_data for @#{username}: #{e.message}"
+    Rails.logger.error "[InstagramProfile] CRITICAL ERROR in update_profile_data for @#{username}: #{e.class} - #{e.message}"
+    Rails.logger.error "[InstagramProfile] Full backtrace:\n#{e.backtrace.join("\n")}"
+    
+    # In development, re-raise to see the error immediately
+    raise if Rails.env.development?
+    
+    # In production, log but don't fail - record is created with uid, can sync later
   end
 
   # Updates the associated site's image from Instagram profile picture

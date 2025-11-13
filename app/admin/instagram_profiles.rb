@@ -42,7 +42,13 @@ ActiveAdmin.register InstagramProfile do
     end
     column :site
     column :last_synced_at do |profile|
-      time_ago_in_words(profile.last_synced_at) + ' ago' if profile.last_synced_at.present?
+      if profile.last_synced_at.present?
+        time_ago_in_words(profile.last_synced_at) + ' ago'
+      elsif profile.incomplete?
+        status_tag('Never synced - Incomplete', class: 'error')
+      else
+        status_tag('Never synced', class: 'warning')
+      end
     end
     actions
   end
@@ -153,6 +159,15 @@ ActiveAdmin.register InstagramProfile do
             status_tag('Yes - needs update', class: 'warning')
           else
             status_tag('No - up to date', class: 'ok')
+          end
+        end
+        row :sync_status do |profile|
+          if profile.incomplete?
+            status_tag('Incomplete - Sync failed', class: 'error')
+          elsif profile.last_synced_at.present?
+            status_tag('Complete', class: 'ok')
+          else
+            status_tag('Pending initial sync', class: 'warning')
           end
         end
         row :created_at
