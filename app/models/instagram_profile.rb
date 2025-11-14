@@ -15,6 +15,7 @@ class InstagramProfile < ApplicationRecord
   # Callbacks
   before_validation :fetch_uid_from_api, if: :new_record?
   after_create :update_profile_data
+  after_update :update_site_image
   after_save :download_profile_image, if: :should_download_avatar?
 
   # Scopes
@@ -125,68 +126,53 @@ class InstagramProfile < ApplicationRecord
 
       if fetched_uid.present?
         self.uid = fetched_uid.to_s
-        Rails.logger.info "Successfully fetched UID for @#{username}: #{self.uid}"
       else
-        Rails.logger.error "API returned success but uid is blank for @#{username}. Response data: #{result.data.inspect}"
         errors.add(:username, "Instagram API did not return a user ID. The profile may not exist or may be private.")
       end
     elsif result.success? && result.data.blank?
-      Rails.logger.error "API returned success but data is nil for @#{username}"
       errors.add(:username, "Instagram API returned empty data. The profile may not exist.")
     else
       error_message = result.error || "Unknown error"
-      Rails.logger.error "Failed to fetch UID for @#{username}: #{error_message}"
       errors.add(:username, "could not fetch profile data from Instagram API: #{error_message}")
     end
   rescue StandardError => e
-    Rails.logger.error "Error fetching UID for @#{username}: #{e.message}"
-    Rails.logger.error e.backtrace.join("\n")
     errors.add(:username, "error connecting to Instagram API: #{e.message}")
   end
 
   # Updates the Instagram profile's attributes from API
   def update_profile_data
-    Rails.logger.info "[InstagramProfile] Starting update_profile_data for @#{username} (UID: #{uid})"
-
     result = InstagramServices::UpdateProfile.call(username)
 
     if result.success? && result.data.present?
       begin
         update!(result.data)
-        Rails.logger.info "[InstagramProfile] Successfully updated profile @#{username} with #{result.data.keys.count} fields"
-
+        update_site_image
         download_profile_image # Always download image on sync
-      rescue ActiveRecord::RecordInvalid => e
-        Rails.logger.error "[InstagramProfile] Validation error updating @#{username}: #{e.message}"
-        Rails.logger.error "[InstagramProfile] Errors: #{e.record.errors.full_messages.join(', ')}"
-        Rails.logger.error "[InstagramProfile] Data attempted: #{result.data.inspect}"
-        # Re-raise in development to see errors immediately
-        raise if Rails.env.development?
-      rescue StandardError => e
-        Rails.logger.error "[InstagramProfile] Error updating record @#{username}: #{e.class} - #{e.message}"
-        Rails.logger.error "[InstagramProfile] Backtrace: #{e.backtrace.first(10).join("\n")}"
-        # Re-raise in development to see errors immediately
+      rescue ActiveRecord::RecordInvalid, StandardError
         raise if Rails.env.development?
       end
     else
       error_msg = result.error || "Unknown error - result.data is blank"
-      Rails.logger.error "[InstagramProfile] API call failed for @#{username}: #{error_msg}"
-      Rails.logger.error "[InstagramProfile] Result success?: #{result.success?}, Data present?: #{result.data.present?}"
-
-      # In production, we still want to log but not fail the record creation
-      # The record will exist with just uid and username, and can be synced later
-      if Rails.env.development?
-        raise "Failed to fetch profile data: #{error_msg}"
-      end
+      raise "Failed to fetch profile data: #{error_msg}" if Rails.env.development?
     end
-  rescue StandardError => e
-    Rails.logger.error "[InstagramProfile] CRITICAL ERROR in update_profile_data for @#{username}: #{e.class} - #{e.message}"
-    Rails.logger.error "[InstagramProfile] Full backtrace:\n#{e.backtrace.join("\n")}"
-
-    # In development, re-raise to see the error immediately
+  rescue StandardError
     raise if Rails.env.development?
+  end
 
-    # In production, log but don't fail - record is created with uid, can sync later
+  # Updates the associated site's image from Instagram profile picture
+  # Only updates if the site does NOT have a Facebook page assigned (FB has priority)
+  def update_site_image
+    # Use avatar_image_url as primary source (from API), fallback to other fields if needed
+    image_url = avatar_image_url.presence || profile_pic_url_hd.presence || profile_pic_url.presence
+    return unless site.present? && image_url.present?
+
+    # Check if site has a Facebook page - if so, skip (Facebook updates the image)
+    return if site.page.present?
+
+    # Only update if no Facebook page exists
+    site.save_image(image_url)
+  rescue StandardError
+    # Silently fail - image update is not critical
   end
 
   # Check if avatar image should be downloaded
@@ -216,23 +202,17 @@ class InstagramProfile < ApplicationRecord
     # Download and save image as avatar.jpg (overwrites if exists)
     file_path = directory.join('avatar.jpg')
 
-    Rails.logger.info "Attempting to download Instagram profile image for @#{username} from: #{image_url}"
-
     response = HTTParty.get(image_url, timeout: 30, follow_redirects: true)
 
     if response.success?
       File.open(file_path, 'wb') do |file|
         file.write(response.body)
       end
-      Rails.logger.info "Successfully downloaded Instagram profile image for @#{username} to: #{file_path}"
       true
     else
-      Rails.logger.error "Failed to download Instagram profile image for @#{username}: HTTP #{response.code}"
       false
     end
-  rescue StandardError => e
-    Rails.logger.error "Error downloading Instagram profile image for @#{username}: #{e.message}"
-    Rails.logger.error e.backtrace.join("\n")
+  rescue StandardError
     false
   end
 end
