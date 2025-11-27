@@ -154,38 +154,22 @@
 
     <!-- Charts Section -->
     <section id="graficos" class="mb-8 scroll-mt-16">
-      <h2 class="text-2xl font-bold text-gray-900 mb-6">Análisis de Notas Populares - 24 Horas</h2>
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">
+        <i class="fa-solid fa-chart-pie text-sky-500 mr-2"></i>
+        Análisis de Notas Populares - 24 Horas
+      </h2>
       
-      <!-- Media Charts -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Cantidad de Notas por Medio</h3>
-          <div class="w-full overflow-hidden">
-            <%= pie_chart @entries_for_grouping.group("sites.name").count, donut: true %>
-          </div>
-        </div>
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Interacciones por Medio</h3>
-          <div class="w-full overflow-hidden">
-            <%= pie_chart @entries_for_grouping.group("sites.name").sum(:total_count), donut: true %>
-          </div>
-        </div>
-      </div>
+      <!-- Media Lists -->
+      <%= render 'topic/site_insights',
+            site_top_counts: @site_top_counts,
+            site_top_interactions: @site_top_interactions,
+            title: 'Cantidad de Notas por Medio y Interacciones por Medio' %>
 
-      <!-- Tag Charts -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Apariciones de Etiquetas</h3>
-          <div class="w-full overflow-hidden">
-            <%= pie_chart @tags_count, donut: true %>
-          </div>
-        </div>
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Interacciones por Etiqueta</h3>
-          <div class="w-full overflow-hidden">
-            <%= pie_chart @tags_interactions, donut: true %>
-          </div>
-        </div>
+      <!-- Tag Lists -->
+      <div class="mb-8">
+        <%= render 'topic/tag_insights',
+              tags_count: @tags_count,
+              tags_interactions: @tags_interactions %>
       </div>
     </section>
 

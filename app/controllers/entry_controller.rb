@@ -60,6 +60,27 @@ class EntryController < ApplicationController
       interaction_count = @tags_interactions[tag.name] || 0
       tag.define_singleton_method(:interactions) { interaction_count }
     end
+
+    # Prepare site data in format for list display (similar to topic/tag controllers)
+    site_counts_by_name = @entries_for_grouping.reorder(nil).group('sites.name').count
+    site_sums_by_name = @entries_for_grouping.reorder(nil).group('sites.name').sum(:total_count)
+    
+    # Get top sites
+    site_name_counts = site_counts_by_name.sort_by { |_, count| -count }.first(12)
+    site_name_interactions = site_sums_by_name.sort_by { |_, sum| -sum }.first(12)
+    
+    # Load Site objects with their data
+    site_names = (site_name_counts.map(&:first) + site_name_interactions.map(&:first)).uniq
+    sites_by_name = Site.where(name: site_names).index_by(&:name)
+    
+    # Build arrays with site objects (format: [{ site: site_object, name: site_name, count: count }])
+    @site_top_counts = site_name_counts.map do |site_name, count|
+      { site: sites_by_name[site_name], name: site_name, count: count }
+    end
+    
+    @site_top_interactions = site_name_interactions.map do |site_name, interactions|
+      { site: sites_by_name[site_name], name: site_name, interactions: interactions }
+    end
   end
 
   def twitter
@@ -115,6 +136,27 @@ class EntryController < ApplicationController
       # Assign interactions to each tag object - capture value, not reference
       interaction_count = @tags_interactions[tag.name] || 0
       tag.define_singleton_method(:interactions) { interaction_count }
+    end
+
+    # Prepare site data in format for list display (similar to topic/tag controllers)
+    site_counts_by_name = @entries_for_grouping.reorder(nil).group('sites.name').count
+    site_sums_by_name = @entries_for_grouping.reorder(nil).group('sites.name').sum(:total_count)
+    
+    # Get top sites
+    site_name_counts = site_counts_by_name.sort_by { |_, count| -count }.first(12)
+    site_name_interactions = site_sums_by_name.sort_by { |_, sum| -sum }.first(12)
+    
+    # Load Site objects with their data
+    site_names = (site_name_counts.map(&:first) + site_name_interactions.map(&:first)).uniq
+    sites_by_name = Site.where(name: site_names).index_by(&:name)
+    
+    # Build arrays with site objects (format: [{ site: site_object, name: site_name, count: count }])
+    @site_top_counts = site_name_counts.map do |site_name, count|
+      { site: sites_by_name[site_name], name: site_name, count: count }
+    end
+    
+    @site_top_interactions = site_name_interactions.map do |site_name, interactions|
+      { site: sites_by_name[site_name], name: site_name, interactions: interactions }
     end
   end
 
