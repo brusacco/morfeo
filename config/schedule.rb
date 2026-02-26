@@ -18,7 +18,8 @@ end
 every :hour do
   rake 'crawler'              # Crawl websites for new articles (depth: 2)
   rake 'proxy_crawler'        # JS-rendered sites via proxy
-  rake 'update_stats'         # Update Facebook stats for articles
+  # rake 'update_stats'         # Update Facebook stats for articles
+  rake 'update_api'           # Update Facebook stats via API
   rake 'update_site_stats'    # Aggregate site-level statistics
   rake 'update_dates'         # Fix/standardize publication dates
   rake 'clean_site_content'   # Remove unwanted content/formatting
@@ -41,7 +42,7 @@ end
 # EVERY 4 HOURS - Content tagging
 # =============================================================================
 every 4.hours do
-  rake 'repeated_notes'  # Detect and mark duplicate articles
+  rake 'repeated_notes' # Detect and mark duplicate articles
   rake 'instagram:posts_crawler' # Crawl Instagram posts
   # rake 'title_tagger' removed - tagger already handles both tags and title_tags
 end
