@@ -39,7 +39,6 @@
     }
   </style>
 <% end %>
-
 <!-- Page Header -->
 <header class="bg-white shadow-sm border-b border-gray-200">
   <div class="mx-auto px-4 py-6 sm:px-6 lg:px-8">
@@ -69,14 +68,12 @@
     </div>
   </div>
 </header>
-
 <!-- Breadcrumbs -->
 <%= render 'shared/breadcrumbs', items: [
   { label: 'Inicio', path: root_path, icon: 'fa-solid fa-home' },
   { label: 'Reportes', path: nil },
   { label: 'Noticias Populares', path: nil, current: true }
 ] %>
-
 <!-- Sticky Navigation -->
 <nav id="popular-nav" class="bg-white border-b border-gray-200 shadow-sm">
   <div class="mx-auto px-4 sm:px-6 lg:px-8">
@@ -124,10 +121,8 @@
     </div>
   </div>
 </nav>
-
 <main class="bg-gray-50 min-h-screen">
   <div class="mx-auto py-8 px-4 sm:px-6 lg:px-8">
-    
     <!-- Word Analysis Section -->
     <section id="palabras" class="mb-8 scroll-mt-16">
       <%= render partial: "tag/word_cloud_modern", 
@@ -139,7 +134,6 @@
                    description: "Análisis de frecuencia de palabras clave en las noticias más populares del día"
                  } %>
     </section>
-
     <!-- Bigram Analysis Section -->
     <section id="bigramas" class="mb-8 scroll-mt-16">
       <%= render partial: "tag/word_cloud_modern", 
@@ -151,20 +145,16 @@
                    description: "Análisis de pares de palabras consecutivas (bigramas) más frecuentes en las noticias populares"
                  } %>
     </section>
-
     <!-- Charts Section -->
     <section id="graficos" class="mb-8 scroll-mt-16">
       <h2 class="text-2xl font-bold text-gray-900 mb-6">
         <i class="fa-solid fa-chart-pie text-sky-500 mr-2"></i>
         Análisis de Notas Populares - 24 Horas
       </h2>
-      
-      <!-- Media Lists -->
-      <%= render 'topic/site_insights',
-            site_top_counts: @site_top_counts,
-            site_top_interactions: @site_top_interactions,
-            title: 'Cantidad de Notas por Medio y Interacciones por Medio' %>
-
+      <!-- Page Lists -->
+      <%= render 'facebook_topic/page_insights',
+            pages_count: @page_top_counts,
+            pages_interactions: @page_top_interactions %>
       <!-- Tag Lists -->
       <div class="mb-8">
         <%= render 'topic/tag_insights',
@@ -172,7 +162,6 @@
               tags_interactions: @tags_interactions %>
       </div>
     </section>
-
     <!-- Tag Appearances Section -->
     <section id="etiquetas" class="mb-8 scroll-mt-16">
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
@@ -191,7 +180,6 @@
         <p class="text-xs text-gray-500 italic">*Cantidad de veces que las etiquetas de tus temas aparecen en las notas populares</p>
       </div>
     </section>
-
     <!-- Tag Interactions Section -->
     <section class="mb-8">
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
@@ -210,42 +198,39 @@
         <p class="text-xs text-gray-500 italic">*Total de interacciones en las notas populares con etiquetas de tus temas</p>
       </div>
     </section>
-
     <!-- Popular News Section -->
     <section id="noticias" class="scroll-mt-16">
-      <%= render partial: 'entry/entries', locals: { last_entries: @entries, title: 'Últimas Noticias Populares' } %>
+      <%= render partial: 'facebook_topic/facebook_entries', locals: { facebook_entries: @entries, title: 'Posts de Facebook Más Populares' } %>
     </section>
-
   </div>
 </main>
-
 <script>
   // Back to Top functionality - works with Turbo
   function initBackToTop() {
     const backToTopBtn = document.getElementById('backToTop');
     if (!backToTopBtn) return;
-    
+
     // Prevent multiple initializations
     if (backToTopBtn.dataset.initialized === 'true') return;
     backToTopBtn.dataset.initialized = 'true';
-    
+
     backToTopBtn.addEventListener('click', function(e) {
       e.preventDefault();
       e.stopPropagation();
-      
+
       // Scroll to top with cross-browser compatibility
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
     });
   }
-  
+
   // Initialize on DOM ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initBackToTop);
   } else {
     initBackToTop();
   }
-  
+
   // Re-initialize on Turbo navigation
   document.addEventListener('turbo:load', initBackToTop);
 </script>

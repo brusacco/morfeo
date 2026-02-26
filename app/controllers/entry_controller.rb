@@ -20,12 +20,12 @@ class EntryController < ApplicationController
   end
 
   def popular
-    @entries = Entry.enabled.includes(
-      :site,
+    @entries = FacebookEntry.includes(
+      :page,
       :tags
-    ).where(total_count: 1..).a_day_ago.order(total_count: :desc).limit(POPULAR_ENTRIES_LIMIT)
+    ).within_range(1.day.ago, Time.zone.now).order(reactions_total_count: :desc).limit(POPULAR_ENTRIES_LIMIT)
     # Separate query for grouping operations to avoid MySQL strict mode issues
-    @entries_for_grouping = Entry.enabled.joins(:site).where(total_count: 1..).a_day_ago
+    @entries_for_grouping = FacebookEntry.joins(:page).within_range(1.day.ago, Time.zone.now)
 
     # Get all tags from user's topics
     user_topic_tags = @topicos.flat_map(&:tags).uniq
@@ -37,23 +37,19 @@ class EntryController < ApplicationController
     end
 .sort_by(&:count).reverse
 
-    # Cosas nuevas
-    @word_occurrences = @entries.word_occurrences
-    @bigram_occurrences = @entries.bigram_occurrences
+    # Word/bigram analysis
+    @word_occurrences = FacebookEntry.word_occurrences(@entries)
+    @bigram_occurrences = FacebookEntry.bigram_occurrences(@entries)
 
-    # Use pluck for comments to avoid LIMIT in subquery issue with find_each
     entry_ids = @entries.pluck(:id)
-    @comments = Comment.where(entry_id: entry_ids).order(created_time: :desc)
-    @comments_word_occurrences = @comments.word_occurrences
 
     @tags_interactions =
-      Rails.cache.fetch("tags_interactions_popular_#{Date.current}", expires_in: CACHE_DURATION) do
-        # Use entry_ids array instead of subquery with LIMIT
-        Entry.joins(:tags)
-             .where(id: entry_ids, tags: { id: @tags.map(&:id) })
-             .group('tags.name')
-             .order(Arel.sql('SUM(total_count) DESC'))
-             .sum(:total_count)
+      Rails.cache.fetch("tags_interactions_fb_popular_#{Date.current}", expires_in: CACHE_DURATION) do
+        FacebookEntry.joins(:tags)
+                     .where(id: entry_ids, tags: { id: @tags.map(&:id) })
+                     .group('tags.name')
+                     .order(Arel.sql('SUM(reactions_total_count) DESC'))
+                     .sum(:reactions_total_count)
       end
 
     @tags_count = {}
@@ -64,29 +60,29 @@ class EntryController < ApplicationController
       tag.define_singleton_method(:interactions) { interaction_count }
     end
 
-    # Prepare site data in format for list display (similar to topic/tag controllers)
-    site_counts_by_name = @entries_for_grouping.reorder(nil).group('sites.name').count
-    site_sums_by_name = @entries_for_grouping.reorder(nil).group('sites.name').sum(:total_count)
+    # Prepare page data in format for list display
+    page_counts_by_name = @entries_for_grouping.reorder(nil).group('pages.name').count
+    page_sums_by_name = @entries_for_grouping.reorder(nil).group('pages.name').sum(:reactions_total_count)
 
-    # Get top sites
-    site_name_counts = site_counts_by_name.sort_by { |_, count| -count }
+    # Get top pages
+    page_name_counts = page_counts_by_name.sort_by { |_, count| -count }
                                           .first(12)
-    site_name_interactions = site_sums_by_name.sort_by { |_, sum| -sum }
+    page_name_interactions = page_sums_by_name.sort_by { |_, sum| -sum }
                                               .first(12)
 
-    # Load Site objects with their data
-    site_names = (site_name_counts.map(&:first) + site_name_interactions.map(&:first)).uniq
-    sites_by_name = Site.where(name: site_names).index_by(&:name)
+    # Load Page objects with their data
+    page_names = (page_name_counts.map(&:first) + page_name_interactions.map(&:first)).uniq
+    pages_by_name = Page.where(name: page_names).index_by(&:name)
 
-    # Build arrays with site objects (format: [{ site: site_object, name: site_name, count: count }])
-    @site_top_counts =
-      site_name_counts.map do |site_name, count|
-        { site: sites_by_name[site_name], name: site_name, count: count }
+    # Build arrays with page objects (format: [{ page: page_object, name: page_name, count: count }])
+    @page_top_counts =
+      page_name_counts.map do |page_name, count|
+        { page: pages_by_name[page_name], name: page_name, count: count }
       end
 
-    @site_top_interactions =
-      site_name_interactions.map do |site_name, interactions|
-        { site: sites_by_name[site_name], name: site_name, interactions: interactions }
+    @page_top_interactions =
+      page_name_interactions.map do |page_name, interactions|
+        { page: pages_by_name[page_name], name: page_name, interactions: interactions }
       end
   end
 
@@ -109,12 +105,12 @@ class EntryController < ApplicationController
   end
 
   def commented
-    @entries = Entry.enabled.includes(
-      :site,
+    @entries = FacebookEntry.includes(
+      :page,
       :tags
-    ).a_day_ago.where.not(image_url: nil).order(comment_count: :desc).limit(COMMENTED_ENTRIES_LIMIT)
+    ).within_range(1.day.ago, Time.zone.now).order(comments_count: :desc).limit(COMMENTED_ENTRIES_LIMIT)
     # Separate query for grouping operations to avoid MySQL strict mode issues
-    @entries_for_grouping = Entry.enabled.joins(:site).a_day_ago.where.not(image_url: nil)
+    @entries_for_grouping = FacebookEntry.joins(:page).within_range(1.day.ago, Time.zone.now)
 
     # Get all tags from user's topics
     user_topic_tags = @topicos.flat_map(&:tags).uniq
@@ -126,21 +122,20 @@ class EntryController < ApplicationController
     end
 .sort_by(&:count).reverse
 
-    # Cosas nuevas
-    @word_occurrences = @entries.word_occurrences
-    @bigram_occurrences = @entries.bigram_occurrences
+    # Word/bigram analysis
+    @word_occurrences = FacebookEntry.word_occurrences(@entries)
+    @bigram_occurrences = FacebookEntry.bigram_occurrences(@entries)
 
     # Use pluck for entry_ids to avoid LIMIT in subquery issue
     entry_ids = @entries.pluck(:id)
 
     @tags_interactions =
-      Rails.cache.fetch("tags_interactions_commented_#{Date.current}", expires_in: CACHE_DURATION) do
-        # Use entry_ids array instead of subquery with LIMIT
-        Entry.joins(:tags)
-             .where(id: entry_ids, tags: { id: @tags.map(&:id) })
-             .group('tags.name')
-             .order(Arel.sql('SUM(total_count) DESC'))
-             .sum(:total_count)
+      Rails.cache.fetch("tags_interactions_fb_commented_#{Date.current}", expires_in: CACHE_DURATION) do
+        FacebookEntry.joins(:tags)
+                     .where(id: entry_ids, tags: { id: @tags.map(&:id) })
+                     .group('tags.name')
+                     .order(Arel.sql('SUM(reactions_total_count) DESC'))
+                     .sum(:reactions_total_count)
       end
 
     @tags_count = {}
@@ -151,29 +146,29 @@ class EntryController < ApplicationController
       tag.define_singleton_method(:interactions) { interaction_count }
     end
 
-    # Prepare site data in format for list display (similar to topic/tag controllers)
-    site_counts_by_name = @entries_for_grouping.reorder(nil).group('sites.name').count
-    site_sums_by_name = @entries_for_grouping.reorder(nil).group('sites.name').sum(:total_count)
+    # Prepare page data in format for list display
+    page_counts_by_name = @entries_for_grouping.reorder(nil).group('pages.name').count
+    page_sums_by_name = @entries_for_grouping.reorder(nil).group('pages.name').sum(:reactions_total_count)
 
-    # Get top sites
-    site_name_counts = site_counts_by_name.sort_by { |_, count| -count }
+    # Get top pages
+    page_name_counts = page_counts_by_name.sort_by { |_, count| -count }
                                           .first(12)
-    site_name_interactions = site_sums_by_name.sort_by { |_, sum| -sum }
+    page_name_interactions = page_sums_by_name.sort_by { |_, sum| -sum }
                                               .first(12)
 
-    # Load Site objects with their data
-    site_names = (site_name_counts.map(&:first) + site_name_interactions.map(&:first)).uniq
-    sites_by_name = Site.where(name: site_names).index_by(&:name)
+    # Load Page objects with their data
+    page_names = (page_name_counts.map(&:first) + page_name_interactions.map(&:first)).uniq
+    pages_by_name = Page.where(name: page_names).index_by(&:name)
 
-    # Build arrays with site objects (format: [{ site: site_object, name: site_name, count: count }])
-    @site_top_counts =
-      site_name_counts.map do |site_name, count|
-        { site: sites_by_name[site_name], name: site_name, count: count }
+    # Build arrays with page objects (format: [{ page: page_object, name: page_name, count: count }])
+    @page_top_counts =
+      page_name_counts.map do |page_name, count|
+        { page: pages_by_name[page_name], name: page_name, count: count }
       end
 
-    @site_top_interactions =
-      site_name_interactions.map do |site_name, interactions|
-        { site: sites_by_name[site_name], name: site_name, interactions: interactions }
+    @page_top_interactions =
+      page_name_interactions.map do |page_name, interactions|
+        { page: pages_by_name[page_name], name: page_name, interactions: interactions }
       end
   end
 
