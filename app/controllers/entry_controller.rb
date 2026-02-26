@@ -10,29 +10,32 @@ class EntryController < ApplicationController
   SEARCH_LIMIT = 50
   CACHE_DURATION = 30.minutes
 
-  caches_action :popular, expires_in: CACHE_DURATION,
-                cache_path: proc { |c| { user_id: c.current_user.id } }
-  caches_action :commented, expires_in: CACHE_DURATION,
-                cache_path: proc { |c| { user_id: c.current_user.id } }
-  caches_action :week, expires_in: CACHE_DURATION,
-                cache_path: proc { |c| { user_id: c.current_user.id } }
-  
+  caches_action :popular, expires_in: CACHE_DURATION, cache_path: proc { |c| { user_id: c.current_user.id } }
+  caches_action :commented, expires_in: CACHE_DURATION, cache_path: proc { |c| { user_id: c.current_user.id } }
+  caches_action :week, expires_in: CACHE_DURATION, cache_path: proc { |c| { user_id: c.current_user.id } }
+
   def show
     # Renders default template - no additional logic needed
     # Template: app/views/entry/show.html.erb
   end
 
   def popular
-    @entries = Entry.enabled.includes(:site, :tags).where(total_count: 1..).a_day_ago.order(total_count: :desc).limit(POPULAR_ENTRIES_LIMIT)
+    @entries = Entry.enabled.includes(
+      :site,
+      :tags
+    ).where(total_count: 1..).a_day_ago.order(total_count: :desc).limit(POPULAR_ENTRIES_LIMIT)
     # Separate query for grouping operations to avoid MySQL strict mode issues
     @entries_for_grouping = Entry.enabled.joins(:site).where(total_count: 1..).a_day_ago
-    
+
     # Get all tags from user's topics
     user_topic_tags = @topicos.flat_map(&:tags).uniq
     user_topic_tag_names = user_topic_tags.map(&:name)
-    
+
     # Filter tags to only show those from user's topics
-    @tags = @entries.tag_counts_on(:tags).select { |tag| user_topic_tag_names.include?(tag.name) }.sort_by(&:count).reverse
+    @tags = @entries.tag_counts_on(:tags).select do |tag|
+      user_topic_tag_names.include?(tag.name)
+    end
+.sort_by(&:count).reverse
 
     # Cosas nuevas
     @word_occurrences = @entries.word_occurrences
@@ -64,23 +67,27 @@ class EntryController < ApplicationController
     # Prepare site data in format for list display (similar to topic/tag controllers)
     site_counts_by_name = @entries_for_grouping.reorder(nil).group('sites.name').count
     site_sums_by_name = @entries_for_grouping.reorder(nil).group('sites.name').sum(:total_count)
-    
+
     # Get top sites
-    site_name_counts = site_counts_by_name.sort_by { |_, count| -count }.first(12)
-    site_name_interactions = site_sums_by_name.sort_by { |_, sum| -sum }.first(12)
-    
+    site_name_counts = site_counts_by_name.sort_by { |_, count| -count }
+                                          .first(12)
+    site_name_interactions = site_sums_by_name.sort_by { |_, sum| -sum }
+                                              .first(12)
+
     # Load Site objects with their data
     site_names = (site_name_counts.map(&:first) + site_name_interactions.map(&:first)).uniq
     sites_by_name = Site.where(name: site_names).index_by(&:name)
-    
+
     # Build arrays with site objects (format: [{ site: site_object, name: site_name, count: count }])
-    @site_top_counts = site_name_counts.map do |site_name, count|
-      { site: sites_by_name[site_name], name: site_name, count: count }
-    end
-    
-    @site_top_interactions = site_name_interactions.map do |site_name, interactions|
-      { site: sites_by_name[site_name], name: site_name, interactions: interactions }
-    end
+    @site_top_counts =
+      site_name_counts.map do |site_name, count|
+        { site: sites_by_name[site_name], name: site_name, count: count }
+      end
+
+    @site_top_interactions =
+      site_name_interactions.map do |site_name, interactions|
+        { site: sites_by_name[site_name], name: site_name, interactions: interactions }
+      end
   end
 
   def twitter
@@ -102,16 +109,22 @@ class EntryController < ApplicationController
   end
 
   def commented
-    @entries = Entry.enabled.includes(:site, :tags).a_day_ago.where.not(image_url: nil).order(comment_count: :desc).limit(COMMENTED_ENTRIES_LIMIT)
+    @entries = Entry.enabled.includes(
+      :site,
+      :tags
+    ).a_day_ago.where.not(image_url: nil).order(comment_count: :desc).limit(COMMENTED_ENTRIES_LIMIT)
     # Separate query for grouping operations to avoid MySQL strict mode issues
     @entries_for_grouping = Entry.enabled.joins(:site).a_day_ago.where.not(image_url: nil)
 
     # Get all tags from user's topics
     user_topic_tags = @topicos.flat_map(&:tags).uniq
     user_topic_tag_names = user_topic_tags.map(&:name)
-    
+
     # Filter tags to only show those from user's topics
-    @tags = @entries.tag_counts_on(:tags).select { |tag| user_topic_tag_names.include?(tag.name) }.sort_by(&:count).reverse
+    @tags = @entries.tag_counts_on(:tags).select do |tag|
+      user_topic_tag_names.include?(tag.name)
+    end
+.sort_by(&:count).reverse
 
     # Cosas nuevas
     @word_occurrences = @entries.word_occurrences
@@ -141,23 +154,27 @@ class EntryController < ApplicationController
     # Prepare site data in format for list display (similar to topic/tag controllers)
     site_counts_by_name = @entries_for_grouping.reorder(nil).group('sites.name').count
     site_sums_by_name = @entries_for_grouping.reorder(nil).group('sites.name').sum(:total_count)
-    
+
     # Get top sites
-    site_name_counts = site_counts_by_name.sort_by { |_, count| -count }.first(12)
-    site_name_interactions = site_sums_by_name.sort_by { |_, sum| -sum }.first(12)
-    
+    site_name_counts = site_counts_by_name.sort_by { |_, count| -count }
+                                          .first(12)
+    site_name_interactions = site_sums_by_name.sort_by { |_, sum| -sum }
+                                              .first(12)
+
     # Load Site objects with their data
     site_names = (site_name_counts.map(&:first) + site_name_interactions.map(&:first)).uniq
     sites_by_name = Site.where(name: site_names).index_by(&:name)
-    
+
     # Build arrays with site objects (format: [{ site: site_object, name: site_name, count: count }])
-    @site_top_counts = site_name_counts.map do |site_name, count|
-      { site: sites_by_name[site_name], name: site_name, count: count }
-    end
-    
-    @site_top_interactions = site_name_interactions.map do |site_name, interactions|
-      { site: sites_by_name[site_name], name: site_name, interactions: interactions }
-    end
+    @site_top_counts =
+      site_name_counts.map do |site_name, count|
+        { site: sites_by_name[site_name], name: site_name, count: count }
+      end
+
+    @site_top_interactions =
+      site_name_interactions.map do |site_name, interactions|
+        { site: sites_by_name[site_name], name: site_name, interactions: interactions }
+      end
   end
 
   def week
@@ -168,7 +185,10 @@ class EntryController < ApplicationController
 
   def similar
     @entry = Entry.find_by(url: params[:url])
-    @entries = Entry.enabled.includes(:site, :tags).tagged_with(@entry.tags, any: true).order(published_at: :desc).limit(10)
+    @entries = Entry.enabled.includes(:site, :tags).tagged_with(
+      @entry.tags,
+      any: true
+    ).order(published_at: :desc).limit(10)
     render json: @entries
   end
 

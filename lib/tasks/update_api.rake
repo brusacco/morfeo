@@ -137,10 +137,11 @@ task update_api: :environment do
 end
 
 def call_api(page_uid, cursor = nil)
-  api_url = 'https://graph.facebook.com/v17.0/'
-  token = ENV.fetch('FACEBOOK_API_TOKEN') do
-    raise ArgumentError, 'FACEBOOK_API_TOKEN environment variable is not set. Please add it to your .env file.'
-  end
+  api_url = 'https://graph.facebook.com/v19.0/'
+  token =
+    ENV.fetch('FACEBOOK_API_TOKEN') do
+      raise ArgumentError, 'FACEBOOK_API_TOKEN environment variable is not set. Please add it to your .env file.'
+    end
   token_param = "&access_token=#{token}"
   reactions = '%2Creactions.type(LIKE).limit(0).summary(total_count).as(reactions_like)%2Creactions.type(LOVE).limit(0).summary(total_count).as(reactions_love)%2Creactions.type(WOW).limit(0).summary(total_count).as(reactions_wow)%2Creactions.type(HAHA).limit(0).summary(total_count).as(reactions_haha)%2Creactions.type(SAD).limit(0).summary(total_count).as(reactions_sad)%2Creactions.type(ANGRY).limit(0).summary(total_count).as(reactions_angry)%2Creactions.type(THANKFUL).limit(0).summary(total_count).as(reactions_thankful)'
   comments = '%2Ccomments.limit(0).summary(total_count)'
