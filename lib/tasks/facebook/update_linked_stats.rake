@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 namespace :facebook do
   desc 'Update Entry stats from linked Facebook posts for the last week'
   task update_linked_stats: :environment do

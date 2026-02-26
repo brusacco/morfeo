@@ -13,13 +13,7 @@ class FacebookEntry < ApplicationRecord
   before_save :calculate_sentiment_analysis, if: :reactions_changed?
 
   # Sentiment labels enum
-  enum sentiment_label: {
-    very_negative: 0,
-    negative: 1,
-    neutral: 2,
-    positive: 3,
-    very_positive: 4
-  }
+  enum :sentiment_label, { very_negative: 0, negative: 1, neutral: 2, positive: 3, very_positive: 4 }
 
   # Sentiment weights based on research
   SENTIMENT_WEIGHTS = {
@@ -48,15 +42,15 @@ class FacebookEntry < ApplicationRecord
         lambda { |tag_names|
           tag_names.present? ? tagged_with(tag_names, any: true) : all
         }
-  
+
   # Sentiment thresholds
-  CONTROVERSY_THRESHOLD = 0.6  # Posts with >60% polarization
-  HIGH_EMOTION_THRESHOLD = 50.0  # Emotional reactions > 50% of total
-  STATISTICAL_SIGNIFICANCE_THRESHOLD = 30  # Minimum reactions for statistical validity
+  CONTROVERSY_THRESHOLD = 0.6 # Posts with >60% polarization
+  HIGH_EMOTION_THRESHOLD = 50.0 # Emotional reactions > 50% of total
+  STATISTICAL_SIGNIFICANCE_THRESHOLD = 30 # Minimum reactions for statistical validity
 
   # Sentiment scopes
-  scope :positive_sentiment, -> { where(sentiment_label: [:positive, :very_positive]) }
-  scope :negative_sentiment, -> { where(sentiment_label: [:negative, :very_negative]) }
+  scope :positive_sentiment, -> { where(sentiment_label: %i[positive very_positive]) }
+  scope :negative_sentiment, -> { where(sentiment_label: %i[negative very_negative]) }
   scope :neutral_sentiment, -> { where(sentiment_label: :neutral) }
   scope :controversial, -> { where('controversy_index > ?', CONTROVERSY_THRESHOLD) }
   scope :high_emotion, -> { where('emotional_intensity > ?', HIGH_EMOTION_THRESHOLD) }
@@ -139,12 +133,13 @@ class FacebookEntry < ApplicationRecord
 
   # Get the post type for display
   def post_type
-    return 'Video' if attachment_type == 'video_autoplay' || attachment_type == 'video_inline'
+    return 'Video' if %w[video_autoplay video_inline].include?(attachment_type)
     return 'Foto' if attachment_type == 'photo'
     return 'Album' if attachment_type == 'album'
     return 'Link' if attachment_type == 'share' || has_external_url?
     return 'Evento' if attachment_type == 'event'
     return 'Encuesta' if attachment_type == 'poll'
+
     'Publicación'
   end
 
@@ -152,7 +147,7 @@ class FacebookEntry < ApplicationRecord
   # REACH & VIEWS ESTIMATION (Research-Based)
   # Based on academic research and industry benchmarks (2023-2024)
   # ============================================
-  
+
   # Estimated reach (unique users who saw the post)
   # Based on:
   # - MDPI Research (2023): Social Media Analytics and Metrics
@@ -162,19 +157,17 @@ class FacebookEntry < ApplicationRecord
     followers = page&.followers || 0
     shares = share_count || 0
     comments = comments_count || 0
-    
+
     # Separate reactions by engagement strength (research-backed weights)
     strong_reactions = (
-      reactions_love_count + reactions_haha_count + 
-      reactions_wow_count + reactions_sad_count + 
-      reactions_angry_count
+      reactions_love_count + reactions_haha_count + reactions_wow_count + reactions_sad_count + reactions_angry_count
     )
     weak_reactions = reactions_like_count + reactions_thankful_count
-    
+
     # 1. Base Organic Reach (2-5% of followers based on page size)
     organic_reach_rate = calculate_organic_reach_rate(followers)
     base_reach = followers * organic_reach_rate
-    
+
     # 2. Viral Reach (from engagement)
     # Research shows: Shares have highest impact, then comments, then reactions
     viral_reach = (
@@ -183,28 +176,28 @@ class FacebookEntry < ApplicationRecord
       (strong_reactions * 20) +     # Strong reactions boost visibility
       (weak_reactions * 10)         # Weak reactions have lower impact
     )
-    
+
     # 3. Content Type Multiplier (MDPI research: videos get 35% more reach)
     content_multiplier = content_type_reach_multiplier
-    
+
     # Final calculation
     ((base_reach + viral_reach) * content_multiplier).round
   end
-  
+
   # Estimated views (total impressions, including repeat views)
   # Industry benchmark: Views = Reach × 1.15-1.3 (repeat views)
   def estimated_views
-    estimated_reach * 1.2  # 20% repeat views (conservative estimate)
+    estimated_reach * 1.2 # 20% repeat views (conservative estimate)
   end
-  
+
   # Confidence level for reach estimation
   # More engagement = more reliable estimate
   def reach_confidence_level
     engagement_count = total_interactions
-    
+
     case engagement_count
     when 0...10
-      :very_low      # < 10 interactions: unreliable
+      :very_low # < 10 interactions: unreliable
     when 10...50
       :low          # 10-50: rough estimate
     when 50...200
@@ -215,7 +208,7 @@ class FacebookEntry < ApplicationRecord
       :excellent    # 1000+: strong signal
     end
   end
-  
+
   # Confidence as percentage
   def reach_confidence_percentage
     case reach_confidence_level
@@ -226,9 +219,9 @@ class FacebookEntry < ApplicationRecord
     else 85
     end
   end
-  
+
   private
-  
+
   # Organic reach rate decreases as page size increases (diminishing returns)
   # Based on Meta Business Suite data (2024)
   def calculate_organic_reach_rate(followers)
@@ -243,7 +236,7 @@ class FacebookEntry < ApplicationRecord
       0.02  # 2% for very large pages
     end
   end
-  
+
   # Content type multiplier based on MDPI research (2023)
   # Videos generate 35% more reach, links 35% less
   def content_type_reach_multiplier
@@ -260,7 +253,7 @@ class FacebookEntry < ApplicationRecord
       has_external_url? ? 0.65 : 0.75
     end
   end
-  
+
   public
 
   # Extract external URLs from the Facebook post (news articles, etc.)
@@ -314,39 +307,39 @@ class FacebookEntry < ApplicationRecord
 
   def calculate_sentiment_analysis
     return if reactions_total_count.zero?
-    
+
     self.sentiment_score = calculate_weighted_sentiment_score
     self.sentiment_label = determine_sentiment_label(sentiment_score)
-    
+
     # Calculate distribution percentages
-    positive = reactions_like_count + reactions_love_count + reactions_haha_count + 
+    positive = reactions_like_count + reactions_love_count + reactions_haha_count +
                reactions_wow_count + reactions_thankful_count
     negative = reactions_sad_count + reactions_angry_count
-    
+
     self.sentiment_positive_pct = (positive.to_f / reactions_total_count * 100).round(2)
     self.sentiment_negative_pct = (negative.to_f / reactions_total_count * 100).round(2)
     self.sentiment_neutral_pct = (100 - sentiment_positive_pct - sentiment_negative_pct).round(2)
-    
+
     # Calculate controversy index
     self.controversy_index = calculate_controversy_index(positive, negative)
-    
+
     # Calculate emotional intensity
     self.emotional_intensity = calculate_emotional_intensity
   end
-  
+
   def calculate_weighted_sentiment_score
     return 0.0 if reactions_total_count.zero?
-    
+
     weighted_sum = 0.0
-    
+
     SENTIMENT_WEIGHTS.each do |reaction_field, weight|
       count = send(reaction_field) || 0
       weighted_sum += count * weight
     end
-    
+
     (weighted_sum / reactions_total_count.to_f).round(2)
   end
-  
+
   def determine_sentiment_label(score)
     case score
     when 1.5..Float::INFINITY
@@ -361,27 +354,27 @@ class FacebookEntry < ApplicationRecord
       :very_negative
     end
   end
-  
+
   def calculate_controversy_index(positive, negative)
     return 0.0 if reactions_total_count.zero?
-    
+
     balance = ((positive - negative).abs.to_f / reactions_total_count)
     controversy = 1.0 - balance
     controversy.round(4)
   end
-  
+
   def calculate_emotional_intensity
     # Calculate as percentage of total reactions (0-100 scale)
     # More intuitive than ratio to likes
-    intense_reactions = reactions_love_count + reactions_angry_count + 
-                       reactions_sad_count + reactions_wow_count + 
-                       reactions_thankful_count
-    
+    intense_reactions = reactions_love_count + reactions_angry_count +
+                        reactions_sad_count + reactions_wow_count +
+                        reactions_thankful_count
+
     return 0.0 if reactions_total_count.zero?
-    
+
     (intense_reactions.to_f / reactions_total_count * 100).round(2)
   end
-  
+
   # Human-readable sentiment label with emoji
   def sentiment_text
     case sentiment_label
@@ -399,7 +392,7 @@ class FacebookEntry < ApplicationRecord
       '❓ Sin clasificar'
     end
   end
-  
+
   # Color for sentiment display
   def sentiment_color
     case sentiment_label
@@ -417,32 +410,32 @@ class FacebookEntry < ApplicationRecord
       'text-gray-500 bg-gray-50 border-gray-200'
     end
   end
-  
+
   # Statistical significance indicator
   def statistically_significant?
     reactions_total_count >= STATISTICAL_SIGNIFICANCE_THRESHOLD
   end
-  
+
   # Confidence level for sentiment score (0-1 scale)
   # Based on Wilson score interval for binomial proportion
   def sentiment_confidence
     return 0.0 if reactions_total_count.zero?
-    
+
     n = reactions_total_count
-    
+
     # More reactions = higher confidence
     # Using simplified confidence calculation
     # 95% confidence level (z = 1.96)
     confidence = 1.0 - (1.96 / Math.sqrt(n))
-    
+
     # Ensure confidence is between 0 and 1
     [[confidence, 0.0].max, 1.0].min.round(2)
   end
-  
+
   # Human-readable confidence level
   def confidence_level
     conf = sentiment_confidence
-    
+
     case conf
     when 0.0...0.3
       :very_low
@@ -456,7 +449,7 @@ class FacebookEntry < ApplicationRecord
       :excellent
     end
   end
-  
+
   # Confidence level text for display
   def confidence_text
     case confidence_level
@@ -522,7 +515,7 @@ class FacebookEntry < ApplicationRecord
   def calculate_views_count
     self.views_count = estimated_views.round
   end
-  
+
   def reactions_changed?
     changed.any? { |attr| attr.start_with?('reactions_') }
   end
