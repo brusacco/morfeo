@@ -19,10 +19,10 @@ module FacebookServices
     OPEN_TIMEOUT_SECONDS = 10   # Connection timeout: how long to wait for connection
 
     # Pagination
-    API_PAGE_SIZE = 100         # Number of posts per API request
+    API_PAGE_SIZE = 50 # Number of posts per API request
 
     # Rate limiting
-    DEFAULT_WAIT_TIME = 60      # Default wait time when rate limited (seconds)
+    DEFAULT_WAIT_TIME = 60 # Default wait time when rate limited (seconds)
     RATE_LIMIT_ERROR_CODES = [4, 17, 32, 613].freeze
 
     # Authentication errors
@@ -101,7 +101,7 @@ module FacebookServices
       if is_new_entry
         Rails.logger.info("[FacebookServices::FanpageCrawler] ✓ Created new post: #{facebook_entry.facebook_post_id}")
       else
-        Rails.logger.debug("[FacebookServices::FanpageCrawler] ✓ Updated existing post: #{facebook_entry.facebook_post_id}")
+        Rails.logger.debug { "[FacebookServices::FanpageCrawler] ✓ Updated existing post: #{facebook_entry.facebook_post_id}" }
       end
 
       # Link to Entry if matching URL is found (only for new or unlinked entries)
@@ -126,7 +126,7 @@ module FacebookServices
 
       # Skip Facebook internal URLs
       if url.include?('facebook.com/photo') || url.include?('facebook.com/watch') || url.include?('fb.watch')
-        Rails.logger.debug("[FacebookServices::FanpageCrawler] Skipping Facebook internal URL for post #{facebook_entry.facebook_post_id}")
+        Rails.logger.debug { "[FacebookServices::FanpageCrawler] Skipping Facebook internal URL for post #{facebook_entry.facebook_post_id}" }
         return
       end
 
@@ -137,7 +137,7 @@ module FacebookServices
         facebook_entry.update(entry: entry)
         Rails.logger.info("[FacebookServices::FanpageCrawler] Linked post #{facebook_entry.facebook_post_id} to entry #{entry.id} (#{entry.url})")
       else
-        Rails.logger.debug("[FacebookServices::FanpageCrawler] No matching entry found for URL: #{url}")
+        Rails.logger.debug { "[FacebookServices::FanpageCrawler] No matching entry found for URL: #{url}" }
       end
     rescue StandardError => e
       # Log linking errors but don't fail the crawl
@@ -200,12 +200,12 @@ module FacebookServices
         new_tags = entry_tags.sort
         current_tags = facebook_entry.tag_list.sort
 
-        if new_tags != current_tags
+        if new_tags == current_tags
+          Rails.logger.debug { "[FacebookServices::FanpageCrawler] Tags unchanged for post #{facebook_entry.facebook_post_id}" }
+        else
           facebook_entry.tag_list = entry_tags
           facebook_entry.save!
           Rails.logger.info("[FacebookServices::FanpageCrawler] Tagged post #{facebook_entry.facebook_post_id} with inherited tags: #{entry_tags.join(', ')}")
-        else
-          Rails.logger.debug("[FacebookServices::FanpageCrawler] Tags unchanged for post #{facebook_entry.facebook_post_id}")
         end
         return
       end
@@ -219,7 +219,9 @@ module FacebookServices
         new_tags = tags.sort
         current_tags = facebook_entry.tag_list.sort
 
-        if new_tags != current_tags
+        if new_tags == current_tags
+          Rails.logger.debug { "[FacebookServices::FanpageCrawler] Tags unchanged for post #{facebook_entry.facebook_post_id}: #{tags.join(', ')}" }
+        else
           facebook_entry.tag_list = tags
           facebook_entry.save!
           if is_new
@@ -227,11 +229,9 @@ module FacebookServices
           else
             Rails.logger.info("[FacebookServices::FanpageCrawler] Re-tagged post #{facebook_entry.facebook_post_id} with updated tags: #{tags.join(', ')}")
           end
-        else
-          Rails.logger.debug("[FacebookServices::FanpageCrawler] Tags unchanged for post #{facebook_entry.facebook_post_id}: #{tags.join(', ')}")
         end
       else
-        Rails.logger.debug("[FacebookServices::FanpageCrawler] No tags found for post #{facebook_entry.facebook_post_id}: #{result.error}")
+        Rails.logger.debug { "[FacebookServices::FanpageCrawler] No tags found for post #{facebook_entry.facebook_post_id}: #{result.error}" }
       end
     rescue StandardError => e
       # Log tagging errors but don't fail the crawl
@@ -327,9 +327,10 @@ module FacebookServices
 
     def call_api(page_uid, cursor = nil)
       # Validate token is present
-      token = ENV.fetch('FACEBOOK_API_TOKEN') do
-        raise ArgumentError, 'FACEBOOK_API_TOKEN environment variable is not set. Please add it to your .env file.'
-      end
+      token =
+        ENV.fetch('FACEBOOK_API_TOKEN') do
+          raise ArgumentError, 'FACEBOOK_API_TOKEN environment variable is not set. Please add it to your .env file.'
+        end
 
       api_url = "#{API_BASE_URL}/#{API_VERSION}/"
       token_param = "&access_token=#{token}"
@@ -390,25 +391,25 @@ module FacebookServices
       data
     rescue Net::OpenTimeout => e
       Rails.logger.error("[FacebookServices::FanpageCrawler] Connection timeout for page #{page_uid}: #{e.message}")
-      raise ApiError, "Facebook API connection timeout"
+      raise ApiError, 'Facebook API connection timeout'
     rescue Net::ReadTimeout => e
       Rails.logger.error("[FacebookServices::FanpageCrawler] Read timeout for page #{page_uid}: #{e.message}")
-      raise ApiError, "Facebook API read timeout"
+      raise ApiError, 'Facebook API read timeout'
     rescue Timeout::Error => e
       Rails.logger.error("[FacebookServices::FanpageCrawler] Timeout error for page #{page_uid}: #{e.message}")
-      raise ApiError, "Facebook API timeout"
+      raise ApiError, 'Facebook API timeout'
     rescue JSON::ParserError
       Rails.logger.error("[FacebookServices::FanpageCrawler] Invalid JSON response: #{response&.body&.[](0..500)}")
-      raise ApiError, "Invalid JSON from Facebook API"
+      raise ApiError, 'Invalid JSON from Facebook API'
     rescue SocketError, Errno::ECONNREFUSED, Errno::EHOSTUNREACH => e
       Rails.logger.error("[FacebookServices::FanpageCrawler] Network error: #{e.class} - #{e.message}")
-      raise ApiError, "Network error connecting to Facebook API"
+      raise ApiError, 'Network error connecting to Facebook API'
     rescue Errno::ETIMEDOUT => e
       Rails.logger.error("[FacebookServices::FanpageCrawler] Connection timed out for page #{page_uid}: #{e.message}")
-      raise ApiError, "Facebook API connection timeout"
+      raise ApiError, 'Facebook API connection timeout'
     rescue Errno::ECONNRESET => e
       Rails.logger.error("[FacebookServices::FanpageCrawler] Connection reset by peer for page #{page_uid}: #{e.message}")
-      raise ApiError, "Facebook API connection reset"
+      raise ApiError, 'Facebook API connection reset'
     end
 
     # Extract wait time from rate limit error

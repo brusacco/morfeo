@@ -7,7 +7,7 @@ task category: :environment do
     puts "#{site.name} - #{site.url}"
     puts '----------------------------------------------------------------------'
 
-    site.entries.where(category: nil).limit(10_000).order("created_at DESC").find_each do |entry|
+    site.entries.where(category: nil).limit(10_000).order('created_at DESC').find_each do |entry|
       puts "NEGOCIOS #{entry.url}"
       entry.update_attribute(:category, 'NEGOCIOS') if entry.category.nil?
     end
@@ -19,12 +19,10 @@ task category: :environment do
     puts '----------------------------------------------------------------------'
 
     site.entries.where(category: nil).limit(10_000).order('created_at DESC').find_each do |entry|
-      begin
-        puts "ESPECTACULOS #{entry.url}"
-        entry.update_attribute(:category, 'ESPECTACULOS') if entry.category.nil?
-      rescue
-        next
-      end
+      puts "ESPECTACULOS #{entry.url}"
+      entry.update_attribute(:category, 'ESPECTACULOS') if entry.category.nil?
+    rescue StandardError
+      next
     end
   end
 
@@ -34,12 +32,10 @@ task category: :environment do
     puts '----------------------------------------------------------------------'
 
     site.entries.where(category: nil).limit(10_000).order('created_at DESC').find_each do |entry|
-      begin
-        puts "DEPORTES " + entry.url
-        entry.update_attribute(:category, 'DEPORTES') if entry.category.nil?
-      rescue
-        next
-      end
+      puts 'DEPORTES ' + entry.url
+      entry.update_attribute(:category, 'DEPORTES') if entry.category.nil?
+    rescue StandardError
+      next
     end
   end
 
@@ -49,12 +45,10 @@ task category: :environment do
     puts '----------------------------------------------------------------------'
 
     site.entries.where(category: nil).limit(10_000).order('created_at DESC').find_each do |entry|
-      begin
-        puts "JUDICIALES " + entry.url
-        entry.update_attribute(:category, 'JUDICIALES') if entry.category.nil?
-      rescue
-        next
-      end
+      puts 'JUDICIALES ' + entry.url
+      entry.update_attribute(:category, 'JUDICIALES') if entry.category.nil?
+    rescue StandardError
+      next
     end
   end
 

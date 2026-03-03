@@ -14,11 +14,11 @@ namespace :facebook do
     end
 
     Rails.logger.info "Starting Facebook crawler with max #{max_pages} pages per fanpage"
-    puts "\n" + "=" * 80
-    puts "FACEBOOK FANPAGE CRAWLER"
-    puts "=" * 80
+    puts "\n" + ('=' * 80)
+    puts 'FACEBOOK FANPAGE CRAWLER'
+    puts '=' * 80
     puts "Max pages per fanpage: #{max_pages} (#{max_pages * 100} posts max)"
-    puts "=" * 80 + "\n"
+    puts ('=' * 80) + "\n"
 
     Page.find_each do |page|
       cursor = nil
@@ -39,11 +39,11 @@ namespace :facebook do
           # Provide more context for common errors
           if error_msg.include?('timeout') || error_msg.include?('Connection reset')
             puts "  ❌ Error: #{error_msg}"
-            puts "     💡 La conexión con Facebook API fue interrumpida. Los reintentos ya se intentaron."
-            puts "     💡 Puede reintentar esta página más tarde con: rake facebook:fanpage_crawler[1]"
+            puts '     💡 La conexión con Facebook API fue interrumpida. Los reintentos ya se intentaron.'
+            puts '     💡 Puede reintentar esta página más tarde con: rake facebook:fanpage_crawler[1]'
           elsif error_msg.include?('authentication')
             puts "  ❌ Error: #{error_msg}"
-            puts "     💡 Verifica que FACEBOOK_API_TOKEN esté configurado correctamente"
+            puts '     💡 Verifica que FACEBOOK_API_TOKEN esté configurado correctamente'
           else
             puts "  ❌ Error: #{error_msg}"
           end
@@ -54,11 +54,11 @@ namespace :facebook do
         entries = Array(data[:entries]).compact
 
         if entries.empty?
-          puts "  ⚠️  No entries returned"
+          puts '  ⚠️  No entries returned'
         else
           entries.each do |facebook_entry|
-            tag_info = facebook_entry.tags.any? ? " [#{facebook_entry.tag_list.join(', ')}]" : " [No tags]"
-            link_info = facebook_entry.entry.present? ? " [→ Entry #{facebook_entry.entry_id}]" : ""
+            tag_info = facebook_entry.tags.any? ? " [#{facebook_entry.tag_list.join(', ')}]" : ' [No tags]'
+            link_info = facebook_entry.entry.present? ? " [→ Entry #{facebook_entry.entry_id}]" : ''
             puts "    ✓ #{facebook_entry.facebook_post_id} (#{facebook_entry.posted_at.strftime('%Y-%m-%d')})#{link_info}#{tag_info}"
           end
           puts "  ✓ Stored #{entries.size} posts"
@@ -75,8 +75,8 @@ namespace :facebook do
       puts "  ✓ Completed: #{page_count} pages processed"
     end
 
-    puts "\n" + "=" * 80
-    puts "CRAWL COMPLETE"
-    puts "=" * 80 + "\n"
+    puts "\n" + ('=' * 80)
+    puts 'CRAWL COMPLETE'
+    puts ('=' * 80) + "\n"
   end
 end
