@@ -11,7 +11,7 @@ module FacebookServices
     REACTION_TYPES = %w[like love wow haha sad angry thankful].freeze
 
     # API Configuration
-    API_VERSION = 'v8.0'
+    API_VERSION = 'v22.0'
     API_BASE_URL = 'https://graph.facebook.com'
 
     # Timeout settings (in seconds)
@@ -19,7 +19,7 @@ module FacebookServices
     OPEN_TIMEOUT_SECONDS = 10   # Connection timeout: how long to wait for connection
 
     # Pagination
-    API_PAGE_SIZE = 50 # Number of posts per API request
+    API_PAGE_SIZE = 100 # Number of posts per API request
 
     # Rate limiting
     DEFAULT_WAIT_TIME = 60 # Default wait time when rate limited (seconds)
@@ -340,7 +340,7 @@ module FacebookServices
       limit = "&limit=#{API_PAGE_SIZE}"
       next_page = cursor ? "&after=#{cursor}" : ''
 
-      url = "/#{page_uid}/posts?fields=id%2Cattachments%2Ccreated_time%2Cmessage%2Cpermalink_url"
+      url = "/#{page_uid}/feed?fields=id%2Cattachments%2Ccreated_time%2Cmessage%2Cpermalink_url"
       request = "#{api_url}#{url}#{shares}#{comments}#{reactions}#{limit}#{token_param}#{next_page}"
 
       # Make API call with timeout and error handling
