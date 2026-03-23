@@ -21,7 +21,6 @@ every :hour do
   # rake 'update_stats'         # Update Facebook stats for articles
   # rake 'update_api'           # Update Facebook stats via API
   rake 'facebook:update_linked_stats' # Update stats for entries linked to Facebook posts
-  rake 'update_site_stats'    # Aggregate site-level statistics
   rake 'update_dates'         # Fix/standardize publication dates
   rake 'clean_site_content'   # Remove unwanted content/formatting
   rake 'category'             # Categorize entries
@@ -37,6 +36,7 @@ every 3.hours do
   rake 'twitter:profile_crawler_full'  # Crawl Twitter profiles for new tweets
   rake 'social_crawler'                # General social media crawler
   # rake 'facebook:comment_crawler'    # Disabled: too heavy
+  rake 'update_site_stats' # Aggregate site-level statistics
 end
 
 # =============================================================================
