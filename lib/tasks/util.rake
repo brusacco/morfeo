@@ -31,7 +31,7 @@ task test_openai: :environment do
 
   response = client.chat(
     parameters: {
-      model: 'gpt-3.5-turbo', # Required.
+      model: 'gpt-4.1-mini', # Required.
       messages: [{ role: 'user', content: entries.prompt(topic.name) }], # Required.
       temperature: 0.7
     }

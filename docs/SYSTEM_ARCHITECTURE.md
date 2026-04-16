@@ -279,7 +279,7 @@ GET /2/users/{user_id}
 
 **Endpoint**: `https://api.openai.com/v1`  
 **Authentication**: Bearer token (API key)  
-**Model**: `gpt-3.5-turbo`  
+**Model**: `gpt-4.1-mini`  
 **Cost**: ~$0.002 per 1K tokens
 
 #### **Use Cases**:
