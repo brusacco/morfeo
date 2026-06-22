@@ -33,7 +33,7 @@ task telegram_bot: :environment do
 
     response = client.chat(
       parameters: {
-        model: 'gpt-4.1-mini', # Required.
+        model: 'gpt-5-mini', # Required.
         messages: [{ role: 'user', content: prompt }], # Required.
         temperature: 0.7
       }

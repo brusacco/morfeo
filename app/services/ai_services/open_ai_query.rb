@@ -16,7 +16,7 @@ module AiServices
       loop do
         response = client.chat(
           parameters: {
-            model: 'gpt-4.1-mini',
+            model: 'gpt-5-mini',
             messages: [{ role: 'user', content: @text }],
             temperature: 0.7
           }

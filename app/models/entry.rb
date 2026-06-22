@@ -328,7 +328,7 @@ class Entry < ApplicationRecord
     client = OpenAI::Client.new(access_token: Rails.application.credentials.openai_access_token)
     response = client.chat(
       parameters: {
-        model: 'gpt-4.1-mini', # Required.
+        model: 'gpt-5-mini', # Required.
         messages: [{ role: 'user', content: text }], # Required.
         temperature: 0.7
       }
