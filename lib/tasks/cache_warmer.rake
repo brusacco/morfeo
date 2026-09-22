@@ -14,7 +14,7 @@ namespace :cache do
     puts "📊 Warming #{topics.count} topics in parallel..."
 
     results =
-      Parallel.map(topics, in_processes: 1, progress: 'Warming topics') do |topic|
+      Parallel.map(topics, in_processes: 4, progress: 'Warming topics') do |topic|
         ActiveRecord::Base.connection.reconnect! # Reconnect in each process
 
         begin
