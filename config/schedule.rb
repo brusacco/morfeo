@@ -7,7 +7,7 @@ set :environment, 'production'
 # =============================================================================
 # Keeps dashboards fast by pre-loading data into Redis cache
 # All caches expire after 30 minutes, ensuring fresh data
-every 5.minutes do
+every 25.minutes do
   rake 'cache:warm_dashboards'
 end
 
