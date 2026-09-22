@@ -16,7 +16,7 @@ RSpec.describe 'Api::V1::Sites', type: :request do
   end
 
   around do |example|
-    original = ENV['USE_DIRECT_ENTRY_TOPICS']
+    original = ENV.fetch('USE_DIRECT_ENTRY_TOPICS', nil)
     ENV['USE_DIRECT_ENTRY_TOPICS'] = 'true'
     example.run
   ensure

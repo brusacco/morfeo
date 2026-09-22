@@ -11,12 +11,12 @@ RSpec.describe 'Api::V1::Tags', type: :request do
       title: 'Tagged entry',
       published_at: Time.current,
       total_count: 12,
-      tag_list: ['economy', 'politics']
+      tag_list: %w[economy politics]
     )
   end
 
   around do |example|
-    original = ENV['USE_DIRECT_ENTRY_TOPICS']
+    original = ENV.fetch('USE_DIRECT_ENTRY_TOPICS', nil)
     ENV['USE_DIRECT_ENTRY_TOPICS'] = 'true'
     example.run
   ensure

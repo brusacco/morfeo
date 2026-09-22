@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # ChartsHelper
-# 
+#
 # Provides helper methods for rendering charts consistently across the application.
 # Handles Highcharts configuration, clickable charts, and tooltip formatting.
 #
@@ -35,13 +35,13 @@ module ChartsHelper
   # @return [String] HTML string with chart
   def render_clickable_chart(data, **options)
     chart_type = options.delete(:type) || :column
-    
+
     # Determine if chart should be clickable (default: true if url present)
     clickable = options[:clickable] != false && options[:url].present?
-    
+
     chart_options = build_chart_options(options)
     wrapper_options = build_wrapper_options(options)
-    
+
     content_tag(:div, **wrapper_options) do
       concat send("#{chart_type}_chart", data, **chart_options)
       concat render('home/modal', graph_id: options[:chart_id], controller_name: 'topics') if clickable
@@ -66,13 +66,13 @@ module ChartsHelper
     options[:library] ||= {}
     options[:library][:chart] ||= {}
     options[:library][:chart][:type] = 'area'
-    
+
     if options.delete(:stacked)
       options[:library][:plotOptions] ||= {}
       options[:library][:plotOptions][:area] ||= {}
       options[:library][:plotOptions][:area][:stacking] = 'normal'
     end
-    
+
     render_clickable_chart(data, type: :area, **options)
   end
 
@@ -88,7 +88,7 @@ module ChartsHelper
       suffix: options.delete(:suffix) || '',
       library: CHART_CONFIG[:defaults][:library].deep_dup
     }
-    
+
     pie_chart(data, **chart_options)
   end
 
@@ -136,7 +136,7 @@ module ChartsHelper
   def build_chart_options(options)
     label = options[:label]
     color = options[:color] || :primary
-    
+
     chart_opts = {
       id: options[:chart_id],
       xtitle: options[:xtitle],
@@ -146,7 +146,7 @@ module ChartsHelper
       colors: [chart_color(color)],
       library: build_library_config(label, options[:library])
     }
-    
+
     # Remove nil values
     chart_opts.compact
   end
@@ -158,14 +158,10 @@ module ChartsHelper
   # @return [Hash] Complete library configuration
   def build_library_config(label, custom_config = {})
     base_config = CHART_CONFIG[:defaults][:library].deep_dup
-    
+
     # Add tooltip configuration if label provided
-    if label.present?
-      base_config[:tooltip] = {
-        pointFormat: "<b>{point.y}</b> #{label}"
-      }
-    end
-    
+    base_config[:tooltip] = { pointFormat: "<b>{point.y}</b> #{label}" } if label.present?
+
     # Merge custom configuration
     base_config.deep_merge(custom_config || {})
   end
@@ -175,10 +171,8 @@ module ChartsHelper
   # @param options [Hash] Chart options
   # @return [Hash] HTML attributes for wrapper div
   def build_wrapper_options(options)
-    wrapper = {
-      class: 'w-full overflow-hidden'
-    }
-    
+    wrapper = { class: 'w-full overflow-hidden' }
+
     # Add data attributes for clickable charts
     if options[:clickable] != false && options[:url].present?
       wrapper[:data] = {
@@ -189,8 +183,7 @@ module ChartsHelper
         topics_title_value: options[:title] || false
       }
     end
-    
+
     wrapper
   end
 end
-

@@ -9,7 +9,7 @@ RSpec.describe FacebookDashboardServices::AggregatorService do
 
   before do
     allow(described_class).to receive(:new).and_return(service)
-    allow(Rails.cache).to receive(:fetch) { |*args, &block| block.call }
+    allow(Rails.cache).to receive(:fetch) { |*_args, &block| block.call }
   end
 
   it 'returns the combined dashboard payload' do
