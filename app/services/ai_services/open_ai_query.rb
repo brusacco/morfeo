@@ -38,9 +38,7 @@ module AiServices
 
         result = response.dig('choices', 0, 'message', 'content')
 
-        if result.blank?
-          return handle_error('OpenAI returned an empty response')
-        end
+        return handle_error('OpenAI returned an empty response') if result.blank?
 
         return handle_success(result)
       end
