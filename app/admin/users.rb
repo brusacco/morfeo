@@ -31,9 +31,7 @@ ActiveAdmin.register User do
           f.input :topics,
                   label: 'Asiganar a:',
                   as: :check_boxes,
-                  collection: Topic.all.collect { |topic|
-                    [topic.name, topic.id]
-                  }
+                  collection: proc { Topic.all.collect { |topic| [topic.name, topic.id] } }
         end
       end
     end

@@ -1,7 +1,15 @@
 ActiveAdmin.register Newspaper do
   menu parent: 'Entries Listing', label: 'Portadas'
   filter :date, label: 'Fecha'
-  filter :site_id, label: 'Medio', as: :select, collection: Site.all.map { |u| [u.name, u.id] }, include_blank: true
+  filter :site_id,
+         label: 'Medio',
+         as: :select,
+         collection: proc {
+           Site.all.map do |u|
+             [u.name, u.id]
+           end
+         },
+         include_blank: true
 
   permit_params :date, :site_id, :cover, :backcover, newspaper_texts_attributes: %i[id title description _destroy]
   form do |f|
@@ -9,9 +17,7 @@ ActiveAdmin.register Newspaper do
       f.input :site_id,
               label: 'Medio',
               as: :select,
-              collection: Site.all.map { |t|
-                [t.name, t.id]
-              },
+              collection: proc { Site.all.map { |t| [t.name, t.id] } },
               input_html: { required: true }
       f.input :cover, as: :file, label: 'Tapa'
       f.input :backcover, as: :file, label: 'Contra Tapa'

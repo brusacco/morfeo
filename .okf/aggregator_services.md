@@ -1,0 +1,202 @@
+---
+type: Architecture
+title: Aggregator Services
+description: Dashboard data aggregation services for all platform analytics
+tags: [services, aggregation, dashboards, performance]
+timestamp: 2026-09-22T00:00:00Z
+---
+
+# Overview
+
+Morfeo uses a family of aggregator services to load, cache, and calculate dashboard data for all analytics views. Each service follows the ApplicationService pattern with `.call()` class method and handles data loading, caching, and complex calculations for its respective dashboard.
+
+# Service Architecture
+
+All aggregator services inherit from `ApplicationService` and follow a consistent pattern:
+
+```ruby
+class AggregatorService < ApplicationService
+  CACHE_EXPIRATION = 30.minutes
+
+  def initialize(topic:, days_range: DAYS_RANGE)
+    # Initialize parameters and cache tag names
+  end
+
+  def call
+    Rails.cache.fetch(cache_key, expires_in: CACHE_EXPIRATION) do
+      # Load and aggregate data
+    end
+  end
+end
+```
+
+# Aggregator Services
+
+## Digital Dashboard Aggregator
+
+**Location**: `app/services/digital_dashboard_services/aggregator_service.rb`
+
+**Purpose**: Aggregates digital media (web article) dashboard data
+
+**Key Features**:
+
+- Loads entries for topic with date range filtering
+- Calculates entry aggregations (counts, totals, polarity breakdowns)
+- Computes site data (entries per site, interactions per site)
+- Generates chart data (posts/day, interactions/day)
+- Performs text analysis (word/bigram occurrences)
+- Detects viral content
+
+**Cache Key**: `digital_dashboard_{topic_id}_{days_range}_{date}`
+
+## Facebook Dashboard Aggregator
+
+**Location**: `app/services/facebook_dashboard_services/aggregator_service.rb`
+
+**Purpose**: Aggregates Facebook topic dashboard data
+
+**Key Features**:
+
+- Loads Facebook entries for topic with date range
+- Calculates chart data (posts/day, interactions/day)
+- Computes statistics (total posts, interactions, views, averages)
+- Performs text analysis (word/bigram occurrences)
+- Calculates tag data (tag distribution, interactions by tag)
+- Loads pages data (posts per page, interactions per page)
+- Performs sentiment analysis (reaction breakdown, sentiment labels)
+- Detects viral content
+
+**Cache Key**: `facebook_dashboard_{topic_id}_{top_posts_limit}_{days_range}_{date}`
+
+## Twitter Dashboard Aggregator
+
+**Location**: `app/services/twitter_dashboard_services/aggregator_service.rb`
+
+**Purpose**: Aggregates Twitter topic dashboard data
+
+**Key Features**:
+
+- Loads Twitter posts for topic with date range
+- Calculates chart data (posts/day, interactions/day)
+- Computes statistics (total posts, interactions, views, averages)
+- Performs text analysis (word/bigram occurrences)
+- Calculates tag data (tag distribution, interactions by tag)
+- Loads profiles data (posts per profile, interactions per profile)
+- Detects viral content
+
+**Cache Key**: `twitter_dashboard_{topic_id}_{top_posts_limit}_{days_range}_{date}`
+
+## Instagram Dashboard Aggregator
+
+**Location**: `app/services/instagram_dashboard_services/aggregator_service.rb`
+
+**Purpose**: Aggregates Instagram topic dashboard data
+
+**Key Features**:
+
+- Loads Instagram posts for topic with date range
+- Calculates chart data (posts/day, interactions/day)
+- Computes statistics (total posts, interactions, video views, averages)
+- Performs text analysis (word/bigram occurrences)
+- Calculates tag data (tag distribution, interactions by tag)
+- Loads profiles data (posts per profile, interactions per profile)
+- Detects viral content
+
+**Cache Key**: `instagram_dashboard_{topic_id}_{top_posts_limit}_{days_range}_{date}`
+
+## General Dashboard Aggregator
+
+**Location**: `app/services/general_dashboard_services/aggregator_service.rb`
+
+**Purpose**: Professional aggregation service for CEO-level reporting combining all sources
+
+**Key Features**:
+
+- Combines data from Digital Media, Facebook, and Twitter
+- Builds executive summary (total mentions, interactions, reach, sentiment)
+- Calculates channel performance (per-platform metrics)
+- Performs temporal intelligence (trend analysis)
+- Analyzes sentiment across all channels
+- Computes reach analysis
+- Builds competitive analysis
+- Identifies top content across all platforms
+- Generates recommendations
+
+**Cache Key**: `general_dashboard_{topic_id}_{start_date}_{end_date}`
+
+## Site Dashboard Aggregator
+
+**Location**: `app/services/site_dashboard_services/aggregator_service.rb`
+
+**Purpose**: Aggregates site-specific dashboard data
+
+**Key Features**:
+
+- Loads entries stats (grouped by day)
+- Loads entries with associations for display
+- Calculates word occurrences (cached, limited to 500 entries)
+- Calculates bigram occurrences (cached, limited to 500 entries)
+- Loads tag data (tag distribution, interactions by tag)
+
+**Cache Key**: `site_dashboard_{site_id}_{date}`
+
+# Performance Optimizations
+
+## Caching Strategy
+
+All aggregator services use Redis caching with 30-minute expiration:
+
+```ruby
+Rails.cache.fetch(cache_key, expires_in: CACHE_EXPIRATION) do
+  # Expensive data loading and calculations
+end
+```
+
+## Memoization
+
+Services use instance variable memoization to avoid repeated calculations:
+
+```ruby
+def topic_data
+  @topic_data_cache ||= load_topic_data
+end
+```
+
+## Query Optimization
+
+- **Single base queries**: Load all necessary data in one query with includes
+- **Database-level aggregation**: Use SQL GROUP BY and SUM instead of Ruby loops
+- **Limited text analysis**: Cap entries for word/bigram analysis (500 max)
+- **Efficient sorting**: Use database ORDER BY for top posts
+
+## Batch Processing
+
+Aggregations are batched to minimize database queries:
+
+```ruby
+def calculate_entry_aggregations(entries)
+  # Precompute aggregates in single pass
+  entries_count = entries.distinct.count
+  entries_total_sum = entries.distinct.sum(:total_count)
+  # ... combined queries
+end
+```
+
+# Usage Pattern
+
+Controllers use aggregator services to load dashboard data:
+
+```ruby
+def show
+  @data = DigitalDashboardServices::AggregatorService.call(topic: @topic)
+  # @data contains all pre-calculated dashboard data
+end
+```
+
+# Related
+
+- [Caching Strategy](caching_strategy.md) - Overall caching architecture
+- [Digital Reports](digital_reports/) - Digital media analytics
+- [Facebook Reports](facebook_reports/) - Facebook analytics
+- [Twitter Reports](twitter_reports/) - Twitter analytics
+- [Instagram Reports](instagram_reports/) - Instagram analytics

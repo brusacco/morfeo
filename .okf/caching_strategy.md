@@ -1,0 +1,177 @@
+---
+type: Architecture
+title: Caching Strategy
+description: Multi-layer caching architecture for fast report generation and dashboard performance
+tags: [caching, performance, redis, optimization]
+timestamp: 2026-09-22T00:00:00Z
+---
+
+# Overview
+
+Morfeo uses a multi-layer caching strategy to deliver fast report generation and dashboard performance. The architecture combines Redis-backed caching, action caching, service-level memoization, and proactive cache warming.
+
+# Cache Infrastructure
+
+## Cache Store
+
+- **Production**: Redis cache store (`redis://localhost:6379/0`)
+- **Development**: Memory store (or null store when caching disabled)
+- **Namespace**: Application root path for cache key isolation
+
+## Cache Duration
+
+- **Standard**: 30 minutes for all dashboard and report data
+- **PDF Generation**: 30 minutes per topic/type/days_range combination
+- **Cache Warming**: Every 5 minutes to maintain fresh data
+
+# Caching Layers
+
+## 1. Action Caching (Controller Level)
+
+Controllers use `caches_action` to cache rendered views:
+
+```ruby
+caches_action :show, :pdf, expires_in: 30.minutes,
+              cache_path: proc { |c| { topic_id: c.params[:id], user_id: c.current_user.id, days_range: c.params[:days_range] } }
+```
+
+**Applied to:**
+
+- All topic dashboard controllers (digital, Facebook, Twitter, Instagram)
+- Entry controller (popular, commented, week views)
+- Tag controller (show, report, pdf)
+- Home controller (index)
+
+## 2. Service-Level Caching
+
+Dashboard aggregator services cache expensive data loading operations:
+
+```ruby
+Rails.cache.fetch(cache_key, expires_in: CACHE_EXPIRATION) do
+  # Expensive data loading and calculations
+end
+```
+
+**Cache Keys Include:**
+
+- Topic ID
+- Date range
+- Current date (for daily freshness)
+- User ID (for personalized data)
+
+**Services Using Caching:**
+
+- `DigitalDashboardServices::AggregatorService`
+- `FacebookDashboardServices::AggregatorService`
+- `TwitterDashboardServices::AggregatorService`
+- `InstagramDashboardServices::AggregatorService`
+- `GeneralDashboardServices::AggregatorService`
+- `HomeServices::DashboardAggregatorService`
+- `SiteDashboardServices::AggregatorService`
+
+## 3. PDF Caching
+
+The `PdfCacheable` concern provides intelligent PDF caching:
+
+```ruby
+def fetch_cached_pdf(type:, topic_id:, days_range:, **options, &block)
+  cache_key = self.class.pdf_cache_key(type: type, topic_id: topic_id, days_range: days_range, **options)
+  Rails.cache.fetch(cache_key, expires_in: cache_duration, &block)
+end
+```
+
+**Cache Key Structure:**
+
+```
+pdf/{type}/{topic_id}/{days_range}/{date}
+```
+
+**Cache Duration by Type:**
+
+- Digital: 30 minutes
+- Facebook: 30 minutes
+- Twitter: 30 minutes
+- Instagram: 30 minutes
+- General: 30 minutes
+
+## 4. Cache Warming
+
+Proactive cache population via scheduled rake task:
+
+```ruby
+# config/schedule.rb
+every 5.minutes do
+  rake 'cache:warm_dashboards'
+end
+```
+
+**Purpose:**
+
+- Pre-load dashboard data into Redis cache
+- Ensure fast first-time access
+- Maintain fresh data (30-minute expiration)
+
+# Memoization Patterns
+
+Services use instance variable memoization for repeated calculations:
+
+```ruby
+def topic_data
+  @topic_data_cache ||= load_topic_data
+end
+
+def tag_names
+  @tag_names ||= @topic.tags.pluck(:name)
+end
+```
+
+# Cache Invalidation
+
+## Automatic Expiration
+
+All caches expire after 30 minutes, ensuring data freshness without manual invalidation.
+
+## Manual Invalidation
+
+```ruby
+# Expire specific PDF cache
+expire_pdf_cache(type: :digital, topic_id: 1, days_range: 7)
+
+# Expire all caches for a topic
+Rails.cache.delete_matched("pdf/*/#{topic_id}/*")
+```
+
+# Performance Benefits
+
+1. **Reduced Database Load**: Cached queries avoid repeated expensive database operations
+2. **Faster PDF Generation**: Pre-cached PDFs serve instantly instead of regenerating
+3. **Improved Dashboard Response**: Aggregated data loads from cache in milliseconds
+4. **Scalable Architecture**: Redis caching supports multiple application instances
+
+# Configuration
+
+## Production (`config/environments/production.rb`)
+
+```ruby
+config.cache_classes = true
+config.action_controller.perform_caching = true
+config.cache_store = :redis_cache_store, { url: 'redis://localhost:6379/0', namespace: Rails.root.to_s }
+```
+
+## Development (`config/environments/development.rb`)
+
+```ruby
+config.cache_classes = false
+config.action_controller.perform_caching = false
+config.cache_store = :null_store
+```
+
+Toggle development caching with `rails dev:cache`.
+
+# Related
+
+- [Digital Reports](digital_reports/) - Digital media analytics
+- [Facebook Reports](facebook_reports/) - Facebook analytics
+- [Twitter Reports](twitter_reports/) - Twitter analytics
+- [Instagram Reports](instagram_reports/) - Instagram analytics
+- [Reporting](business_rules/reporting.md) - Report generation rules

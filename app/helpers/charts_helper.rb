@@ -89,7 +89,7 @@ module ChartsHelper
       library: CHART_CONFIG[:defaults][:library].deep_dup
     }
     
-    pie_chart(data, chart_options)
+    pie_chart(data, **chart_options)
   end
 
   # Gets a color hex code from the config
