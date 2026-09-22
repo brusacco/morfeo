@@ -2,9 +2,7 @@
 
 module AiServices
   class SentimentAnalysisService < ApplicationService
-    PROMPT_TEMPLATE = "Analiza el sentimiento de esta noticia y clasifícala como positiva, negativa o neutra.
-
-Noticia: %s"
+    PROMPT_TEMPLATE = "Analiza el sentimiento de esta noticia y responde solo con una palabra: positiva, negativa o neutra.\n\nNoticia: %s"
 
     def initialize(text)
       @text = text
@@ -16,39 +14,12 @@ Noticia: %s"
       response = client.chat(
         parameters: {
           model: 'gpt-5-mini',
-          messages: [{ role: 'user', content: promp
-      client = OpenAI::Client.new(access_token: ENV.fetch('OPENAI_ACCESS_TOKEN', nil))
-      response = client.chat(
-        parameters: {
-          model: 'gpt-5-mini',
           messages: [{ role: 'user', content: prompt }],
-          temperature: 0.7,
-          response_format: {
-            type: 'json_schema',
-            json_schema: {
-              name: 'sentiment',
-              schema: {
-                type: 'object',
-                properties: {
-                  sentiment: {
-                    type: 'string',
-                    enum: %w[positiva negativa neutra],
-                    description: 'El sentimiento de la noticia'
-                  }
-                },
-                required: ['sentiment'],
-                additionalProperties: false
-              }
-            }
-          }
+          temperature: 0.0
         }
       )
       content = response.dig('choices', 0, 'message', 'content')
-      parsed = JSON.parse(content)
-      parsed['sentiment']
-    rescue JSON::ParserError => e
-      Rails.logger.warn "Failed to parse AI sentiment response: #{e.message}"
-      'neutra'
+      content.to_s.strip.downcase
     end
   end
 end
