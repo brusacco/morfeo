@@ -1,32 +1,28 @@
 # frozen_string_literal: true
 
 class HomeController < ApplicationController
-  caches_action :index, expires_in: 30.minutes,
-                cache_path: proc { |c| { user_id: c.current_user&.id } }
+  caches_action :index, expires_in: 30.minutes, cache_path: proc { |c| { user_id: c.current_user&.id } }
   before_action :authenticate_user!, except: %i[deploy check]
   # Only skip CSRF for webhook endpoints (deploy, check)
   skip_before_action :verify_authenticity_token, only: %i[deploy check]
 
   def index
     # NEW: Phase 1 & 2 - Executive Dashboard Data
-    dashboard_data = HomeServices::DashboardAggregatorService.call(
-      topics: @topicos,
-      days_range: DAYS_RANGE
-    )
+    dashboard_data = HomeServices::DashboardAggregatorService.call(topics: @topicos, days_range: DAYS_RANGE)
 
     # Phase 1: Executive Summary
     @executive_summary = dashboard_data[:executive_summary]
-    
+
     # Channel Performance
     @channel_stats = dashboard_data[:channel_stats]
-    
+
     # Topic Statistics
     @topic_stats = dashboard_data[:topic_stats]
     @topic_trends = dashboard_data[:topic_trends]
-    
+
     # Alerts
     @alerts = dashboard_data[:alerts]
-    
+
     # Top Content
     @top_content = dashboard_data[:top_content]
 
@@ -127,7 +123,7 @@ class HomeController < ApplicationController
         topic_entries = topic.list_entries
         all_entry_ids.concat(topic_entries.pluck(:id))
       end
-      
+
       unique_entry_ids = all_entry_ids.uniq
       combined_entries = Entry.where(id: unique_entry_ids).joins(:site)
       @word_occurrences = combined_entries.word_occurrences
@@ -148,7 +144,7 @@ class HomeController < ApplicationController
       system('git pull')
 
       # Install dependencies
-      system('bundle install')
+      system('RAILS_ENV=production bundle install')
 
       # Migrate the database
       system('RAILS_ENV=production rails db:migrate')

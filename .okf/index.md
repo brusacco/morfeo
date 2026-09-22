@@ -23,6 +23,9 @@ Morfeo is a Rails 7 news monitoring system that crawls websites, extracts articl
 - [Jobs](jobs.md) - Background jobs for crawling, sentiment analysis, and data synchronization
 - [Services](services.md) - Service object architecture for business logic and data aggregation
 - [Development Guidelines](development_guidelines.md) - Durable Rails development conventions and workflow
+- [API](api.md) - REST API v1 endpoints for entries, sites, tags, and topics
+- [Admin Interface](admin_interface.md) - ActiveAdmin-based admin panel for managing all entities
+- [Presenters](presenters.md) - Presenter layer for formatting data for views and PDF generation
 
 # Business Rules
 
