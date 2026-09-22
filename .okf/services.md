@@ -75,7 +75,8 @@ ApplicationService (base)
 │   ├── ProcessPosts
 │   └── ExtractTags
 ├── AI Services
-│   └── OpenAiQuery
+│   ├── OpenAiQuery
+│   └── SentimentAnalysisService
 ├── App Services
 │   └── UpdateTagEntries
 └── Application Service (base)

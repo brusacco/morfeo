@@ -17,6 +17,7 @@ class Entry < ApplicationRecord
   has_many :entry_title_topics, dependent: :destroy
   has_many :title_topics, through: :entry_title_topics, source: :topic
 
+  before_save :set_published_date
   # NEW: Auto-sync callbacks (critical for keeping associations up to date)
   after_save :sync_topics_from_tags, if: :saved_change_to_tag_list?
   after_save :sync_title_topics_from_tags, if: :saved_change_to_title_tag_list?
@@ -79,8 +80,6 @@ class Entry < ApplicationRecord
   scope :disabled, -> { where(enabled: false) }
 
   enum :polarity, { neutral: 0, positive: 1, negative: 2 }
-
-  before_save :set_published_date
 
   def self.positives
     where(polarity: :positive).pluck(:id)
@@ -219,16 +218,14 @@ class Entry < ApplicationRecord
 
     sleep 5
 
-    text = "Analizar el sentimiento de la siguente noticia:
-    #{title} #{description} #{content} #{tag_list}
-    Responder solo con las palabras negativa, positiva o neutra.
-    Considere elementos como tono, contexto y palabras clave para realizar el análisis de sentimientos de manera más precisa.
-    En caso de no poder analizar responder neutra."
-
-    ai_polarity = call_ai(text)
-    if %w[negativa Negativa].include?(ai_polarity)
+    # Include title, description, and first paragraph of content for better accuracy
+    content_snippet = content&.truncate(500, separator: ' ')
+    text = "#{title} #{description} #{content_snippet}"
+    ai_polarity = AiServices::SentimentAnalysisService.new(text).call
+    case ai_polarity
+    when 'negativa'
       update!(polarity: :negative)
-    elsif %w[positiva Positiva].include?(ai_polarity)
+    when 'positiva'
       update!(polarity: :positive)
     else
       update!(polarity: :neutral)
@@ -284,18 +281,16 @@ class Entry < ApplicationRecord
 
     # Convert TagList to array of strings for SQL query
     tag_names = tag_list.map(&:to_s)
-    
+
     # Find all topics that have tags matching this entry's tags
     # Using explicit IN query to ensure compatibility with acts_as_taggable_on
-    matching_topics = Topic.joins(:tags)
-                          .where('tags.name IN (?)', tag_names)
-                          .distinct
+    matching_topics = Topic.joins(:tags).where('tags.name IN (?)', tag_names).distinct
 
     # Update the association (Rails handles the join table)
     self.topics = matching_topics
 
     Rails.logger.info "Entry #{id}: Synced #{matching_topics.count} topics from #{tag_names.size} tags"
-  rescue => e
+  rescue StandardError => e
     Rails.logger.error "Entry #{id}: Failed to sync topics - #{e.message}"
     # Don't raise - this shouldn't break entry creation
   end
@@ -307,25 +302,23 @@ class Entry < ApplicationRecord
 
     # Convert TagList to array of strings for SQL query
     title_tag_names = title_tag_list.map(&:to_s)
-    
+
     # Find all topics that have tags matching this entry's title tags
     # Using explicit IN query to ensure compatibility with acts_as_taggable_on
-    matching_topics = Topic.joins(:tags)
-                          .where('tags.name IN (?)', title_tag_names)
-                          .distinct
+    matching_topics = Topic.joins(:tags).where('tags.name IN (?)', title_tag_names).distinct
 
     # Update the association
     self.title_topics = matching_topics
 
     Rails.logger.info "Entry #{id}: Synced #{matching_topics.count} title topics from #{title_tag_names.size} title tags"
-  rescue => e
+  rescue StandardError => e
     Rails.logger.error "Entry #{id}: Failed to sync title topics - #{e.message}"
   end
 
   private
 
   def call_ai(text)
-    client = OpenAI::Client.new(access_token: Rails.application.credentials.openai_access_token)
+    client = OpenAI::Client.new(access_token: ENV.fetch('OPENAI_ACCESS_TOKEN', nil))
     response = client.chat(
       parameters: {
         model: 'gpt-5-mini', # Required.
@@ -406,13 +399,15 @@ class Entry < ApplicationRecord
   scope :tagged_date, ->(date) { where(published_at: date.all_day) }
 
   # NEW: Scoped queries for direct topic lookups
-  scope :for_topic, ->(topic) {
-    topic_id = topic.is_a?(Topic) ? topic.id : topic
-    joins(:entry_topics).where(entry_topics: { topic_id: topic_id })
-  }
+  scope :for_topic,
+        lambda { |topic|
+          topic_id = topic.is_a?(Topic) ? topic.id : topic
+          joins(:entry_topics).where(entry_topics: { topic_id: topic_id })
+        }
 
-  scope :for_topic_title, ->(topic) {
-    topic_id = topic.is_a?(Topic) ? topic.id : topic
-    joins(:entry_title_topics).where(entry_title_topics: { topic_id: topic_id })
-  }
+  scope :for_topic_title,
+        lambda { |topic|
+          topic_id = topic.is_a?(Topic) ? topic.id : topic
+          joins(:entry_title_topics).where(entry_title_topics: { topic_id: topic_id })
+        }
 end

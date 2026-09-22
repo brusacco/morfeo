@@ -14,10 +14,12 @@ Morfeo performs sentiment analysis on content to understand public opinion. Diff
 
 ## Digital Media (Entries)
 
-- Uses OpenAI GPT-3.5-turbo for sentiment analysis
+- Uses OpenAI GPT-5-mini for sentiment analysis
 - Polarity enum: neutral(0), positive(1), negative(2)
-- Analysis performed on article content
+- Analysis performed on title + description + content snippet (truncated to 500 chars)
+- Uses JSON schema response format for structured output
 - Results stored in `polarity` field
+- Service: `AiServices::SentimentAnalysisService`
 
 ## Facebook
 

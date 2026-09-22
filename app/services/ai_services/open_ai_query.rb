@@ -10,7 +10,7 @@ module AiServices
     RETRY_BASE_DELAY = 2 # seconds (exponential: 2^attempt)
 
     def call
-      client = OpenAI::Client.new(access_token: Rails.application.credentials.openai_access_token)
+      client = OpenAI::Client.new(access_token: ENV.fetch('OPENAI_ACCESS_TOKEN', nil))
       attempt = 0
 
       loop do
@@ -29,7 +29,9 @@ module AiServices
         end
 
         attempt += 1
-        return handle_error(response.dig('error', 'message') || 'OpenAI: unsupported country/region') if attempt >= MAX_RETRIES
+        if attempt >= MAX_RETRIES
+          return handle_error(response.dig('error', 'message') || 'OpenAI: unsupported country/region')
+        end
 
         sleep(RETRY_BASE_DELAY**attempt)
       end
