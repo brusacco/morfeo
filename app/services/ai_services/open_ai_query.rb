@@ -18,22 +18,31 @@ module AiServices
           parameters: {
             model: 'gpt-5-mini',
             messages: [{ role: 'user', content: @text }],
-            temperature: 0.7
+            temperature: 1
           }
         )
 
-        # Si no hay error, sale del ciclo. Si hay error pero no es el especificado, tambien sale del ciclo
-        unless response['error'].present? && response.dig('error', 'code') == 'unsupported_country_region_territory'
-          result = response.dig('choices', 0, 'message', 'content')
-          return handle_success(result)
+        if response['error'].present?
+          if response.dig('error', 'code') == 'unsupported_country_region_territory'
+            attempt += 1
+            if attempt >= MAX_RETRIES
+              return handle_error(response.dig('error', 'message') || 'OpenAI: unsupported country/region')
+            end
+
+            sleep(RETRY_BASE_DELAY**attempt)
+            next
+          end
+
+          return handle_error(response.dig('error', 'message') || 'OpenAI request failed')
         end
 
-        attempt += 1
-        if attempt >= MAX_RETRIES
-          return handle_error(response.dig('error', 'message') || 'OpenAI: unsupported country/region')
+        result = response.dig('choices', 0, 'message', 'content')
+
+        if result.blank?
+          return handle_error('OpenAI returned an empty response')
         end
 
-        sleep(RETRY_BASE_DELAY**attempt)
+        return handle_success(result)
       end
     end
   end

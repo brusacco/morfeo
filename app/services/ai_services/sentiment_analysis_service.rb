@@ -15,10 +15,17 @@ module AiServices
         parameters: {
           model: 'gpt-5-mini',
           messages: [{ role: 'user', content: prompt }],
-          temperature: 0.0
+          temperature: 1
         }
       )
+
+      if response['error'].present?
+        raise StandardError, response.dig('error', 'message') || 'OpenAI sentiment request failed'
+      end
+
       content = response.dig('choices', 0, 'message', 'content')
+      raise StandardError, 'OpenAI returned an empty sentiment response' if content.blank?
+
       content.to_s.strip.downcase
     end
   end
