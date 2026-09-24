@@ -78,6 +78,9 @@ module WebExtractorServices
       elsif @doc.at('.main_content h4') && @date.nil?
         @date = @doc.at('.main_content h4').text
         @parsed = false
+      elsif @doc.at_css('.modern-article-meta span:nth-child(2)') && @date.nil?
+        @date = @doc.at_css('.modern-article-meta span:nth-child(2)').text
+        @parsed = false
       elsif @doc.at('.c-hero__text--date') && @date.nil?
         @date = @doc.at('.c-hero__text--date').text
         @parsed = false
@@ -105,7 +108,7 @@ module WebExtractorServices
           @date = translate_crawled_date(@date)
           @date = Chronic.parse(@date, endian_precedence: :little)
         end
-        
+
         handle_success({ published_at: @date })
       end
     end
@@ -114,14 +117,14 @@ module WebExtractorServices
     # Parse ld+json data
     #------------------------------------------------------------------------------------
     def date_from_ld(json_ld)
-      return nil if json_ld.blank?
-      
+      return if json_ld.blank?
+
       data = JSON.parse(json_ld)
       date = find_key(data, 'datePublished')
-      
+
       # Validate the date string
-      return nil if date.blank?
-      
+      return if date.blank?
+
       # Return the date if it's valid
       date
     rescue JSON::ParserError => e
@@ -136,8 +139,8 @@ module WebExtractorServices
     # Find a key in a JSON structure at any level (recursive)
     #------------------------------------------------------------------------------------
     def find_key(data, key)
-      return nil unless data
-      
+      return unless data
+
       case data
       when Array
         data.each do |item|
