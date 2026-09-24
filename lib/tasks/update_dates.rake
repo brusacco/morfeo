@@ -3,7 +3,7 @@
 desc 'Update dates for entries. Usage: rake update_dates[site_id=58,days=7,override=true]'
 task :update_dates, %i[site_id days override] => :environment do |_t, args|
   site_id = args[:site_id]
-  days = args[:days]
+  days = args[:days] ? args[:days].to_i : nil
   override = args[:override] == 'true'
 
   entries = Entry.enabled
