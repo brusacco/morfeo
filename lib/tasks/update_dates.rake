@@ -24,11 +24,11 @@ task :update_dates, %i[site_id override days] => :environment do |_t, args|
   days = days_val
 
   entries = Entry.enabled
-  entries = entries.where(published_at: nil) unless override
+  # entries = entries.where(published_at: nil) unless override
   entries = entries.where(site_id: site_id) if site_id
   if days
-    days_ago = (Date.today - days).to_date
-    entries = entries.where(created_at: days_ago..Date.today)
+    days_ago = 3.days.ago
+    entries = entries.where(created_at: days_ago..Time.zone.today)
   end
 
   puts "Processing #{entries.count} entries (site_id: #{site_id || 'all'}, days: #{days}, override: #{override})"
