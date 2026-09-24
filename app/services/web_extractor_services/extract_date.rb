@@ -106,8 +106,18 @@ module WebExtractorServices
         else
           # Date needs translation and parsing
           @date = translate_crawled_date(@date)
+          @date = strip_non_ascii(@date)
           @date = Chronic.parse(@date, endian_precedence: :little)
         end
+
+        # Validate date range (must be within last 10 years and not more than 1 day in future)
+        unless valid_date_range?(@date)
+          Rails.logger.warn("[ExtractDate] Date out of range: #{@date}")
+          return handle_error('Fecha fuera de rango')
+        end
+
+        # Convert to local timezone (America/Asuncion)
+        @date = @date.in_time_zone('America/Asuncion')
 
         handle_success({ published_at: @date })
       end
@@ -182,16 +192,35 @@ module WebExtractorServices
       date.gsub!(/de diciembre|diciembre|dic/i, 'December')
       date.gsub!(' de ', ' of ')
       date.gsub!(' del ', ' of ')
+      date.gsub!(/ayer/i, 'yesterday')
+      date.gsub!(/hoy/i, 'today')
       date.gsub!(/Hace/i, '')
       date.gsub!(/semanas/i, 'weeks ago')
       date.gsub!(/semana/i, 'week ago')
       date.gsub!(/horas/i, 'hours ago')
-      date.gsub!(/horas/i, 'hours ago')
       date.gsub!(/días/i, 'days ago')
       date.gsub!(/día/i, 'day ago')
-      date.gsub!(/min/i, 'minutes ago')
+      date.gsub!(/\bmin\b/i, 'minutes ago')
       date.gsub!(' - ', ' ')
       date
+    end
+
+    private
+
+    def strip_non_ascii(text)
+      text.gsub(/[^\x00-\x7F]/, '')
+    end
+
+    def valid_date_range?(date)
+      return false unless date
+
+      # Must be within last 10 years
+      return false if date < 10.years.ago
+
+      # Not more than 1 day in future (allow for timezone differences)
+      return false if date > 1.day.from_now
+
+      true
     end
   end
 end
