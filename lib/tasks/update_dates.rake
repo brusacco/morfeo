@@ -1,10 +1,18 @@
 # frozen_string_literal: true
 
-desc 'Update dates for entries. Usage: rake update_dates[site_id=58,days=7,override=true]'
-task :update_dates, %i[site_id days override] => :environment do |_t, args|
-  site_id = args[:site_id]
-  days = args[:days] ? args[:days].to_i : nil
-  override = args[:override] == 'true'
+desc 'Update dates for entries. Usage: rake "update_dates[site_id=58,days=7,override=true]"'
+task :update_dates, [:params] => :environment do |_t, args|
+  params = {}
+  if args[:params]
+    args[:params].split(',').each do |pair|
+      key, value = pair.split('=')
+      params[key.strip] = value&.strip
+    end
+  end
+
+  site_id = params['site_id']
+  days = params['days'] ? params['days'].to_i : nil
+  override = params['override'] == 'true'
 
   entries = Entry.enabled
   entries = entries.where(published_at: nil) unless override
