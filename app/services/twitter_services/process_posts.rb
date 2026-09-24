@@ -55,6 +55,14 @@ module TwitterServices
         break
       end
 
+      # Update profile (including avatar) after processing posts
+      begin
+        profile.update_from_api
+        Rails.logger.info("[TwitterServices::ProcessPosts] Updated profile for #{profile.username}")
+      rescue StandardError => e
+        Rails.logger.error("[TwitterServices::ProcessPosts] Failed to update profile for #{profile.username}: #{e.message}")
+      end
+
       message = stop_early ? 'Stopped early (found mostly duplicates)' : 'Completed all pages'
       handle_success({ posts: all_saved_posts, count: all_saved_posts.count, message: message })
     rescue StandardError => e
