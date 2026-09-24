@@ -24,7 +24,7 @@ task :update_dates, %i[site_id override days] => :environment do |_t, args|
   days = days_val
 
   entries = Entry.enabled
-  # entries = entries.where(published_at: nil) unless override
+  entries = entries.where(published_at: nil) unless override
   entries = entries.where(site_id: site_id) if site_id
   if days
     days_ago = days.days.ago.to_date
