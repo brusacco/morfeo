@@ -5,7 +5,8 @@ task :update_dates, %i[site_id days] => :environment do |_t, args|
   site_id = args[:site_id]
   days = args[:days]
 
-  entries = Entry.enabled.where(published_at: nil)
+  # entries = Entry.enabled.where(published_at: nil)
+  entries = Entry.enabled
   entries = entries.where(site_id: site_id) if site_id
   if days
     days_ago = (Date.today - days).to_date
