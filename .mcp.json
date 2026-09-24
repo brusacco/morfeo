@@ -7,6 +7,15 @@
         "serve",
         "--mcp"
       ]
+    },
+    "github.com/modelcontextprotocol/servers/tree/main/src/filesystem": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/Users/brunosacco/Proyectos/Rails/morfeo"
+      ]
     }
   }
 }

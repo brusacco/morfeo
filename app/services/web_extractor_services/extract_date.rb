@@ -26,7 +26,7 @@ module WebExtractorServices
         end
       elsif @doc.at_css('.entry-date') && @date.nil?
         @date = @doc.at_css('.entry-date')[:datetime]
-        @parsed = false
+        @parsed = true
       elsif @doc.at_css('time.date') && @date.nil?
         @date = @doc.at_css('time.date').text
         @parsed = false
