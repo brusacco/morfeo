@@ -31,9 +31,9 @@ module TopicAuthorizable
   # Main authorization method
   # Checks if current user can access the topic
   def authorize_topic_access!
-    unless can_access_topic?
-      handle_unauthorized_topic_access
-    end
+    return if can_access_topic?
+
+    handle_unauthorized_topic_access
   end
 
   # Check if user can access the topic
@@ -61,7 +61,11 @@ module TopicAuthorizable
   # Override this method in controller for custom behavior
   def handle_unauthorized_topic_access
     Rails.logger.warn "Unauthorized topic access attempt: user=#{current_user&.id}, topic=#{@topic&.id}"
-    
+
+    # Skip caching for unauthorized access redirects to prevent
+    # cached error messages from persisting after permissions are granted
+    skip_action_cache
+
     redirect_to root_path,
                 alert: 'El Tópico al que intentaste acceder no está asignado a tu usuario o se encuentra deshabilitado'
   end
@@ -77,4 +81,3 @@ module TopicAuthorizable
     }
   end
 end
-
