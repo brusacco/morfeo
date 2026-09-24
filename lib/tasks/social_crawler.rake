@@ -36,8 +36,8 @@ task social_crawler: :environment do
 
   # Find Twitter posts of type "Link" without an associated entry
   twitter_posts = TwitterPost.where(entry_id: nil)
-                             .where("payload IS NOT NULL")
-                             .where("LENGTH(payload) > 10")
+                             .where.not(payload: nil)
+                             .where('LENGTH(payload) > 10')
                              .order(created_at: :desc)
 
   puts "Found #{twitter_posts.count} unlinked Twitter posts to process"
@@ -45,142 +45,146 @@ task social_crawler: :environment do
 
   Parallel.each(twitter_posts, in_threads: 5) do |post|
     ActiveRecord::Base.connection_pool.with_connection do
-      begin
-        # Extract URL from post
-        url = extract_twitter_url(post)
+      # Extract URL from post
+      url = extract_twitter_url(post)
 
-        if url.blank?
-          stats[:twitter_skipped] += 1
-          next
-        end
-
-        # Normalize URL
-        url = normalize_url(url)
-
-        puts ''
-        puts "[TWITTER] Processing: #{url}"
-
-        # Find associated site
-        site = find_site_for_url(url)
-
-        unless site
-          puts "  → No site found for URL"
-          stats[:twitter_skipped] += 1
-          next
-        end
-
-        puts "  → Site: #{site.name}"
-
-        # Check if site is in ignored list
-        if IGNORED_SITE_IDS.include?(site.id)
-          puts "  → Skipping: Site is in ignored list (ID: #{site.id})"
-          stats[:twitter_skipped] += 1
-          next
-        end
-
-        # Apply URL filters
-        unless url_matches_site_filters?(url, site)
-          stats[:twitter_skipped] += 1
-          next
-        end
-
-        # Check if entry already exists
-        existing_entry = Entry.find_by(url: url)
-
-        if existing_entry
-          puts "  ✓ Entry already exists (ID: #{existing_entry.id})"
-          post.update!(entry: existing_entry)
-          puts "  ✓ Linked twitter post to existing entry"
-          stats[:twitter_linked] += 1
-          stats[:twitter_processed] += 1
-          next
-        end
-
-        # Fetch and process the URL
-        puts "  → Fetching content..."
-        doc = fetch_page(url, site)
-
-        unless doc
-          puts "  ✗ Failed to fetch content"
-          stats[:errors] += 1
-          next
-        end
-
-        # Create entry
-        entry = Entry.create!(url: url, site: site)
-        puts "  ✓ Created entry (ID: #{entry.id})"
-
-        # Extract basic info
-        result = WebExtractorServices::ExtractBasicInfo.call(doc)
-        if result.success?
-          entry.update!(result.data)
-          puts "  ✓ Basic info extracted: #{entry.title&.truncate(60)}"
-        else
-          puts "  ✗ ERROR BASIC: #{result.error}"
-        end
-
-        # Extract content
-        if site.content_filter.present?
-          result = WebExtractorServices::ExtractContent.call(doc, site.content_filter)
-          if result.success?
-            entry.update!(result.data)
-            puts "  ✓ Content extracted (#{result.data[:content]&.length} chars)"
-          else
-            puts "  ✗ ERROR CONTENT: #{result.error}"
-          end
-        end
-
-        # Extract date
-        result = WebExtractorServices::ExtractDate.call(doc)
-        if result.success?
-          entry.update!(result.data)
-          puts "  ✓ Date extracted: #{result.published_at}"
-        else
-          puts "  ✗ ERROR DATE: #{result.error}"
-        end
-
-        # Extract tags
-        result = WebExtractorServices::ExtractTags.call(entry.id)
-        if result.success?
-          entry.tag_list.add(result.data)
-          entry.save!
-          tags = result.data.is_a?(Array) ? result.data : [result.data]
-          puts "  ✓ Tags extracted: #{tags.join(', ')}"
-        else
-          puts "  ✗ ERROR TAGGER: #{result.error}"
-        end
-
-        # Extract title tags
-        result = WebExtractorServices::ExtractTitleTags.call(entry.id)
-        if result.success?
-          entry.tag_list.add(result.data)
-          entry.save!
-          tags = result.data.is_a?(Array) ? result.data : [result.data]
-          puts "  ✓ Title tags extracted: #{tags.join(', ')}"
-        else
-          puts "  ✗ ERROR TITLE TAGGER: #{result.error}"
-        end
-
-        # Update Facebook stats
-        result = FacebookServices::UpdateStats.call(entry.id)
-        if result.success?
-          entry.update!(result.data)
-          puts "  ✓ Stats updated"
-        end
-
-        # Link post to entry
-        post.update!(entry: entry)
-        puts "  ✓ Linked twitter post to entry"
-
-        stats[:twitter_created] += 1
-        stats[:twitter_processed] += 1
-        puts "  ✅ Successfully processed!"
-
-      rescue StandardError => e
-        puts "  ✗ ERROR: #{e.message}"
-        puts "  #{e.backtrace.first(3).join("\n  ")}"
-        stats[:errors] += 1
+      if url.blank?
+        stats[:twitter_skipped] += 1
+        next
       end
+
+      # Normalize URL
+      url = normalize_url(url)
+
+      puts ''
+      puts "[TWITTER] Processing: #{url}"
+
+      # Find associated site
+      site = find_site_for_url(url)
+
+      unless site
+        puts '  → No site found for URL'
+        stats[:twitter_skipped] += 1
+        next
+      end
+
+      puts "  → Site: #{site.name}"
+
+      # Check if site is in ignored list
+      if IGNORED_SITE_IDS.include?(site.id)
+        puts "  → Skipping: Site is in ignored list (ID: #{site.id})"
+        stats[:twitter_skipped] += 1
+        next
+      end
+
+      # Check if site is disabled
+      unless site.status
+        puts "  → Skipping: Site is disabled (ID: #{site.id})"
+        stats[:twitter_skipped] += 1
+        next
+      end
+
+      # Apply URL filters
+      unless url_matches_site_filters?(url, site)
+        stats[:twitter_skipped] += 1
+        next
+      end
+
+      # Check if entry already exists
+      existing_entry = Entry.find_by(url: url)
+
+      if existing_entry
+        puts "  ✓ Entry already exists (ID: #{existing_entry.id})"
+        post.update!(entry: existing_entry)
+        puts '  ✓ Linked twitter post to existing entry'
+        stats[:twitter_linked] += 1
+        stats[:twitter_processed] += 1
+        next
+      end
+
+      # Fetch and process the URL
+      puts '  → Fetching content...'
+      doc = fetch_page(url, site)
+
+      unless doc
+        puts '  ✗ Failed to fetch content'
+        stats[:errors] += 1
+        next
+      end
+
+      # Create entry
+      entry = Entry.create!(url: url, site: site)
+      puts "  ✓ Created entry (ID: #{entry.id})"
+
+      # Extract basic info
+      result = WebExtractorServices::ExtractBasicInfo.call(doc)
+      if result.success?
+        entry.update!(result.data)
+        puts "  ✓ Basic info extracted: #{entry.title&.truncate(60)}"
+      else
+        puts "  ✗ ERROR BASIC: #{result.error}"
+      end
+
+      # Extract content
+      if site.content_filter.present?
+        result = WebExtractorServices::ExtractContent.call(doc, site.content_filter)
+        if result.success?
+          entry.update!(result.data)
+          puts "  ✓ Content extracted (#{result.data[:content]&.length} chars)"
+        else
+          puts "  ✗ ERROR CONTENT: #{result.error}"
+        end
+      end
+
+      # Extract date
+      result = WebExtractorServices::ExtractDate.call(doc)
+      if result.success?
+        entry.update!(result.data)
+        puts "  ✓ Date extracted: #{result.published_at}"
+      else
+        puts "  ✗ ERROR DATE: #{result.error}"
+      end
+
+      # Extract tags
+      result = WebExtractorServices::ExtractTags.call(entry.id)
+      if result.success?
+        entry.tag_list.add(result.data)
+        entry.save!
+        tags = result.data.is_a?(Array) ? result.data : [result.data]
+        puts "  ✓ Tags extracted: #{tags.join(', ')}"
+      else
+        puts "  ✗ ERROR TAGGER: #{result.error}"
+      end
+
+      # Extract title tags
+      result = WebExtractorServices::ExtractTitleTags.call(entry.id)
+      if result.success?
+        entry.tag_list.add(result.data)
+        entry.save!
+        tags = result.data.is_a?(Array) ? result.data : [result.data]
+        puts "  ✓ Title tags extracted: #{tags.join(', ')}"
+      else
+        puts "  ✗ ERROR TITLE TAGGER: #{result.error}"
+      end
+
+      # Update Facebook stats
+      result = FacebookServices::UpdateStats.call(entry.id)
+      if result.success?
+        entry.update!(result.data)
+        puts '  ✓ Stats updated'
+      end
+
+      # Link post to entry
+      post.update!(entry: entry)
+      puts '  ✓ Linked twitter post to entry'
+
+      stats[:twitter_created] += 1
+      stats[:twitter_processed] += 1
+      puts '  ✅ Successfully processed!'
+    rescue StandardError => e
+      puts "  ✗ ERROR: #{e.message}"
+      puts "  #{e.backtrace.first(3).join("\n  ")}"
+      stats[:errors] += 1
     end
   end
 
@@ -196,7 +200,7 @@ task social_crawler: :environment do
   # Find Facebook posts of type "Link" without an associated entry
   facebook_posts = FacebookEntry.where(entry_id: nil)
                                 .where(attachment_type: 'share')
-                                .where("attachment_url IS NOT NULL")
+                                .where.not(attachment_url: nil)
                                 .order(created_at: :desc)
 
   puts "Found #{facebook_posts.count} unlinked Facebook posts to process"
@@ -204,160 +208,160 @@ task social_crawler: :environment do
 
   Parallel.each(facebook_posts, in_threads: 5) do |post|
     ActiveRecord::Base.connection_pool.with_connection do
-      begin
-        url = post.attachment_url
+      url = post.attachment_url
 
-        if url.blank?
-          stats[:facebook_skipped] += 1
-          next
-        end
-
-        # Normalize URL
-        url = normalize_url(url)
-
-        puts ''
-        puts "[FACEBOOK] Processing: #{url}"
-
-        # Get site from Facebook post's page (if available)
-        post_site = post.page&.site
-        if post_site
-          puts "  → Post from Facebook page: #{post.page.name} (Site: #{post_site.name})"
-        end
-
-        # Find associated site from URL
-        url_site = find_site_for_url(url)
-
-        unless url_site
-          puts "  → No site found for URL"
-          stats[:facebook_skipped] += 1
-          next
-        end
-
-        # Use site from URL (the actual content source)
-        # If post site matches URL site, that's ideal, but URL site takes precedence
-        site = url_site
-
-        if post_site && post_site.id != site.id
-          puts "  ⚠ Post from #{post_site.name} but URL is from #{site.name} - using #{site.name}"
-        end
-
-        puts "  → Site: #{site.name}"
-
-        # Check if site is in ignored list
-        if IGNORED_SITE_IDS.include?(site.id)
-          puts "  → Skipping: Site is in ignored list (ID: #{site.id})"
-          stats[:facebook_skipped] += 1
-          next
-        end
-
-        # Apply URL filters
-        unless url_matches_site_filters?(url, site)
-          stats[:facebook_skipped] += 1
-          next
-        end
-
-        # Check if entry already exists
-        existing_entry = Entry.find_by(url: url)
-
-        if existing_entry
-          puts "  ✓ Entry already exists (ID: #{existing_entry.id})"
-          post.update!(entry: existing_entry)
-          puts "  ✓ Linked facebook post to existing entry"
-          stats[:facebook_linked] += 1
-          stats[:facebook_processed] += 1
-          next
-        end
-
-        # Fetch and process the URL
-        puts "  → Fetching content..."
-        doc = fetch_page(url, site)
-
-        unless doc
-          puts "  ✗ Failed to fetch content"
-          stats[:errors] += 1
-          next
-        end
-
-        # Create entry
-        entry = Entry.create!(url: url, site: site)
-        puts "  ✓ Created entry (ID: #{entry.id})"
-
-        # Extract basic info
-        result = WebExtractorServices::ExtractBasicInfo.call(doc)
-        if result.success?
-          entry.update!(result.data)
-          puts "  ✓ Basic info extracted: #{entry.title&.truncate(60)}"
-        else
-          puts "  ✗ ERROR BASIC: #{result.error}"
-        end
-
-        # Extract content
-        if site.content_filter.present?
-          result = WebExtractorServices::ExtractContent.call(doc, site.content_filter)
-          if result.success?
-            entry.update!(result.data)
-            puts "  ✓ Content extracted (#{result.data[:content]&.length} chars)"
-          else
-            puts "  ✗ ERROR CONTENT: #{result.error}"
-          end
-        end
-
-        # Extract date
-        result = WebExtractorServices::ExtractDate.call(doc)
-        if result.success?
-          entry.update!(result.data)
-          puts "  ✓ Date extracted: #{result.published_at}"
-        else
-          puts "  ✗ ERROR DATE: #{result.error}"
-        end
-
-        # Extract tags
-        result = WebExtractorServices::ExtractTags.call(entry.id)
-        if result.success?
-          entry.tag_list.add(result.data)
-          entry.save!
-          tags = result.data.is_a?(Array) ? result.data : [result.data]
-          puts "  ✓ Tags extracted: #{tags.join(', ')}"
-        else
-          puts "  ✗ ERROR TAGGER: #{result.error}"
-        end
-
-        # Extract title tags
-        result = WebExtractorServices::ExtractTitleTags.call(entry.id)
-        if result.success?
-          entry.tag_list.add(result.data)
-          entry.save!
-          tags = result.data.is_a?(Array) ? result.data : [result.data]
-          puts "  ✓ Title tags extracted: #{tags.join(', ')}"
-        else
-          puts "  ✗ ERROR TITLE TAGGER: #{result.error}"
-        end
-
-        # Update Facebook stats
-        result = FacebookServices::UpdateStats.call(entry.id)
-        if result.success?
-          entry.update!(result.data)
-          puts "  ✓ Stats updated"
-        end
-
-        # Link post to entry
-        post.update!(entry: entry)
-        puts "  ✓ Linked facebook post to entry"
-
-        # Track cross-site sharing
-        if post_site && post_site.id != site.id
-          puts "  📊 Cross-site share detected: #{post_site.name} → #{site.name}"
-        end
-
-        stats[:facebook_created] += 1
-        stats[:facebook_processed] += 1
-        puts "  ✅ Successfully processed!"
-
-      rescue StandardError => e
-        puts "  ✗ ERROR: #{e.message}"
-        puts "  #{e.backtrace.first(3).join("\n  ")}"
-        stats[:errors] += 1
+      if url.blank?
+        stats[:facebook_skipped] += 1
+        next
       end
+
+      # Normalize URL
+      url = normalize_url(url)
+
+      puts ''
+      puts "[FACEBOOK] Processing: #{url}"
+
+      # Get site from Facebook post's page (if available)
+      post_site = post.page&.site
+      puts "  → Post from Facebook page: #{post.page.name} (Site: #{post_site.name})" if post_site
+
+      # Find associated site from URL
+      url_site = find_site_for_url(url)
+
+      unless url_site
+        puts '  → No site found for URL'
+        stats[:facebook_skipped] += 1
+        next
+      end
+
+      # Use site from URL (the actual content source)
+      # If post site matches URL site, that's ideal, but URL site takes precedence
+      site = url_site
+
+      if post_site && post_site.id != site.id
+        puts "  ⚠ Post from #{post_site.name} but URL is from #{site.name} - using #{site.name}"
+      end
+
+      puts "  → Site: #{site.name}"
+
+      # Check if site is in ignored list
+      if IGNORED_SITE_IDS.include?(site.id)
+        puts "  → Skipping: Site is in ignored list (ID: #{site.id})"
+        stats[:facebook_skipped] += 1
+        next
+      end
+
+      # Check if site is disabled
+      unless site.status
+        puts "  → Skipping: Site is disabled (ID: #{site.id})"
+        stats[:facebook_skipped] += 1
+        next
+      end
+
+      # Apply URL filters
+      unless url_matches_site_filters?(url, site)
+        stats[:facebook_skipped] += 1
+        next
+      end
+
+      # Check if entry already exists
+      existing_entry = Entry.find_by(url: url)
+
+      if existing_entry
+        puts "  ✓ Entry already exists (ID: #{existing_entry.id})"
+        post.update!(entry: existing_entry)
+        puts '  ✓ Linked facebook post to existing entry'
+        stats[:facebook_linked] += 1
+        stats[:facebook_processed] += 1
+        next
+      end
+
+      # Fetch and process the URL
+      puts '  → Fetching content...'
+      doc = fetch_page(url, site)
+
+      unless doc
+        puts '  ✗ Failed to fetch content'
+        stats[:errors] += 1
+        next
+      end
+
+      # Create entry
+      entry = Entry.create!(url: url, site: site)
+      puts "  ✓ Created entry (ID: #{entry.id})"
+
+      # Extract basic info
+      result = WebExtractorServices::ExtractBasicInfo.call(doc)
+      if result.success?
+        entry.update!(result.data)
+        puts "  ✓ Basic info extracted: #{entry.title&.truncate(60)}"
+      else
+        puts "  ✗ ERROR BASIC: #{result.error}"
+      end
+
+      # Extract content
+      if site.content_filter.present?
+        result = WebExtractorServices::ExtractContent.call(doc, site.content_filter)
+        if result.success?
+          entry.update!(result.data)
+          puts "  ✓ Content extracted (#{result.data[:content]&.length} chars)"
+        else
+          puts "  ✗ ERROR CONTENT: #{result.error}"
+        end
+      end
+
+      # Extract date
+      result = WebExtractorServices::ExtractDate.call(doc)
+      if result.success?
+        entry.update!(result.data)
+        puts "  ✓ Date extracted: #{result.published_at}"
+      else
+        puts "  ✗ ERROR DATE: #{result.error}"
+      end
+
+      # Extract tags
+      result = WebExtractorServices::ExtractTags.call(entry.id)
+      if result.success?
+        entry.tag_list.add(result.data)
+        entry.save!
+        tags = result.data.is_a?(Array) ? result.data : [result.data]
+        puts "  ✓ Tags extracted: #{tags.join(', ')}"
+      else
+        puts "  ✗ ERROR TAGGER: #{result.error}"
+      end
+
+      # Extract title tags
+      result = WebExtractorServices::ExtractTitleTags.call(entry.id)
+      if result.success?
+        entry.tag_list.add(result.data)
+        entry.save!
+        tags = result.data.is_a?(Array) ? result.data : [result.data]
+        puts "  ✓ Title tags extracted: #{tags.join(', ')}"
+      else
+        puts "  ✗ ERROR TITLE TAGGER: #{result.error}"
+      end
+
+      # Update Facebook stats
+      result = FacebookServices::UpdateStats.call(entry.id)
+      if result.success?
+        entry.update!(result.data)
+        puts '  ✓ Stats updated'
+      end
+
+      # Link post to entry
+      post.update!(entry: entry)
+      puts '  ✓ Linked facebook post to entry'
+
+      # Track cross-site sharing
+      puts "  📊 Cross-site share detected: #{post_site.name} → #{site.name}" if post_site && post_site.id != site.id
+
+      stats[:facebook_created] += 1
+      stats[:facebook_processed] += 1
+      puts '  ✅ Successfully processed!'
+    rescue StandardError => e
+      puts "  ✗ ERROR: #{e.message}"
+      puts "  #{e.backtrace.first(3).join("\n  ")}"
+      stats[:errors] += 1
     end
   end
 
@@ -368,13 +372,13 @@ task social_crawler: :environment do
   puts '=' * 80
   puts 'SUMMARY'
   puts '=' * 80
-  puts "Twitter Posts:"
+  puts 'Twitter Posts:'
   puts "  - Processed: #{stats[:twitter_processed]}"
   puts "  - Linked to existing: #{stats[:twitter_linked]}"
   puts "  - New entries created: #{stats[:twitter_created]}"
   puts "  - Skipped: #{stats[:twitter_skipped]}"
   puts ''
-  puts "Facebook Posts:"
+  puts 'Facebook Posts:'
   puts "  - Processed: #{stats[:facebook_processed]}"
   puts "  - Linked to existing: #{stats[:facebook_linked]}"
   puts "  - New entries created: #{stats[:facebook_created]}"
@@ -391,7 +395,7 @@ end
 #------------------------------------------------------------------------------
 
 def extract_twitter_url(post)
-  return nil unless post.payload.present?
+  return unless post.payload.present?
 
   payload = JSON.parse(post.payload)
 
@@ -405,7 +409,7 @@ rescue JSON::ParserError, StandardError
 end
 
 def normalize_url(url)
-  return nil if url.blank?
+  return if url.blank?
 
   # Parse and normalize the URL
   uri = URI.parse(url)
@@ -425,16 +429,17 @@ rescue URI::InvalidURIError, StandardError
 end
 
 def find_site_for_url(url)
-  return nil if url.blank?
+  return if url.blank?
 
   uri = URI.parse(url)
   target_domain = uri.host&.downcase
 
-  return nil if target_domain.blank?
+  return if target_domain.blank?
 
   # Find site by comparing exact domains from site.url field
   Site.all.find do |s|
     next false if s.url.blank?
+
     begin
       site_uri = URI.parse(s.url)
       site_domain = site_uri.host&.downcase
@@ -458,21 +463,38 @@ def url_matches_site_filters?(url, site)
     # Check for unwanted file extensions
     unwanted_extensions = /.*\.(jpeg|jpg|gif|png|pdf|mp3|mp4|mpeg|zip|rar|exe|dmg)$/i
     if url.match?(unwanted_extensions)
-      puts "  → Skipping: Unwanted file extension"
+      puts '  → Skipping: Unwanted file extension'
       return false
     end
 
     # Check for unwanted directories
     # Only match complete directory segments (surrounded by / or at start/end)
     unwanted_directories = %w[
-      blackhole wp-login wp-admin galerias fotoblog radios page
-      etiqueta categoria category pagina auth wp-content img tag
-      contacto programa date feed author
+      blackhole
+      wp-login
+      wp-admin
+      galerias
+      fotoblog
+      radios
+      page
+      etiqueta
+      categoria
+      category
+      pagina
+      auth
+      wp-content
+      img
+      tag
+      contacto
+      programa
+      date
+      feed
+      author
     ]
     # Match directories as complete path segments: /directory/ or /directory or directory/
-    directory_pattern = /(?:\/|^)(?:#{unwanted_directories.join('|')})(?:\/|$)/i
+    directory_pattern = %r{(?:/|^)(?:#{unwanted_directories.join('|')})(?:/|$)}i
     if url.match?(directory_pattern)
-      puts "  → Skipping: Contains unwanted directory"
+      puts '  → Skipping: Contains unwanted directory'
       return false
     end
 
@@ -502,11 +524,11 @@ def url_matches_site_filters?(url, site)
 end
 
 def fetch_page(url, site = nil)
-  return nil if url.blank?
+  return if url.blank?
 
   # If site requires JavaScript, use proxy directly
   if site&.is_js?
-    puts "  → Site requires JS, using scrape.do proxy..."
+    puts '  → Site requires JS, using scrape.do proxy...'
     return fetch_via_proxy(url, site)
   end
 
@@ -516,12 +538,17 @@ def fetch_page(url, site = nil)
       'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
     )
 
-    return Nokogiri::HTML(response.read.force_encoding('UTF-8'))
+    Nokogiri::HTML(response.read.force_encoding('UTF-8'))
   rescue OpenURI::HTTPError => e
     # If we get 403 Forbidden, try proxy (site might be protected)
-    http_code = e.io.status[0].to_i rescue nil
+    http_code =
+      begin
+        e.io.status[0].to_i
+      rescue StandardError
+        nil
+      end
     if http_code == 403 || e.message.include?('403')
-      puts "  ⚠ Got 403 Forbidden, retrying with scrape.do proxy..."
+      puts '  ⚠ Got 403 Forbidden, retrying with scrape.do proxy...'
       return fetch_via_proxy(url, site)
     end
 
@@ -534,28 +561,23 @@ def fetch_page(url, site = nil)
 end
 
 def fetch_via_proxy(url, site = nil)
-  begin
-    proxy_client = ProxyCrawlerServices::ProxyClient.new
+  proxy_client = ProxyCrawlerServices::ProxyClient.new
 
-    # Use site's content_filter as waitSelector if available
-    wait_selector = site&.content_filter.present? ? site.content_filter : nil
+  # Use site's content_filter as waitSelector if available
+  wait_selector = site&.content_filter.present? ? site.content_filter : nil
 
-    if wait_selector.present?
-      puts "  → Using waitSelector: #{wait_selector}"
-    end
+  puts "  → Using waitSelector: #{wait_selector}" if wait_selector.present?
 
-    response = proxy_client.fetch(url, wait_selector: wait_selector)
+  response = proxy_client.fetch(url, wait_selector: wait_selector)
 
-    unless response.success?
-      puts "  ⚠ Proxy fetch error: #{response.error}"
-      return nil
-    end
-
-    puts "  ✓ Successfully fetched via proxy (#{response.body.size} bytes)"
-    Nokogiri::HTML(response.body.force_encoding('UTF-8'))
-  rescue StandardError => e
-    puts "  ⚠ Proxy error: #{e.message}"
-    nil
+  unless response.success?
+    puts "  ⚠ Proxy fetch error: #{response.error}"
+    return
   end
-end
 
+  puts "  ✓ Successfully fetched via proxy (#{response.body.size} bytes)"
+  Nokogiri::HTML(response.body.force_encoding('UTF-8'))
+rescue StandardError => e
+  puts "  ⚠ Proxy error: #{e.message}"
+  nil
+end
