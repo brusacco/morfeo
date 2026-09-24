@@ -5,13 +5,15 @@ task :update_dates, [:params] => :environment do |_t, args|
   params = {}
   if args[:params]
     args[:params].split(',').each do |pair|
-      key, value = pair.split('=')
-      params[key.strip] = value&.strip
+      parts = pair.split('=')
+      key = parts[0].strip
+      value = parts[1] ? parts[1].strip : nil
+      params[key] = value
     end
   end
 
   site_id = params['site_id']
-  days = params['days'] ? params['days'].to_i : nil
+  days = params['days'] ? params['days'].to_i : 7
   override = params['override'] == 'true'
 
   entries = Entry.enabled
@@ -22,6 +24,7 @@ task :update_dates, [:params] => :environment do |_t, args|
     entries = entries.where(created_at: days_ago..Date.today)
   end
 
+  puts "Params received: #{params.inspect}"
   puts "Processing #{entries.count} entries (site_id: #{site_id || 'all'}, days: #{days || 'all'}, override: #{override})"
 
   Parallel.each(entries, in_threads: 3) do |entry|
