@@ -1,20 +1,27 @@
 # frozen_string_literal: true
 
-desc 'Update dates for entries. Usage: rake "update_dates[site_id=58&days=7&override=true]"'
-task :update_dates, [:params] => :environment do |_t, args|
-  params = {}
-  if args[:params]
-    args[:params].split('&').each do |pair|
-      parts = pair.split('=')
-      key = parts[0].strip
-      value = parts[1] ? parts[1].strip : nil
-      params[key] = value
+desc 'Update dates for entries. Usage: rake update_dates[site_id=99,override=true,days=3]'
+task :update_dates, %i[site_id override days] => :environment do |_t, args|
+  # Each arg is "key=value", parse them
+  site_id_val = nil
+  override_val = false
+  days_val = 7
+
+  [args[:site_id], args[:override], args[:days]].compact.each do |arg|
+    key, value = arg.split('=')
+    case key&.strip
+    when 'site_id'
+      site_id_val = value&.strip
+    when 'override'
+      override_val = value&.strip == 'true'
+    when 'days'
+      days_val = value&.strip&.to_i || 7
     end
   end
 
-  site_id = params['site_id']
-  days = params['days'] ? params['days'].to_i : 7
-  override = params['override'] == 'true'
+  site_id = site_id_val
+  override = override_val
+  days = days_val
 
   entries = Entry.enabled
   entries = entries.where(published_at: nil) unless override
@@ -24,8 +31,7 @@ task :update_dates, [:params] => :environment do |_t, args|
     entries = entries.where(created_at: days_ago..Date.today)
   end
 
-  puts "Params received: #{params.inspect}"
-  puts "Processing #{entries.count} entries (site_id: #{site_id || 'all'}, days: #{days || 'all'}, override: #{override})"
+  puts "Processing #{entries.count} entries (site_id: #{site_id || 'all'}, days: #{days}, override: #{override})"
 
   Parallel.each(entries, in_threads: 3) do |entry|
     begin
