@@ -130,13 +130,13 @@ module TwitterServices
       )
 
       twitter_post.save!
-      
+
       # Link to Entry if matching URL is found
       link_to_entry(twitter_post)
-      
+
       # Tag the tweet immediately after saving
       tag_post(twitter_post)
-      
+
       twitter_post
     rescue ActiveRecord::RecordInvalid => e
       Rails.logger.error("[TwitterServices::ProcessPosts] Unable to persist tweet #{tweet_id}: #{e.message}")
@@ -165,7 +165,7 @@ module TwitterServices
         twitter_post.update(entry: entry)
         Rails.logger.info("[TwitterServices::ProcessPosts] Linked tweet #{twitter_post.tweet_id} to entry #{entry.id} (#{entry.url})")
       else
-        Rails.logger.debug("[TwitterServices::ProcessPosts] No matching entry found for URL: #{primary_url}")
+        Rails.logger.debug { "[TwitterServices::ProcessPosts] No matching entry found for URL: #{primary_url}" }
       end
     rescue StandardError => e
       # Log linking errors but don't fail the crawl
@@ -179,7 +179,7 @@ module TwitterServices
       if !result.success? && twitter_post.entry.present? && twitter_post.entry.tag_list.any?
         entry_tags = twitter_post.entry.tag_list.dup
         entry_tags.delete('Twitter')
-        
+
         twitter_post.tag_list = entry_tags
         twitter_post.save!
         Rails.logger.info("[TwitterServices::ProcessPosts] Tagged tweet #{twitter_post.tweet_id} with inherited tags: #{entry_tags.join(', ')}")
@@ -189,11 +189,11 @@ module TwitterServices
       if result.success?
         tags = result.data.dup
         tags.delete('Twitter')
-        
-        # Note: ExtractTags already saves the tags, but we'll ensure cleanup
+
+        # NOTE: ExtractTags already saves the tags, but we'll ensure cleanup
         Rails.logger.info("[TwitterServices::ProcessPosts] Tagged tweet #{twitter_post.tweet_id} with tags: #{tags.join(', ')}")
       else
-        Rails.logger.debug("[TwitterServices::ProcessPosts] No tags found for tweet #{twitter_post.tweet_id}: #{result.error}")
+        Rails.logger.debug { "[TwitterServices::ProcessPosts] No tags found for tweet #{twitter_post.tweet_id}: #{result.error}" }
       end
     rescue StandardError => e
       # Log tagging errors but don't fail the crawl
