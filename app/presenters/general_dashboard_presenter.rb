@@ -56,7 +56,7 @@ class GeneralDashboardPresenter
   end
 
   def formatted_average_sentiment
-    sprintf('%.2f', average_sentiment)
+    format('%.2f', average_sentiment)
   end
 
   # === Channel Performance Methods ===
@@ -83,7 +83,8 @@ class GeneralDashboardPresenter
       facebook: facebook_performance[:mentions],
       twitter: twitter_performance[:mentions]
     }
-    performances.max_by { |_k, v| v }&.first || :digital
+    performances.max_by { |_k, v| v }
+                &.first || :digital
   end
 
   def dominant_channel_name
@@ -144,9 +145,24 @@ class GeneralDashboardPresenter
 
   def reach_breakdown
     [
-      { channel: I18n.t('pdf.channels.digital'), reach: reach_by_channel[:digital] || 0, color: DIGITAL_PRIMARY_COLOR, estimated: estimated_reach?(:digital) },
-      { channel: I18n.t('pdf.channels.facebook'), reach: reach_by_channel[:facebook] || 0, color: FACEBOOK_PRIMARY_COLOR, estimated: estimated_reach?(:facebook) },
-      { channel: I18n.t('pdf.channels.twitter'), reach: reach_by_channel[:twitter] || 0, color: TWITTER_PRIMARY_COLOR, estimated: estimated_reach?(:twitter) }
+      {
+        channel: I18n.t('pdf.channels.digital'),
+        reach: reach_by_channel[:digital] || 0,
+        color: DIGITAL_PRIMARY_COLOR,
+        estimated: estimated_reach?(:digital)
+      },
+      {
+        channel: I18n.t('pdf.channels.facebook'),
+        reach: reach_by_channel[:facebook] || 0,
+        color: FACEBOOK_PRIMARY_COLOR,
+        estimated: estimated_reach?(:facebook)
+      },
+      {
+        channel: I18n.t('pdf.channels.twitter'),
+        reach: reach_by_channel[:twitter] || 0,
+        color: TWITTER_PRIMARY_COLOR,
+        estimated: estimated_reach?(:twitter)
+      }
     ]
   end
 
@@ -190,20 +206,30 @@ class GeneralDashboardPresenter
 
   def peak_hour_text
     if peak_hours.any?
-      hours = peak_hours.first(3).map { |h| "#{h}:00" }.join(', ')
+      hours = peak_hours.first(3).map { |h| "#{h}:00" }
+                        .join(', ')
       "Horas pico: #{hours}"
     else
-      "No hay datos suficientes"
+      'No hay datos suficientes'
     end
   end
 
   def peak_day_text
     if peak_days.any?
-      days_map = { 0 => 'Domingo', 1 => 'Lunes', 2 => 'Martes', 3 => 'Miércoles', 4 => 'Jueves', 5 => 'Viernes', 6 => 'Sábado' }
-      days = peak_days.first(3).map { |d| days_map[d] }.join(', ')
+      days_map = {
+        0 => 'Domingo',
+        1 => 'Lunes',
+        2 => 'Martes',
+        3 => 'Miércoles',
+        4 => 'Jueves',
+        5 => 'Viernes',
+        6 => 'Sábado'
+      }
+      days = peak_days.first(3).map { |d| days_map[d] }
+                      .join(', ')
       "Días pico: #{days}"
     else
-      "No hay datos suficientes"
+      'No hay datos suficientes'
     end
   end
 
@@ -260,9 +286,10 @@ class GeneralDashboardPresenter
   def recommendations
     recs = data[:recommendations]
     return [] unless recs.present?
-    
+
     # Handle both array and hash formats
     return recs if recs.is_a?(Array)
+
     []
   end
 
@@ -272,12 +299,13 @@ class GeneralDashboardPresenter
 
   def actionable_recommendations
     return [] unless recommendations.is_a?(Array)
-    
+
     # Filter high priority recommendations if they have that structure
-    high_priority = recommendations.select do |rec|
-      rec.is_a?(Hash) && rec[:priority] == 'high'
-    end
-    
+    high_priority =
+      recommendations.select do |rec|
+        rec.is_a?(Hash) && rec[:priority] == 'high'
+      end
+
     # If no high priority found, return first 5
     high_priority.any? ? high_priority.first(5) : recommendations.first(5)
   end
@@ -392,7 +420,7 @@ class GeneralDashboardPresenter
 
   def period_description
     return I18n.t('pdf.period.analyzed_period') unless start_date && end_date
-    
+
     days = ((end_date - start_date) / 1.day).round
     I18n.t('pdf.period.last_n_days', count: days)
   end
@@ -432,4 +460,3 @@ class GeneralDashboardPresenter
     }
   end
 end
-

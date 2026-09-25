@@ -143,8 +143,20 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
     allow(described_class).to receive(:new).and_call_original
     empty_service = described_class.new(topic: empty_topic)
 
-    expect(empty_service.send(:facebook_data)).to eq(count: 0, interactions: 0, reach: 0, reach_estimated: false, trend: 0)
-    expect(empty_service.send(:twitter_data)).to eq(count: 0, interactions: 0, reach: 0, reach_estimated: false, trend: 0)
+    expect(empty_service.send(:facebook_data)).to eq(
+      count: 0,
+      interactions: 0,
+      reach: 0,
+      reach_estimated: false,
+      trend: 0
+    )
+    expect(empty_service.send(:twitter_data)).to eq(
+      count: 0,
+      interactions: 0,
+      reach: 0,
+      reach_estimated: false,
+      trend: 0
+    )
   end
 
   it 'preserves reach provenance in the reach analysis payload' do
@@ -215,25 +227,35 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
       sentiment_trend: { change: -21, direction: 'declining' }
     )
 
-    expect(service.send(:detect_sentiment_alerts)).to match_array([
-      hash_including(type: 'crisis', severity: 'high'),
-      hash_including(type: 'warning', severity: 'medium')
-    ])
+    expect(service.send(:detect_sentiment_alerts)).to match_array(
+      [
+        hash_including(type: 'crisis', severity: 'high'),
+        hash_including(type: 'warning', severity: 'medium')
+      ]
+    )
   end
 
   it 'emits an opportunity alert only for an improving positive trend' do
-    allow(service).to receive_messages(
-      average_sentiment: 51,
-      sentiment_trend: { change: 5, direction: 'improving' }
-    )
+    allow(service).to receive_messages(average_sentiment: 51, sentiment_trend: { change: 5, direction: 'improving' })
 
-    expect(service.send(:detect_sentiment_alerts)).to contain_exactly(hash_including(type: 'opportunity', severity: 'low'))
+    expect(service.send(:detect_sentiment_alerts)).to contain_exactly(
+      hash_including(
+        type: 'opportunity',
+        severity: 'low'
+      )
+    )
   end
 
   it 'aggregates and ranks peak hours across channels' do
     allow(topic).to receive_messages(
-      peak_publishing_times_by_hour: { 9 => { avg_engagement: 3, entry_count: 2 }, 12 => { avg_engagement: 1, entry_count: 1 } },
-      facebook_peak_publishing_times_by_hour: { 9 => { avg_engagement: 4, entry_count: 1 }, 18 => { avg_engagement: 6, entry_count: 3 } },
+      peak_publishing_times_by_hour: {
+        9 => { avg_engagement: 3, entry_count: 2 },
+        12 => { avg_engagement: 1, entry_count: 1 }
+      },
+      facebook_peak_publishing_times_by_hour: {
+        9 => { avg_engagement: 4, entry_count: 1 },
+        18 => { avg_engagement: 6, entry_count: 3 }
+      },
       twitter_peak_publishing_times_by_hour: { 12 => { avg_engagement: 5, entry_count: 2 } }
     )
 
@@ -247,7 +269,10 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
   it 'aggregates and ranks peak days across channels' do
     allow(topic).to receive_messages(
       peak_publishing_times_by_day: { 1 => { avg_engagement: 2, entry_count: 1 } },
-      facebook_peak_publishing_times_by_day: { 1 => { avg_engagement: 3, entry_count: 2 }, 3 => { avg_engagement: 7, entry_count: 1 } },
+      facebook_peak_publishing_times_by_day: {
+        1 => { avg_engagement: 3, entry_count: 2 },
+        3 => { avg_engagement: 7, entry_count: 1 }
+      },
       twitter_peak_publishing_times_by_day: { 5 => { avg_engagement: 4, entry_count: 2 } }
     )
 
@@ -268,8 +293,16 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
       twitter_engagement_velocity: -> { raise 'unavailable' }
     )
 
-    expect(service.send(:overall_trend_velocity)).to include(velocity_percent: 0.0, direction: 'stable', trend: 'estable')
-    expect(service.send(:overall_engagement_velocity)).to include(velocity_percent: 0.0, direction: 'stable', trend: 'moderado')
+    expect(service.send(:overall_trend_velocity)).to include(
+      velocity_percent: 0.0,
+      direction: 'stable',
+      trend: 'estable'
+    )
+    expect(service.send(:overall_engagement_velocity)).to include(
+      velocity_percent: 0.0,
+      direction: 'stable',
+      trend: 'moderado'
+    )
   end
 
   it 'merges word occurrences and caps the result at the most frequent 100 words' do

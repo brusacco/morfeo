@@ -567,9 +567,7 @@ module GeneralDashboardServices
       twitter_optimal = topic.twitter_optimal_publishing_time
 
       # Weight by engagement
-      best = [digital_optimal, facebook_optimal, twitter_optimal].compact.max_by { |opt| opt[:avg_engagement] }
-
-      best
+      [digital_optimal, facebook_optimal, twitter_optimal].compact.max_by { |opt| opt[:avg_engagement] }
     end
 
     def combined_peak_hours
