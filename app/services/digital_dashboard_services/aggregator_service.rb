@@ -108,15 +108,16 @@ module DigitalDashboardServices
     end
 
     def calculate_site_data(entries)
-      site_rows = Rails.cache.fetch("topic_#{@topic.id}_site_data_v2_#{Date.current}", expires_in: CACHE_EXPIRATION) do
-        entries.reorder(nil)
-               .group('sites.id', 'sites.name')
-               .pluck(
-                 Arel.sql('sites.name'),
-                 Arel.sql('COUNT(entries.id)'),
-                 Arel.sql('COALESCE(SUM(entries.total_count), 0)')
-               )
-      end
+      site_rows =
+        Rails.cache.fetch("topic_#{@topic.id}_site_data_v2_#{Date.current}", expires_in: CACHE_EXPIRATION) do
+          entries.reorder(nil)
+                 .group('sites.id', 'sites.name')
+                 .pluck(
+                   Arel.sql('sites.name'),
+                   Arel.sql('COUNT(entries.id)'),
+                   Arel.sql('COALESCE(SUM(entries.total_count), 0)')
+                 )
+        end
 
       site_counts = Hash.new(0)
       site_sums = Hash.new(0)

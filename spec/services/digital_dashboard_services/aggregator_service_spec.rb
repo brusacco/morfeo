@@ -60,9 +60,7 @@ RSpec.describe DigitalDashboardServices::AggregatorService do
     allow(entries).to receive(:reorder).with(nil).and_return(grouped_entries)
     allow(grouped_entries).to receive(:group).with('sites.id', 'sites.name').and_return(grouped_entries)
     expect(grouped_entries).to receive(:pluck).once do |*columns|
-      expect(columns.map(&:to_s)).to eq(
-        ['sites.name', 'COUNT(entries.id)', 'COALESCE(SUM(entries.total_count), 0)']
-      )
+      expect(columns.map(&:to_s)).to eq(['sites.name', 'COUNT(entries.id)', 'COALESCE(SUM(entries.total_count), 0)'])
 
       [['Site A', 2, 100], ['Site A', 1, 25], ['Site B', 1, 10]]
     end
