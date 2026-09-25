@@ -192,33 +192,38 @@ module DigitalDashboardServices
       entries_total_sum = topic_data[:entries_total_sum]
       entries_polarity_counts = topic_data[:entries_polarity_counts]
 
-      # Calculate all entries stats
-      all_entries = @topic.all_list_entries
-      all_entries_size = all_entries.size
-      all_entries_interactions = all_entries.sum(:total_count)
+      all_entries_size, all_entries_interactions =
+        if ENV['USE_DIRECT_ENTRY_TOPICS'] == 'true'
+          global_stats = global_digital_stats
+          [global_stats[:entries_count], global_stats[:interactions]]
+        else
+          all_entries = @topic.all_list_entries
+          [all_entries.size, all_entries.sum(:total_count)]
+        end
 
       neutrals = entries_polarity_counts['neutral'] || 0
       positives = entries_polarity_counts['positive'] || 0
       negatives = entries_polarity_counts['negative'] || 0
 
       percentages = calculate_polarity_percentages(entries_count, positives, negatives, neutrals)
-      percentages.merge(
-        calculate_share_of_voice(
-          entries_count,
-          entries_total_sum,
-          all_entries_size,
-          all_entries_interactions
+      percentages
+        .merge(
+          calculate_share_of_voice(
+            entries_count,
+            entries_total_sum,
+            all_entries_size,
+            all_entries_interactions
+          )
         )
-      )
-      percentages.merge(
-        promedio: safe_division(entries_total_sum, entries_count),
-        most_interactions: entries.order(total_count: :desc).limit(20),
-        neutrals: neutrals,
-        positives: positives,
-        negatives: negatives,
-        all_entries_size: all_entries_size,
-        all_entries_interactions: all_entries_interactions
-      )
+        .merge(
+          promedio: safe_division(entries_total_sum, entries_count),
+          most_interactions: entries.order(total_count: :desc).limit(20),
+          neutrals: neutrals,
+          positives: positives,
+          negatives: negatives,
+          all_entries_size: all_entries_size,
+          all_entries_interactions: all_entries_interactions
+        )
     end
 
     def calculate_polarity_percentages(entries_count, positives, negatives, neutrals)
@@ -241,6 +246,24 @@ module DigitalDashboardServices
         topic_interactions_percentage: safe_percentage(entries_total_sum, total_interactions, decimals: 1),
         all_interactions_percentage: safe_percentage(all_entries_interactions, total_interactions, decimals: 1)
       }
+    end
+
+    def global_digital_stats
+      date_range = @topic.default_date_range
+      cache_key = "global_digital_stats_v1_#{date_range[:gte].to_date}_#{date_range[:lte].to_date}"
+
+      Rails.cache.fetch(cache_key, expires_in: CACHE_EXPIRATION) do
+        entries_count, interactions = Entry.enabled
+                                           .where(published_at: date_range[:gte]..date_range[:lte])
+                                           .joins(:site)
+                                           .reorder(nil)
+                                           .pick(
+                                             Arel.sql('COUNT(entries.id)'),
+                                             Arel.sql('COALESCE(SUM(entries.total_count), 0)')
+                                           )
+
+        { entries_count: entries_count, interactions: interactions }
+      end
     end
 
     def load_tags_and_word_data

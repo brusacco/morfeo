@@ -70,4 +70,47 @@ RSpec.describe DigitalDashboardServices::AggregatorService do
       site_sums: { 'Site A' => 125, 'Site B' => 10 }
     )
   end
+
+  it 'uses cached global stats for direct-entry share of voice' do
+    entries = double('entries')
+    ordered_entries = double('ordered_entries', limit: [])
+    allow(service).to receive(:topic_data).and_return(
+      entries: entries,
+      entries_count: 3,
+      entries_total_sum: 30,
+      entries_polarity_counts: { 'neutral' => 1, 'positive' => 2 }
+    )
+    allow(service).to receive(:global_digital_stats).and_return(entries_count: 7, interactions: 70)
+    allow(entries).to receive(:order).with(total_count: :desc).and_return(ordered_entries)
+    allow(ENV).to receive(:[]).and_call_original
+    allow(ENV).to receive(:[]).with('USE_DIRECT_ENTRY_TOPICS').and_return('true')
+    expect(topic).not_to receive(:all_list_entries)
+
+    expect(service.send(:calculate_percentages)).to include(
+      topic_percentage: 30,
+      all_percentage: 70,
+      topic_interactions_percentage: 30.0,
+      all_interactions_percentage: 70.0,
+      all_entries_size: 7,
+      all_entries_interactions: 70
+    )
+  end
+
+  it 'aggregates global digital stats in one query' do
+    date_range = { gte: 7.days.ago.beginning_of_day, lte: Time.current.end_of_day }
+    entries = double('entries')
+    allow(topic).to receive(:default_date_range).and_return(date_range)
+    allow(Entry).to receive(:enabled).and_return(entries)
+    allow(entries).to receive(:where).with(published_at: date_range[:gte]..date_range[:lte]).and_return(entries)
+    allow(entries).to receive(:joins).with(:site).and_return(entries)
+    allow(entries).to receive(:reorder).with(nil).and_return(entries)
+    expect(entries).to receive(:pick).once do |count_sql, sum_sql|
+      expect(count_sql.to_s).to eq('COUNT(entries.id)')
+      expect(sum_sql.to_s).to eq('COALESCE(SUM(entries.total_count), 0)')
+
+      [7, 70]
+    end
+
+    expect(service.send(:global_digital_stats)).to eq(entries_count: 7, interactions: 70)
+  end
 end

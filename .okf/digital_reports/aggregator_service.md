@@ -86,6 +86,7 @@ association suitable only where eventual consistency is acceptable.
 - Sentiment analysis integration (unique to digital reports)
 - Entry totals and per-polarity counts and interaction sums are calculated in one conditional aggregate query, so the topic tag filter is evaluated once.
 - Per-site entry counts and interaction sums are calculated in one grouped query and cached as one payload.
+- In direct-entry mode, share-of-voice reuses one global, range-keyed aggregate of all enabled entries instead of recalculating it per topic.
 - Calendar view data preparation
 - Advanced filtering by polarity
 - Title vs content tag analysis
