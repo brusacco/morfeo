@@ -4,6 +4,7 @@
 
 - Added Rails `race_condition_ttl` protection to all dashboard aggregator caches and Digital's costly subcaches to prevent cache stampedes after Redis expiration.
 - Preserved Active Record relations for topic tag filters, Home dashboard statistics, tag authorization, and Facebook emotional-intensity aggregates to avoid intermediate ID arrays.
+- Moved Home Tags Cloud analysis into the versioned Home dashboard payload and introduced `home_dashboard:v4` to prevent old cached hashes from omitting the new field.
 
 ## 2026-09-22
 

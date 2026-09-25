@@ -8,7 +8,7 @@ RSpec.describe 'cache:clear' do
     load Rails.root.join('lib/tasks/cache_warmer.rake') unless Rake::Task.task_defined?('cache:clear')
   end
 
-  it 'invalidates every v3 dashboard namespace' do
+  it 'invalidates every dashboard namespace, including both Home cache generations' do
     allow(Rails.cache).to receive(:delete_matched)
     task = Rake::Task['cache:clear']
     task.reenable
@@ -22,6 +22,7 @@ RSpec.describe 'cache:clear' do
       instagram_dashboard:v3:*
       general_dashboard:v3:*
       home_dashboard:v3:*
+      home_dashboard:v4:*
     ].each do |pattern|
       expect(Rails.cache).to have_received(:delete_matched).with(pattern).once
     end

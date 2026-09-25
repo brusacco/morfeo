@@ -95,7 +95,7 @@ facebook_dashboard:v3:topic:{topic_id}:limit:{limit}:payload:{start_date}:{end_d
 twitter_dashboard:v3:topic:{topic_id}:limit:{limit}:payload:{start_date}:{end_date}
 instagram_dashboard:v3:topic:{topic_id}:limit:{limit}:payload:{start_date}:{end_date}
 general_dashboard:v3:topic:{topic_id}:payload:{start_date}:{end_date}
-home_dashboard:v3:topics:{sorted_unique_topic_ids}:payload:{start_date}:{end_date}
+home_dashboard:v4:topics:{sorted_unique_topic_ids}:payload:{start_date}:{end_date}
 ```
 
 The digital topic resources are `payload`, `site_data`, and `text_analysis`.
@@ -103,7 +103,9 @@ Cache maintenance tasks invalidate each namespace with its `:v3:*` pattern or a
 topic-specific prefix. Updating a topic also invalidates `home_dashboard:v3:*`
 because its payload depends on the active topic set. The Home key normalizes its
 topic IDs as a sorted unique set, preventing duplicate or order-only cache
-variants.
+variants. Home v4 also includes Tags Cloud word occurrences in the cached
+payload. During the v3-to-v4 transition, invalidation clears both Home
+generations.
 
 ### Digital Share of Voice
 

@@ -135,10 +135,12 @@ namespace is used by cache invalidation tasks.
 
 **Purpose**: Aggregates cross-topic home dashboard metrics.
 
-**Cache Key**: `home_dashboard:v3:topics:{sorted_unique_topic_ids}:payload:{start_date}:{end_date}`
+**Cache Key**: `home_dashboard:v4:topics:{sorted_unique_topic_ids}:payload:{start_date}:{end_date}`
 
 The key includes the complete sorted topic set, so a topic update invalidates the
-Home namespace as well as the affected topic-specific dashboard caches.
+Home namespace as well as the affected topic-specific dashboard caches. The
+payload includes `word_occurrences` for the Tags Cloud, so a cache hit performs
+no text-corpus analysis.
 
 ## Site Dashboard Aggregator
 

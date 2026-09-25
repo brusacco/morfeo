@@ -67,6 +67,7 @@ module HomeServices
           daily_topic_rankings: calculate_daily_topic_rankings,
           alerts: generate_alerts,
           top_content: fetch_top_content,
+          word_occurrences: calculate_word_occurrences,
           # Phase 2: Enhanced Analytics
           sentiment_intelligence: calculate_sentiment_intelligence,
           temporal_intelligence: calculate_temporal_intelligence,
@@ -78,11 +79,29 @@ module HomeServices
     private
 
     def cache_key
-      "home_dashboard:v3:topics:#{@topics.map(&:id).uniq.sort.join(',')}:payload:#{cache_date_range}"
+      "home_dashboard:v4:topics:#{@topics.map(&:id).uniq.sort.join(',')}:payload:#{cache_date_range}"
     end
 
     def cache_date_range
       "#{@start_date.to_date.iso8601}:#{@end_date.to_date.iso8601}"
+    end
+
+    def calculate_word_occurrences
+      word_occurrence_entries.word_occurrences
+    end
+
+    def word_occurrence_entries
+      if ENV['USE_DIRECT_ENTRY_TOPICS'] == 'true'
+        Entry.enabled
+             .where(published_at: @start_date..@end_date)
+             .joins(:entry_topics)
+             .where(entry_topics: { topic_id: @topics.select(:id) })
+             .distinct
+      else
+        @topics.reduce(Entry.none) do |entries, topic|
+          entries.or(topic.list_entries.except(:joins, :includes, :order))
+        end.distinct
+      end
     end
 
     def tags_data

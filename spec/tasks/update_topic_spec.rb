@@ -17,7 +17,8 @@ RSpec.describe 'TopicUpdateCacheInvalidation' do
         'twitter_dashboard:v3:topic:42:*',
         'instagram_dashboard:v3:topic:42:*',
         'general_dashboard:v3:topic:42:*',
-        'home_dashboard:v3:*'
+        'home_dashboard:v3:*',
+        'home_dashboard:v4:*'
       ]
     )
   end

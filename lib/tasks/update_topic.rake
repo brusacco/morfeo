@@ -11,7 +11,8 @@ module TopicUpdateCacheInvalidation
       "twitter_dashboard:v3:topic:#{topic_id}:*",
       "instagram_dashboard:v3:topic:#{topic_id}:*",
       "general_dashboard:v3:topic:#{topic_id}:*",
-      'home_dashboard:v3:*'
+      'home_dashboard:v3:*',
+      'home_dashboard:v4:*'
     ]
   end
 end
