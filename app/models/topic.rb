@@ -410,9 +410,7 @@ class Topic < ApplicationRecord
   # Peak Activity Hours (when most content is published)
   def publishing_frequency_by_hour
     Rails.cache.fetch("topic_#{id}_publishing_frequency", expires_in: 30.minutes) do
-      # Get entry IDs without joins to avoid GROUP BY issues
-      entry_ids = list_entries.pluck(:id)
-      hourly_frequency = Entry.where(id: entry_ids).group('HOUR(entries.published_at)').count
+      hourly_frequency = temporal_entries.group('HOUR(entries.published_at)').count
 
       Hash[hourly_frequency.map { |hour, count| [hour.to_i, count] }].sort.to_h
     end
@@ -434,16 +432,15 @@ class Topic < ApplicationRecord
 
   def temporal_hour_day_buckets
     Rails.cache.fetch("topic_#{id}_temporal_hour_day_buckets", expires_in: 30.minutes) do
-      list_entries.reorder(nil)
-                  .where('entries.total_count > 0')
-                  .group('DAYOFWEEK(entries.published_at)', 'HOUR(entries.published_at)')
-                  .order('DAYOFWEEK(entries.published_at)', 'HOUR(entries.published_at)')
-                  .pluck(
-                    Arel.sql('DAYOFWEEK(entries.published_at)'),
-                    Arel.sql('HOUR(entries.published_at)'),
-                    Arel.sql('COALESCE(SUM(entries.total_count), 0)'),
-                    Arel.sql('COUNT(*)')
-                  ).map do |day, hour, total_interactions, entry_count|
+      temporal_entries.where('entries.total_count > 0')
+                      .group('DAYOFWEEK(entries.published_at)', 'HOUR(entries.published_at)')
+                      .order('DAYOFWEEK(entries.published_at)', 'HOUR(entries.published_at)')
+                      .pluck(
+                        Arel.sql('DAYOFWEEK(entries.published_at)'),
+                        Arel.sql('HOUR(entries.published_at)'),
+                        Arel.sql('COALESCE(SUM(entries.total_count), 0)'),
+                        Arel.sql('COUNT(*)')
+                      ).map do |day, hour, total_interactions, entry_count|
         {
           day_number: Integer(day) - 1,
           hour: Integer(hour),
@@ -459,7 +456,7 @@ class Topic < ApplicationRecord
       now = Time.current
       recent_start = now - 24.hours
       previous_start = now - 48.hours
-      recent_count, previous_count, recent_interactions, previous_interactions = list_entries.reorder(nil).pick(
+      recent_count, previous_count, recent_interactions, previous_interactions = temporal_entries.pick(
         Arel.sql(
           Entry.sanitize_sql_array(
             [
@@ -495,7 +492,11 @@ class Topic < ApplicationRecord
     %w[Domingo Lunes Martes Miércoles Jueves Viernes Sábado]
   end
 
-  private :temporal_hour_day_buckets, :temporal_velocity_aggregates, :temporal_day_names
+  def temporal_entries
+    list_entries.except(:joins, :includes, :order)
+  end
+
+  private :temporal_hour_day_buckets, :temporal_velocity_aggregates, :temporal_day_names, :temporal_entries
 
   # ============================================
   # FACEBOOK TEMPORAL INTELLIGENCE METHODS

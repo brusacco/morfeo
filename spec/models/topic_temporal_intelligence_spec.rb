@@ -61,7 +61,7 @@ RSpec.describe Topic do
       entries = double('entries')
       allow(topic).to receive(:temporal_hour_day_buckets).and_call_original
       allow(topic).to receive(:list_entries).and_return(entries)
-      allow(entries).to receive(:reorder).with(nil).and_return(entries)
+      allow(entries).to receive(:except).with(:joins, :includes, :order).and_return(entries)
       allow(entries).to receive(:where).with('entries.total_count > 0').and_return(entries)
       allow(entries).to receive(:group)
         .with('DAYOFWEEK(entries.published_at)', 'HOUR(entries.published_at)')
@@ -125,7 +125,7 @@ RSpec.describe Topic do
     it 'loads all velocity inputs through one conditional aggregate query' do
       entries = double('entries')
       allow(topic).to receive(:list_entries).and_return(entries)
-      allow(entries).to receive(:reorder).with(nil).and_return(entries)
+      allow(entries).to receive(:except).with(:joins, :includes, :order).and_return(entries)
       expect(entries).to receive(:pick).once do |sql|
         expect(sql.to_s).to match(/entries\.published_at >= .+? AND entries\.published_at <= .+? THEN 1 ELSE 0 END/)
         expect(sql.to_s).to match(/entries\.published_at >= .+? AND entries\.published_at < .+? THEN 1 ELSE 0 END/)
@@ -141,6 +141,16 @@ RSpec.describe Topic do
         recent_interactions: 45,
         previous_interactions: 30
       )
+    end
+
+    it 'groups hourly publishing frequency without materializing entry IDs' do
+      entries = double('entries')
+      allow(topic).to receive(:list_entries).and_return(entries)
+      allow(entries).to receive(:except).with(:joins, :includes, :order).and_return(entries)
+      allow(entries).to receive(:group).with('HOUR(entries.published_at)').and_return(entries)
+      expect(entries).to receive(:count).and_return(9 => 2, 10 => 3)
+
+      expect(topic.publishing_frequency_by_hour).to eq(9 => 2, 10 => 3)
     end
   end
 

@@ -46,6 +46,11 @@ Velocity compares two adjacent 24-hour periods. The previous period is
 `[now - 48.hours, now - 24.hours)` and the recent period is
 `[now - 24.hours, now]`; the shared boundary belongs only to the recent period.
 
+Temporal aggregates derive from the topic entry filter without the display-only
+site join, tag eager loading, ordering, or an intermediate list of entry IDs.
+The tag membership predicate remains an `EXISTS` filter so entries are not
+duplicated for topics with multiple matching tags.
+
 # Auto-Sync
 
 When tags are added/removed from a topic, `SyncTopicEntriesJob` is queued to automatically link existing entries with matching tags.
