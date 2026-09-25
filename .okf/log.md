@@ -6,6 +6,7 @@
 - Preserved Active Record relations for topic tag filters, Home dashboard statistics, tag authorization, and Facebook emotional-intensity aggregates to avoid intermediate ID arrays.
 - Moved Home Tags Cloud analysis into the versioned Home dashboard payload and introduced `home_dashboard:v4` to prevent old cached hashes from omitting the new field.
 - Extended `cache:warm_dashboards` to warm each distinct user-specific Home topic set after per-topic dashboards.
+- Fixed General Dashboard Facebook trend velocity for MariaDB/MySQL by counting explicit Facebook entry IDs on tagged relations; this avoids invalid `COUNT(facebook_entries.*)` SQL while preserving any-tag semantics.
 
 ## 2026-09-22
 

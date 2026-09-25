@@ -159,6 +159,60 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
     )
   end
 
+  describe 'Facebook trend velocity' do
+    let(:persisted_topic) { create(:topic) }
+    let(:first_tag) { create(:tag, name: 'alpha') }
+    let(:second_tag) { create(:tag, name: 'beta') }
+    let(:page) { create(:page) }
+
+    before do
+      allow_any_instance_of(Site).to receive(:save_image)
+      persisted_topic.tags << [first_tag, second_tag]
+      create_facebook_entry(posted_at: 2.hours.ago, tags: [first_tag, second_tag])
+      create_facebook_entry(posted_at: 26.hours.ago, tags: [first_tag])
+    end
+
+    it 'uses valid ID counts for tagged Facebook entries from the General Dashboard path' do
+      allow(described_class).to receive(:new).and_call_original
+      allow(persisted_topic).to receive_messages(
+        trend_velocity: { velocity_percent: 0 },
+        twitter_trend_velocity: { velocity_percent: 0 }
+      )
+      persisted_service = described_class.new(topic: persisted_topic)
+      count_queries = []
+      subscriber = ActiveSupport::Notifications.subscribe('sql.active_record') do |_name, _started, _finished, _id, payload|
+        count_queries << payload[:sql] if payload[:sql].include?('COUNT')
+      end
+
+      begin
+        expect(persisted_service.send(:overall_trend_velocity)).to include(velocity_percent: 0.0)
+        expect(persisted_topic.facebook_trend_velocity).to include(recent_count: 1, previous_count: 1)
+      ensure
+        ActiveSupport::Notifications.unsubscribe(subscriber)
+      end
+
+      facebook_count_queries = count_queries.grep(/facebook_entries/)
+      expect(facebook_count_queries).to include(a_string_matching(/COUNT\("facebook_entries"\."id"\)/))
+      expect(facebook_count_queries).not_to include(a_string_matching(/COUNT\("facebook_entries"\.\*\)/))
+    end
+
+    it 'returns a safe stable velocity when no Facebook entries match the topic tags' do
+      FacebookEntry.delete_all
+
+      expect(persisted_topic.facebook_trend_velocity).to eq(velocity_percent: 0, direction: 'stable')
+    end
+
+    def create_facebook_entry(posted_at:, tags:)
+      FacebookEntry.create!(
+        page: page,
+        facebook_post_id: SecureRandom.uuid,
+        posted_at: posted_at,
+        reactions_total_count: 10,
+        tag_list: tags.map(&:name)
+      )
+    end
+  end
+
   it 'preserves reach provenance in the reach analysis payload' do
     allow(service).to receive_messages(
       total_reach: 130,

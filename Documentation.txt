@@ -249,3 +249,8 @@ NEW DOCKER NER STRACTOR
 
   sudo docker logs -f morfeo-entity-extractor
   
+  curl -s -X POST http://www.morfeo.com.py:8001/v1/entities \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "text": "Santiago Peña se reunió con autoridades del Instituto de Previsión Social en Asunción."
+  }' | jq

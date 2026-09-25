@@ -616,13 +616,13 @@ class Topic < ApplicationRecord
                      .where('facebook_entries.posted_at >= ?', 24.hours.ago)
                      .where('facebook_entries.posted_at <= ?', Time.current)
                      .tagged_with(tag_names, any: true)
-                     .size
+                     .count(:id)
 
       previous_count = FacebookEntry
                        .where('facebook_entries.posted_at >= ?', 48.hours.ago)
                        .where('facebook_entries.posted_at < ?', 24.hours.ago)
                        .tagged_with(tag_names, any: true)
-                       .size
+                       .count(:id)
 
       return { velocity_percent: 0, direction: 'stable' } if previous_count.zero?
 
