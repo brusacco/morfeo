@@ -89,8 +89,7 @@ module HomeServices
     end
 
     def tag_ids
-      @tag_ids_cache ||= @topics.flat_map { |topic| topic.tags.pluck(:id) }
-                                .uniq
+      @tag_ids_cache ||= Tag.joins(:topics).where(topics: { id: @topics.select(:id) }).distinct.pluck(:id)
     end
 
     # Memoized channel stats to avoid recalculation

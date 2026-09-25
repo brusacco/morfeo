@@ -19,6 +19,20 @@ RSpec.describe HomeServices::DashboardAggregatorService do
     end
   end
 
+  describe '#tag_ids' do
+    it 'loads distinct IDs for all topics with one tag query' do
+      shared_tag = create(:tag)
+      second_tag = create(:tag)
+      topics.first.tags << shared_tag
+      topics.second.tags << shared_tag << second_tag
+
+      expect(Tag).to receive(:joins).with(:topics).once.and_call_original
+
+      expect(service.send(:tag_ids)).to contain_exactly(shared_tag.id, second_tag.id)
+      expect(service.send(:tag_ids)).to contain_exactly(shared_tag.id, second_tag.id)
+    end
+  end
+
   describe '#calculate_daily_topic_rankings' do
     it 'returns separate 24-hour rankings for interactions and entries' do
       create(:topic_stat_daily, topic: topics.first, topic_date: Date.current, entry_count: 8, total_count: 20)
