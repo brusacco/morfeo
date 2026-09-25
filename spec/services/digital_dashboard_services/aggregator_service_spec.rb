@@ -53,4 +53,23 @@ RSpec.describe DigitalDashboardServices::AggregatorService do
       total_interactions: 150
     )
   end
+
+  it 'combines site counts and interaction sums in one query' do
+    entries = double('entries')
+    grouped_entries = double('grouped_entries')
+    allow(entries).to receive(:reorder).with(nil).and_return(grouped_entries)
+    allow(grouped_entries).to receive(:group).with('sites.id', 'sites.name').and_return(grouped_entries)
+    expect(grouped_entries).to receive(:pluck).once do |*columns|
+      expect(columns.map(&:to_s)).to eq(
+        ['sites.name', 'COUNT(entries.id)', 'COALESCE(SUM(entries.total_count), 0)']
+      )
+
+      [['Site A', 2, 100], ['Site A', 1, 25], ['Site B', 1, 10]]
+    end
+
+    expect(service.send(:calculate_site_data, entries)).to eq(
+      site_counts: { 'Site A' => 3, 'Site B' => 1 },
+      site_sums: { 'Site A' => 125, 'Site B' => 10 }
+    )
+  end
 end

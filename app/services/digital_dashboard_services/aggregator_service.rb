@@ -108,17 +108,22 @@ module DigitalDashboardServices
     end
 
     def calculate_site_data(entries)
-      # Cache site queries for better performance.
-      # Use reorder(nil) to remove any existing ORDER BY before GROUP BY.
-      site_counts =
-        Rails.cache.fetch("topic_#{@topic.id}_site_counts_#{Date.current}", expires_in: CACHE_EXPIRATION) do
-          entries.reorder(nil).group('sites.name').count
-        end
+      site_rows = Rails.cache.fetch("topic_#{@topic.id}_site_data_v2_#{Date.current}", expires_in: CACHE_EXPIRATION) do
+        entries.reorder(nil)
+               .group('sites.id', 'sites.name')
+               .pluck(
+                 Arel.sql('sites.name'),
+                 Arel.sql('COUNT(entries.id)'),
+                 Arel.sql('COALESCE(SUM(entries.total_count), 0)')
+               )
+      end
 
-      site_sums =
-        Rails.cache.fetch("topic_#{@topic.id}_site_sums_#{Date.current}", expires_in: CACHE_EXPIRATION) do
-          entries.reorder(nil).group('sites.name').sum(:total_count)
-        end
+      site_counts = Hash.new(0)
+      site_sums = Hash.new(0)
+      site_rows.each do |site_name, count, interactions|
+        site_counts[site_name] += count
+        site_sums[site_name] += interactions
+      end
 
       {
         site_counts: site_counts,
