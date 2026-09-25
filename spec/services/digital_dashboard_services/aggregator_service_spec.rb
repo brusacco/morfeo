@@ -11,6 +11,16 @@ RSpec.describe DigitalDashboardServices::AggregatorService do
   let(:topic) { double('topic', id: 7, tags: tags_relation) }
   let(:service) { described_class.new(topic: topic) }
 
+  def create_entry(polarity: nil, total_count: 0)
+    Entry.create!(
+      url: "https://example.test/entries/#{SecureRandom.uuid}",
+      site: create(:site),
+      published_at: Time.current,
+      polarity: polarity,
+      total_count: total_count
+    )
+  end
+
   before do
     allow(described_class).to receive(:new).and_return(service)
     allow(Rails.cache).to receive(:fetch) { |*_args, &block| block.call }
@@ -39,11 +49,14 @@ RSpec.describe DigitalDashboardServices::AggregatorService do
   it 'combines entry and polarity aggregates in one query' do
     entries = double('entries')
     allow(entries).to receive(:reorder).with(nil).and_return(entries)
-    expect(entries).to receive(:pick).once do |sql|
-      expect(sql.to_s).to include('COUNT(entries.id)')
-      expect(sql.to_s).to include('CASE WHEN entries.polarity = 0')
-      expect(sql.to_s).to include('CASE WHEN entries.polarity = 1')
-      expect(sql.to_s).to include('CASE WHEN entries.polarity = 2')
+    expect(entries).to receive(:pick).once do |*columns|
+      expect(columns.map(&:to_s)).to include(
+        'COUNT(entries.id)',
+        'COALESCE(SUM(entries.total_count), 0)',
+        'COALESCE(SUM(CASE WHEN entries.polarity = 0 THEN 1 ELSE 0 END), 0)',
+        'COALESCE(SUM(CASE WHEN entries.polarity = 1 THEN 1 ELSE 0 END), 0)',
+        'COALESCE(SUM(CASE WHEN entries.polarity = 2 THEN 1 ELSE 0 END), 0)'
+      )
 
       [5, 150, 2, 30, 2, 100, 1, 20]
     end
@@ -56,6 +69,110 @@ RSpec.describe DigitalDashboardServices::AggregatorService do
       total_entries: 5,
       total_interactions: 150
     )
+  end
+
+  describe 'database-backed entry aggregations' do
+    it 'returns zero-valued aggregates for an empty relation' do
+      expect(service.send(:calculate_entry_aggregations, Entry.none)).to eq(
+        entries_count: 0,
+        entries_total_sum: 0,
+        entries_polarity_counts: {},
+        entries_polarity_sums: {},
+        total_entries: 0,
+        total_interactions: 0
+      )
+    end
+
+    it 'ignores entries without a polarity in polarity aggregates' do
+      entry = create_entry(total_count: 12)
+
+      expect(service.send(:calculate_entry_aggregations, Entry.where(id: entry.id))).to include(
+        entries_count: 1,
+        entries_total_sum: 12,
+        entries_polarity_counts: {},
+        entries_polarity_sums: {}
+      )
+    end
+
+    {
+      neutral: ['neutral', 11],
+      positive: ['positive', 13],
+      negative: ['negative', 17]
+    }.each do |polarity, (polarity_name, total_count)|
+      it "aggregates only #{polarity} entries" do
+        entry = create_entry(polarity: polarity, total_count: total_count)
+
+        expect(service.send(:calculate_entry_aggregations, Entry.where(id: entry.id))).to include(
+          entries_count: 1,
+          entries_total_sum: total_count,
+          entries_polarity_counts: { polarity_name => 1 },
+          entries_polarity_sums: { polarity_name => total_count }
+        )
+      end
+    end
+
+    it 'aggregates mixed polarities in one result row' do
+      entries = [
+        create_entry(polarity: :neutral, total_count: 3),
+        create_entry(polarity: :positive, total_count: 5),
+        create_entry(polarity: :negative, total_count: 7)
+      ]
+
+      expect(service.send(:calculate_entry_aggregations, Entry.where(id: entries))).to include(
+        entries_count: 3,
+        entries_total_sum: 15,
+        entries_polarity_counts: { 'neutral' => 1, 'positive' => 1, 'negative' => 1 },
+        entries_polarity_sums: { 'neutral' => 3, 'positive' => 5, 'negative' => 7 }
+      )
+    end
+
+    it 'treats NULL total_count as zero' do
+      entry = create_entry(polarity: :neutral, total_count: nil)
+
+      expect(service.send(:calculate_entry_aggregations, Entry.where(id: entry.id))).to include(
+        entries_count: 1,
+        entries_total_sum: 0,
+        entries_polarity_counts: { 'neutral' => 1 },
+        entries_polarity_sums: { 'neutral' => 0 }
+      )
+    end
+  end
+
+  describe 'tagged topics without matching entries' do
+    def tagged_topic
+      create(:topic).tap do |actual_topic|
+        actual_topic.tags.create!(name: "empty-topic-#{SecureRandom.uuid}")
+      end
+    end
+
+    it 'returns a complete dashboard for a topic with no entries or daily stats' do
+      actual_topic = tagged_topic
+      allow(described_class).to receive(:new).and_call_original
+
+      payload = described_class.call(topic: actual_topic)
+
+      expect(payload.fetch(:topic_data)).to include(
+        entries_count: 0,
+        entries_total_sum: 0,
+        entries_polarity_counts: {},
+        entries_polarity_sums: {},
+        total_entries: 0,
+        total_interactions: 0
+      )
+      expect(payload.fetch(:chart_data).fetch(:chart_entries_counts)).to eq({})
+    end
+
+    it 'preserves daily-stat chart data when a topic has no matching entries' do
+      actual_topic = tagged_topic
+      create(:topic_stat_daily, topic: actual_topic, entry_count: 4, total_count: 20)
+      allow(described_class).to receive(:new).and_call_original
+
+      payload = described_class.call(topic: actual_topic)
+
+      expect(payload.fetch(:topic_data)).to include(entries_count: 0, entries_total_sum: 0)
+      expect(payload.fetch(:chart_data).fetch(:chart_entries_counts)).to eq(Date.current => 4)
+      expect(payload.fetch(:chart_data).fetch(:chart_entries_sums)).to eq(Date.current => 20)
+    end
   end
 
   it 'combines site counts and interaction sums in one query' do

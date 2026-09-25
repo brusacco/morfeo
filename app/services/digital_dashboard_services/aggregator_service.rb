@@ -72,21 +72,32 @@ module DigitalDashboardServices
       positive_value = Entry.polarities.fetch('positive')
       negative_value = Entry.polarities.fetch('negative')
 
+      row =
+        entries.reorder(nil).pick(
+          Arel.sql('COUNT(entries.id)'),
+          Arel.sql('COALESCE(SUM(entries.total_count), 0)'),
+          Arel.sql("COALESCE(SUM(CASE WHEN entries.polarity = #{neutral_value} THEN 1 ELSE 0 END), 0)"),
+          Arel.sql(
+            "COALESCE(SUM(CASE WHEN entries.polarity = #{neutral_value} " \
+            'THEN entries.total_count ELSE 0 END), 0)'
+          ),
+          Arel.sql("COALESCE(SUM(CASE WHEN entries.polarity = #{positive_value} THEN 1 ELSE 0 END), 0)"),
+          Arel.sql(
+            "COALESCE(SUM(CASE WHEN entries.polarity = #{positive_value} " \
+            'THEN entries.total_count ELSE 0 END), 0)'
+          ),
+          Arel.sql("COALESCE(SUM(CASE WHEN entries.polarity = #{negative_value} THEN 1 ELSE 0 END), 0)"),
+          Arel.sql(
+            "COALESCE(SUM(CASE WHEN entries.polarity = #{negative_value} " \
+            'THEN entries.total_count ELSE 0 END), 0)'
+          )
+        )
+      row ||= Array.new(8, 0)
+
       entries_count, entries_total_sum,
         neutral_count, neutral_sum,
         positive_count, positive_sum,
-        negative_count, negative_sum = entries.reorder(nil).pick(
-          Arel.sql(<<~SQL.squish)
-            COUNT(entries.id),
-            COALESCE(SUM(entries.total_count), 0),
-            COALESCE(SUM(CASE WHEN entries.polarity = #{neutral_value} THEN 1 ELSE 0 END), 0),
-            COALESCE(SUM(CASE WHEN entries.polarity = #{neutral_value} THEN entries.total_count ELSE 0 END), 0),
-            COALESCE(SUM(CASE WHEN entries.polarity = #{positive_value} THEN 1 ELSE 0 END), 0),
-            COALESCE(SUM(CASE WHEN entries.polarity = #{positive_value} THEN entries.total_count ELSE 0 END), 0),
-            COALESCE(SUM(CASE WHEN entries.polarity = #{negative_value} THEN 1 ELSE 0 END), 0),
-            COALESCE(SUM(CASE WHEN entries.polarity = #{negative_value} THEN entries.total_count ELSE 0 END), 0)
-          SQL
-        )
+        negative_count, negative_sum = row
 
       entries_polarity_counts = {
         'neutral' => neutral_count,
