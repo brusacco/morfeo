@@ -57,7 +57,7 @@ module HomeServices
     end
 
     def call
-      Rails.cache.fetch(cache_key, expires_in: CACHE_EXPIRATION) do
+      fetch_cached_with_race_protection(cache_key, expires_in: CACHE_EXPIRATION) do
         {
           executive_summary: calculate_executive_summary,
           channel_stats: calculate_channel_stats,

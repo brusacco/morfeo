@@ -2,6 +2,8 @@
 
 # app/services/application_service.rb
 class ApplicationService
+  CACHE_RACE_CONDITION_TTL = 2.minutes
+
   def self.call(...)
     new(...).call
     # rescue RestClient::ExceptionWithResponse => e
@@ -20,5 +22,11 @@ class ApplicationService
     else
       OpenStruct.new({ success?: true, data: data })
     end
+  end
+
+  private
+
+  def fetch_cached_with_race_protection(key, expires_in:, &block)
+    Rails.cache.fetch(key, expires_in: expires_in, race_condition_ttl: CACHE_RACE_CONDITION_TTL, &block)
   end
 end

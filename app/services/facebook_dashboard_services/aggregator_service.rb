@@ -25,7 +25,7 @@ module FacebookDashboardServices
     end
 
     def call
-      Rails.cache.fetch(cache_key, expires_in: CACHE_EXPIRATION) do
+      fetch_cached_with_race_protection(cache_key, expires_in: CACHE_EXPIRATION) do
         {
           facebook_data: facebook_data,
           pages_data: load_pages_data,

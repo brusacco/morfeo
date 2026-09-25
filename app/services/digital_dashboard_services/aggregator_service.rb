@@ -24,7 +24,7 @@ module DigitalDashboardServices
     end
 
     def call
-      Rails.cache.fetch(cache_key, expires_in: CACHE_EXPIRATION) do
+      fetch_cached_with_race_protection(cache_key, expires_in: CACHE_EXPIRATION) do
         {
           topic_data: topic_data,
           chart_data: load_chart_data,
@@ -143,7 +143,7 @@ module DigitalDashboardServices
 
     def calculate_site_data(entries)
       site_rows =
-        Rails.cache.fetch(site_data_cache_key, expires_in: CACHE_EXPIRATION) do
+        fetch_cached_with_race_protection(site_data_cache_key, expires_in: CACHE_EXPIRATION) do
           entries.reorder(nil)
                  .group('sites.id', 'sites.name')
                  .pluck(
@@ -286,7 +286,7 @@ module DigitalDashboardServices
       date_range = @topic.default_date_range
       cache_key = global_digital_stats_cache_key(date_range)
 
-      Rails.cache.fetch(cache_key, expires_in: CACHE_EXPIRATION) do
+      fetch_cached_with_race_protection(cache_key, expires_in: CACHE_EXPIRATION) do
         entries_count, interactions = Entry.enabled
                                            .where(published_at: date_range[:gte]..date_range[:lte])
                                            .joins(:site)
@@ -313,7 +313,7 @@ module DigitalDashboardServices
 
     def load_text_analysis(entries)
       text_data =
-        Rails.cache.fetch(
+        fetch_cached_with_race_protection(
           text_analysis_cache_key,
           expires_in: CACHE_EXPIRATION
         ) do

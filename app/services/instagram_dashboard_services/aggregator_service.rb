@@ -25,7 +25,7 @@ module InstagramDashboardServices
     end
 
     def call
-      Rails.cache.fetch(cache_key, expires_in: CACHE_EXPIRATION) do
+      fetch_cached_with_race_protection(cache_key, expires_in: CACHE_EXPIRATION) do
         {
           instagram_data: instagram_data,
           profiles_data: load_profiles_data,

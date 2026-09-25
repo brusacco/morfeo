@@ -1,5 +1,9 @@
 # Change Log
 
+## 2026-09-25
+
+- Added Rails `race_condition_ttl` protection to all dashboard aggregator caches and Digital's costly subcaches to prevent cache stampedes after Redis expiration.
+
 ## 2026-09-22
 
 - Documented all background jobs: ActiveJob architecture, core jobs, tags jobs, error handling patterns

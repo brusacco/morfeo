@@ -3,7 +3,7 @@ type: Architecture
 title: Caching Strategy
 description: Multi-layer caching architecture for fast report generation and dashboard performance
 tags: [caching, performance, redis, optimization]
-timestamp: 2026-09-22T00:00:00Z
+timestamp: 2026-09-25T00:00:00Z
 ---
 
 # Overview
@@ -51,6 +51,21 @@ Rails.cache.fetch(cache_key, expires_in: CACHE_EXPIRATION) do
   # Expensive data loading and calculations
 end
 ```
+
+### Stampede Protection
+
+Dashboard aggregators use `ApplicationService#fetch_cached_with_race_protection`,
+which adds `race_condition_ttl: 2.minutes` to every dashboard cache fetch. When
+a Redis entry has just expired, the first request refreshes it while concurrent
+requests receive the prior value for up to two minutes instead of repeating the
+same expensive aggregation. If refresh fails, Rails permits another request to
+try again after that window.
+
+This protection applies to the payload caches for Digital, Facebook, Twitter,
+Instagram, General, and Home dashboards, plus Digital's costly site-data,
+text-analysis, and global-statistics subcaches. It deliberately does not add a
+custom Redis lock: stale-while-revalidate avoids request blocking while retaining
+the existing 30-minute freshness contract.
 
 **Cache Keys Include:**
 

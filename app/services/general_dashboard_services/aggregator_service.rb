@@ -15,7 +15,7 @@ module GeneralDashboardServices
     end
 
     def call
-      Rails.cache.fetch(cache_key, expires_in: 30.minutes) do
+      fetch_cached_with_race_protection(cache_key, expires_in: 30.minutes) do
         {
           executive_summary: build_executive_summary,
           channel_performance: build_channel_performance,
