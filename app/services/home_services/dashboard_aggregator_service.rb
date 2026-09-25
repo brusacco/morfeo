@@ -300,15 +300,24 @@ module HomeServices
         stats = (stats_by_topic[topic.id] || []).select { |stat| stat.topic_date.in?(date_range) }
         next if stats.empty?
 
-        [topic.name, {
-          interactions: stats.sum { |stat| stat.total_count || 0 },
-          entries: stats.sum { |stat| stat.entry_count || 0 }
-        }]
+        [
+          topic.name,
+          {
+            interactions: stats.sum { |stat| stat.total_count || 0 },
+            entries: stats.sum { |stat| stat.entry_count || 0 }
+          }
+        ]
       end.to_h
 
       {
-        interactions: metrics_by_topic.sort_by { |_name, metrics| -metrics[:interactions] }.first(10).to_h { |name, metrics| [name, metrics[:interactions]] },
-        entries: metrics_by_topic.sort_by { |_name, metrics| -metrics[:entries] }.first(10).to_h { |name, metrics| [name, metrics[:entries]] }
+        interactions: metrics_by_topic.sort_by do |_name, metrics|
+          -metrics[:interactions]
+        end
+.first(10).to_h { |name, metrics| [name, metrics[:interactions]] },
+        entries: metrics_by_topic.sort_by do |_name, metrics|
+          -metrics[:entries]
+        end
+.first(10).to_h { |name, metrics| [name, metrics[:entries]] }
       }
     end
 

@@ -23,7 +23,13 @@ RSpec.describe HomeServices::DashboardAggregatorService do
     it 'returns separate 24-hour rankings for interactions and entries' do
       create(:topic_stat_daily, topic: topics.first, topic_date: Date.current, entry_count: 8, total_count: 20)
       create(:topic_stat_daily, topic: topics.second, topic_date: Date.current, entry_count: 3, total_count: 50)
-      create(:topic_stat_daily, topic: topics.first, topic_date: 2.days.ago.to_date, entry_count: 100, total_count: 1000)
+      create(
+        :topic_stat_daily,
+        topic: topics.first,
+        topic_date: 2.days.ago.to_date,
+        entry_count: 100,
+        total_count: 1000
+      )
 
       rankings = service.send(:calculate_daily_topic_rankings)
 
