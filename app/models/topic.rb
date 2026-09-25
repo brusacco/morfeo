@@ -84,9 +84,13 @@ class Topic < ApplicationRecord
   end
 
   def list_entries
-    entries_matching_tags(
-      Entry.enabled.where(published_at: default_date_range[:gte]..default_date_range[:lte])
-    ).order(published_at: :desc).joins(:site).includes(:tags)
+    cache_key = "topic_#{id}_list_entries_v3"
+
+    Rails.cache.fetch(cache_key, expires_in: 30.minutes) do
+      entries_matching_tags(
+        Entry.enabled.where(published_at: default_date_range[:gte]..default_date_range[:lte])
+      ).order(published_at: :desc).joins(:site).includes(:tags)
+    end
   end
 
   def entries_cache_version
