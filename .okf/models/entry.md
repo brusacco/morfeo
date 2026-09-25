@@ -58,6 +58,20 @@ Uses `acts-as-taggable-on` with two contexts:
 
 Auto-syncs topic associations when tags change via `after_save` callbacks.
 
+## Exact Tag Queries
+
+`with_any_tag_ids(tag_ids, context: nil)` filters entries with a correlated
+`EXISTS` query on `taggings`. It avoids row multiplication and accepts an
+explicit context when a report requires content tags (`context: :tags`) or title
+tags (`context: :title_tags`). With no context it matches the cross-context
+behavior of `tagged_with(..., any: true)`.
+
+For freshness-sensitive content reports, use tag IDs with `context: :tags`
+instead of `entry_topics`: `entry_topics` is a synchronized cache and can lag
+behind taggings. Since the `EXISTS` query returns each entry at most once, these
+relations may use normal `count`, `sum(:total_count)`, and grouped sums without
+`DISTINCT`.
+
 # Related
 
 - [Digital Reports Infrastructure](../digital_reports/) - Analytics dashboard for web articles

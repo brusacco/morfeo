@@ -73,6 +73,14 @@ Returns a hash with the following keys:
 - Groupdate gem for temporal aggregation
 - TextMood for sentiment analysis
 
+## Content Tag Query Contract
+
+Content entry relations are resolved through `Topic#entries_matching_tags`, which
+uses `Entry.with_any_tag_ids(..., context: :tags)`. This is the immediate-fresh
+source of truth for dashboard entries and deliberately excludes title-only tag
+matches. It is distinct from `entry_topics`, which is an asynchronously synced
+association suitable only where eventual consistency is acceptable.
+
 # Key Features
 
 - Sentiment analysis integration (unique to digital reports)

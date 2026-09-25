@@ -10,7 +10,7 @@ module DigitalDashboardServices
   class AggregatorService < ApplicationService
     # Cache expiration time for dashboard data
     CACHE_EXPIRATION = 30.minutes
-    
+
     def initialize(topic:, days_range: DAYS_RANGE)
       @topic = topic
       @days_range = (days_range || DAYS_RANGE || 7).to_i # Default to 7 days if not provided
@@ -64,21 +64,20 @@ module DigitalDashboardServices
     end
 
     def calculate_entry_aggregations(entries)
-      # Precompute aggregates to avoid multiple SQL queries
-      # IMPORTANT: Use distinct to avoid counting duplicates from joins
-      entries_count = entries.distinct.count
-      entries_total_sum = entries.distinct.sum(:total_count)
+      # Precompute aggregates to avoid multiple SQL queries.
+      # Topic#list_entries uses EXISTS, so it returns each entry at most once.
+      entries_count = entries.count
+      entries_total_sum = entries.sum(:total_count)
 
-      # Combine polarity aggregations into a single query
-      # Use reorder(nil) to remove any existing ORDER BY before GROUP BY
-      # Use DISTINCT to avoid duplicate rows from joins
+      # Combine polarity aggregations into a single query.
+      # Use reorder(nil) to remove any existing ORDER BY before GROUP BY.
       polarity_data = entries
-                       .where.not(polarity: nil)
-                       .reorder(nil)
-                       .group(:polarity)
-                       .select('polarity, COUNT(DISTINCT entries.id) as count, SUM(DISTINCT entries.total_count) as sum')
-                       .map { |row| [row.polarity, { count: row.count, sum: row.sum }] }
-                       .to_h
+                      .where.not(polarity: nil)
+                      .reorder(nil)
+                      .group(:polarity)
+                      .select('polarity, COUNT(entries.id) as count, SUM(entries.total_count) as sum')
+                      .map { |row| [row.polarity, { count: row.count, sum: row.sum }] }
+                      .to_h
 
       # Extract counts and sums from the combined data
       entries_polarity_counts = polarity_data.transform_values { |v| v[:count] }
@@ -95,16 +94,17 @@ module DigitalDashboardServices
     end
 
     def calculate_site_data(entries)
-      # Cache site queries for better performance
-      # Use reorder(nil) to remove ORDER BY before GROUP BY
-      # Use distinct to avoid counting duplicate rows from joins
-      site_counts = Rails.cache.fetch("topic_#{@topic.id}_site_counts_#{Date.current}", expires_in: CACHE_EXPIRATION) do
-        entries.distinct.reorder(nil).group('sites.name').count
-      end
-      
-      site_sums = Rails.cache.fetch("topic_#{@topic.id}_site_sums_#{Date.current}", expires_in: CACHE_EXPIRATION) do
-        entries.distinct.reorder(nil).group('sites.name').sum(:total_count)
-      end
+      # Cache site queries for better performance.
+      # Use reorder(nil) to remove any existing ORDER BY before GROUP BY.
+      site_counts =
+        Rails.cache.fetch("topic_#{@topic.id}_site_counts_#{Date.current}", expires_in: CACHE_EXPIRATION) do
+          entries.reorder(nil).group('sites.name').count
+        end
+
+      site_sums =
+        Rails.cache.fetch("topic_#{@topic.id}_site_sums_#{Date.current}", expires_in: CACHE_EXPIRATION) do
+          entries.reorder(nil).group('sites.name').sum(:total_count)
+        end
 
       {
         site_counts: site_counts,
@@ -120,12 +120,12 @@ module DigitalDashboardServices
 
       # Build all chart data in one pass
       chart_data = build_chart_data_from_stats(topic_stats)
-      
+
       # Load title stats - single query
       title_stats = @topic.title_topic_stat_dailies
                           .where(topic_date: @start_date.to_date..@end_date.to_date)
                           .order(:topic_date)
-      
+
       chart_data.merge(
         title_chart_entries_counts: title_stats.pluck(:topic_date, :entry_quantity).to_h,
         title_chart_entries_sums: title_stats.pluck(:topic_date, :entry_interaction).to_h
@@ -141,16 +141,16 @@ module DigitalDashboardServices
       # Single iteration through stats
       stats.each do |stat|
         date = stat.topic_date
-        
+
         # Basic counts
         chart_entries_counts[date] = stat.entry_count
         chart_entries_sums[date] = stat.total_count
-        
+
         # Sentiment counts (using array keys for chartkick)
         sentiments_counts[['positive', date]] = stat.positive_quantity || 0
         sentiments_counts[['neutral', date]] = stat.neutral_quantity || 0
         sentiments_counts[['negative', date]] = stat.negative_quantity || 0
-        
+
         # Sentiment interactions
         sentiments_sums[['positive', date]] = stat.positive_interaction || 0
         sentiments_sums[['neutral', date]] = stat.neutral_interaction || 0
@@ -182,7 +182,14 @@ module DigitalDashboardServices
       negatives = entries_polarity_counts['negative'] || 0
 
       percentages = calculate_polarity_percentages(entries_count, positives, negatives, neutrals)
-      percentages.merge(calculate_share_of_voice(entries_count, entries_total_sum, all_entries_size, all_entries_interactions))
+      percentages.merge(
+        calculate_share_of_voice(
+          entries_count,
+          entries_total_sum,
+          all_entries_size,
+          all_entries_interactions
+        )
+      )
       percentages.merge(
         promedio: safe_division(entries_total_sum, entries_count),
         most_interactions: entries.order(total_count: :desc).limit(20),
@@ -223,12 +230,8 @@ module DigitalDashboardServices
       # Cache expensive text analysis
       word_data = load_text_analysis(entries)
       tag_data = load_tag_analysis(entries)
-      
-      word_data.merge(tag_data).merge(
-        report: @topic.reports.last,
-        comments: [],
-        comments_word_occurrences: []
-      )
+
+      word_data.merge(tag_data).merge(report: @topic.reports.last, comments: [], comments_word_occurrences: [])
     end
 
     def load_text_analysis(entries)
@@ -236,7 +239,10 @@ module DigitalDashboardServices
         word_occurrences: Rails.cache.fetch("topic_#{@topic.id}_words_#{Date.current}", expires_in: CACHE_EXPIRATION) do
           entries.word_occurrences
         end,
-        bigram_occurrences: Rails.cache.fetch("topic_#{@topic.id}_bigrams_#{Date.current}", expires_in: CACHE_EXPIRATION) do
+        bigram_occurrences: Rails.cache.fetch(
+          "topic_#{@topic.id}_bigrams_#{Date.current}",
+          expires_in: CACHE_EXPIRATION
+        ) do
           entries.bigram_occurrences
         end,
         positive_words: parse_word_list(@topic.positive_words),
@@ -267,21 +273,25 @@ module DigitalDashboardServices
       tags_count = tags.each_with_object({}) { |tag, hash| hash[tag.name] = tag.count }
 
       # Convert site_counts to include site objects for avatar display
-      site_name_counts = topic_data[:site_counts].sort_by { |_, count| -count }.first(12)
-      site_name_interactions = topic_data[:site_sums].sort_by { |_, sum| -sum }.first(12)
-      
+      site_name_counts = topic_data[:site_counts].sort_by { |_, count| -count }
+                                                 .first(12)
+      site_name_interactions = topic_data[:site_sums].sort_by { |_, sum| -sum }
+                                                     .first(12)
+
       # Load Site objects with their data
       site_names = (site_name_counts.map(&:first) + site_name_interactions.map(&:first)).uniq
       sites_by_name = Site.where(name: site_names).index_by(&:name)
-      
+
       # Build arrays with site objects
-      site_top_counts = site_name_counts.map do |site_name, count|
-        { site: sites_by_name[site_name], name: site_name, count: count }
-      end
-      
-      site_top_interactions = site_name_interactions.map do |site_name, interactions|
-        { site: sites_by_name[site_name], name: site_name, interactions: interactions }
-      end
+      site_top_counts =
+        site_name_counts.map do |site_name, count|
+          { site: sites_by_name[site_name], name: site_name, count: count }
+        end
+
+      site_top_interactions =
+        site_name_interactions.map do |site_name, interactions|
+          { site: sites_by_name[site_name], name: site_name, interactions: interactions }
+        end
 
       {
         tags: tags,
@@ -313,6 +323,7 @@ module DigitalDashboardServices
 
     def safe_percentage(numerator, denominator, decimals: 0)
       return 0 if denominator.zero?
+
       (numerator.to_f / denominator * 100).round(decimals)
     end
 
@@ -351,29 +362,30 @@ module DigitalDashboardServices
       # Simple approach: Any entry with > 100 interactions in last 6h is considered viral
       # This is more practical than statistical analysis for short time windows
       viral_threshold = 100
-      
+
       # Get viral entries
       viral_entries = entries_array.select { |e| e.total_count > viral_threshold }
-                                  .sort_by { |e| -e.total_count }
-                                  .take(10)
+                                   .sort_by { |e| -e.total_count }
+                                   .take(10)
 
       return [] if viral_entries.empty?
 
       # Calculate baseline for comparison (median of non-zero values, or 1 if none)
       engagement_values = entries_array.map(&:total_count)
       non_zero_values = engagement_values.select { |v| v > 0 }
-      
-      baseline = if non_zero_values.size >= 3
-        # Use median of non-zero values if we have enough data
-        sorted = non_zero_values.sort
-        calculate_median(sorted)
-      elsif non_zero_values.any?
-        # Use average of non-zero values if we have 1-2 values
-        non_zero_values.sum / non_zero_values.size.to_f
-      else
-        # All zeros, use 1 to avoid division by zero
-        1.0
-      end
+
+      baseline =
+        if non_zero_values.size >= 3
+          # Use median of non-zero values if we have enough data
+          sorted = non_zero_values.sort
+          calculate_median(sorted)
+        elsif non_zero_values.any?
+          # Use average of non-zero values if we have 1-2 values
+          non_zero_values.sum / non_zero_values.size.to_f
+        else
+          # All zeros, use 1 to avoid division by zero
+          1.0
+        end
 
       viral_entries.map do |entry|
         {
@@ -381,7 +393,7 @@ module DigitalDashboardServices
           multiplier: (entry.total_count / baseline).round(1),
           engagement: entry.total_count,
           published_at: entry.published_at,
-          baseline: baseline.round(0)  # For transparency
+          baseline: baseline.round(0) # For transparency
         }
       end
     end
@@ -390,12 +402,12 @@ module DigitalDashboardServices
     # More robust than mean for viral detection
     def calculate_median(sorted_values)
       return 0 if sorted_values.empty?
-      
+
       size = sorted_values.size
       if size.odd?
         sorted_values[size / 2].to_f
       else
-        (sorted_values[size / 2 - 1] + sorted_values[size / 2]) / 2.0
+        (sorted_values[(size / 2) - 1] + sorted_values[size / 2]) / 2.0
       end
     end
 

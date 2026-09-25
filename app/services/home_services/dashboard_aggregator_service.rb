@@ -53,6 +53,7 @@ module HomeServices
       @start_date = days_range.days.ago.beginning_of_day
       @end_date = Time.current
       @tag_names_cache = nil # Memoization for tag names
+      @tag_ids_cache = nil # Memoization for digital content tag IDs
       @channel_stats_cache = {} # Memoization for channel stats
     end
 
@@ -78,13 +79,18 @@ module HomeServices
     private
 
     def cache_key
-      "home_dashboard_v2_#{@topics.map(&:id).sort.join('_')}_#{@days_range}_#{Date.current}"
+      "home_dashboard_v3_#{@topics.map(&:id).sort.join('_')}_#{@days_range}_#{Date.current}"
     end
 
     # Memoized tag names to avoid multiple pluck calls
     def tag_names
       @tag_names_cache ||= @topics.flat_map { |t| t.tags.pluck(:name) }
                                   .uniq
+    end
+
+    def tag_ids
+      @tag_ids_cache ||= @topics.flat_map { |topic| topic.tags.pluck(:id) }
+                                .uniq
     end
 
     # Memoized channel stats to avoid recalculation
@@ -150,18 +156,20 @@ module HomeServices
     end
 
     def digital_channel_stats
-      return zero_stats if tag_names.empty?
+      return zero_stats if tag_ids.empty?
 
-      base_scope = -> { Entry.enabled.where(published_at: @start_date..@end_date).tagged_with(tag_names, any: true) }
+      base_scope =
+        lambda {
+          Entry.enabled.where(published_at: @start_date..@end_date).with_any_tag_ids(tag_ids, context: :tags)
+        }
 
-      # Use distinct to avoid duplicate counts from polymorphic joins
+      # EXISTS returns each entry at most once, so aggregates must not use DISTINCT.
       mentions = base_scope.call.count('DISTINCT entries.id')
-      interactions = base_scope.call.distinct.sum(:total_count)
+      interactions = base_scope.call.sum(:total_count)
       reach = interactions * DIGITAL_REACH_MULTIPLIER
       prev_interactions = Entry.enabled
                                .where(published_at: (@start_date - @days_range.days)..@start_date)
-                               .tagged_with(tag_names, any: true)
-                               .distinct
+                               .with_any_tag_ids(tag_ids, context: :tags)
                                .sum(:total_count)
 
       {
@@ -838,10 +846,9 @@ module HomeServices
     end
 
     def calculate_digital_sentiment
-      return 0 if tag_names.empty?
+      return 0 if tag_ids.empty?
 
-      # Use .size instead of .count after tagged_with for efficiency
-      base_scope = Entry.enabled.where(published_at: @start_date..@end_date).tagged_with(tag_names, any: true)
+      base_scope = Entry.enabled.where(published_at: @start_date..@end_date).with_any_tag_ids(tag_ids, context: :tags)
 
       positive = base_scope.where(polarity: :positive).size
       negative = base_scope.where(polarity: :negative).size
@@ -871,7 +878,7 @@ module HomeServices
 
       digital = Entry.enabled
                      .where(published_at: (@start_date - @days_range.days)..@start_date)
-                     .tagged_with(tag_names, any: true)
+                     .with_any_tag_ids(tag_ids, context: :tags)
                      .sum(:total_count)
 
       facebook = FacebookEntry.where(posted_at: (@start_date - @days_range.days)..@start_date)
