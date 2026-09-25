@@ -107,14 +107,28 @@ variants. Home v4 also includes Tags Cloud word occurrences in the cached
 payload. During the v3-to-v4 transition, invalidation clears both Home
 generations.
 
-Digital topic cache keys additionally include the current entry count and latest
-`entries.updated_at` timestamp for the topic's date range. This causes the
-dashboard payload to refresh when crawler activity adds, removes, retags, or
-updates a matching entry. `Topic#list_entries` returns a query relation directly
-rather than caching a lazy relation object, so the KPI aggregate and the rendered
-news list are built from the same current entry set. The digital topic action
-cache includes this same entry version, so a cached HTML response cannot bypass
-the refreshed dashboard payload.
+The digital dashboard uses the normal 30-minute expiration contract. The
+filtered news list is cached by `Topic#list_entries` with the key
+`topic_{topic_id}_list_entries_v3`; it is the only list-level cache added for
+this flow. Dashboard action-cache keys use the topic ID, user ID, and requested
+date range.
+
+### Implementation Pitfalls
+
+- Do not write `cache_path: proc do ... end` in a `caches_action` declaration.
+  Ruby can evaluate it as a `proc` invocation without a block during controller
+  loading, which prevents Rails from booting with `ArgumentError: tried to
+  create Proc object without a block`. Use `proc { |controller| { ... } }`, as
+  in the action-caching example above.
+- Do not add database schema, callbacks, scheduled jobs, or bespoke cache
+  version columns merely to invalidate this list cache. Those mechanisms expand
+  the cache contract and can make it slower or harder to operate than the
+  established 30-minute TTL.
+- Do not derive an action-cache version by running `COUNT` and `MAX(updated_at)`
+  over `Topic#list_entries` for every request. That relation includes topic-tag
+  filtering and joins, so the key calculation repeats an expensive query before
+  the cache can be read. Retain the standard action-cache key unless a separately
+  approved invalidation design is implemented and tested end to end.
 
 ### Digital Share of Voice
 
