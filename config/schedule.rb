@@ -3,11 +3,11 @@
 set :environment, 'production'
 
 # =============================================================================
-# CACHE WARMING - Every 5 minutes
+# CACHE WARMING - Every 10 minutes
 # =============================================================================
 # Keeps dashboards fast by pre-loading data into Redis cache
 # All caches expire after 30 minutes, ensuring fresh data
-every 25.minutes do
+every 10.minutes do
   rake 'cache:warm_dashboards'
 end
 

@@ -27,4 +27,14 @@ RSpec.describe 'cache:clear' do
       expect(Rails.cache).to have_received(:delete_matched).with(pattern).once
     end
   end
+
+  it 'warms user-specific Home dashboard topic sets' do
+    allow(HomeServices::CacheWarmerService).to receive(:call).and_return([])
+    task = Rake::Task['cache:warm_dashboards']
+    task.reenable
+
+    task.execute
+
+    expect(HomeServices::CacheWarmerService).to have_received(:call).once
+  end
 end

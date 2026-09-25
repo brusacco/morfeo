@@ -220,9 +220,13 @@ namespace :cache do
     failed = results.reject { |r| r[:success] }
 
     duration = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time
+    home_results = HomeServices::CacheWarmerService.call
+    home_successful = home_results.count { |result| result[:success] }
+    home_failed = home_results.reject { |result| result[:success] }
 
     puts "\n\n✅ Dashboard warming complete!"
     puts "📊 Topics: #{successful.count} successful, #{failed.count} failed"
+    puts "🏠 Home topic sets: #{home_successful} successful, #{home_failed.count} failed"
 
     if failed.any?
       puts "\n⚠️  #{failed.count} topics failed:"
@@ -233,5 +237,12 @@ namespace :cache do
     end
 
     CacheWarmDashboardReporter.new.print_report(results: results, workers: workers, wall_time: duration)
+
+    if home_failed.any?
+      puts "\n⚠️  #{home_failed.count} Home topic sets failed:"
+      home_failed.each do |result|
+        puts "   - Topics #{result[:topic_ids].join(',').presence || 'none'}: #{result[:error_class]}: #{result[:error]}"
+      end
+    end
   end
 end

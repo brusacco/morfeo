@@ -22,7 +22,7 @@ Morfeo uses a multi-layer caching strategy to deliver fast report generation and
 
 - **Standard**: 30 minutes for all dashboard and report data
 - **PDF Generation**: 30 minutes per topic/type/days_range combination
-- **Cache Warming**: Every 5 minutes to maintain fresh data
+- **Cache Warming**: Every 10 minutes to maintain fresh data
 
 # Caching Layers
 
@@ -145,7 +145,7 @@ Proactive cache population via scheduled rake task:
 
 ```ruby
 # config/schedule.rb
-every 5.minutes do
+every 10.minutes do
   rake 'cache:warm_dashboards'
 end
 ```
@@ -155,6 +155,8 @@ end
 - Pre-load dashboard data into Redis cache
 - Ensure fast first-time access
 - Maintain fresh data (30-minute expiration)
+- Warm every distinct active-topic set assigned to users for the Home dashboard;
+  identical sets are warmed once, and users without active topics share the empty set.
 - `cache:warm_dashboards` measures each dashboard invocation with a monotonic clock and reports per-topic totals, slowest calls, and aggregate timings.
 - Cache status is inferred from ActiveSupport cache read and generation notifications during each service invocation. `HIT` means the invocation observed a cache read hit; `MISS` means cache generation occurred; `UNKNOWN` is reported if neither notification is available.
 

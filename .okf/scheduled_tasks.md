@@ -3,12 +3,12 @@ type: Architecture
 title: Scheduled Tasks
 description: Complete documentation of all cron-scheduled rake tasks and their purposes
 tags: [scheduling, cron, rake, automation, tasks]
-timestamp: 2026-09-22T00:00:00Z
+timestamp: 2026-09-25T00:00:00Z
 ---
 
 # Overview
 
-Morfeo uses the `whenever` gem to manage cron jobs defined in `config/schedule.rb`. The schedule is organized into frequency tiers: cache warming (5 min), hourly data collection, 3-hour social media crawling, 4-hour tagging, 6-hour deep processing, daily deep operations, and weekly maintenance.
+Morfeo uses the `whenever` gem to manage cron jobs defined in `config/schedule.rb`. The schedule is organized into frequency tiers: cache warming (10 min), hourly data collection, 3-hour social media crawling, 4-hour tagging, 6-hour deep processing, daily deep operations, and weekly maintenance.
 
 # Schedule Configuration
 
@@ -18,13 +18,15 @@ Morfeo uses the `whenever` gem to manage cron jobs defined in `config/schedule.r
 
 # Task Schedule
 
-## Cache Warming - Every 5 Minutes
+## Cache Warming - Every 10 Minutes
 
 ### `cache:warm_dashboards`
 
 - **Purpose**: Pre-loads dashboard data into Redis cache to keep dashboards fast
-- **Frequency**: Every 5 minutes
+- **Frequency**: Every 10 minutes
 - **Cache Expiration**: All caches expire after 30 minutes, ensuring fresh data
+- **Home Dashboard**: Warms each distinct active-topic set assigned to users,
+  deduplicating equivalent sets and including the empty set when applicable.
 - **Related**: [Caching Strategy](caching_strategy.md)
 
 ## Hourly Tasks - Core Data Collection
