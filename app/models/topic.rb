@@ -196,83 +196,48 @@ class Topic < ApplicationRecord
   # Returns hash with average engagement by hour of day
   def peak_publishing_times_by_hour
     Rails.cache.fetch("topic_#{id}_peak_times_hour", expires_in: 30.minutes) do
-      # Get entry IDs without joins to avoid GROUP BY issues
-      entry_ids = list_entries.pluck(:id)
-      entries_with_engagement = Entry.where(id: entry_ids).where('entries.total_count > 0')
+      temporal_hour_day_buckets.group_by { |bucket| bucket[:hour] }
+                               .sort.to_h do |hour, buckets|
+        total_interactions = buckets.sum { |bucket| bucket[:total_interactions] }
+        entry_count = buckets.sum { |bucket| bucket[:entry_count] }
 
-      hourly_data = entries_with_engagement
-                    .group('HOUR(entries.published_at)')
-                    .select('HOUR(entries.published_at) as hour, AVG(entries.total_count) as avg_engagement, COUNT(*) as entry_count')
-                    .order('hour')
-
-      result = {}
-      hourly_data.each do |data|
-        hour = data.hour.to_i
-        result[hour] = { avg_engagement: data.avg_engagement.to_f.round(2), entry_count: data.entry_count }
+        [hour, { avg_engagement: (Float(total_interactions) / entry_count).round(2), entry_count: entry_count }]
       end
-      result
     end
   end
 
   # Returns hash with average engagement by day of week (0=Sunday, 6=Saturday)
   def peak_publishing_times_by_day
     Rails.cache.fetch("topic_#{id}_peak_times_day", expires_in: 30.minutes) do
-      # Get entry IDs without joins to avoid GROUP BY issues
-      entry_ids = list_entries.pluck(:id)
-      entries_with_engagement = Entry.where(id: entry_ids).where('entries.total_count > 0')
+      temporal_hour_day_buckets.group_by { |bucket| bucket[:day_number] }
+                               .sort.to_h do |day_number, buckets|
+        total_interactions = buckets.sum { |bucket| bucket[:total_interactions] }
+        entry_count = buckets.sum { |bucket| bucket[:entry_count] }
 
-      daily_data = entries_with_engagement
-                   .group('DAYOFWEEK(entries.published_at)')
-                   .select('DAYOFWEEK(entries.published_at) as day, AVG(entries.total_count) as avg_engagement, COUNT(*) as entry_count')
-                   .order('day')
-
-      result = {}
-      day_names = %w[Domingo Lunes Martes Miércoles Jueves Viernes Sábado]
-
-      daily_data.each do |data|
-        day_num = data.day.to_i - 1 # MySQL DAYOFWEEK returns 1-7, convert to 0-6
-        result[day_names[day_num]] = {
-          avg_engagement: data.avg_engagement.to_f.round(2),
-          entry_count: data.entry_count,
-          day_number: day_num
-        }
+        [
+          temporal_day_names[day_number],
+          {
+            avg_engagement: (Float(total_interactions) / entry_count).round(2),
+            entry_count: entry_count,
+            day_number: day_number
+          }
+        ]
       end
-      result
     end
   end
 
   # Combined heatmap data: hour x day of week
   def engagement_heatmap_data
     Rails.cache.fetch("topic_#{id}_engagement_heatmap", expires_in: 30.minutes) do
-      # Get entry IDs without joins to avoid GROUP BY issues
-      entry_ids = list_entries.pluck(:id)
-      entries_with_engagement = Entry.where(id: entry_ids).where('entries.total_count > 0')
-
-      heatmap_data = entries_with_engagement
-                     .group('DAYOFWEEK(entries.published_at)', 'HOUR(entries.published_at)')
-                     .select(
-                       'DAYOFWEEK(entries.published_at) as day',
-                       'HOUR(entries.published_at) as hour',
-                       'AVG(entries.total_count) as avg_engagement',
-                       'COUNT(*) as entry_count'
-                     )
-
-      result = []
-      day_names = %w[Domingo Lunes Martes Miércoles Jueves Viernes Sábado]
-
-      heatmap_data.each do |data|
-        day_num = data.day.to_i - 1
-        hour_num = data.hour.to_i
-
-        result << {
-          day: day_names[day_num],
-          day_number: day_num,
-          hour: hour_num,
-          avg_engagement: data.avg_engagement.to_f.round(2),
-          entry_count: data.entry_count
+      temporal_hour_day_buckets.map do |bucket|
+        {
+          day: temporal_day_names[bucket[:day_number]],
+          day_number: bucket[:day_number],
+          hour: bucket[:hour],
+          avg_engagement: (Float(bucket[:total_interactions]) / bucket[:entry_count]).round(2),
+          entry_count: bucket[:entry_count]
         }
       end
-      result
     end
   end
 
@@ -300,25 +265,26 @@ class Topic < ApplicationRecord
                                    .where('entries.total_count > 0')
                                    .order('entries.published_at DESC')
                                    .limit(100)
+                                   .pluck(:published_at, :total_count)
 
       return if recent_entries.empty?
 
       half_lives = []
 
-      recent_entries.each do |entry|
+      recent_entries.each do |published_at, total_count|
         # Estimate half-life: time when 50% of total engagement was reached
         # For simplicity, we'll use a heuristic: most engagement happens in first 24-48 hours
-        age_in_hours = ((Time.current - entry.published_at) / 1.hour).to_i
+        age_in_hours = ((Time.current - published_at) / 1.hour).to_i
 
         # If entry is less than 24 hours old, skip (not enough data)
         next if age_in_hours < 24
 
         # Heuristic: high-engagement entries stay relevant longer
-        if entry.total_count > 100
+        if total_count > 100
           estimated_half_life = 36 # hours
-        elsif entry.total_count > 50
+        elsif total_count > 50
           estimated_half_life = 24
-        elsif entry.total_count > 20
+        elsif total_count > 20
           estimated_half_life = 18
         else
           estimated_half_life = 12
@@ -341,8 +307,8 @@ class Topic < ApplicationRecord
   # Rate of change in mentions over time (positive = growing, negative = declining)
   def trend_velocity
     Rails.cache.fetch("topic_#{id}_trend_velocity", expires_in: 30.minutes) do
-      recent_count = list_entries.where(published_at: 24.hours.ago..Time.current).count
-      previous_count = list_entries.where(published_at: 48.hours.ago..24.hours.ago).count
+      recent_count = temporal_velocity_aggregates[:recent_count]
+      previous_count = temporal_velocity_aggregates[:previous_count]
 
       # Return hash structure even when there is no previous count
       if previous_count.zero?
@@ -378,8 +344,8 @@ class Topic < ApplicationRecord
   # Engagement Velocity (not just volume, but interaction rate)
   def engagement_velocity
     Rails.cache.fetch("topic_#{id}_engagement_velocity", expires_in: 30.minutes) do
-      recent_interactions = list_entries.where(published_at: 24.hours.ago..Time.current).sum(:total_count)
-      previous_interactions = list_entries.where(published_at: 48.hours.ago..24.hours.ago).sum(:total_count)
+      recent_interactions = temporal_velocity_aggregates[:recent_interactions]
+      previous_interactions = temporal_velocity_aggregates[:previous_interactions]
 
       # Return hash structure even when there are no previous interactions
       if previous_interactions.zero?
@@ -465,6 +431,71 @@ class Topic < ApplicationRecord
                                              .first(3)
     }
   end
+
+  def temporal_hour_day_buckets
+    Rails.cache.fetch("topic_#{id}_temporal_hour_day_buckets", expires_in: 30.minutes) do
+      list_entries.reorder(nil)
+                  .where('entries.total_count > 0')
+                  .group('DAYOFWEEK(entries.published_at)', 'HOUR(entries.published_at)')
+                  .order('DAYOFWEEK(entries.published_at)', 'HOUR(entries.published_at)')
+                  .pluck(
+                    Arel.sql('DAYOFWEEK(entries.published_at)'),
+                    Arel.sql('HOUR(entries.published_at)'),
+                    Arel.sql('COALESCE(SUM(entries.total_count), 0)'),
+                    Arel.sql('COUNT(*)')
+                  ).map do |day, hour, total_interactions, entry_count|
+        {
+          day_number: Integer(day) - 1,
+          hour: Integer(hour),
+          total_interactions: total_interactions,
+          entry_count: entry_count
+        }
+      end
+    end
+  end
+
+  def temporal_velocity_aggregates
+    Rails.cache.fetch("topic_#{id}_temporal_velocity_aggregates", expires_in: 30.minutes) do
+      now = Time.current
+      recent_start = now - 24.hours
+      previous_start = now - 48.hours
+      recent_count, previous_count, recent_interactions, previous_interactions = list_entries.reorder(nil).pick(
+        Arel.sql(
+          Entry.sanitize_sql_array(
+            [
+              <<~SQL.squish,
+                COALESCE(SUM(CASE WHEN entries.published_at BETWEEN ? AND ? THEN 1 ELSE 0 END), 0),
+                COALESCE(SUM(CASE WHEN entries.published_at BETWEEN ? AND ? THEN 1 ELSE 0 END), 0),
+                COALESCE(SUM(CASE WHEN entries.published_at BETWEEN ? AND ? THEN entries.total_count ELSE 0 END), 0),
+                COALESCE(SUM(CASE WHEN entries.published_at BETWEEN ? AND ? THEN entries.total_count ELSE 0 END), 0)
+              SQL
+              recent_start,
+              now,
+              previous_start,
+              recent_start,
+              recent_start,
+              now,
+              previous_start,
+              recent_start
+            ]
+          )
+        )
+      )
+
+      {
+        recent_count: recent_count,
+        previous_count: previous_count,
+        recent_interactions: recent_interactions,
+        previous_interactions: previous_interactions
+      }
+    end
+  end
+
+  def temporal_day_names
+    %w[Domingo Lunes Martes Miércoles Jueves Viernes Sábado]
+  end
+
+  private :temporal_hour_day_buckets, :temporal_velocity_aggregates, :temporal_day_names
 
   # ============================================
   # FACEBOOK TEMPORAL INTELLIGENCE METHODS

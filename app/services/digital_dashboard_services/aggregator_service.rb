@@ -349,14 +349,32 @@ module DigitalDashboardServices
     end
 
     def load_temporal_intelligence
+      optimal_time = safe_call { @topic.optimal_publishing_time }
+      trend_velocity = safe_call { @topic.trend_velocity } || default_velocity
+      engagement_velocity = safe_call { @topic.engagement_velocity } || default_velocity
+      content_half_life = safe_call { @topic.content_half_life }
+      peak_hours = safe_call { @topic.peak_publishing_times_by_hour } || {}
+      peak_days = safe_call { @topic.peak_publishing_times_by_day } || {}
+      summary_peak_hours = peak_hours.sort_by { |_, value| -value[:avg_engagement] }
+                                     .first(3)
+      summary_peak_days = peak_days.sort_by { |_, value| -value[:avg_engagement] }
+                                   .first(3)
+
       {
-        temporal_summary: safe_call { @topic.temporal_intelligence_summary },
-        optimal_time: safe_call { @topic.optimal_publishing_time },
-        trend_velocity: safe_call { @topic.trend_velocity } || default_velocity,
-        engagement_velocity: safe_call { @topic.engagement_velocity } || default_velocity,
-        content_half_life: safe_call { @topic.content_half_life },
-        peak_hours: safe_call { @topic.peak_publishing_times_by_hour } || {},
-        peak_days: safe_call { @topic.peak_publishing_times_by_day } || {},
+        temporal_summary: {
+          optimal_time: optimal_time,
+          trend_velocity: trend_velocity,
+          engagement_velocity: engagement_velocity,
+          content_half_life: content_half_life,
+          peak_hours: summary_peak_hours,
+          peak_days: summary_peak_days
+        },
+        optimal_time: optimal_time,
+        trend_velocity: trend_velocity,
+        engagement_velocity: engagement_velocity,
+        content_half_life: content_half_life,
+        peak_hours: peak_hours,
+        peak_days: peak_days,
         heatmap_data: safe_call { @topic.engagement_heatmap_data } || []
       }
     end

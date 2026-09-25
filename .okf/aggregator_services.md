@@ -166,6 +166,7 @@ end
 
 - **Single base queries**: Load all necessary data in one query with includes
 - **Database-level aggregation**: Use SQL GROUP BY and SUM instead of Ruby loops
+- **Digital temporal intelligence**: Cache a day/hour aggregate and one conditional velocity aggregate per topic. On a cold cache this derives heatmap, hour/day peaks, optimal time, and both velocity metrics in two SQL queries; content half-life remains a separate bounded 100-row `published_at`/`total_count` query.
 - **Limited text analysis**: Cap entries for word/bigram analysis (500 max)
 - **Efficient sorting**: Use database ORDER BY for top posts
 - **General dashboard digital metrics**: Fetch current mention count and interactions in one aggregate query; derive reach from the returned interaction total.

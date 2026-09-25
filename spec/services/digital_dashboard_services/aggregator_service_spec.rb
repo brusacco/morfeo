@@ -134,6 +134,43 @@ RSpec.describe DigitalDashboardServices::AggregatorService do
     )
   end
 
+  it 'builds the temporal summary from metrics loaded once' do
+    optimal_time = { day: 'Lunes', hour: 9, avg_engagement: 42.0, recommendation: 'Lunes a las 9:00 hrs' }
+    trend_velocity = { velocity_percent: 10.0, direction: 'up' }
+    engagement_velocity = { velocity_percent: 20.0, direction: 'up' }
+    content_half_life = { median_hours: 18.0, average_hours: 18.0, sample_size: 2 }
+    peak_hours = { 9 => { avg_engagement: 42.0, entry_count: 2 } }
+    peak_days = { 'Lunes' => { avg_engagement: 42.0, entry_count: 2, day_number: 1 } }
+    heatmap_data = [{ day: 'Lunes', day_number: 1, hour: 9, avg_engagement: 42.0, entry_count: 2 }]
+
+    expect(topic).not_to receive(:temporal_intelligence_summary)
+    expect(topic).to receive(:optimal_publishing_time).once.and_return(optimal_time)
+    expect(topic).to receive(:trend_velocity).once.and_return(trend_velocity)
+    expect(topic).to receive(:engagement_velocity).once.and_return(engagement_velocity)
+    expect(topic).to receive(:content_half_life).once.and_return(content_half_life)
+    expect(topic).to receive(:peak_publishing_times_by_hour).once.and_return(peak_hours)
+    expect(topic).to receive(:peak_publishing_times_by_day).once.and_return(peak_days)
+    expect(topic).to receive(:engagement_heatmap_data).once.and_return(heatmap_data)
+
+    expect(service.send(:load_temporal_intelligence)).to eq(
+      temporal_summary: {
+        optimal_time: optimal_time,
+        trend_velocity: trend_velocity,
+        engagement_velocity: engagement_velocity,
+        content_half_life: content_half_life,
+        peak_hours: peak_hours.to_a,
+        peak_days: peak_days.to_a
+      },
+      optimal_time: optimal_time,
+      trend_velocity: trend_velocity,
+      engagement_velocity: engagement_velocity,
+      content_half_life: content_half_life,
+      peak_hours: peak_hours,
+      peak_days: peak_days,
+      heatmap_data: heatmap_data
+    )
+  end
+
   it 'uses direct tag IDs to load recent viral entries' do
     recent_entries = double('recent_entries')
     allow(Entry).to receive(:enabled).and_return(recent_entries)
