@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
 class FacebookEntry < ApplicationRecord
+  include WithAnyTagIds
+
+  TEXT_ANALYSIS_LIMIT = 500
+
   belongs_to :page
   belongs_to :entry, optional: true
   acts_as_taggable_on :tags
@@ -59,8 +63,13 @@ class FacebookEntry < ApplicationRecord
     topic,
     start_time: DAYS_RANGE.days.ago.beginning_of_day,
     end_time: Time.zone.now.end_of_day,
-    tag_names: nil
+    tag_names: nil,
+    tag_ids: nil
   )
+    if tag_ids.present?
+      return within_range(start_time, end_time).includes(page: :site).recent.with_any_tag_ids(tag_ids, context: :tags)
+    end
+
     tag_names ||= topic.tags.pluck(:name)
     for_tags(tag_names).within_range(start_time, end_time).includes(page: :site).recent
   end
@@ -97,7 +106,7 @@ class FacebookEntry < ApplicationRecord
     word_occurrences = Hash.new(0)
     bigram_occurrences = Hash.new(0)
 
-    scope.find_each do |entry|
+    scope.reorder(posted_at: :desc).limit(TEXT_ANALYSIS_LIMIT).select(:id, :message).each do |entry|
       words = entry.words
       words.each { |word| word_occurrences[word] += 1 }
       words.each_cons(2) { |first_word, second_word| bigram_occurrences["#{first_word} #{second_word}"] += 1 }

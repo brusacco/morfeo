@@ -18,7 +18,9 @@ module FacebookDashboardServices
       @days_range = (days_range || DAYS_RANGE || 7).to_i # Default to 7 days if not provided
       @start_time = @days_range.days.ago.beginning_of_day
       @end_time = Time.zone.now.end_of_day
-      @tag_names = @topic.tags.pluck(:name) # Cache tag names
+      @tags_data = @topic.tags.pluck(:id, :name)
+      @tag_ids = @tags_data.map(&:first)
+      @tag_names = @tags_data.map(&:last)
       @facebook_data_cache = nil # Memoization
     end
 
@@ -49,7 +51,7 @@ module FacebookDashboardServices
       return empty_facebook_data if @tag_names.empty?
 
       # Single base query with all necessary includes
-      entries = FacebookEntry.for_topic(@topic, start_time: @start_time, end_time: @end_time, tag_names: @tag_names)
+      entries = FacebookEntry.for_topic(@topic, start_time: @start_time, end_time: @end_time, tag_ids: @tag_ids)
 
       # Execute aggregations efficiently
       chart_data = calculate_chart_data(entries)
@@ -75,9 +77,11 @@ module FacebookDashboardServices
     end
 
     def calculate_statistics(entries)
-      total_posts = entries.size
-      total_interactions = FacebookEntry.total_interactions(entries)
-      total_views = FacebookEntry.total_views(entries)
+      total_posts, total_interactions, total_views = entries.except(:includes).reorder(nil).pluck(
+        Arel.sql('COUNT(*)'),
+        Arel.sql('COALESCE(SUM(facebook_entries.reactions_total_count + facebook_entries.comments_count + facebook_entries.share_count), 0)'),
+        Arel.sql('COALESCE(SUM(facebook_entries.views_count), 0)')
+      ).first || [0, 0, 0]
 
       # Safe division
       average_interactions = total_posts.zero? ? 0 : (total_interactions.to_f / total_posts).round(1)
@@ -124,30 +128,28 @@ module FacebookDashboardServices
       entries = facebook_data[:entries]
       return empty_pages_data if entries.empty?
 
-      # Load all entries with associations in one query
-      loaded_entries = entries.includes(page: :site).to_a
-
-      # Group in memory (more efficient than multiple queries)
-      pages_group = loaded_entries.group_by { |entry| entry.page&.name || 'Sin página' }
-
-      # Calculate metrics in one pass
-      pages_data = calculate_pages_metrics(pages_group)
+      pages_data = calculate_pages_metrics(entries)
       site_data = calculate_site_metrics(entries)
 
       pages_data.merge(site_data)
     end
 
-    def calculate_pages_metrics(pages_group)
-      # Transform to include page object with metrics
-      pages_count = pages_group.map do |page_name, posts|
-        page = posts.first&.page
-        { page: page, name: page_name, count: posts.size }
-      end.sort_by { |data| -data[:count] }
-
-      pages_interactions = pages_group.map do |page_name, posts|
-        page = posts.first&.page
-        { page: page, name: page_name, interactions: posts.sum(&:total_interactions) }
-      end.sort_by { |data| -data[:interactions] }
+    def calculate_pages_metrics(entries)
+      rows = entries.except(:includes).reorder(nil).left_joins(:page).group('pages.id', 'pages.name').pluck(
+        Arel.sql('pages.id'),
+        Arel.sql('pages.name'),
+        Arel.sql('COUNT(*)'),
+        Arel.sql('COALESCE(SUM(facebook_entries.reactions_total_count + facebook_entries.comments_count + facebook_entries.share_count), 0)')
+      )
+      pages_by_id = Page.where(id: rows.map(&:first).compact).includes(:site).index_by(&:id)
+      pages_count = rows.map do |id, name, count, _|
+        { page: pages_by_id[id], name: name || 'Sin página', count: count }
+      end
+.sort_by { |data| -data[:count] }
+      pages_interactions = rows.map do |id, name, _, interactions|
+        { page: pages_by_id[id], name: name || 'Sin página', interactions: interactions }
+      end
+.sort_by { |data| -data[:interactions] }
 
       {
         pages_count: pages_count,
@@ -156,15 +158,16 @@ module FacebookDashboardServices
     end
 
     def calculate_site_metrics(entries)
-      # Batch site queries for efficiency
-      base_query = entries.joins(page: :site).reorder(nil)
-
-      site_top_counts = base_query.group('sites.id').order(Arel.sql('COUNT(*) DESC')).limit(12).count
-
-      site_counts = base_query.group('sites.name').count
-
-      site_sums = base_query.group('sites.name')
-                            .sum(Arel.sql('facebook_entries.reactions_total_count + facebook_entries.comments_count + facebook_entries.share_count'))
+      rows = entries.except(:includes).joins(page: :site).reorder(nil).group('sites.id', 'sites.name').pluck(
+        Arel.sql('sites.id'),
+        Arel.sql('sites.name'),
+        Arel.sql('COUNT(*)'),
+        Arel.sql('COALESCE(SUM(facebook_entries.reactions_total_count + facebook_entries.comments_count + facebook_entries.share_count), 0)')
+      )
+      site_top_counts = rows.sort_by { |_, _, count, _| -count }
+                            .first(12).to_h { |id, _, count, _| [id, count] }
+      site_counts = rows.to_h { |_, name, count, _| [name, count] }
+      site_sums = rows.to_h { |_, name, _, interactions| [name, interactions] }
 
       {
         site_top_counts: site_top_counts,

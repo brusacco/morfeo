@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
 class InstagramPost < ApplicationRecord
+  include WithAnyTagIds
+
+  TEXT_ANALYSIS_LIMIT = 500
+
   # Relationships
   belongs_to :instagram_profile
   belongs_to :entry, optional: true
@@ -39,8 +43,16 @@ class InstagramPost < ApplicationRecord
     topic,
     start_time: DAYS_RANGE.days.ago.beginning_of_day,
     end_time: Time.zone.now.end_of_day,
-    tag_names: nil
+    tag_names: nil,
+    tag_ids: nil
   )
+    if tag_ids.present?
+      return within_range(start_time, end_time).includes(instagram_profile: :site).recent.with_any_tag_ids(
+        tag_ids,
+        context: :tags
+      )
+    end
+
     tag_names ||= topic.tags.pluck(:name)
     for_tags(tag_names).within_range(start_time, end_time).includes(instagram_profile: :site).recent
   end
@@ -79,7 +91,7 @@ class InstagramPost < ApplicationRecord
     word_occurrences = Hash.new(0)
     bigram_occurrences = Hash.new(0)
 
-    scope.find_each do |post|
+    scope.reorder(posted_at: :desc).limit(TEXT_ANALYSIS_LIMIT).select(:id, :caption).each do |post|
       words = post.words
       words.each { |word| word_occurrences[word] += 1 }
       words.each_cons(2) { |first_word, second_word| bigram_occurrences["#{first_word} #{second_word}"] += 1 }

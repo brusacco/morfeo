@@ -18,7 +18,9 @@ module InstagramDashboardServices
       @days_range = (days_range || DAYS_RANGE || 7).to_i # Default to 7 days if not provided
       @start_time = @days_range.days.ago.beginning_of_day
       @end_time = Time.zone.now.end_of_day
-      @tag_names = @topic.tags.pluck(:name) # Cache tag names
+      @tags_data = @topic.tags.pluck(:id, :name)
+      @tag_ids = @tags_data.map(&:first)
+      @tag_names = @tags_data.map(&:last)
       @instagram_data_cache = nil # Memoization
     end
 
@@ -48,7 +50,7 @@ module InstagramDashboardServices
       return empty_instagram_data if @tag_names.empty?
 
       # Single base query with all necessary includes
-      posts = InstagramPost.for_topic(@topic, start_time: @start_time, end_time: @end_time, tag_names: @tag_names)
+      posts = InstagramPost.for_topic(@topic, start_time: @start_time, end_time: @end_time, tag_ids: @tag_ids)
 
       # Execute aggregations efficiently
       chart_data = calculate_chart_data(posts)
@@ -74,9 +76,11 @@ module InstagramDashboardServices
     end
 
     def calculate_statistics(posts)
-      total_posts = posts.size
-      total_interactions = InstagramPost.total_interactions(posts)
-      total_views = InstagramPost.total_views(posts) # Video views only
+      total_posts, total_interactions, total_views = posts.except(:includes).reorder(nil).pluck(
+        Arel.sql('COUNT(*)'),
+        Arel.sql('COALESCE(SUM(instagram_posts.likes_count + instagram_posts.comments_count), 0)'),
+        Arel.sql('COALESCE(SUM(instagram_posts.video_view_count), 0)')
+      ).first || [0, 0, 0]
 
       # Safe division
       average_interactions = total_posts.zero? ? 0 : (total_interactions.to_f / total_posts).round(1)
@@ -125,33 +129,29 @@ module InstagramDashboardServices
       posts = instagram_data[:posts]
       return empty_profiles_data if posts.empty?
 
-      # Load all posts with associations in one query
-      loaded_posts = posts.includes(instagram_profile: :site).to_a
-
-      # Group in memory (more efficient than multiple queries)
-      profiles_group =
-        loaded_posts.group_by do |post|
-          post.instagram_profile&.full_name || post.instagram_profile&.username || 'Sin perfil'
-        end
-
-      # Calculate metrics in one pass
-      profiles_data = calculate_profiles_metrics(profiles_group)
+      profiles_data = calculate_profiles_metrics(posts)
       site_data = calculate_site_metrics(posts)
 
       profiles_data.merge(site_data)
     end
 
-    def calculate_profiles_metrics(profiles_group)
-      # Transform to include profile object with metrics
-      profiles_count = profiles_group.map do |profile_name, posts|
-        profile = posts.first&.instagram_profile
-        { profile: profile, name: profile_name, count: posts.size }
-      end.sort_by { |data| -data[:count] }
-
-      profiles_interactions = profiles_group.map do |profile_name, posts|
-        profile = posts.first&.instagram_profile
-        { profile: profile, name: profile_name, interactions: posts.sum(&:total_interactions) }
-      end.sort_by { |data| -data[:interactions] }
+    def calculate_profiles_metrics(posts)
+      rows = posts.except(:includes).reorder(nil).left_joins(:instagram_profile).group('instagram_profiles.id', 'instagram_profiles.full_name', 'instagram_profiles.username').pluck(
+        Arel.sql('instagram_profiles.id'),
+        Arel.sql('instagram_profiles.full_name'),
+        Arel.sql('instagram_profiles.username'),
+        Arel.sql('COUNT(*)'),
+        Arel.sql('COALESCE(SUM(instagram_posts.likes_count + instagram_posts.comments_count), 0)')
+      )
+      profiles_by_id = InstagramProfile.where(id: rows.map(&:first).compact).includes(:site).index_by(&:id)
+      profiles_count = rows.map do |id, full_name, username, count, _|
+        { profile: profiles_by_id[id], name: full_name || username || 'Sin perfil', count: count }
+      end
+.sort_by { |data| -data[:count] }
+      profiles_interactions = rows.map do |id, full_name, username, _, interactions|
+        { profile: profiles_by_id[id], name: full_name || username || 'Sin perfil', interactions: interactions }
+      end
+.sort_by { |data| -data[:interactions] }
 
       {
         profiles_count: profiles_count,
@@ -160,16 +160,16 @@ module InstagramDashboardServices
     end
 
     def calculate_site_metrics(posts)
-      # Batch site queries for efficiency
-      base_query = posts.joins(instagram_profile: :site).reorder(nil)
-
-      site_top_counts = base_query.group('sites.id').order(Arel.sql('COUNT(*) DESC')).limit(12).count
-
-      site_counts = base_query.group('sites.name').count
-
-      # Instagram: likes + comments
-      site_sums = base_query.group('sites.name')
-                            .sum(Arel.sql('instagram_posts.likes_count + instagram_posts.comments_count'))
+      rows = posts.except(:includes).joins(instagram_profile: :site).reorder(nil).group('sites.id', 'sites.name').pluck(
+        Arel.sql('sites.id'),
+        Arel.sql('sites.name'),
+        Arel.sql('COUNT(*)'),
+        Arel.sql('COALESCE(SUM(instagram_posts.likes_count + instagram_posts.comments_count), 0)')
+      )
+      site_top_counts = rows.sort_by { |_, _, count, _| -count }
+                            .first(12).to_h { |id, _, count, _| [id, count] }
+      site_counts = rows.to_h { |_, name, count, _| [name, count] }
+      site_sums = rows.to_h { |_, name, _, interactions| [name, interactions] }
 
       {
         site_top_counts: site_top_counts,

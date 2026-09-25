@@ -52,8 +52,7 @@ module HomeServices
       @days_range = days_range
       @start_date = days_range.days.ago.beginning_of_day
       @end_date = Time.current
-      @tag_names_cache = nil # Memoization for tag names
-      @tag_ids_cache = nil # Memoization for digital content tag IDs
+      @tags_data_cache = nil # Memoization for shared tag metadata
       @channel_stats_cache = {} # Memoization for channel stats
     end
 
@@ -82,14 +81,17 @@ module HomeServices
       "home_dashboard_v3_#{@topics.map(&:id).sort.join('_')}_#{@days_range}_#{Date.current}"
     end
 
-    # Memoized tag names to avoid multiple pluck calls
+    def tags_data
+      @tags_data_cache ||= Tag.joins(:topics).where(topics: { id: @topics.select(:id) }).distinct.pluck(:id, :name)
+    end
+
+    # Memoized tag metadata avoids separate per-topic name and ID queries.
     def tag_names
-      @tag_names_cache ||= @topics.flat_map { |t| t.tags.pluck(:name) }
-                                  .uniq
+      tags_data.map(&:last)
     end
 
     def tag_ids
-      @tag_ids_cache ||= Tag.joins(:topics).where(topics: { id: @topics.select(:id) }).distinct.pluck(:id)
+      tags_data.map(&:first)
     end
 
     # Memoized channel stats to avoid recalculation
@@ -182,18 +184,17 @@ module HomeServices
     end
 
     def facebook_channel_stats
-      return zero_stats if tag_names.empty?
+      return zero_stats if tag_ids.empty?
 
-      base_scope = -> { FacebookEntry.where(posted_at: @start_date..@end_date).tagged_with(tag_names, any: true) }
       interaction_sql = Arel.sql('reactions_total_count + comments_count + share_count')
-
-      # Use distinct to avoid duplicate counts from polymorphic joins
-      mentions = base_scope.call.count('DISTINCT facebook_entries.id')
-      interactions = base_scope.call.distinct.sum(interaction_sql)
-      reach = base_scope.call.distinct.sum(:views_count) # Actual API data
+      base_scope = FacebookEntry.where(posted_at: @start_date..@end_date).with_any_tag_ids(tag_ids, context: :tags)
+      mentions, interactions, reach = base_scope.reorder(nil).pluck(
+        Arel.sql('COUNT(*)'),
+        Arel.sql('COALESCE(SUM(reactions_total_count + comments_count + share_count), 0)'),
+        Arel.sql('COALESCE(SUM(views_count), 0)')
+      ).first || [0, 0, 0]
       prev_interactions = FacebookEntry.where(posted_at: (@start_date - @days_range.days)..@start_date)
-                                       .tagged_with(tag_names, any: true)
-                                       .distinct
+                                       .with_any_tag_ids(tag_ids, context: :tags)
                                        .sum(interaction_sql)
 
       {
@@ -207,19 +208,18 @@ module HomeServices
     end
 
     def twitter_channel_stats
-      return zero_stats if tag_names.empty?
+      return zero_stats if tag_ids.empty?
 
-      base_scope = -> { TwitterPost.where(posted_at: @start_date..@end_date).tagged_with(tag_names, any: true) }
       interaction_sql = Arel.sql('favorite_count + retweet_count + reply_count + quote_count')
-
-      # Use distinct to avoid duplicate counts from polymorphic joins
-      mentions = base_scope.call.count('DISTINCT twitter_posts.id')
-      interactions = base_scope.call.distinct.sum(interaction_sql)
-      views = base_scope.call.distinct.sum(:views_count)
+      base_scope = TwitterPost.where(posted_at: @start_date..@end_date).with_any_tag_ids(tag_ids, context: :tags)
+      mentions, interactions, views = base_scope.reorder(nil).pluck(
+        Arel.sql('COUNT(*)'),
+        Arel.sql('COALESCE(SUM(favorite_count + retweet_count + reply_count + quote_count), 0)'),
+        Arel.sql('COALESCE(SUM(views_count), 0)')
+      ).first || [0, 0, 0]
       reach = views > 0 ? views : interactions * TWITTER_REACH_FALLBACK
       prev_interactions = TwitterPost.where(posted_at: (@start_date - @days_range.days)..@start_date)
-                                     .tagged_with(tag_names, any: true)
-                                     .distinct
+                                     .with_any_tag_ids(tag_ids, context: :tags)
                                      .sum(interaction_sql)
 
       {
@@ -800,7 +800,7 @@ module HomeServices
     def fetch_top_digital_entries
       Entry.enabled
            .where(published_at: @start_date..@end_date)
-           .tagged_with(tag_names, any: true)
+           .with_any_tag_ids(tag_ids, context: :tags)
            .includes(:site)
            .order(Arel.sql('total_count DESC'))
            .limit(5)
@@ -808,7 +808,7 @@ module HomeServices
 
     def fetch_top_facebook_posts
       FacebookEntry.where(posted_at: @start_date..@end_date)
-                   .tagged_with(tag_names, any: true)
+                   .with_any_tag_ids(tag_ids, context: :tags)
                    .includes(:page)
                    .order(Arel.sql('reactions_total_count + comments_count + share_count DESC'))
                    .limit(5)
@@ -816,7 +816,7 @@ module HomeServices
 
     def fetch_top_tweets
       TwitterPost.where(posted_at: @start_date..@end_date)
-                 .tagged_with(tag_names, any: true)
+                 .with_any_tag_ids(tag_ids, context: :tags)
                  .includes(:twitter_profile)
                  .order(Arel.sql('favorite_count + retweet_count + reply_count + quote_count DESC'))
                  .limit(5)
@@ -859,7 +859,7 @@ module HomeServices
     end
 
     def calculate_facebook_sentiment
-      return 0 if tag_names.empty?
+      return 0 if tag_ids.empty?
 
       base_scope = FacebookEntry.where(posted_at: @start_date..@end_date).tagged_with(tag_names, any: true)
 
@@ -881,11 +881,11 @@ module HomeServices
                      .sum(:total_count)
 
       facebook = FacebookEntry.where(posted_at: (@start_date - @days_range.days)..@start_date)
-                              .tagged_with(tag_names, any: true)
+                              .with_any_tag_ids(tag_ids, context: :tags)
                               .sum(Arel.sql('reactions_total_count + comments_count + share_count'))
 
       twitter = TwitterPost.where(posted_at: (@start_date - @days_range.days)..@start_date)
-                           .tagged_with(tag_names, any: true)
+                           .with_any_tag_ids(tag_ids, context: :tags)
                            .sum(Arel.sql('favorite_count + retweet_count + reply_count + quote_count'))
 
       digital + facebook + twitter
