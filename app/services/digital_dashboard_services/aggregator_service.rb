@@ -41,6 +41,14 @@ module DigitalDashboardServices
       "digital_dashboard_#{@topic.id}_#{@days_range}_#{Date.current}"
     end
 
+    def site_data_cache_key
+      "topic_#{@topic.id}_site_data_v2_#{@days_range}_#{Date.current}"
+    end
+
+    def text_analysis_cache_key
+      "topic_#{@topic.id}_text_analysis_v2_#{@days_range}_#{Date.current}"
+    end
+
     # Memoized topic data to avoid multiple loads
     def topic_data
       @topic_data_cache ||= load_topic_data
@@ -122,7 +130,7 @@ module DigitalDashboardServices
 
     def calculate_site_data(entries)
       site_rows =
-        Rails.cache.fetch("topic_#{@topic.id}_site_data_v2_#{Date.current}", expires_in: CACHE_EXPIRATION) do
+        Rails.cache.fetch(site_data_cache_key, expires_in: CACHE_EXPIRATION) do
           entries.reorder(nil)
                  .group('sites.id', 'sites.name')
                  .pluck(
@@ -293,7 +301,7 @@ module DigitalDashboardServices
     def load_text_analysis(entries)
       text_data =
         Rails.cache.fetch(
-          "topic_#{@topic.id}_text_analysis_v2_#{Date.current}",
+          text_analysis_cache_key,
           expires_in: CACHE_EXPIRATION
         ) do
           entries.text_occurrences(word_limit: 100, bigram_limit: 100)

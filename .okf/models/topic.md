@@ -38,6 +38,13 @@ The Topic model represents collections of tags used to organize and track specif
 - `list_entries` - Cached list of entries
 - `tag_names` - Array of tag names for this topic
 - `default_date_range` - Default date range for queries
+- `temporal_velocity_aggregates` - Cached entry and interaction totals for temporal velocity
+
+# Temporal Velocity
+
+Velocity compares two adjacent 24-hour periods. The previous period is
+`[now - 48.hours, now - 24.hours)` and the recent period is
+`[now - 24.hours, now]`; the shared boundary belongs only to the recent period.
 
 # Auto-Sync
 

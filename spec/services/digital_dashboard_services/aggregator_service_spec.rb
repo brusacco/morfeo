@@ -11,6 +11,16 @@ RSpec.describe DigitalDashboardServices::AggregatorService do
   let(:topic) { double('topic', id: 7, tags: tags_relation) }
   let(:service) { described_class.new(topic: topic) }
 
+  it 'uses distinct subcache keys for distinct effective day ranges' do
+    seven_day_service = described_class.allocate
+    seven_day_service.send(:initialize, topic: topic, days_range: 7)
+    thirty_day_service = described_class.allocate
+    thirty_day_service.send(:initialize, topic: topic, days_range: 30)
+
+    expect(seven_day_service.send(:site_data_cache_key)).not_to eq(thirty_day_service.send(:site_data_cache_key))
+    expect(seven_day_service.send(:text_analysis_cache_key)).not_to eq(thirty_day_service.send(:text_analysis_cache_key))
+  end
+
   def create_entry(polarity: nil, total_count: 0)
     Entry.create!(
       url: "https://example.test/entries/#{SecureRandom.uuid}",
@@ -233,6 +243,29 @@ RSpec.describe DigitalDashboardServices::AggregatorService do
     end
 
     expect(service.send(:global_digital_stats)).to eq(entries_count: 7, interactions: 70)
+  end
+
+  it 'matches all_list_entries for direct-entry share of voice' do
+    actual_topic = create(:topic)
+    included_entry = create_entry(total_count: 20)
+    excluded_entry = create_entry(total_count: 15)
+    excluded_entry.update!(published_at: (DAYS_RANGE + 1).days.ago)
+    disabled_entry = create_entry(total_count: 10)
+    disabled_entry.update!(enabled: false)
+    Rails.cache.clear
+    allow(ENV).to receive(:[]).and_call_original
+    allow(ENV).to receive(:[]).with('USE_DIRECT_ENTRY_TOPICS').and_return('true')
+
+    direct_service = described_class.allocate
+    direct_service.send(:initialize, topic: actual_topic)
+    all_entries = actual_topic.all_list_entries
+
+    expect(direct_service.send(:global_digital_stats)).to eq(
+      entries_count: all_entries.count,
+      interactions: all_entries.sum(:total_count)
+    )
+    expect(all_entries).to include(included_entry)
+    expect(all_entries).not_to include(excluded_entry, disabled_entry)
   end
 
   it 'loads word and bigram occurrences together' do

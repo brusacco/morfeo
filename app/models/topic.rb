@@ -464,10 +464,10 @@ class Topic < ApplicationRecord
           Entry.sanitize_sql_array(
             [
               <<~SQL.squish,
-                COALESCE(SUM(CASE WHEN entries.published_at BETWEEN ? AND ? THEN 1 ELSE 0 END), 0),
-                COALESCE(SUM(CASE WHEN entries.published_at BETWEEN ? AND ? THEN 1 ELSE 0 END), 0),
-                COALESCE(SUM(CASE WHEN entries.published_at BETWEEN ? AND ? THEN entries.total_count ELSE 0 END), 0),
-                COALESCE(SUM(CASE WHEN entries.published_at BETWEEN ? AND ? THEN entries.total_count ELSE 0 END), 0)
+                COALESCE(SUM(CASE WHEN entries.published_at >= ? AND entries.published_at <= ? THEN 1 ELSE 0 END), 0),
+                COALESCE(SUM(CASE WHEN entries.published_at >= ? AND entries.published_at < ? THEN 1 ELSE 0 END), 0),
+                COALESCE(SUM(CASE WHEN entries.published_at >= ? AND entries.published_at <= ? THEN entries.total_count ELSE 0 END), 0),
+                COALESCE(SUM(CASE WHEN entries.published_at >= ? AND entries.published_at < ? THEN entries.total_count ELSE 0 END), 0)
               SQL
               recent_start,
               now,

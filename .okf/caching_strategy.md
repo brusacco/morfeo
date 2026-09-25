@@ -55,7 +55,7 @@ end
 **Cache Keys Include:**
 
 - Topic ID
-- Date range
+- Effective date range (including the normalized `days_range` for dashboard subcaches)
 - Current date (for daily freshness)
 - User ID (for personalized data)
 
@@ -68,6 +68,13 @@ end
 - `GeneralDashboardServices::AggregatorService`
 - `HomeServices::DashboardAggregatorService`
 - `SiteDashboardServices::AggregatorService`
+
+### Digital Share of Voice
+
+When `USE_DIRECT_ENTRY_TOPICS=true`, the cached global digital aggregate used for
+Share of Voice has the same universe as `Topic#all_list_entries`: enabled entries
+within the topic default date range that have a site. The legacy Elasticsearch
+path continues to use `all_list_entries` directly.
 
 ## 3. PDF Caching
 

@@ -127,7 +127,10 @@ RSpec.describe Topic do
       allow(topic).to receive(:list_entries).and_return(entries)
       allow(entries).to receive(:reorder).with(nil).and_return(entries)
       expect(entries).to receive(:pick).once do |sql|
-        expect(sql.to_s).to include('SUM(CASE WHEN entries.published_at BETWEEN')
+        expect(sql.to_s).to match(/entries\.published_at >= .+? AND entries\.published_at <= .+? THEN 1 ELSE 0 END/)
+        expect(sql.to_s).to match(/entries\.published_at >= .+? AND entries\.published_at < .+? THEN 1 ELSE 0 END/)
+        expect(sql.to_s).to match(/entries\.published_at >= .+? AND entries\.published_at <= .+? THEN entries\.total_count ELSE 0 END/)
+        expect(sql.to_s).to match(/entries\.published_at >= .+? AND entries\.published_at < .+? THEN entries\.total_count ELSE 0 END/)
         expect(sql.to_s).to include('THEN entries.total_count ELSE 0 END')
         [3, 2, 45, 30]
       end
