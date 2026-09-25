@@ -1,0 +1,17 @@
+services:
+  entity-extractor:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8001:8000"
+    environment:
+      GLINER_MODEL: fastino/gliner2.5-multi-v1
+    volumes:
+      - gliner_hf_cache:/models/huggingface
+    # Start conservatively on the production DB server.
+    # Tune these only after measuring real RSS and throughput.
+    mem_limit: 6g
+    cpus: 4.0
+
+volumes:
+  gliner_hf_cache:
