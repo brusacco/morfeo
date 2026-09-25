@@ -280,9 +280,13 @@ module DigitalDashboardServices
     end
 
     def load_text_analysis(entries)
-      text_data = Rails.cache.fetch("topic_#{@topic.id}_text_analysis_v2_#{Date.current}", expires_in: CACHE_EXPIRATION) do
-        entries.text_occurrences(word_limit: 100, bigram_limit: 100)
-      end
+      text_data =
+        Rails.cache.fetch(
+          "topic_#{@topic.id}_text_analysis_v2_#{Date.current}",
+          expires_in: CACHE_EXPIRATION
+        ) do
+          entries.text_occurrences(word_limit: 100, bigram_limit: 100)
+        end
 
       {
         word_occurrences: text_data[:word_occurrences],
