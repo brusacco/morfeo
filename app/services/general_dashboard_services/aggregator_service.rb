@@ -117,7 +117,7 @@ module GeneralDashboardServices
         }
       }
     end
-    
+
     def calculate_combined_optimal_time_simple
       # Simple recommendation without expensive aggregations
       { day: 'Lunes', hour: 9, recommendation: 'Lunes a las 09:00 hrs', avg_engagement: 0 }
@@ -231,99 +231,98 @@ module GeneralDashboardServices
     # ========================================
 
     def digital_data
-      @digital_data ||= begin
-        entries = topic.report_entries(start_date, end_date)
-        previous_entries = topic.report_entries(start_date - (end_date - start_date), start_date)
-        current_stats = entries.distinct.reorder(nil).pluck(
-          Arel.sql('COUNT(DISTINCT entries.id)'),
-          Arel.sql('SUM(entries.total_count)')
-        ).first || [0, 0]
-        count = current_stats[0]
-        interactions = current_stats[1] || 0
-        
-        # Reach estimation methodology:
-        # Conservative 3x multiplier - assumes each interaction represents ~3 readers
-        # This is defensible as a conservative estimate (much lower than typical 8-15x)
-        # For precise reach, implement tracking pixels on news sites
-        {
-          count: count,
-          interactions: interactions,
-          reach: interactions * 3, # Conservative estimate
-          trend: calculate_trend(count, previous_entries.distinct.count)
-        }
-      end
+      @digital_data ||=
+        begin
+          entries = topic.report_entries(start_date, end_date)
+          previous_entries = topic.report_entries(start_date - (end_date - start_date), start_date)
+          current_stats = entries.distinct.reorder(nil).pluck(
+            Arel.sql('COUNT(DISTINCT entries.id)'),
+            Arel.sql('SUM(entries.total_count)')
+          ).first || [0, 0]
+          count = current_stats[0]
+          interactions = current_stats[1] || 0
+
+          # Reach estimation methodology:
+          # Conservative 3x multiplier - assumes each interaction represents ~3 readers
+          # This is defensible as a conservative estimate (much lower than typical 8-15x)
+          # For precise reach, implement tracking pixels on news sites
+          {
+            count: count,
+            interactions: interactions,
+            reach: interactions * 3, # Conservative estimate
+            trend: calculate_trend(count, previous_entries.distinct.count)
+          }
+        end
     end
 
     def facebook_data
-      @facebook_data ||= begin
-        if @tag_names.empty?
-          return { count: 0, interactions: 0, reach: 0, trend: 0 }
+      @facebook_data ||=
+        begin
+          return { count: 0, interactions: 0, reach: 0, trend: 0 } if @tag_names.empty?
+
+          # Single combined query for all aggregations (more efficient)
+          current_stats = FacebookEntry
+                          .where(posted_at: start_date..end_date)
+                          .tagged_with(@tag_names, any: true)
+                          .pluck(
+                            Arel.sql('COUNT(DISTINCT facebook_entries.id)'),
+                            Arel.sql('SUM(reactions_total_count + comments_count + share_count)'),
+                            Arel.sql('SUM(views_count)')
+                          )
+                          .first || [0, 0, 0]
+
+          # Single query for previous period count
+          previous_entries_count = FacebookEntry
+                                   .where(posted_at: (start_date - (end_date - start_date))..start_date)
+                                   .tagged_with(@tag_names, any: true)
+                                   .count('DISTINCT facebook_entries.id')
+
+          {
+            count: current_stats[0],
+            interactions: current_stats[1] || 0,
+            reach: current_stats[2] || 0,
+            trend: calculate_trend(current_stats[0], previous_entries_count)
+          }
         end
-        
-        # Single combined query for all aggregations (more efficient)
-        current_stats = FacebookEntry
-          .where(posted_at: start_date..end_date)
-          .tagged_with(@tag_names, any: true)
-          .pluck(
-            Arel.sql('COUNT(DISTINCT facebook_entries.id)'),
-            Arel.sql('SUM(reactions_total_count + comments_count + share_count)'),
-            Arel.sql('SUM(views_count)')
-          )
-          .first || [0, 0, 0]
-        
-        # Single query for previous period count
-        previous_entries_count = FacebookEntry
-          .where(posted_at: (start_date - (end_date - start_date))..start_date)
-          .tagged_with(@tag_names, any: true)
-          .count('DISTINCT facebook_entries.id')
-        
-        {
-          count: current_stats[0],
-          interactions: current_stats[1] || 0,
-          reach: current_stats[2] || 0,
-          trend: calculate_trend(current_stats[0], previous_entries_count)
-        }
-      end
     end
 
     def twitter_data
-      @twitter_data ||= begin
-        if @tag_names.empty?
-          return { count: 0, interactions: 0, reach: 0, trend: 0 }
+      @twitter_data ||=
+        begin
+          return { count: 0, interactions: 0, reach: 0, trend: 0 } if @tag_names.empty?
+
+          # Single combined query for all aggregations (more efficient)
+          current_stats = TwitterPost
+                          .where(posted_at: start_date..end_date)
+                          .tagged_with(@tag_names, any: true)
+                          .pluck(
+                            Arel.sql('COUNT(DISTINCT twitter_posts.id)'),
+                            Arel.sql('SUM(favorite_count + retweet_count + reply_count + quote_count)'),
+                            Arel.sql('SUM(views_count)')
+                          )
+                          .first || [0, 0, 0]
+
+          # Single query for previous period count
+          previous_posts_count = TwitterPost
+                                 .where(posted_at: (start_date - (end_date - start_date))..start_date)
+                                 .tagged_with(@tag_names, any: true)
+                                 .count('DISTINCT twitter_posts.id')
+
+          posts_count = current_stats[0]
+          interactions = current_stats[1] || 0
+          views = current_stats[2] || 0
+
+          # Reach estimation: Use actual views when available, otherwise conservative 10x multiplier
+          # 10x is conservative estimate (industry typical is 15-30x for Twitter)
+          reach = views > 0 ? views : interactions * 10
+
+          {
+            count: posts_count,
+            interactions: interactions,
+            reach: reach,
+            trend: calculate_trend(posts_count, previous_posts_count)
+          }
         end
-        
-        # Single combined query for all aggregations (more efficient)
-        current_stats = TwitterPost
-          .where(posted_at: start_date..end_date)
-          .tagged_with(@tag_names, any: true)
-          .pluck(
-            Arel.sql('COUNT(DISTINCT twitter_posts.id)'),
-            Arel.sql('SUM(favorite_count + retweet_count + reply_count + quote_count)'),
-            Arel.sql('SUM(views_count)')
-          )
-          .first || [0, 0, 0]
-        
-        # Single query for previous period count
-        previous_posts_count = TwitterPost
-          .where(posted_at: (start_date - (end_date - start_date))..start_date)
-          .tagged_with(@tag_names, any: true)
-          .count('DISTINCT twitter_posts.id')
-        
-        posts_count = current_stats[0]
-        interactions = current_stats[1] || 0
-        views = current_stats[2] || 0
-        
-        # Reach estimation: Use actual views when available, otherwise conservative 10x multiplier
-        # 10x is conservative estimate (industry typical is 15-30x for Twitter)
-        reach = views > 0 ? views : interactions * 10
-        
-        {
-          count: posts_count,
-          interactions: interactions,
-          reach: reach,
-          trend: calculate_trend(posts_count, previous_posts_count)
-        }
-      end
     end
 
     def total_mentions
@@ -352,46 +351,55 @@ module GeneralDashboardServices
       digital_score = digital_sentiment[:average] * digital_data[:count]
       facebook_score = facebook_sentiment[:average] * facebook_data[:count]
       twitter_score = twitter_sentiment[:average] * twitter_data[:count]
-      
+
       total = digital_data[:count] + facebook_data[:count] + twitter_data[:count]
       return 0 if total.zero?
-      
+
       ((digital_score + facebook_score + twitter_score) / total).round(2)
     end
 
     def digital_sentiment
-      @digital_sentiment ||= begin
-        entries = topic.report_entries(start_date, end_date)
-        
-        # Single query with GROUP BY instead of 3 separate queries
-        # Use reorder(nil) to remove ORDER BY clause before GROUP BY
-        polarities = entries.reorder(nil).group(:polarity).count
-        
-        # Handle both string and integer polarity values
-        positive = polarities['positive'] || polarities[1] || 0
-        neutral = polarities['neutral'] || polarities[0] || 0
-        negative = polarities['negative'] || polarities[2] || 0
-        total = positive + neutral + negative
-        
-        {
-          average: total.zero? ? 0 : ((positive - negative).to_f / total * 100).round(1),
-          distribution: {
-            positive: positive,
-            neutral: neutral,
-            negative: negative,
-            positive_pct: total.zero? ? 0 : (positive.to_f / total * 100).round(1),
-            neutral_pct: total.zero? ? 0 : (neutral.to_f / total * 100).round(1),
-            negative_pct: total.zero? ? 0 : (negative.to_f / total * 100).round(1)
+      @digital_sentiment ||=
+        begin
+          entries = topic.report_entries(start_date, end_date)
+
+          # Single query with GROUP BY instead of 3 separate queries
+          # Use reorder(nil) to remove ORDER BY clause before GROUP BY
+          polarities = entries.reorder(nil).group(:polarity).count
+
+          # Handle both string and integer polarity values
+          positive = polarities['positive'] || polarities[1] || 0
+          neutral = polarities['neutral'] || polarities[0] || 0
+          negative = polarities['negative'] || polarities[2] || 0
+          total = positive + neutral + negative
+
+          {
+            average: total.zero? ? 0 : ((positive - negative).to_f / total * 100).round(1),
+            distribution: {
+              positive: positive,
+              neutral: neutral,
+              negative: negative,
+              positive_pct: total.zero? ? 0 : (positive.to_f / total * 100).round(1),
+              neutral_pct: total.zero? ? 0 : (neutral.to_f / total * 100).round(1),
+              negative_pct: total.zero? ? 0 : (negative.to_f / total * 100).round(1)
+            }
           }
-        }
-      end
+        end
     end
 
     def facebook_sentiment
-      @facebook_sentiment ||= begin
-        summary = topic.facebook_sentiment_summary(start_time: start_date, end_time: end_date)
-        summary ? { average: summary[:average_sentiment], distribution: summary[:sentiment_distribution] } : { average: 0, distribution: {} }
-      end
+      @facebook_sentiment ||=
+        begin
+          summary = topic.facebook_sentiment_summary(start_time: start_date, end_time: end_date)
+          if summary
+            {
+              average: summary[:average_sentiment],
+              distribution: summary[:sentiment_distribution]
+            }
+          else
+            { average: 0, distribution: {} }
+          end
+        end
     end
 
     def twitter_sentiment
@@ -414,7 +422,7 @@ module GeneralDashboardServices
     def combined_sentiment_distribution
       dist = digital_sentiment[:distribution] || {}
       fb_dist = facebook_sentiment[:distribution] || {}
-      
+
       {
         positive: (dist[:positive] || 0) + (fb_dist[:very_positive]&.[](:count) || 0) + (fb_dist[:positive]&.[](:count) || 0),
         neutral: (dist[:neutral] || 0) + (fb_dist[:neutral]&.[](:count) || 0),
@@ -424,7 +432,7 @@ module GeneralDashboardServices
 
     def sentiment_trend
       current_sentiment = average_sentiment
-      
+
       # Skip expensive previous period calculation for now
       # TODO: Optimize this with cached aggregates
       {
@@ -449,7 +457,7 @@ module GeneralDashboardServices
 
     def detect_sentiment_alerts
       alerts = []
-      
+
       # Negative spike detection
       if average_sentiment < -30
         alerts << {
@@ -459,7 +467,7 @@ module GeneralDashboardServices
           recommendation: 'Revisar inmediatamente y preparar respuesta de crisis'
         }
       end
-      
+
       # Rapid sentiment decline
       trend = sentiment_trend
       if trend[:change] < -20
@@ -470,7 +478,7 @@ module GeneralDashboardServices
           recommendation: 'Monitorear de cerca y considerar acción correctiva'
         }
       end
-      
+
       # Highly positive trend
       if average_sentiment > 50 && trend[:direction] == 'improving'
         alerts << {
@@ -480,7 +488,7 @@ module GeneralDashboardServices
           recommendation: 'Momento ideal para amplificar el mensaje'
         }
       end
-      
+
       alerts
     end
 
@@ -490,33 +498,36 @@ module GeneralDashboardServices
 
     def share_of_voice
       return 0 if all_topics_mentions.zero?
+
       (total_mentions.to_f / all_topics_mentions * 100).round(1)
     end
 
     def all_topics_mentions
-      @all_topics_mentions ||= begin
-        digital = Entry.enabled.where(published_at: start_date..end_date).count
-        # Use count(:id) for Facebook and Twitter to avoid tagged_with issues
-        facebook = FacebookEntry.where(posted_at: start_date..end_date).count(:id)
-        twitter = TwitterPost.where(posted_at: start_date..end_date).count(:id)
-        digital + facebook + twitter
-      end
+      @all_topics_mentions ||=
+        begin
+          digital = Entry.enabled.where(published_at: start_date..end_date).count
+          # Use count(:id) for Facebook and Twitter to avoid tagged_with issues
+          facebook = FacebookEntry.where(posted_at: start_date..end_date).count(:id)
+          twitter = TwitterPost.where(posted_at: start_date..end_date).count(:id)
+          digital + facebook + twitter
+        end
     end
 
     def all_topics_interactions
-      @all_topics_interactions ||= begin
-        digital = Entry.enabled.where(published_at: start_date..end_date).sum(:total_count)
-        facebook = FacebookEntry.where(posted_at: start_date..end_date).sum(Arel.sql('reactions_total_count + comments_count + share_count'))
-        twitter = TwitterPost.where(posted_at: start_date..end_date).sum(Arel.sql('favorite_count + retweet_count + reply_count + quote_count'))
-        digital + facebook + twitter
-      end
+      @all_topics_interactions ||=
+        begin
+          digital = Entry.enabled.where(published_at: start_date..end_date).sum(:total_count)
+          facebook = FacebookEntry.where(posted_at: start_date..end_date).sum(Arel.sql('reactions_total_count + comments_count + share_count'))
+          twitter = TwitterPost.where(posted_at: start_date..end_date).sum(Arel.sql('favorite_count + retweet_count + reply_count + quote_count'))
+          digital + facebook + twitter
+        end
     end
 
     def market_position
       # PERFORMANCE FIX: Disabled expensive N+1 calculation
       # The original implementation created a new service instance for EVERY topic,
       # causing 300+ database queries and taking 10-15 seconds.
-      # 
+      #
       # TODO: Implement batch calculation if market position is needed:
       # - Use single queries to get mentions for all topics at once
       # - Group by topic_id and aggregate
@@ -544,12 +555,10 @@ module GeneralDashboardServices
       digital_optimal = topic.optimal_publishing_time
       facebook_optimal = topic.facebook_optimal_publishing_time
       twitter_optimal = topic.twitter_optimal_publishing_time
-      
+
       # Weight by engagement
-      best = [digital_optimal, facebook_optimal, twitter_optimal]
-               .compact
-               .max_by { |opt| opt[:avg_engagement] }
-      
+      best = [digital_optimal, facebook_optimal, twitter_optimal].compact.max_by { |opt| opt[:avg_engagement] }
+
       best || { day: 'Lunes', hour: 9, recommendation: 'Lunes a las 09:00 hrs' }
     end
 
@@ -558,7 +567,7 @@ module GeneralDashboardServices
       digital_peaks = topic.peak_publishing_times_by_hour
       facebook_peaks = topic.facebook_peak_publishing_times_by_hour
       twitter_peaks = topic.twitter_peak_publishing_times_by_hour
-      
+
       combined = {}
       [digital_peaks, facebook_peaks, twitter_peaks].each do |peaks|
         peaks.each do |hour, data|
@@ -567,8 +576,9 @@ module GeneralDashboardServices
           combined[hour][:entry_count] += data[:entry_count]
         end
       end
-      
-      combined.sort_by { |_hour, data| -data[:avg_engagement] }.first(3).to_h
+
+      combined.sort_by { |_hour, data| -data[:avg_engagement] }
+              .first(3).to_h
     end
 
     def combined_peak_days
@@ -576,7 +586,7 @@ module GeneralDashboardServices
       digital_peaks = topic.peak_publishing_times_by_day
       facebook_peaks = topic.facebook_peak_publishing_times_by_day
       twitter_peaks = topic.twitter_peak_publishing_times_by_day
-      
+
       combined = {}
       [digital_peaks, facebook_peaks, twitter_peaks].each do |peaks|
         peaks.each do |day, data|
@@ -585,35 +595,82 @@ module GeneralDashboardServices
           combined[day][:entry_count] += data[:entry_count]
         end
       end
-      
-      combined.sort_by { |_day, data| -data[:avg_engagement] }.first(3).to_h
+
+      combined.sort_by { |_day, data| -data[:avg_engagement] }
+              .first(3).to_h
     end
 
     def overall_trend_velocity
-      digital_trend = topic.trend_velocity[:velocity_percent] rescue 0
-      facebook_trend = topic.facebook_trend_velocity[:velocity_percent] rescue 0
-      twitter_trend = topic.twitter_trend_velocity[:velocity_percent] rescue 0
-      
+      digital_trend =
+        begin
+          topic.trend_velocity[:velocity_percent]
+        rescue StandardError
+          0
+        end
+      facebook_trend =
+        begin
+          topic.facebook_trend_velocity[:velocity_percent]
+        rescue StandardError
+          0
+        end
+      twitter_trend =
+        begin
+          topic.twitter_trend_velocity[:velocity_percent]
+        rescue StandardError
+          0
+        end
+
       avg = ((digital_trend + facebook_trend + twitter_trend) / 3.0).round(1)
-      
+
       {
         velocity_percent: avg,
-        direction: avg > 0 ? 'up' : (avg < 0 ? 'down' : 'stable'),
-        trend: avg > 10 ? 'creciendo' : (avg < -10 ? 'decreciendo' : 'estable')
+        direction: if avg > 0
+                     'up'
+                   else
+                     (avg < 0 ? 'down' : 'stable')
+                   end,
+        trend: if avg > 10
+                 'creciendo'
+               else
+                 (avg < -10 ? 'decreciendo' : 'estable')
+               end
       }
     end
 
     def overall_engagement_velocity
-      digital_eng = topic.engagement_velocity[:velocity_percent] rescue 0
-      facebook_eng = topic.facebook_engagement_velocity[:velocity_percent] rescue 0
-      twitter_eng = topic.twitter_engagement_velocity[:velocity_percent] rescue 0
-      
+      digital_eng =
+        begin
+          topic.engagement_velocity[:velocity_percent]
+        rescue StandardError
+          0
+        end
+      facebook_eng =
+        begin
+          topic.facebook_engagement_velocity[:velocity_percent]
+        rescue StandardError
+          0
+        end
+      twitter_eng =
+        begin
+          topic.twitter_engagement_velocity[:velocity_percent]
+        rescue StandardError
+          0
+        end
+
       avg = ((digital_eng + facebook_eng + twitter_eng) / 3.0).round(1)
-      
+
       {
         velocity_percent: avg,
-        direction: avg > 0 ? 'up' : (avg < 0 ? 'down' : 'stable'),
-        trend: avg > 15 ? 'alto' : (avg < -15 ? 'bajo' : 'moderado')
+        direction: if avg > 0
+                     'up'
+                   else
+                     (avg < 0 ? 'down' : 'stable')
+                   end,
+        trend: if avg > 15
+                 'alto'
+               else
+                 (avg < -15 ? 'bajo' : 'moderado')
+               end
       }
     end
 
@@ -630,7 +687,7 @@ module GeneralDashboardServices
 
     def top_facebook_posts
       return FacebookEntry.none if @tag_names.empty?
-      
+
       FacebookEntry.where(posted_at: start_date..end_date)
                    .tagged_with(@tag_names, any: true)
                    .order(Arel.sql('reactions_total_count + comments_count + share_count DESC'))
@@ -640,7 +697,7 @@ module GeneralDashboardServices
 
     def top_tweets
       return TwitterPost.none if @tag_names.empty?
-      
+
       TwitterPost.where(posted_at: start_date..end_date)
                  .tagged_with(@tag_names, any: true)
                  .order(Arel.sql('favorite_count + retweet_count + reply_count + quote_count DESC'))
@@ -656,33 +713,33 @@ module GeneralDashboardServices
         twitter: identify_viral_twitter
       }
     end
-    
+
     def identify_viral_digital
       return [] if digital_data[:count].zero?
-      
+
       avg_engagement = digital_data[:interactions] / digital_data[:count].to_f
       threshold = avg_engagement * 5
-      
+
       top_digital_entries.select { |e| e.total_count > threshold }
     end
-    
+
     def identify_viral_facebook
       return [] if facebook_data[:count].zero?
-      
+
       avg_engagement = facebook_data[:interactions] / facebook_data[:count].to_f
       threshold = avg_engagement * 5
-      
+
       top_facebook_posts.select do |p|
         (p.reactions_total_count + p.comments_count + p.share_count) > threshold
       end
     end
-    
+
     def identify_viral_twitter
       return [] if twitter_data[:count].zero?
-      
+
       avg_engagement = twitter_data[:interactions] / twitter_data[:count].to_f
       threshold = avg_engagement * 5
-      
+
       top_tweets.select { |t| t.total_interactions > threshold }
     end
 
@@ -700,46 +757,61 @@ module GeneralDashboardServices
     end
 
     def combined_text_occurrences
-      @combined_text_occurrences ||= begin
-        digital_text = topic.report_entries(start_date, end_date).text_occurrences(word_limit: 50, bigram_limit: 50)
-        facebook_text = FacebookEntry.text_occurrences(
-          FacebookEntry.for_topic(topic, start_time: start_date, end_time: end_date, tag_names: @tag_names),
-          word_limit: 50,
-          bigram_limit: 50
-        )
-        twitter_text = TwitterPost.text_occurrences(
-          TwitterPost.for_topic(topic, start_time: start_date, end_time: end_date, tag_names: @tag_names),
-          word_limit: 50,
-          bigram_limit: 50
-        )
+      @combined_text_occurrences ||=
+        begin
+          digital_text = topic.report_entries(start_date, end_date).text_occurrences(word_limit: 50, bigram_limit: 50)
+          facebook_text = FacebookEntry.text_occurrences(
+            FacebookEntry.for_topic(topic, start_time: start_date, end_time: end_date, tag_names: @tag_names),
+            word_limit: 50,
+            bigram_limit: 50
+          )
+          twitter_text = TwitterPost.text_occurrences(
+            TwitterPost.for_topic(topic, start_time: start_date, end_time: end_date, tag_names: @tag_names),
+            word_limit: 50,
+            bigram_limit: 50
+          )
 
-        {
-          word_occurrences: merge_word_occurrences([digital_text[:word_occurrences], facebook_text[:word_occurrences], twitter_text[:word_occurrences]]),
-          bigram_occurrences: merge_word_occurrences([digital_text[:bigram_occurrences], facebook_text[:bigram_occurrences], twitter_text[:bigram_occurrences]])
-        }
-      end
+          {
+            word_occurrences: merge_word_occurrences(
+              [
+                digital_text[:word_occurrences],
+                facebook_text[:word_occurrences],
+                twitter_text[:word_occurrences]
+              ]
+            ),
+            bigram_occurrences: merge_word_occurrences(
+              [
+                digital_text[:bigram_occurrences],
+                facebook_text[:bigram_occurrences],
+                twitter_text[:bigram_occurrences]
+              ]
+            )
+          }
+        end
     end
 
     def trending_terms
       # Words that appeared significantly more in recent period
       current_words = combined_word_occurrences.first(20).to_h
-      
+
       # Compare with previous period
       previous_service = self.class.new(
         topic: topic,
         start_date: start_date - (end_date - start_date),
         end_date: start_date
       )
-      
+
       begin
         previous_words = previous_service.send(:combined_word_occurrences).to_h
-        
-        trending = current_words.select do |word, count|
-          prev_count = previous_words[word] || 0
-          count > prev_count * 1.5 # 50% increase
-        end
-        
-        trending.sort_by { |_word, count| -count }.first(10)
+
+        trending =
+          current_words.select do |word, count|
+            prev_count = previous_words[word] || 0
+            count > prev_count * 1.5 # 50% increase
+          end
+
+        trending.sort_by { |_word, count| -count }
+                .first(10)
       rescue StandardError
         current_words.first(10)
       end
@@ -752,7 +824,7 @@ module GeneralDashboardServices
     def best_publishing_time_recommendation
       optimal = calculate_combined_optimal_time
       avg_engagement = optimal[:avg_engagement] || 0
-      
+
       {
         recommendation: optimal[:recommendation],
         reasoning: "Basado en análisis de engagement promedio más alto (#{avg_engagement.round(1)}) en #{optimal[:day]} a las #{optimal[:hour]}:00"
@@ -762,7 +834,7 @@ module GeneralDashboardServices
     def best_channel_recommendation
       channels = build_channel_performance
       best = channels.max_by { |_key, data| data[:engagement_rate] }
-      
+
       {
         channel: best[1][:name],
         reasoning: "#{best[1][:name]} tiene la tasa de engagement más alta (#{best[1][:engagement_rate]}%)"
@@ -771,7 +843,7 @@ module GeneralDashboardServices
 
     def content_suggestions
       suggestions = []
-      
+
       # Based on viral content
       if identify_viral_content.values.any?(&:any?)
         suggestions << {
@@ -780,7 +852,7 @@ module GeneralDashboardServices
           priority: 'high'
         }
       end
-      
+
       # Based on sentiment
       if average_sentiment < 0
         suggestions << {
@@ -789,7 +861,7 @@ module GeneralDashboardServices
           priority: 'high'
         }
       end
-      
+
       # Based on trending terms
       if trending_terms.any?
         top_term = trending_terms.first[0]
@@ -799,56 +871,53 @@ module GeneralDashboardServices
           priority: 'medium'
         }
       end
-      
+
       suggestions
     end
 
     def sentiment_action_items
       actions = []
       alerts = detect_sentiment_alerts
-      
+
       alerts.each do |alert|
-        actions << {
-          action: alert[:recommendation],
-          priority: alert[:severity],
-          reason: alert[:message]
-        }
+        actions << { action: alert[:recommendation], priority: alert[:severity], reason: alert[:message] }
       end
-      
+
       actions
     end
 
     def growth_opportunities
       opportunities = []
-      
+
       # Underperforming channels
       channels = build_channel_performance
-      engagement_rates = channels.values.map { |c| c[:engagement_rate] }.compact
+      engagement_rates = channels.values.map { |c| c[:engagement_rate] }
+                                 .compact
       return opportunities if engagement_rates.empty?
-      
+
       avg_engagement = engagement_rates.sum / engagement_rates.size.to_f
-      
-      channels.each do |key, data|
-        if data[:engagement_rate] && data[:engagement_rate] < avg_engagement * 0.7
-          opportunities << {
-            area: data[:name],
-            current: "#{data[:engagement_rate]}% engagement",
-            potential: "Objetivo: #{avg_engagement.round(1)}% engagement",
-            suggestion: "Optimizar estrategia en #{data[:name]}"
-          }
-        end
+
+      channels.each do |_key, data|
+        next unless data[:engagement_rate] && data[:engagement_rate] < avg_engagement * 0.7
+
+        opportunities << {
+          area: data[:name],
+          current: "#{data[:engagement_rate]}% engagement",
+          potential: "Objetivo: #{avg_engagement.round(1)}% engagement",
+          suggestion: "Optimizar estrategia en #{data[:name]}"
+        }
       end
-      
+
       # Low share of voice
       if share_of_voice < 20
         opportunities << {
           area: 'Share of Voice',
           current: "#{share_of_voice}%",
-          potential: "Objetivo: 25-30%",
+          potential: 'Objetivo: 25-30%',
           suggestion: 'Aumentar frecuencia y visibilidad de publicaciones'
         }
       end
-      
+
       opportunities
     end
 
@@ -858,16 +927,19 @@ module GeneralDashboardServices
 
     def calculate_trend(current, previous)
       return 0 if previous.zero?
+
       ((current - previous).to_f / previous * 100).round(1)
     end
 
     def calculate_share(part, whole)
       return 0 if whole.zero?
+
       (part.to_f / whole * 100).round(1)
     end
 
     def calculate_engagement_rate(interactions, reach)
       return 0 if reach.zero?
+
       (interactions.to_f / reach * 100).round(2)
     end
 
@@ -878,22 +950,19 @@ module GeneralDashboardServices
     def unique_sources_count
       # Optimized counting with DISTINCT at database level
       return 0 if @tag_names.empty?
-      
-      digital_sources = topic.report_entries(start_date, end_date)
-                            .joins(:site)
-                            .distinct
-                            .count('DISTINCT sites.id')
-      
+
+      digital_sources = topic.report_entries(start_date, end_date).joins(:site).distinct.count('DISTINCT sites.id')
+
       facebook_sources = FacebookEntry.where(posted_at: start_date..end_date)
                                       .tagged_with(@tag_names, any: true)
                                       .joins(:page)
                                       .count('DISTINCT pages.id')
-      
+
       twitter_sources = TwitterPost.where(posted_at: start_date..end_date)
                                    .tagged_with(@tag_names, any: true)
                                    .joins(:twitter_profile)
                                    .count('DISTINCT twitter_profiles.id')
-      
+
       digital_sources + facebook_sources + twitter_sources
     end
 
@@ -909,8 +978,8 @@ module GeneralDashboardServices
           combined[word] += count
         end
       end
-      combined.sort_by { |_word, count| -count }.first(100)
+      combined.sort_by { |_word, count| -count }
+              .first(100)
     end
   end
 end
-

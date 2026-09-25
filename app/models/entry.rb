@@ -153,8 +153,8 @@ class Entry < ApplicationRecord
                              .sort_by { |_word, count| -count }
                              .first(word_limit),
       bigram_occurrences: bigrams.select { |_bigram, count| count > 1 }
-                                .sort_by { |_bigram, count| -count }
-                                .first(bigram_limit)
+                                 .sort_by { |_bigram, count| -count }
+                                 .first(bigram_limit)
     }
   end
 
