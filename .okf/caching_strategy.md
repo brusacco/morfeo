@@ -69,6 +69,19 @@ end
 - `HomeServices::DashboardAggregatorService`
 - `SiteDashboardServices::AggregatorService`
 
+### Versioned Digital Dashboard Keys
+
+Digital dashboard caches use `digital_dashboard:v3` with ISO date boundaries:
+
+```
+digital_dashboard:v3:topic:{topic_id}:{resource}:{start_date}:{end_date}
+digital_dashboard:v3:global_stats:{start_date}:{end_date}
+```
+
+The topic resources are `payload`, `site_data`, and `text_analysis`. Cache
+maintenance tasks invalidate this namespace with `digital_dashboard:v3:*` or a
+topic-specific prefix.
+
 ### Digital Share of Voice
 
 When `USE_DIRECT_ENTRY_TOPICS=true`, the cached global digital aggregate used for

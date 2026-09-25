@@ -21,6 +21,18 @@ RSpec.describe DigitalDashboardServices::AggregatorService do
     expect(seven_day_service.send(:text_analysis_cache_key)).not_to eq(thirty_day_service.send(:text_analysis_cache_key))
   end
 
+  it 'uses versioned cache keys with explicit date ranges' do
+    start_date = service.instance_variable_get(:@start_date).to_date.iso8601
+    end_date = service.instance_variable_get(:@end_date).to_date.iso8601
+
+    expect(service.send(:cache_key)).to eq("digital_dashboard:v3:topic:7:payload:#{start_date}:#{end_date}")
+    expect(service.send(:site_data_cache_key)).to eq("digital_dashboard:v3:topic:7:site_data:#{start_date}:#{end_date}")
+    expect(service.send(:text_analysis_cache_key)).to eq("digital_dashboard:v3:topic:7:text_analysis:#{start_date}:#{end_date}")
+    expect(
+      service.send(:global_digital_stats_cache_key, { gte: Date.new(2026, 9, 18), lte: Date.new(2026, 9, 25) })
+    ).to eq('digital_dashboard:v3:global_stats:2026-09-18:2026-09-25')
+  end
+
   def create_entry(polarity: nil, total_count: 0)
     Entry.create!(
       url: "https://example.test/entries/#{SecureRandom.uuid}",

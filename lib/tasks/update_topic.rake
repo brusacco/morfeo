@@ -60,7 +60,7 @@ namespace :topic do
     # Clear Redis service caches (dashboard data)
     service_cache_patterns = [
       "topic_#{topic.id}_*",
-      "digital_dashboard_#{topic.id}_*",
+      "digital_dashboard:v3:topic:#{topic.id}:*",
       "facebook_dashboard_#{topic.id}_*", 
       "twitter_dashboard_#{topic.id}_*",
       "general_dashboard_#{topic.id}_*"

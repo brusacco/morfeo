@@ -73,8 +73,9 @@ class TagController < ApplicationController
     @comments = Comment.where(entry_id: @entries.select(:id))
     @comments_word_occurrences = @comments.word_occurrences
 
-    @word_occurrences = @entries.word_occurrences
-    @bigram_occurrences = @entries.bigram_occurrences
+    text_analysis = @entries.text_occurrences
+    @word_occurrences = text_analysis[:word_occurrences]
+    @bigram_occurrences = text_analysis[:bigram_occurrences]
 
     # Remove ORDER BY clause before GROUP BY to avoid MySQL ONLY_FULL_GROUP_BY error
     polarity_counts = @entries.reorder(nil).group(:polarity).count

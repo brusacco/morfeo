@@ -84,6 +84,7 @@ association suitable only where eventual consistency is acceptable.
 # Key Features
 
 - Sentiment analysis integration (unique to digital reports)
+- Cache keys use the `digital_dashboard:v3` namespace with the topic resource and ISO date range, allowing targeted invalidation without cross-range collisions.
 - Entry totals and per-polarity counts and interaction sums are calculated in one conditional aggregate query, so the topic tag filter is evaluated once.
 - Per-site entry counts and interaction sums are calculated in one grouped query and cached as one payload.
 - In direct-entry mode, share-of-voice reuses one global, range-keyed aggregate of all enabled entries instead of recalculating it per topic.

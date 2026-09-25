@@ -10,6 +10,7 @@ module DigitalDashboardServices
   class AggregatorService < ApplicationService
     # Cache expiration time for dashboard data
     CACHE_EXPIRATION = 30.minutes
+    CACHE_NAMESPACE = 'digital_dashboard:v3'
 
     def initialize(topic:, days_range: DAYS_RANGE)
       @topic = topic
@@ -38,15 +39,27 @@ module DigitalDashboardServices
     private
 
     def cache_key
-      "digital_dashboard_#{@topic.id}_#{@days_range}_#{Date.current}"
+      topic_cache_key('payload')
     end
 
     def site_data_cache_key
-      "topic_#{@topic.id}_site_data_v2_#{@days_range}_#{Date.current}"
+      topic_cache_key('site_data')
     end
 
     def text_analysis_cache_key
-      "topic_#{@topic.id}_text_analysis_v2_#{@days_range}_#{Date.current}"
+      topic_cache_key('text_analysis')
+    end
+
+    def topic_cache_key(resource)
+      "#{CACHE_NAMESPACE}:topic:#{@topic.id}:#{resource}:#{cache_date_range}"
+    end
+
+    def global_digital_stats_cache_key(date_range)
+      "#{CACHE_NAMESPACE}:global_stats:#{cache_date_range(date_range[:gte], date_range[:lte])}"
+    end
+
+    def cache_date_range(start_date = @start_date, end_date = @end_date)
+      "#{start_date.to_date.iso8601}:#{end_date.to_date.iso8601}"
     end
 
     # Memoized topic data to avoid multiple loads
@@ -271,7 +284,7 @@ module DigitalDashboardServices
 
     def global_digital_stats
       date_range = @topic.default_date_range
-      cache_key = "global_digital_stats_v1_#{date_range[:gte].to_date}_#{date_range[:lte].to_date}"
+      cache_key = global_digital_stats_cache_key(date_range)
 
       Rails.cache.fetch(cache_key, expires_in: CACHE_EXPIRATION) do
         entries_count, interactions = Entry.enabled

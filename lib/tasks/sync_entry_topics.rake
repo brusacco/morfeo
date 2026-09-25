@@ -64,7 +64,7 @@ namespace :entries do
     # Clear relevant caches
     puts "\n🧹 Clearing topic caches..."
     Rails.cache.delete_matched("topic_*_list_entries*")
-    Rails.cache.delete_matched("digital_dashboard_*")
+    Rails.cache.delete_matched("digital_dashboard:v3:*")
     puts "✅ Caches cleared"
     
     puts "\n🎯 Next steps:"

@@ -47,7 +47,12 @@ end
 - Performs text analysis (word/bigram occurrences)
 - Detects viral content
 
-**Cache Key**: `digital_dashboard_{topic_id}_{days_range}_{date}`
+**Cache Keys**: `digital_dashboard:v3:topic:{topic_id}:{resource}:{start_date}:{end_date}`
+
+`resource` identifies the payload (`payload`, `site_data`, or `text_analysis`).
+The global Share of Voice aggregate uses
+`digital_dashboard:v3:global_stats:{start_date}:{end_date}`. This versioned
+namespace is used by cache invalidation tasks.
 
 ## Facebook Dashboard Aggregator
 

@@ -38,8 +38,9 @@ class EntryController < ApplicationController
 .sort_by(&:count).reverse
 
     # Word/bigram analysis
-    @word_occurrences = FacebookEntry.word_occurrences(@entries)
-    @bigram_occurrences = FacebookEntry.bigram_occurrences(@entries)
+    text_analysis = FacebookEntry.text_occurrences(@entries)
+    @word_occurrences = text_analysis[:word_occurrences]
+    @bigram_occurrences = text_analysis[:bigram_occurrences]
 
     entry_ids = @entries.pluck(:id)
 
@@ -123,8 +124,9 @@ class EntryController < ApplicationController
 .sort_by(&:count).reverse
 
     # Word/bigram analysis
-    @word_occurrences = FacebookEntry.word_occurrences(@entries)
-    @bigram_occurrences = FacebookEntry.bigram_occurrences(@entries)
+    text_analysis = FacebookEntry.text_occurrences(@entries)
+    @word_occurrences = text_analysis[:word_occurrences]
+    @bigram_occurrences = text_analysis[:bigram_occurrences]
 
     # Use pluck for entry_ids to avoid LIMIT in subquery issue
     entry_ids = @entries.pluck(:id)

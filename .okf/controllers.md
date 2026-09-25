@@ -44,6 +44,13 @@ Provides shared functionality for all controllers:
 - **User Topics:** `before_action :user_topics` loads active topics for the current user
 - **Word Analysis:** `word_occurrences` and `bigram_occurrences` helper methods for text analysis
 
+### Combined Text Analysis
+
+When an action needs both word and bigram occurrences, it calls the model's
+`text_occurrences` once and assigns both values from the returned hash. This
+avoids reading and tokenizing the same corpus twice; `TagController#show` and
+the Facebook `EntryController` actions follow this pattern.
+
 ### User Topics Loading
 
 ```ruby
