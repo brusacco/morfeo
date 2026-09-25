@@ -118,7 +118,7 @@ date range.
 - Do not write `cache_path: proc do ... end` in a `caches_action` declaration.
   Ruby can evaluate it as a `proc` invocation without a block during controller
   loading, which prevents Rails from booting with `ArgumentError: tried to
-  create Proc object without a block`. Use `proc { |controller| { ... } }`, as
+create Proc object without a block`. Use `proc { |controller| { ... } }`, as
   in the action-caching example above.
 - Do not add database schema, callbacks, scheduled jobs, or bespoke cache
   version columns merely to invalidate this list cache. Those mechanisms expand
