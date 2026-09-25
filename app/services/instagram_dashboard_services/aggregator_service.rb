@@ -38,7 +38,11 @@ module InstagramDashboardServices
     private
 
     def cache_key
-      "instagram_dashboard_#{@topic.id}_#{@top_posts_limit}_#{@days_range}_#{Date.current}"
+      "instagram_dashboard:v3:topic:#{@topic.id}:limit:#{@top_posts_limit}:payload:#{cache_date_range}"
+    end
+
+    def cache_date_range
+      "#{@start_time.to_date.iso8601}:#{@end_time.to_date.iso8601}"
     end
 
     # Memoized instagram data to avoid reloading posts multiple times

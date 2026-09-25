@@ -31,8 +31,21 @@ RSpec.describe FacebookDashboardServices::AggregatorService do
     )
   end
 
-  it 'includes topic, limit, range, and date in its cache key' do
-    expect(service.send(:cache_key)).to eq("facebook_dashboard_7_20_#{DAYS_RANGE}_#{Date.current}")
+  it 'uses a versioned cache key with topic, limit, and explicit date range' do
+    start_date = service.instance_variable_get(:@start_time).to_date.iso8601
+    end_date = service.instance_variable_get(:@end_time).to_date.iso8601
+
+    expect(service.send(:cache_key)).to eq("facebook_dashboard:v3:topic:7:limit:20:payload:#{start_date}:#{end_date}")
+  end
+
+  it 'does not collide across limits or date ranges' do
+    allow(described_class).to receive(:new).and_call_original
+    short_range = described_class.new(topic: topic, top_posts_limit: 20, days_range: 7)
+    long_range = described_class.new(topic: topic, top_posts_limit: 20, days_range: 30)
+    larger_limit = described_class.new(topic: topic, top_posts_limit: 50, days_range: 7)
+
+    expect(short_range.send(:cache_key)).not_to eq(long_range.send(:cache_key))
+    expect(short_range.send(:cache_key)).not_to eq(larger_limit.send(:cache_key))
   end
 
   it 'returns empty dashboard data when the topic has no tags' do

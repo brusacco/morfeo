@@ -33,7 +33,7 @@ module GeneralDashboardServices
     private
 
     def cache_key
-      "general_dashboard_v2_#{topic.id}_#{start_date.to_date}_#{end_date.to_date}"
+      "general_dashboard:v3:topic:#{topic.id}:payload:#{start_date.to_date.iso8601}:#{end_date.to_date.iso8601}"
     end
 
     # ========================================

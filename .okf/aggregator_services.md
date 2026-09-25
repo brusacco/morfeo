@@ -71,7 +71,7 @@ namespace is used by cache invalidation tasks.
 - Performs sentiment analysis (reaction breakdown, sentiment labels)
 - Detects viral content
 
-**Cache Key**: `facebook_dashboard_{topic_id}_{top_posts_limit}_{days_range}_{date}`
+**Cache Key**: `facebook_dashboard:v3:topic:{topic_id}:limit:{top_posts_limit}:payload:{start_date}:{end_date}`
 
 ## Twitter Dashboard Aggregator
 
@@ -89,7 +89,7 @@ namespace is used by cache invalidation tasks.
 - Loads profiles data (posts per profile, interactions per profile)
 - Detects viral content
 
-**Cache Key**: `twitter_dashboard_{topic_id}_{top_posts_limit}_{days_range}_{date}`
+**Cache Key**: `twitter_dashboard:v3:topic:{topic_id}:limit:{top_posts_limit}:payload:{start_date}:{end_date}`
 
 ## Instagram Dashboard Aggregator
 
@@ -107,7 +107,7 @@ namespace is used by cache invalidation tasks.
 - Loads profiles data (posts per profile, interactions per profile)
 - Detects viral content
 
-**Cache Key**: `instagram_dashboard_{topic_id}_{top_posts_limit}_{days_range}_{date}`
+**Cache Key**: `instagram_dashboard:v3:topic:{topic_id}:limit:{top_posts_limit}:payload:{start_date}:{end_date}`
 
 ## General Dashboard Aggregator
 
@@ -127,7 +127,18 @@ namespace is used by cache invalidation tasks.
 - Identifies top content across all platforms
 - Generates publishing-time recommendations only from available temporal engagement data; it does not supply a default day or time.
 
-**Cache Key**: `general_dashboard_v2_{topic_id}_{start_date}_{end_date}`
+**Cache Key**: `general_dashboard:v3:topic:{topic_id}:payload:{start_date}:{end_date}`
+
+## Home Dashboard Aggregator
+
+**Location**: `app/services/home_services/dashboard_aggregator_service.rb`
+
+**Purpose**: Aggregates cross-topic home dashboard metrics.
+
+**Cache Key**: `home_dashboard:v3:topics:{sorted_unique_topic_ids}:payload:{start_date}:{end_date}`
+
+The key includes the complete sorted topic set, so a topic update invalidates the
+Home namespace as well as the affected topic-specific dashboard caches.
 
 ## Site Dashboard Aggregator
 

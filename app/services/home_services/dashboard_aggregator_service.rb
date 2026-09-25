@@ -78,7 +78,11 @@ module HomeServices
     private
 
     def cache_key
-      "home_dashboard_v3_#{@topics.map(&:id).sort.join('_')}_#{@days_range}_#{Date.current}"
+      "home_dashboard:v3:topics:#{@topics.map(&:id).uniq.sort.join(',')}:payload:#{cache_date_range}"
+    end
+
+    def cache_date_range
+      "#{@start_date.to_date.iso8601}:#{@end_date.to_date.iso8601}"
     end
 
     def tags_data

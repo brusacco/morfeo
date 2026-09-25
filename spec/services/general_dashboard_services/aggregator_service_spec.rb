@@ -38,13 +38,13 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
     )
   end
 
-  it 'uses the versioned cache key for the selected reporting period' do
+  it 'uses a v3 cache key for the selected reporting period' do
     start_date = Time.zone.parse('2026-09-01 10:00')
     end_date = Time.zone.parse('2026-09-15 22:00')
     allow(described_class).to receive(:new).and_call_original
     dated_service = described_class.new(topic: topic, start_date: start_date, end_date: end_date)
 
-    expect(dated_service.send(:cache_key)).to eq('general_dashboard_v2_7_2026-09-01_2026-09-15')
+    expect(dated_service.send(:cache_key)).to eq('general_dashboard:v3:topic:7:payload:2026-09-01:2026-09-15')
   end
 
   it 'loads current digital metrics with one aggregate query' do

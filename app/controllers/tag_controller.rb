@@ -2,16 +2,21 @@
 
 class TagController < ApplicationController
   include TagAuthorizable
-  
+
   before_action :authenticate_user!
-  before_action :set_tag, only: [:show, :comments, :report, :pdf]
-  before_action :authorize_tag_access!, only: [:show, :comments, :report, :pdf]
+  before_action :set_tag, only: %i[show comments report pdf]
+  before_action :authorize_tag_access!, only: %i[show comments report pdf]
 
   # Constants
   CACHE_DURATION = 30.minutes
 
-  caches_action :show, :report, :pdf, expires_in: CACHE_DURATION,
-                cache_path: proc { |c| { tag_id: c.params[:id], user_id: c.current_user.id, days_range: c.params[:days_range] } }
+  caches_action :show,
+                :report,
+                :pdf,
+                expires_in: CACHE_DURATION,
+                cache_path: proc { |c|
+                  { tag_id: c.params[:id], user_id: c.current_user.id, days_range: c.params[:days_range] }
+                }
 
   def entries_data
     tag_id = params[:tag_id]
@@ -100,24 +105,28 @@ class TagController < ApplicationController
     # Remove ORDER BY clause before GROUP BY to avoid MySQL ONLY_FULL_GROUP_BY error
     site_counts_by_name = @entries.reorder(nil).group('sites.name').count
     site_sums_by_name = @entries.reorder(nil).group('sites.name').sum(:total_count)
-    
+
     # Prepare site data in format similar to topics for 2-column display
-    site_name_counts = site_counts_by_name.sort_by { |_, count| -count }.first(12)
-    site_name_interactions = site_sums_by_name.sort_by { |_, sum| -sum }.first(12)
-    
+    site_name_counts = site_counts_by_name.sort_by { |_, count| -count }
+                                          .first(12)
+    site_name_interactions = site_sums_by_name.sort_by { |_, sum| -sum }
+                                              .first(12)
+
     # Load Site objects with their data
     site_names = (site_name_counts.map(&:first) + site_name_interactions.map(&:first)).uniq
     sites_by_name = Site.where(name: site_names).index_by(&:name)
-    
+
     # Build arrays with site objects (format: [{ site: site_object, name: site_name, count: count }])
-    @site_top_counts = site_name_counts.map do |site_name, count|
-      { site: sites_by_name[site_name], name: site_name, count: count }
-    end
-    
-    @site_top_interactions = site_name_interactions.map do |site_name, interactions|
-      { site: sites_by_name[site_name], name: site_name, interactions: interactions }
-    end
-    
+    @site_top_counts =
+      site_name_counts.map do |site_name, count|
+        { site: sites_by_name[site_name], name: site_name, count: count }
+      end
+
+    @site_top_interactions =
+      site_name_interactions.map do |site_name, interactions|
+        { site: sites_by_name[site_name], name: site_name, interactions: interactions }
+      end
+
     # Keep these for backward compatibility (used in "Distribución por Medios" section which will be removed)
     @site_counts = site_counts_by_name
     @site_sums = site_sums_by_name
@@ -131,10 +140,10 @@ class TagController < ApplicationController
                               .sum(:total_count)
     @tags_count = {}
     @tags.each { |n| @tags_count[n.name] = n.count }
-    
+
     # Sentiment data for charts (moved from view for performance)
     @sentiment_data = calculate_sentiment_data
-    
+
     # Temporal Intelligence Data
     load_temporal_intelligence_data
   end
@@ -142,7 +151,10 @@ class TagController < ApplicationController
   def comments
     # @tag is set by set_tag before_action
     # Authorization checked by authorize_tag_access!
-    @entries = Entry.enabled.includes(:site, :tags).normal_range.joins(:site).tagged_with(@tag.name).has_image.order(published_at: :desc)
+    @entries = Entry.enabled.includes(
+      :site,
+      :tags
+    ).normal_range.joins(:site).tagged_with(@tag.name).has_image.order(published_at: :desc)
 
     @comments = Comment.where(entry_id: @entries.select(:id)).order(created_time: :desc)
     @comments_word_occurrences = @comments.word_occurrences
@@ -154,7 +166,10 @@ class TagController < ApplicationController
   def report
     # @tag is set by set_tag before_action
     # Authorization checked by authorize_tag_access!
-    @entries = Entry.enabled.includes(:site, :tags).normal_range.joins(:site).tagged_with(@tag.name).has_image.order(published_at: :desc)
+    @entries = Entry.enabled.includes(
+      :site,
+      :tags
+    ).normal_range.joins(:site).tagged_with(@tag.name).has_image.order(published_at: :desc)
     @tags = @entries.tag_counts_on(:tags).order('count desc').limit(20)
 
     @tags_interactions = Entry.joins(:tags)
@@ -171,8 +186,8 @@ class TagController < ApplicationController
 
   def pdf
     # Get days_range from params, default to DAYS_RANGE if not provided or invalid
-    @days_range = (params[:days_range].presence&.to_i || DAYS_RANGE || 7)
-    
+    @days_range = params[:days_range].presence&.to_i || DAYS_RANGE || 7
+
     # Use dedicated PDF service
     pdf_data = TagPdfServices::PdfService.call(tag: @tag, days_range: @days_range)
 
@@ -250,40 +265,40 @@ class TagController < ApplicationController
     @site_sums = data[:site_sums]
     @total_entries = data[:total_entries]
     @total_interactions = data[:total_interactions]
-    
+
     # For PDF - wrap @entries to provide pre-calculated grouped data
-    if data[:entries_by_site_count] && data[:entries_by_site_sum] && data[:entries_by_site_id]
-      entries_original = @entries
-      by_site_count = data[:entries_by_site_count]
-      by_site_sum = data[:entries_by_site_sum]
-      by_site_id = data[:entries_by_site_id]
-      total_sum = data[:entries_total_sum]
-      
-      @entries = Struct.new(:relation, :by_site_count, :by_site_sum, :by_site_id, :total_sum) do
-        # Delegate most methods to the original relation
-        def method_missing(method, *args, &block)
-          relation.send(method, *args, &block)
+    return unless data[:entries_by_site_count] && data[:entries_by_site_sum] && data[:entries_by_site_id]
+
+    entries_original = @entries
+    by_site_count = data[:entries_by_site_count]
+    by_site_sum = data[:entries_by_site_sum]
+    by_site_id = data[:entries_by_site_id]
+    total_sum = data[:entries_total_sum]
+
+    @entries = Struct.new(:relation, :by_site_count, :by_site_sum, :by_site_id, :total_sum) do
+      # Delegate most methods to the original relation
+      def method_missing(method, ...)
+        relation.send(method, ...)
+      end
+
+      def respond_to_missing?(method, include_private = false)
+        relation.respond_to?(method, include_private) || super
+      end
+
+      # Override group to return pre-calculated data
+      def group(column)
+        TagController::GroupProxy.new(by_site_count, by_site_sum, by_site_id, column)
+      end
+
+      # Override sum to return pre-calculated total when called directly
+      def sum(field = nil)
+        if [:total_count, 'total_count'].include?(field)
+          total_sum
+        else
+          relation.sum(field)
         end
-        
-        def respond_to_missing?(method, include_private = false)
-          relation.respond_to?(method, include_private) || super
-        end
-        
-        # Override group to return pre-calculated data
-        def group(column)
-          TagController::GroupProxy.new(by_site_count, by_site_sum, by_site_id, column)
-        end
-        
-        # Override sum to return pre-calculated total when called directly
-        def sum(field = nil)
-          if field == :total_count || field == 'total_count'
-            total_sum
-          else
-            relation.sum(field)
-          end
-        end
-      end.new(entries_original, by_site_count, by_site_sum, by_site_id, total_sum)
-    end
+      end
+    end.new(entries_original, by_site_count, by_site_sum, by_site_id, total_sum)
   end
 
   def assign_chart_data(data)
@@ -293,29 +308,29 @@ class TagController < ApplicationController
     @chart_entries_sentiments_sums = data[:chart_entries_sentiments_sums]
     @title_chart_entries_counts = data[:title_chart_entries_counts]
     @title_chart_entries_sums = data[:title_chart_entries_sums]
-    
+
     # For PDF - create objects that respond to count and sum methods for chartkick
     if data[:title_chart_entries_count_data] && data[:title_chart_entries_sum_data]
       @title_chart_entries = create_chart_object(
-        data[:title_chart_entries_count_data], 
+        data[:title_chart_entries_count_data],
         data[:title_chart_entries_sum_data]
       )
     end
-    
-    if data[:chart_entries_sentiments_count_data] && data[:chart_entries_sentiments_sum_data]
-      @chart_entries_sentiments = create_chart_object(
-        data[:chart_entries_sentiments_count_data],
-        data[:chart_entries_sentiments_sum_data]
-      )
-    end
+
+    return unless data[:chart_entries_sentiments_count_data] && data[:chart_entries_sentiments_sum_data]
+
+    @chart_entries_sentiments = create_chart_object(
+      data[:chart_entries_sentiments_count_data],
+      data[:chart_entries_sentiments_sum_data]
+    )
   end
-  
+
   def create_chart_object(count_data, sum_data)
     Struct.new(:count_data, :sum_data) do
       def count(*)
         count_data
       end
-      
+
       def sum(*)
         sum_data
       end
@@ -349,23 +364,23 @@ class TagController < ApplicationController
   # Helper class for grouped data in PDF
   class GroupProxy
     attr_reader :count_data, :sum_data, :id_data, :column
-    
+
     def initialize(count_data, sum_data, id_data, column)
       @count_data = count_data
       @sum_data = sum_data
       @id_data = id_data
       @column = column
     end
-    
+
     def count(*)
       column == 'sites.id' ? id_data : count_data
     end
-    
-    def sum(field)
+
+    def sum(_field)
       sum_data
     end
   end
-  
+
   def load_temporal_intelligence_data
     begin
       @temporal_summary = calculate_temporal_summary
@@ -373,49 +388,49 @@ class TagController < ApplicationController
       Rails.logger.error "❌ Error loading temporal_summary: #{e.class} - #{e.message}"
       @temporal_summary = nil
     end
-    
+
     begin
       @optimal_time = calculate_optimal_publishing_time
     rescue StandardError => e
       Rails.logger.error "❌ Error loading optimal_time: #{e.message}"
       @optimal_time = nil
     end
-    
+
     begin
       @trend_velocity = calculate_trend_velocity
     rescue StandardError => e
       Rails.logger.error "❌ Error loading trend_velocity: #{e.message}"
       @trend_velocity = { velocity_percent: 0, direction: 'stable' }
     end
-    
+
     begin
       @engagement_velocity = calculate_engagement_velocity
     rescue StandardError => e
       Rails.logger.error "❌ Error loading engagement_velocity: #{e.message}"
       @engagement_velocity = { velocity_percent: 0, direction: 'stable' }
     end
-    
+
     begin
       @content_half_life = calculate_content_half_life
     rescue StandardError => e
       Rails.logger.error "❌ Error loading content_half_life: #{e.message}"
       @content_half_life = nil
     end
-    
+
     begin
       @peak_hours = calculate_peak_hours
     rescue StandardError => e
       Rails.logger.error "❌ Error loading peak_hours: #{e.message}"
       @peak_hours = {}
     end
-    
+
     begin
       @peak_days = calculate_peak_days
     rescue StandardError => e
       Rails.logger.error "❌ Error loading peak_days: #{e.message}"
       @peak_days = {}
     end
-    
+
     begin
       @heatmap_data = calculate_heatmap_data
     rescue StandardError => e
@@ -423,66 +438,77 @@ class TagController < ApplicationController
       @heatmap_data = []
     end
   end
-  
+
   def calculate_temporal_summary
-    return nil if @entries.empty?
-    
+    return if @entries.empty?
+
     {
       total_entries: @total_entries,
       total_interactions: @total_interactions,
       avg_interactions: @promedio
     }
   end
-  
+
   def calculate_optimal_publishing_time
-    return nil if @entries.empty?
-    
+    return if @entries.empty?
+
     # Group by day of week and hour
     by_time = @entries.group_by { |e| [e.published_at.strftime('%A'), e.published_at.hour] }
-    
-    return nil if by_time.empty?
-    
+
+    return if by_time.empty?
+
     # Calculate average engagement for each time slot
-    time_stats = by_time.map do |(day, hour), entries|
-      {
-        day: day,
-        hour: hour,
-        avg_engagement: entries.sum(&:total_count).to_f / entries.size,
-        entry_count: entries.size
-      }
-    end
-    
+    time_stats =
+      by_time.map do |(day, hour), entries|
+        {
+          day: day,
+          hour: hour,
+          avg_engagement: entries.sum(&:total_count).to_f / entries.size,
+          entry_count: entries.size
+        }
+      end
+
     # Find the best time (minimum 3 entries required)
-    best = time_stats.select { |s| s[:entry_count] >= 3 }.max_by { |s| s[:avg_engagement] }
-    
+    best = time_stats.select { |s| s[:entry_count] >= 3 }
+                     .max_by { |s| s[:avg_engagement] }
+
     best || time_stats.max_by { |s| s[:avg_engagement] }
   end
-  
+
   def calculate_trend_velocity
     recent_entries = @entries.where('published_at >= ?', 24.hours.ago)
     previous_entries = @entries.where('published_at >= ? AND published_at < ?', 48.hours.ago, 24.hours.ago)
-    
+
     recent_count = recent_entries.count
     previous_count = previous_entries.count
-    
-    return { velocity_percent: 0, direction: 'stable', trend: 'estable', recent_count: recent_count } if previous_count.zero?
-    
+
+    if previous_count.zero?
+      return {
+        velocity_percent: 0,
+        direction: 'stable',
+        trend: 'estable',
+        recent_count: recent_count
+      }
+    end
+
     velocity_percent = ((recent_count - previous_count).to_f / previous_count * 100).round(1)
-    
-    direction = if velocity_percent > 10
-                  'up'
-                elsif velocity_percent < -10
-                  'down'
-                else
-                  'stable'
-                end
-    
-    trend = case direction
-            when 'up' then 'al alza'
-            when 'down' then 'a la baja'
-            else 'estable'
-            end
-    
+
+    direction =
+      if velocity_percent > 10
+        'up'
+      elsif velocity_percent < -10
+        'down'
+      else
+        'stable'
+      end
+
+    trend =
+      case direction
+      when 'up' then 'al alza'
+      when 'down' then 'a la baja'
+      else 'estable'
+      end
+
     {
       velocity_percent: velocity_percent,
       direction: direction,
@@ -491,32 +517,41 @@ class TagController < ApplicationController
       previous_count: previous_count
     }
   end
-  
+
   def calculate_engagement_velocity
     recent_entries = @entries.where('published_at >= ?', 24.hours.ago)
     previous_entries = @entries.where('published_at >= ? AND published_at < ?', 48.hours.ago, 24.hours.ago)
-    
+
     recent_interactions = recent_entries.sum(:total_count)
     previous_interactions = previous_entries.sum(:total_count)
-    
-    return { velocity_percent: 0, direction: 'stable', trend: 'estable', recent_interactions: recent_interactions } if previous_interactions.zero?
-    
+
+    if previous_interactions.zero?
+      return {
+        velocity_percent: 0,
+        direction: 'stable',
+        trend: 'estable',
+        recent_interactions: recent_interactions
+      }
+    end
+
     velocity_percent = ((recent_interactions - previous_interactions).to_f / previous_interactions * 100).round(1)
-    
-    direction = if velocity_percent > 10
-                  'up'
-                elsif velocity_percent < -10
-                  'down'
-                else
-                  'stable'
-                end
-    
-    trend = case direction
-            when 'up' then 'creciendo'
-            when 'down' then 'decreciendo'
-            else 'estable'
-            end
-    
+
+    direction =
+      if velocity_percent > 10
+        'up'
+      elsif velocity_percent < -10
+        'down'
+      else
+        'stable'
+      end
+
+    trend =
+      case direction
+      when 'up' then 'creciendo'
+      when 'down' then 'decreciendo'
+      else 'estable'
+      end
+
     {
       velocity_percent: velocity_percent,
       direction: direction,
@@ -525,36 +560,36 @@ class TagController < ApplicationController
       previous_interactions: previous_interactions
     }
   end
-  
+
   def calculate_content_half_life
-    return nil if @entries.empty?
-    
+    return if @entries.empty?
+
     # Calculate time differences between entries
     sorted_entries = @entries.order(:published_at)
-    return nil if sorted_entries.count < 2
-    
+    return if sorted_entries.count < 2
+
     # Calculate median hours between entries
     time_diffs = []
     sorted_entries.each_cons(2) do |a, b|
       hours_diff = ((b.published_at - a.published_at) / 1.hour).round
       time_diffs << hours_diff if hours_diff > 0
     end
-    
-    return nil if time_diffs.empty?
-    
+
+    return if time_diffs.empty?
+
     median_hours = time_diffs.sort[time_diffs.length / 2]
-    
+
     {
       median_hours: median_hours,
       sample_size: sorted_entries.count
     }
   end
-  
+
   def calculate_peak_hours
     return {} if @entries.empty?
-    
+
     by_hour = @entries.group_by { |e| e.published_at.hour }
-    
+
     by_hour.transform_values do |entries|
       {
         entry_count: entries.size,
@@ -563,29 +598,30 @@ class TagController < ApplicationController
       }
     end
   end
-  
+
   def calculate_peak_days
     return {} if @entries.empty?
-    
-    day_names = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
-    
+
+    day_names = %w[Domingo Lunes Martes Miércoles Jueves Viernes Sábado]
+
     by_day = @entries.group_by { |e| day_names[e.published_at.wday] }
-    
+
     by_day.transform_values do |entries|
       {
         entry_count: entries.size,
         total_engagement: entries.sum(&:total_count),
         avg_engagement: entries.sum(&:total_count).to_f / entries.size
       }
-    end.sort_by { |day, _| day_names.index(day) }.to_h
+    end.sort_by { |day, _| day_names.index(day) }
+          .to_h
   end
-  
+
   def calculate_heatmap_data
     return [] if @entries.empty?
-    
+
     # Group by day of week (0-6) and hour (0-23)
     heatmap = @entries.group_by { |e| [e.published_at.wday, e.published_at.hour] }
-    
+
     heatmap.map do |(day, hour), entries|
       {
         day_number: day,
@@ -596,13 +632,13 @@ class TagController < ApplicationController
       }
     end
   end
-  
+
   # Calculate sentiment data for charts
   # Moved from view for better performance and separation of concerns
   # @return [Hash] Sentiment counts and sums grouped by day
   def calculate_sentiment_data
     entries_with_sentiment = @entries.where.not(polarity: nil).reorder(nil)
-    
+
     {
       counts: entries_with_sentiment.group(:polarity).group_by_day(:published_at).count,
       sums: entries_with_sentiment.group(:polarity).group_by_day(:published_at).sum(:total_count)

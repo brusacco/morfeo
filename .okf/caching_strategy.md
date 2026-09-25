@@ -69,18 +69,26 @@ end
 - `HomeServices::DashboardAggregatorService`
 - `SiteDashboardServices::AggregatorService`
 
-### Versioned Digital Dashboard Keys
+### Versioned Dashboard Keys
 
-Digital dashboard caches use `digital_dashboard:v3` with ISO date boundaries:
+Dashboard caches use versioned namespaces with ISO date boundaries:
 
 ```
 digital_dashboard:v3:topic:{topic_id}:{resource}:{start_date}:{end_date}
 digital_dashboard:v3:global_stats:{start_date}:{end_date}
+facebook_dashboard:v3:topic:{topic_id}:limit:{limit}:payload:{start_date}:{end_date}
+twitter_dashboard:v3:topic:{topic_id}:limit:{limit}:payload:{start_date}:{end_date}
+instagram_dashboard:v3:topic:{topic_id}:limit:{limit}:payload:{start_date}:{end_date}
+general_dashboard:v3:topic:{topic_id}:payload:{start_date}:{end_date}
+home_dashboard:v3:topics:{sorted_unique_topic_ids}:payload:{start_date}:{end_date}
 ```
 
-The topic resources are `payload`, `site_data`, and `text_analysis`. Cache
-maintenance tasks invalidate this namespace with `digital_dashboard:v3:*` or a
-topic-specific prefix.
+The digital topic resources are `payload`, `site_data`, and `text_analysis`.
+Cache maintenance tasks invalidate each namespace with its `:v3:*` pattern or a
+topic-specific prefix. Updating a topic also invalidates `home_dashboard:v3:*`
+because its payload depends on the active topic set. The Home key normalizes its
+topic IDs as a sorted unique set, preventing duplicate or order-only cache
+variants.
 
 ### Digital Share of Voice
 
