@@ -3,7 +3,7 @@ type: Architecture
 title: Aggregator Services
 description: Dashboard data aggregation services for all platform analytics
 tags: [services, aggregation, dashboards, performance]
-timestamp: 2026-09-22T00:00:00Z
+timestamp: 2026-09-25T00:00:00Z
 ---
 
 # Overview
@@ -117,12 +117,12 @@ end
 - Calculates channel performance (per-platform metrics)
 - Performs temporal intelligence (trend analysis)
 - Analyzes sentiment across all channels
-- Computes reach analysis
+- Computes reach analysis with provenance: `reach_estimated` is true for multiplier-derived values (digital always; Twitter only when observed views are unavailable). These values must be presented as `Estimated Reach`, not observed reach.
 - Builds competitive analysis
 - Identifies top content across all platforms
-- Generates recommendations
+- Generates publishing-time recommendations only from available temporal engagement data; it does not supply a default day or time.
 
-**Cache Key**: `general_dashboard_{topic_id}_{start_date}_{end_date}`
+**Cache Key**: `general_dashboard_v2_{topic_id}_{start_date}_{end_date}`
 
 ## Site Dashboard Aggregator
 

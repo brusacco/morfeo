@@ -64,7 +64,7 @@ module TopicAuthorizable
 
     # Skip caching for unauthorized access redirects to prevent
     # cached error messages from persisting after permissions are granted
-    skip_action_cache
+    skip_action_cache if respond_to?(:skip_action_cache, true)
 
     redirect_to root_path,
                 alert: 'El Tópico al que intentaste acceder no está asignado a tu usuario o se encuentra deshabilitado'

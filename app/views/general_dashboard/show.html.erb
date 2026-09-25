@@ -269,12 +269,12 @@
           </div>
         </div>
 
-        <!-- Total Reach -->
+        <!-- Estimated Reach -->
         <div class="relative bg-gradient-to-br from-green-500 to-green-600 rounded-2xl shadow-xl p-6 text-white overflow-hidden transform hover:scale-105 transition-all duration-300">
           <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
           <div class="relative">
             <div class="flex items-center justify-between mb-3">
-              <div class="text-sm font-semibold uppercase tracking-wider text-green-100">Alcance Total</div>
+              <div class="text-sm font-semibold uppercase tracking-wider text-green-100">Estimated Reach</div>
               <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
                 <i class="fa-solid fa-users text-2xl"></i>
               </div>
@@ -282,9 +282,9 @@
             <div class="text-4xl font-bold mb-2">
               <%= number_with_delimiter(@executive_summary[:total_reach]) %>*
             </div>
-            <div class="text-sm text-green-100">Estimated unique users</div>
+            <div class="text-sm text-green-100">Incluye alcance observado y estimado</div>
             <div class="text-xs text-green-200 mt-2">
-              * Digital: estimado (3x) | Facebook y Twitter: datos reales de API
+              * Digital: interacciones x3 | Twitter: interacciones x10 cuando no hay vistas
             </div>
           </div>
         </div>
@@ -359,8 +359,8 @@
           </div>
           <div class="ml-3">
             <p class="text-sm text-blue-700">
-              <strong>Nota sobre datos de alcance:</strong> Facebook y Twitter proporcionan datos reales de vistas vía API oficial. 
-              Para medios digitales de terceros, el alcance es una estimación conservadora basada en interacciones.
+              <strong>Nota sobre datos de alcance:</strong> Todo valor calculado mediante multiplicadores se etiqueta como
+              <strong>Estimated Reach</strong>. Medios digitales usa interacciones x3; Twitter usa interacciones x10 solo cuando no hay vistas observadas.
             </p>
           </div>
         </div>
@@ -439,7 +439,7 @@
 
               <!-- Reach -->
               <div class="flex items-center justify-between">
-                <span class="text-sm font-medium text-gray-600">Alcance</span>
+                <span class="text-sm font-medium text-gray-600"><%= channel[:reach_estimated] ? 'Estimated Reach' : 'Alcance observado' %></span>
                 <span class="text-lg font-bold <%= text_color %>"><%= number_with_delimiter(channel[:reach]) %></span>
               </div>
 
@@ -489,7 +489,7 @@
         </div>
 
         <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-          <h3 class="text-lg font-semibold text-gray-900 mb-4">Alcance por Canal</h3>
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Estimated Reach por Canal</h3>
           <%= pie_chart @chart_channel_reach, 
               donut: true, 
               colors: ['#10B981', '#14B8A6', '#06B6D4'],
@@ -600,14 +600,14 @@
         <div class="mb-6">
           <h2 class="text-2xl font-bold text-gray-900 flex items-center">
             <i class="fa-solid fa-bullhorn text-orange-600 mr-3"></i>
-            Análisis de Alcance
+            Análisis de Estimated Reach
           </h2>
         </div>
 
         <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
           <div class="space-y-4">
             <div class="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg">
-              <span class="text-sm font-semibold text-gray-700">Alcance Total</span>
+              <span class="text-sm font-semibold text-gray-700">Estimated Reach</span>
               <span class="text-2xl font-bold text-blue-600"><%= number_with_delimiter(@reach_analysis[:total_reach]) %></span>
             </div>
 
@@ -624,7 +624,7 @@
               <div class="space-y-2">
                 <% @reach_analysis[:by_channel].each do |channel, reach| %>
                   <div class="flex items-center justify-between text-sm">
-                    <span class="text-gray-600"><%= channel.to_s.capitalize %></span>
+                    <span class="text-gray-600"><%= channel.to_s.capitalize %> <%= '(Estimated Reach)' if @reach_analysis.fetch(:estimated_channels, {}).fetch(channel, false) %></span>
                     <span class="font-semibold text-gray-900"><%= number_with_delimiter(reach) %></span>
                   </div>
                 <% end %>

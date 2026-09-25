@@ -38,6 +38,15 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
     )
   end
 
+  it 'uses the versioned cache key for the selected reporting period' do
+    start_date = Time.zone.parse('2026-09-01 10:00')
+    end_date = Time.zone.parse('2026-09-15 22:00')
+    allow(described_class).to receive(:new).and_call_original
+    dated_service = described_class.new(topic: topic, start_date: start_date, end_date: end_date)
+
+    expect(dated_service.send(:cache_key)).to eq('general_dashboard_v2_7_2026-09-01_2026-09-15')
+  end
+
   it 'loads current digital metrics with one aggregate query' do
     current_entries = double('current_entries')
     previous_entries = double('previous_entries')
@@ -51,6 +60,235 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
     allow(previous_distinct_entries).to receive(:count).and_return(2)
     expect(current_distinct_entries).to receive(:pluck).once.and_return([[3, 12]])
 
-    expect(service.send(:digital_data)).to eq(count: 3, interactions: 12, reach: 36, trend: 50.0)
+    expect(service.send(:digital_data)).to eq(count: 3, interactions: 12, reach: 36, reach_estimated: true, trend: 50.0)
+  end
+
+  it 'normalizes missing digital aggregates to zero' do
+    current_entries = double('current_entries')
+    previous_entries = double('previous_entries')
+    current_distinct_entries = double('current_distinct_entries', reorder: nil)
+    previous_distinct_entries = double('previous_distinct_entries', count: 0)
+    allow(topic).to receive(:report_entries).and_return(current_entries, previous_entries)
+    allow(current_entries).to receive(:distinct).and_return(current_distinct_entries)
+    allow(current_distinct_entries).to receive(:reorder).with(nil).and_return(current_distinct_entries)
+    allow(current_distinct_entries).to receive(:pluck).and_return([[0, nil]])
+    allow(previous_entries).to receive(:distinct).and_return(previous_distinct_entries)
+
+    expect(service.send(:digital_data)).to eq(count: 0, interactions: 0, reach: 0, reach_estimated: true, trend: 0)
+  end
+
+  it 'does not recommend a publishing time without temporal data' do
+    allow(topic).to receive_messages(
+      optimal_publishing_time: nil,
+      facebook_optimal_publishing_time: nil,
+      twitter_optimal_publishing_time: nil
+    )
+
+    expect(service.send(:calculate_combined_optimal_time)).to be_nil
+    expect(service.send(:best_publishing_time_recommendation)).to eq(
+      recommendation: 'No hay datos suficientes para recomendar un horario de publicación.',
+      reasoning: 'Se requieren datos de engagement por día y hora para generar esta recomendación.'
+    )
+  end
+
+  it 'chooses the highest-engagement publishing time from all channels' do
+    digital = { day: 'Martes', hour: 10, recommendation: 'Martes a las 10:00 hrs', avg_engagement: 4.0 }
+    facebook = { day: 'Miércoles', hour: 15, recommendation: 'Miércoles a las 15:00 hrs', avg_engagement: 8.5 }
+    twitter = { day: 'Jueves', hour: 12, recommendation: 'Jueves a las 12:00 hrs', avg_engagement: 6.0 }
+    allow(topic).to receive_messages(
+      optimal_publishing_time: digital,
+      facebook_optimal_publishing_time: facebook,
+      twitter_optimal_publishing_time: twitter
+    )
+
+    expect(service.send(:calculate_combined_optimal_time)).to eq(facebook)
+    expect(service.send(:best_publishing_time_recommendation)).to eq(
+      recommendation: 'Miércoles a las 15:00 hrs',
+      reasoning: 'Basado en análisis de engagement promedio más alto (8.5) en Miércoles a las 15:00'
+    )
+  end
+
+  it 'marks multiplier-derived Twitter reach as estimated when views are unavailable' do
+    current_scope = double('current_twitter_scope')
+    previous_scope = double('previous_twitter_scope')
+    allow(TwitterPost).to receive(:where).and_return(current_scope, previous_scope)
+    allow(current_scope).to receive(:tagged_with).with(%w[alpha beta], any: true).and_return(current_scope)
+    allow(current_scope).to receive(:pluck).and_return([[2, 5, 0]])
+    allow(previous_scope).to receive(:tagged_with).with(%w[alpha beta], any: true).and_return(previous_scope)
+    allow(previous_scope).to receive(:count).with('DISTINCT twitter_posts.id').and_return(1)
+
+    expect(service.send(:twitter_data)).to eq(
+      count: 2,
+      interactions: 5,
+      reach: 50,
+      reach_estimated: true,
+      trend: 100.0
+    )
+  end
+
+  it 'keeps observed Twitter views distinct from estimated reach' do
+    current_scope = double('current_twitter_scope')
+    previous_scope = double('previous_twitter_scope')
+    allow(TwitterPost).to receive(:where).and_return(current_scope, previous_scope)
+    allow(current_scope).to receive(:tagged_with).with(%w[alpha beta], any: true).and_return(current_scope)
+    allow(current_scope).to receive(:pluck).and_return([[2, 5, 40]])
+    allow(previous_scope).to receive(:tagged_with).with(%w[alpha beta], any: true).and_return(previous_scope)
+    allow(previous_scope).to receive(:count).with('DISTINCT twitter_posts.id').and_return(2)
+
+    expect(service.send(:twitter_data)).to include(reach: 40, reach_estimated: false, trend: 0.0)
+  end
+
+  it 'returns zero social metrics without tags instead of querying social sources' do
+    empty_topic = double('empty_topic', id: 8, tags: double('tags_relation', pluck: []))
+    allow(described_class).to receive(:new).and_call_original
+    empty_service = described_class.new(topic: empty_topic)
+
+    expect(empty_service.send(:facebook_data)).to eq(count: 0, interactions: 0, reach: 0, reach_estimated: false, trend: 0)
+    expect(empty_service.send(:twitter_data)).to eq(count: 0, interactions: 0, reach: 0, reach_estimated: false, trend: 0)
+  end
+
+  it 'preserves reach provenance in the reach analysis payload' do
+    allow(service).to receive_messages(
+      total_reach: 130,
+      digital_data: { reach: 30, reach_estimated: true },
+      facebook_data: { reach: 80, reach_estimated: false },
+      twitter_data: { reach: 20, reach_estimated: true },
+      unique_sources_count: 4,
+      geographic_distribution: {}
+    )
+
+    expect(service.send(:build_reach_analysis)).to include(
+      total_reach: 130,
+      by_channel: { digital: 30, facebook: 80, twitter: 20 },
+      estimated_channels: { digital: true, facebook: false, twitter: true }
+    )
+  end
+
+  it 'handles zero denominators in percentage calculations' do
+    expect(service.send(:calculate_trend, 10, 0)).to eq(0)
+    expect(service.send(:calculate_share, 10, 0)).to eq(0)
+    expect(service.send(:calculate_engagement_rate, 10, 0)).to eq(0)
+    expect(service.send(:calculate_trend, 15, 10)).to eq(50.0)
+    expect(service.send(:calculate_share, 1, 3)).to eq(33.3)
+    expect(service.send(:calculate_engagement_rate, 1, 3)).to eq(33.33)
+  end
+
+  it 'returns a neutral weighted sentiment when no channel has mentions' do
+    allow(service).to receive_messages(
+      digital_data: { count: 0 },
+      facebook_data: { count: 0 },
+      twitter_data: { count: 0 },
+      digital_sentiment: { average: 80 },
+      facebook_sentiment: { average: -80 },
+      twitter_sentiment: { average: 10 }
+    )
+
+    expect(service.send(:average_sentiment)).to eq(0)
+  end
+
+  it 'combines string and integer digital polarities with Facebook sentiment counts' do
+    allow(service).to receive_messages(
+      digital_sentiment: { distribution: { positive: 3, neutral: 2, negative: 1 } },
+      facebook_sentiment: {
+        distribution: {
+          very_positive: { count: 4 },
+          positive: { count: 5 },
+          neutral: { count: 6 },
+          negative: { count: 7 },
+          very_negative: { count: 8 }
+        }
+      }
+    )
+
+    expect(service.send(:combined_sentiment_distribution)).to eq(positive: 12, neutral: 8, negative: 16)
+  end
+
+  it 'assigns confidence at the documented sample-size boundaries' do
+    expect(service).to receive(:total_mentions).and_return(0, 10, 50, 200, 1000)
+
+    expect(Array.new(5) { service.send(:overall_sentiment_confidence) }).to eq([0.2, 0.5, 0.7, 0.85, 0.95])
+  end
+
+  it 'emits crisis and rapid-decline alerts together' do
+    allow(service).to receive_messages(
+      average_sentiment: -31,
+      sentiment_trend: { change: -21, direction: 'declining' }
+    )
+
+    expect(service.send(:detect_sentiment_alerts)).to match_array([
+      hash_including(type: 'crisis', severity: 'high'),
+      hash_including(type: 'warning', severity: 'medium')
+    ])
+  end
+
+  it 'emits an opportunity alert only for an improving positive trend' do
+    allow(service).to receive_messages(
+      average_sentiment: 51,
+      sentiment_trend: { change: 5, direction: 'improving' }
+    )
+
+    expect(service.send(:detect_sentiment_alerts)).to contain_exactly(hash_including(type: 'opportunity', severity: 'low'))
+  end
+
+  it 'aggregates and ranks peak hours across channels' do
+    allow(topic).to receive_messages(
+      peak_publishing_times_by_hour: { 9 => { avg_engagement: 3, entry_count: 2 }, 12 => { avg_engagement: 1, entry_count: 1 } },
+      facebook_peak_publishing_times_by_hour: { 9 => { avg_engagement: 4, entry_count: 1 }, 18 => { avg_engagement: 6, entry_count: 3 } },
+      twitter_peak_publishing_times_by_hour: { 12 => { avg_engagement: 5, entry_count: 2 } }
+    )
+
+    expect(service.send(:combined_peak_hours)).to eq(
+      9 => { avg_engagement: 7, entry_count: 3 },
+      18 => { avg_engagement: 6, entry_count: 3 },
+      12 => { avg_engagement: 6, entry_count: 3 }
+    )
+  end
+
+  it 'aggregates and ranks peak days across channels' do
+    allow(topic).to receive_messages(
+      peak_publishing_times_by_day: { 1 => { avg_engagement: 2, entry_count: 1 } },
+      facebook_peak_publishing_times_by_day: { 1 => { avg_engagement: 3, entry_count: 2 }, 3 => { avg_engagement: 7, entry_count: 1 } },
+      twitter_peak_publishing_times_by_day: { 5 => { avg_engagement: 4, entry_count: 2 } }
+    )
+
+    expect(service.send(:combined_peak_days)).to eq(
+      3 => { avg_engagement: 7, entry_count: 1 },
+      1 => { avg_engagement: 5, entry_count: 3 },
+      5 => { avg_engagement: 4, entry_count: 2 }
+    )
+  end
+
+  it 'falls back to stable zero velocity when source velocity calls fail' do
+    allow(topic).to receive_messages(
+      trend_velocity: -> { raise 'unavailable' },
+      facebook_trend_velocity: -> { raise 'unavailable' },
+      twitter_trend_velocity: -> { raise 'unavailable' },
+      engagement_velocity: -> { raise 'unavailable' },
+      facebook_engagement_velocity: -> { raise 'unavailable' },
+      twitter_engagement_velocity: -> { raise 'unavailable' }
+    )
+
+    expect(service.send(:overall_trend_velocity)).to include(velocity_percent: 0.0, direction: 'stable', trend: 'estable')
+    expect(service.send(:overall_engagement_velocity)).to include(velocity_percent: 0.0, direction: 'stable', trend: 'moderado')
+  end
+
+  it 'merges word occurrences and caps the result at the most frequent 100 words' do
+    words = (1..101).map { |index| { "word#{index}" => index } }
+
+    merged = service.send(:merge_word_occurrences, words)
+
+    expect(merged).to have_attributes(size: 100)
+    expect(merged.first).to eq(['word101', 101])
+    expect(merged).not_to include(['word1', 1])
+  end
+
+  it 'returns no growth opportunities when channel engagement is unavailable' do
+    allow(service).to receive(:build_channel_performance).and_return(
+      digital: { engagement_rate: nil },
+      facebook: { engagement_rate: nil },
+      twitter: { engagement_rate: nil }
+    )
+
+    expect(service.send(:growth_opportunities)).to eq([])
   end
 end

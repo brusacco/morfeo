@@ -144,9 +144,9 @@ class GeneralDashboardPresenter
 
   def reach_breakdown
     [
-      { channel: I18n.t('pdf.channels.digital'), reach: reach_by_channel[:digital] || 0, color: DIGITAL_PRIMARY_COLOR },
-      { channel: I18n.t('pdf.channels.facebook'), reach: reach_by_channel[:facebook] || 0, color: FACEBOOK_PRIMARY_COLOR },
-      { channel: I18n.t('pdf.channels.twitter'), reach: reach_by_channel[:twitter] || 0, color: TWITTER_PRIMARY_COLOR }
+      { channel: I18n.t('pdf.channels.digital'), reach: reach_by_channel[:digital] || 0, color: DIGITAL_PRIMARY_COLOR, estimated: estimated_reach?(:digital) },
+      { channel: I18n.t('pdf.channels.facebook'), reach: reach_by_channel[:facebook] || 0, color: FACEBOOK_PRIMARY_COLOR, estimated: estimated_reach?(:facebook) },
+      { channel: I18n.t('pdf.channels.twitter'), reach: reach_by_channel[:twitter] || 0, color: TWITTER_PRIMARY_COLOR, estimated: estimated_reach?(:twitter) }
     ]
   end
 
@@ -281,6 +281,14 @@ class GeneralDashboardPresenter
     # If no high priority found, return first 5
     high_priority.any? ? high_priority.first(5) : recommendations.first(5)
   end
+
+  private
+
+  def estimated_reach?(channel)
+    reach_analysis.fetch(:estimated_channels, {}).fetch(channel, false)
+  end
+
+  public
 
   # === Chart Data Methods ===
 

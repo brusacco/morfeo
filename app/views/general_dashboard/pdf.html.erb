@@ -194,7 +194,7 @@
             El tópico <strong><%= @topic.name %></strong> registró un total de 
             <strong><%= @presenter.formatted_total_mentions %></strong> menciones
             con <strong><%= @presenter.formatted_total_interactions %></strong> interacciones,
-            alcanzando un estimado de <strong><%= @presenter.formatted_total_reach %></strong> personas.
+            alcanzando un <strong>Estimated Reach</strong> de <strong><%= @presenter.formatted_total_reach %></strong> personas.
           </p>
           <p class="mt-md">
             El sentimiento general es <strong><%= @presenter.sentiment_text %></strong> 
@@ -215,7 +215,7 @@
               <th>Canal</th>
               <th style="text-align: right;"><%= pdf_metric_label(:entries) %></th>
               <th style="text-align: right;"><%= pdf_metric_label(:interactions) %></th>
-              <th style="text-align: right;"><%= pdf_metric_label(:reach) %></th>
+              <th style="text-align: right;">Estimated Reach</th>
             </tr>
           </thead>
           <tbody>
@@ -301,12 +301,12 @@
       <!-- REACH ANALYSIS (Using Presenter) -->
       <% if @presenter.reach_analysis.present? %>
         <div class="pdf-section">
-          <h2>Análisis de Alcance</h2>
+          <h2>Análisis de Estimated Reach</h2>
           
           <div class="pdf-stats-grid">
             <% @presenter.reach_breakdown.each do |item| %>
               <div class="pdf-stats-card">
-                <div class="pdf-stats-label"><%= item[:channel] %></div>
+                <div class="pdf-stats-label"><%= item[:channel] %><%= ' - Estimated Reach' if item[:estimated] %></div>
                 <div class="pdf-stats-value" style="color: <%= item[:color] %>;">
                   <%= pdf_format_number(item[:reach]) %>
                 </div>
@@ -316,8 +316,8 @@
           
           <div class="pdf-note">
             <p>
-              <strong>Nota sobre alcance:</strong> Los datos de alcance de Facebook y Twitter provienen de APIs oficiales 
-              (vistas reales). El alcance de medios digitales es una estimación conservadora (3x las interacciones).
+              <strong>Nota sobre alcance:</strong> Todo valor calculado mediante multiplicadores se etiqueta como
+              <strong>Estimated Reach</strong>. Medios digitales usa interacciones x3; Twitter usa interacciones x10 solo cuando no hay vistas observadas.
             </p>
           </div>
         </div>

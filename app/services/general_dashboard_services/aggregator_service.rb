@@ -33,7 +33,7 @@ module GeneralDashboardServices
     private
 
     def cache_key
-      "general_dashboard_#{topic.id}_#{start_date.to_date}_#{end_date.to_date}"
+      "general_dashboard_v2_#{topic.id}_#{start_date.to_date}_#{end_date.to_date}"
     end
 
     # ========================================
@@ -68,6 +68,7 @@ module GeneralDashboardServices
           mentions: digital_data[:count],
           interactions: digital_data[:interactions],
           reach: digital_data[:reach],
+          reach_estimated: digital_data[:reach_estimated],
           engagement_rate: calculate_engagement_rate(digital_data[:interactions], digital_data[:reach]),
           sentiment: digital_sentiment,
           trend: digital_data[:trend],
@@ -80,6 +81,7 @@ module GeneralDashboardServices
           mentions: facebook_data[:count],
           interactions: facebook_data[:interactions],
           reach: facebook_data[:reach],
+          reach_estimated: facebook_data[:reach_estimated],
           engagement_rate: calculate_engagement_rate(facebook_data[:interactions], facebook_data[:reach]),
           sentiment: facebook_sentiment,
           trend: facebook_data[:trend],
@@ -92,6 +94,7 @@ module GeneralDashboardServices
           mentions: twitter_data[:count],
           interactions: twitter_data[:interactions],
           reach: twitter_data[:reach],
+          reach_estimated: twitter_data[:reach_estimated],
           engagement_rate: calculate_engagement_rate(twitter_data[:interactions], twitter_data[:reach]),
           sentiment: twitter_sentiment,
           trend: twitter_data[:trend],
@@ -119,8 +122,7 @@ module GeneralDashboardServices
     end
 
     def calculate_combined_optimal_time_simple
-      # Simple recommendation without expensive aggregations
-      { day: 'Lunes', hour: 9, recommendation: 'Lunes a las 09:00 hrs', avg_engagement: 0 }
+      nil
     end
 
     # ========================================
@@ -153,6 +155,11 @@ module GeneralDashboardServices
           digital: digital_data[:reach],
           facebook: facebook_data[:reach],
           twitter: twitter_data[:reach]
+        },
+        estimated_channels: {
+          digital: digital_data[:reach_estimated],
+          facebook: facebook_data[:reach_estimated],
+          twitter: twitter_data[:reach_estimated]
         },
         # estimated_impressions: total_impressions,  # REMOVED - Not defensible without tracking pixels
         unique_sources: unique_sources_count,
@@ -250,6 +257,7 @@ module GeneralDashboardServices
             count: count,
             interactions: interactions,
             reach: interactions * 3, # Conservative estimate
+            reach_estimated: true,
             trend: calculate_trend(count, previous_entries.distinct.count)
           }
         end
@@ -258,7 +266,7 @@ module GeneralDashboardServices
     def facebook_data
       @facebook_data ||=
         begin
-          return { count: 0, interactions: 0, reach: 0, trend: 0 } if @tag_names.empty?
+          return { count: 0, interactions: 0, reach: 0, reach_estimated: false, trend: 0 } if @tag_names.empty?
 
           # Single combined query for all aggregations (more efficient)
           current_stats = FacebookEntry
@@ -281,6 +289,7 @@ module GeneralDashboardServices
             count: current_stats[0],
             interactions: current_stats[1] || 0,
             reach: current_stats[2] || 0,
+            reach_estimated: false,
             trend: calculate_trend(current_stats[0], previous_entries_count)
           }
         end
@@ -289,7 +298,7 @@ module GeneralDashboardServices
     def twitter_data
       @twitter_data ||=
         begin
-          return { count: 0, interactions: 0, reach: 0, trend: 0 } if @tag_names.empty?
+          return { count: 0, interactions: 0, reach: 0, reach_estimated: false, trend: 0 } if @tag_names.empty?
 
           # Single combined query for all aggregations (more efficient)
           current_stats = TwitterPost
@@ -320,6 +329,7 @@ module GeneralDashboardServices
             count: posts_count,
             interactions: interactions,
             reach: reach,
+            reach_estimated: views.zero?,
             trend: calculate_trend(posts_count, previous_posts_count)
           }
         end
@@ -559,7 +569,7 @@ module GeneralDashboardServices
       # Weight by engagement
       best = [digital_optimal, facebook_optimal, twitter_optimal].compact.max_by { |opt| opt[:avg_engagement] }
 
-      best || { day: 'Lunes', hour: 9, recommendation: 'Lunes a las 09:00 hrs' }
+      best
     end
 
     def combined_peak_hours
@@ -823,6 +833,13 @@ module GeneralDashboardServices
 
     def best_publishing_time_recommendation
       optimal = calculate_combined_optimal_time
+      unless optimal
+        return {
+          recommendation: 'No hay datos suficientes para recomendar un horario de publicación.',
+          reasoning: 'Se requieren datos de engagement por día y hora para generar esta recomendación.'
+        }
+      end
+
       avg_engagement = optimal[:avg_engagement] || 0
 
       {
