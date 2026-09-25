@@ -164,7 +164,7 @@ module HomeServices
         }
 
       # EXISTS returns each entry at most once, so aggregates must not use DISTINCT.
-      mentions = base_scope.call.count('DISTINCT entries.id')
+      mentions = base_scope.call.count
       interactions = base_scope.call.sum(:total_count)
       reach = interactions * DIGITAL_REACH_MULTIPLIER
       prev_interactions = Entry.enabled
