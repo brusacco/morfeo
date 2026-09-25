@@ -43,6 +43,15 @@ RSpec.describe HomeServices::DashboardAggregatorService do
 
       expect(second_result).to equal(first_result)
     end
+
+    it 'keeps a topic relation in SQL instead of materializing topic IDs' do
+      topic_scope = Topic.where(id: topics.map(&:id))
+      scoped_service = described_class.new(topics: topic_scope, days_range: 7)
+
+      expect(topic_scope).not_to receive(:map)
+
+      scoped_service.send(:load_topic_stats_batch)
+    end
   end
 
   describe '#tag_ids' do

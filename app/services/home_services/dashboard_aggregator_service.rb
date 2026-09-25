@@ -335,7 +335,7 @@ module HomeServices
     def load_topic_stats_batch
       # Single query to load all stats for all topics
       @topic_stats_by_topic ||= TopicStatDaily.where(
-        topic_id: @topics.map(&:id),
+        topic: @topics,
         topic_date: @start_date.to_date..@end_date.to_date
       ).group_by(&:topic_id)
     end
@@ -912,7 +912,7 @@ module HomeServices
     def sentiment_evolution_over_time
       # Batch load all stats for performance
       all_stats = TopicStatDaily.where(
-        topic_id: @topics.map(&:id),
+        topic: @topics,
         topic_date: @start_date.to_date..@end_date.to_date
       ).group_by(&:topic_date)
 
@@ -1185,7 +1185,7 @@ module HomeServices
 
     def load_previous_topic_stats_batch
       TopicStatDaily.where(
-        topic_id: @topics.map(&:id),
+        topic: @topics,
         topic_date: (@start_date - @days_range.days).to_date..@start_date.to_date
       ).group_by(&:topic_id)
     end

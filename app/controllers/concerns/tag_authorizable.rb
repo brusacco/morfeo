@@ -28,9 +28,9 @@ module TagAuthorizable
   # Main authorization method
   # Checks if current user can access the tag
   def authorize_tag_access!
-    unless can_access_tag?
-      handle_unauthorized_tag_access
-    end
+    return if can_access_tag?
+
+    handle_unauthorized_tag_access
   end
 
   # Check if user can access the tag
@@ -48,12 +48,8 @@ module TagAuthorizable
   # User can access tag if ANY of their topics use this tag
   def user_has_tag_access?
     return false unless @tag.present?
-    
-    # Get user's topic IDs
-    user_topic_ids = @topicos.pluck(:id)
-    
-    # Check if tag is used by any of user's topics
-    @tag.topics.where(id: user_topic_ids, status: true).exists?
+
+    @tag.topics.where(status: true).merge(@topicos).exists?
   end
 
   # Handle unauthorized access
@@ -62,4 +58,3 @@ module TagAuthorizable
     redirect_to root_path, alert: 'No tienes acceso a este tag.'
   end
 end
-

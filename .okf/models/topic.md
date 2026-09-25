@@ -4,7 +4,7 @@ title: Topic
 description: Collections of tags for organizing and tracking specific subjects
 resource: app/models/topic.rb
 tags: [content, core, analytics]
-timestamp: 2026-09-22T00:00:00Z
+timestamp: 2026-09-25T00:00:00Z
 ---
 
 # Overview
@@ -48,8 +48,11 @@ Velocity compares two adjacent 24-hour periods. The previous period is
 
 Temporal aggregates derive from the topic entry filter without the display-only
 site join, tag eager loading, ordering, or an intermediate list of entry IDs.
-The tag membership predicate remains an `EXISTS` filter so entries are not
-duplicated for topics with multiple matching tags.
+`entries_matching_tags` supplies `tags.select(:id)` to that predicate, keeping
+tag membership as an `EXISTS` subquery instead of materializing tag IDs. This
+prevents duplicate entries for topics with multiple matching tags and keeps
+large filters in SQL. Facebook emotional-intensity aggregates likewise reuse
+their supplied entry relation rather than querying a materialized ID list.
 
 # Auto-Sync
 

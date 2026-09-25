@@ -29,4 +29,22 @@ RSpec.describe Topic, type: :model do
 
     expect(topic.entries_matching_tags.pluck(:id)).to contain_exactly(content_entry.id)
   end
+
+  it 'reuses the Facebook entry relation for emotional intensity aggregates' do
+    entries = double('entries')
+    high_intensity_entries = double('high_intensity_entries', count: 3)
+    low_intensity_entries = double('low_intensity_entries', count: 2)
+    allow(entries).to receive(:average).with(:emotional_intensity).and_return(42.345)
+    allow(entries).to receive(:where)
+      .with('emotional_intensity > ?', FacebookEntry::HIGH_EMOTION_THRESHOLD)
+      .and_return(high_intensity_entries)
+    allow(entries).to receive(:where).with('emotional_intensity < ?', 20.0).and_return(low_intensity_entries)
+    expect(entries).not_to receive(:pluck)
+
+    expect(create(:topic).send(:emotional_intensity_analysis, entries)).to eq(
+      average_intensity: 42.35,
+      high_intensity_count: 3,
+      low_intensity_count: 2
+    )
+  end
 end

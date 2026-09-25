@@ -53,7 +53,7 @@ class Topic < ApplicationRecord
   end
 
   def entries_matching_tags(scope = Entry.all, context: :tags)
-    scope.with_any_tag_ids(tags.pluck(:id), context: context)
+    scope.with_any_tag_ids(tags.select(:id), context: context)
   end
 
   def report_entries(start_date, end_date)
@@ -1376,13 +1376,10 @@ class Topic < ApplicationRecord
   end
 
   def emotional_intensity_analysis(entries)
-    # Get IDs to avoid groupdate wrapping issues
-    entry_ids = entries.pluck(:id)
-
     {
-      average_intensity: FacebookEntry.where(id: entry_ids).average(:emotional_intensity).to_f.round(2),
-      high_intensity_count: FacebookEntry.where(id: entry_ids).where('emotional_intensity > ?', FacebookEntry::HIGH_EMOTION_THRESHOLD).count,
-      low_intensity_count: FacebookEntry.where(id: entry_ids).where('emotional_intensity < ?', 20.0).count
+      average_intensity: Float(entries.average(:emotional_intensity) || 0).round(2),
+      high_intensity_count: entries.where('emotional_intensity > ?', FacebookEntry::HIGH_EMOTION_THRESHOLD).count,
+      low_intensity_count: entries.where('emotional_intensity < ?', 20.0).count
     }
   end
 
