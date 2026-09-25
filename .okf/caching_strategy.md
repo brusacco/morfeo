@@ -124,6 +124,11 @@ create Proc object without a block`. Use `proc { |controller| { ... } }`, as
   version columns merely to invalidate this list cache. Those mechanisms expand
   the cache contract and can make it slower or harder to operate than the
   established 30-minute TTL.
+- Do not use `Topic#list_entries` to compute dashboard aggregates or the
+  dashboard payload version. Cache stores can return a relation materialized
+  from an earlier request, so the header can retain an old count while a
+  reordered list query shows current rows. Use the uncached list scope for any
+  count or version query; reserve `list_entries` for rendering the cached list.
 - Do not derive an action-cache version by running `COUNT` and `MAX(updated_at)`
   over `Topic#list_entries` for every request. That relation includes topic-tag
   filtering and joins, so the key calculation repeats an expensive query before

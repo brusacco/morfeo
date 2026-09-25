@@ -41,6 +41,18 @@ RSpec.describe Topic, type: :model do
     expect(topic.entries_cache_version).to match(/\A1:\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z\z/)
   end
 
+  it 'versions matching entries without using the cached list relation' do
+    topic = create(:topic)
+    entry = create(:entry)
+    entry.tag_list = ['alpha']
+    entry.save!
+    topic.tags << Tag.find_by!(name: 'alpha')
+
+    allow(topic).to receive(:list_entries).and_return(Entry.none)
+
+    expect(topic.entries_cache_version).to start_with('1:')
+  end
+
   it 'reuses the Facebook entry relation for emotional intensity aggregates' do
     entries = double('entries')
     high_intensity_entries = double('high_intensity_entries', count: 3)
