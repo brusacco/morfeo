@@ -3,7 +3,11 @@
 require 'rails_helper'
 
 RSpec.describe DigitalDashboardServices::AggregatorService do
-  let(:tags_relation) { double('tags_relation', pluck: %w[alpha beta]) }
+  let(:tags_relation) do
+    double('tags_relation').tap do |relation|
+      allow(relation).to receive(:pluck).with(:id, :name).and_return([[1, 'alpha'], [2, 'beta']])
+    end
+  end
   let(:topic) { double('topic', id: 7, tags: tags_relation) }
   let(:service) { described_class.new(topic: topic) }
 
@@ -112,5 +116,32 @@ RSpec.describe DigitalDashboardServices::AggregatorService do
     end
 
     expect(service.send(:global_digital_stats)).to eq(entries_count: 7, interactions: 70)
+  end
+
+  it 'loads word and bigram occurrences together' do
+    entries = double('entries')
+    allow(topic).to receive_messages(positive_words: nil, negative_words: nil)
+    expect(entries).to receive(:text_occurrences).once.with(word_limit: 100, bigram_limit: 100).and_return(
+      word_occurrences: [['analysis', 3]],
+      bigram_occurrences: [['data analysis', 2]]
+    )
+
+    expect(service.send(:load_text_analysis, entries)).to eq(
+      word_occurrences: [['analysis', 3]],
+      bigram_occurrences: [['data analysis', 2]],
+      positive_words: [],
+      negative_words: []
+    )
+  end
+
+  it 'uses direct tag IDs to load recent viral entries' do
+    recent_entries = double('recent_entries')
+    allow(Entry).to receive(:enabled).and_return(recent_entries)
+    allow(recent_entries).to receive(:where).with(published_at: kind_of(Range)).and_return(recent_entries)
+    expect(recent_entries).to receive(:with_any_tag_ids).with([1, 2], context: :tags).and_return(recent_entries)
+    allow(recent_entries).to receive(:includes).with(:site).and_return(recent_entries)
+    allow(recent_entries).to receive(:to_a).and_return([])
+
+    expect(service.send(:detect_viral_content)).to eq([])
   end
 end

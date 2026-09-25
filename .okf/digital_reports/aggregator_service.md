@@ -87,6 +87,8 @@ association suitable only where eventual consistency is acceptable.
 - Entry totals and per-polarity counts and interaction sums are calculated in one conditional aggregate query, so the topic tag filter is evaluated once.
 - Per-site entry counts and interaction sums are calculated in one grouped query and cached as one payload.
 - In direct-entry mode, share-of-voice reuses one global, range-keyed aggregate of all enabled entries instead of recalculating it per topic.
+- Word and bigram frequencies share one scoped text-analysis query and cache payload.
+- Viral-content detection filters recent entries through direct tag IDs in the `tags` context.
 - Calendar view data preparation
 - Advanced filtering by polarity
 - Title vs content tag analysis

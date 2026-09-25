@@ -16,7 +16,9 @@ module DigitalDashboardServices
       @days_range = (days_range || DAYS_RANGE || 7).to_i # Default to 7 days if not provided
       @start_date = @days_range.days.ago.beginning_of_day
       @end_date = Time.current
-      @tag_names = @topic.tags.pluck(:name) # Cache tag names
+      @tags_data = @topic.tags.pluck(:id, :name)
+      @tag_ids = @tags_data.map(&:first)
+      @tag_names = @tags_data.map(&:last)
       @topic_data_cache = nil # Memoization
     end
 
@@ -278,16 +280,13 @@ module DigitalDashboardServices
     end
 
     def load_text_analysis(entries)
+      text_data = Rails.cache.fetch("topic_#{@topic.id}_text_analysis_v2_#{Date.current}", expires_in: CACHE_EXPIRATION) do
+        entries.text_occurrences(word_limit: 100, bigram_limit: 100)
+      end
+
       {
-        word_occurrences: Rails.cache.fetch("topic_#{@topic.id}_words_#{Date.current}", expires_in: CACHE_EXPIRATION) do
-          entries.word_occurrences
-        end,
-        bigram_occurrences: Rails.cache.fetch(
-          "topic_#{@topic.id}_bigrams_#{Date.current}",
-          expires_in: CACHE_EXPIRATION
-        ) do
-          entries.bigram_occurrences
-        end,
+        word_occurrences: text_data[:word_occurrences],
+        bigram_occurrences: text_data[:bigram_occurrences],
         positive_words: parse_word_list(@topic.positive_words),
         negative_words: parse_word_list(@topic.negative_words)
       }
@@ -395,7 +394,7 @@ module DigitalDashboardServices
       # Get entries from last 24 hours
       recent_entries = Entry.enabled
                             .where(published_at: 24.hours.ago..Time.current)
-                            .tagged_with(@tag_names, any: true)
+                            .with_any_tag_ids(@tag_ids, context: :tags)
                             .includes(:site)
 
       # Use .to_a.size instead of .count to avoid SQL issues with acts_as_taggable_on
