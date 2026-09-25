@@ -151,7 +151,11 @@ module InstagramDashboardServices
                        .sort_by { |data| -data[:count] }
       profiles_interactions = rows
                               .map do |id, full_name, username, _, interactions|
-                                { profile: profiles_by_id[id], name: full_name || username || 'Sin perfil', interactions: interactions }
+                                {
+                                  profile: profiles_by_id[id],
+                                  name: full_name || username || 'Sin perfil',
+                                  interactions: interactions
+                                }
                               end
                               .sort_by { |data| -data[:interactions] }
 
