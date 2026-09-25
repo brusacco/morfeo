@@ -110,6 +110,8 @@ end
 - Pre-load dashboard data into Redis cache
 - Ensure fast first-time access
 - Maintain fresh data (30-minute expiration)
+- `cache:warm_dashboards` measures each dashboard invocation with a monotonic clock and reports per-topic totals, slowest calls, and aggregate timings.
+- Cache status is inferred from ActiveSupport cache read and generation notifications during each service invocation. `HIT` means the invocation observed a cache read hit; `MISS` means cache generation occurred; `UNKNOWN` is reported if neither notification is available.
 
 # Memoization Patterns
 

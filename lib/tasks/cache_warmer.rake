@@ -186,57 +186,51 @@ namespace :cache do
   task warm_dashboards: :environment do
     puts '🔥 Warming dashboard caches for all active topics IN PARALLEL...'
 
-    start_time = Time.current
-    topics = Topic.active.to_a
+    start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    topic_ids = Topic.active.pluck(:id)
+    workers = ENV.fetch('CACHE_WARM_WORKERS', 4).to_i
+    workers = CacheWarmDashboardReporter.worker_count(workers)
 
-    puts "📊 Processing #{topics.count} topics with 4 parallel workers..."
+    puts "📊 Processing #{topic_ids.count} topics with #{workers} parallel workers..."
 
     results =
-      Parallel.map(topics, in_processes: 4, progress: 'Dashboards') do |topic|
-        ActiveRecord::Base.connection.reconnect! # Reconnect in each process
+      Parallel.map(topic_ids, in_processes: workers, progress: 'Dashboards') do |topic_id|
+        started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
 
         begin
-          # Digital Dashboard
-          DigitalDashboardServices::AggregatorService.call(topic: topic)
-
-          # Facebook Dashboard
-          FacebookDashboardServices::AggregatorService.call(topic: topic, top_posts_limit: 20)
-
-          # Twitter Dashboard
-          TwitterDashboardServices::AggregatorService.call(topic: topic, top_posts_limit: 20)
-
-          # Instagram Dashboard
-          InstagramDashboardServices::AggregatorService.call(topic: topic, top_posts_limit: 20)
-
-          # General Dashboard
-          GeneralDashboardServices::AggregatorService.call(
-            topic: topic,
-            start_date: DAYS_RANGE.days.ago.beginning_of_day,
-            end_date: Time.zone.now.end_of_day
-          )
-
-          { success: true, topic_id: topic.id, topic_name: topic.name }
+          ActiveRecord::Base.connection.reconnect!
+          topic = Topic.find(topic_id)
+          CacheWarmDashboardReporter.new.warm_topic(topic)
         rescue StandardError => e
-          { success: false, topic_id: topic.id, topic_name: topic.name, error: e.message }
+          {
+            success: false,
+            topic_id: topic_id,
+            topic_name: nil,
+            duration: Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at,
+            dashboards: {},
+            error_class: e.class.name,
+            error: e.message,
+            backtrace: ENV['CACHE_WARM_DEBUG'] == '1' ? e.backtrace&.first(5) : nil
+          }
         end
       end
 
     successful = results.select { |r| r[:success] }
     failed = results.reject { |r| r[:success] }
 
-    duration = (Time.current - start_time).round(2)
-    minutes = (duration / 60).floor
-    seconds = (duration % 60).round(2)
+    duration = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time
 
     puts "\n\n✅ Dashboard warming complete!"
-    puts "⏱️  Time: #{"#{minutes}m " if minutes > 0}#{seconds}s"
-    puts "📊 Topics: #{successful.count} successful (#{successful.count * 5} dashboards)"
+    puts "📊 Topics: #{successful.count} successful, #{failed.count} failed"
 
     if failed.any?
       puts "\n⚠️  #{failed.count} topics failed:"
       failed.each do |f|
-        puts "   - Topic #{f[:topic_id]} (#{f[:topic_name]}): #{f[:error]}"
+        puts "   - Topic #{f[:topic_id]} (#{f[:topic_name] || 'unknown'}): #{f[:error_class]}: #{f[:error]}"
+        Array(f[:backtrace]).each { |line| puts "     #{line}" }
       end
     end
+
+    CacheWarmDashboardReporter.new.print_report(results: results, workers: workers, wall_time: duration)
   end
 end
