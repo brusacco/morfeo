@@ -63,6 +63,7 @@ module HomeServices
           channel_stats: calculate_channel_stats,
           topic_stats: calculate_topic_stats,
           topic_trends: calculate_topic_trends,
+          topic_chart_series: calculate_topic_chart_series,
           alerts: generate_alerts,
           top_content: fetch_top_content,
           # Phase 2: Enhanced Analytics
@@ -264,6 +265,24 @@ module HomeServices
         hash[topic.id] = {
           data: daily_data,
           direction: calculate_topic_trend_direction_from_stats(stats)
+        }
+      end
+    end
+
+    def calculate_topic_chart_series
+      stats_by_topic = load_topic_stats_batch
+
+      @topics.each_with_object({}) do |topic, hash|
+        stats = stats_by_topic[topic.id] || []
+
+        hash[topic.id] = {
+          name: topic.name,
+          topicId: topic.id,
+          entry_quantities: stats.each_with_object({}) { |stat, data| data[stat.topic_date] = stat.entry_count || 0 },
+          entry_interactions: stats.each_with_object({}) { |stat, data| data[stat.topic_date] = stat.total_count || 0 },
+          neutral_quantity: stats.each_with_object({}) { |stat, data| data[stat.topic_date] = stat.neutral_quantity || 0 },
+          positive_quantity: stats.each_with_object({}) { |stat, data| data[stat.topic_date] = stat.positive_quantity || 0 },
+          negative_quantity: stats.each_with_object({}) { |stat, data| data[stat.topic_date] = stat.negative_quantity || 0 }
         }
       end
     end

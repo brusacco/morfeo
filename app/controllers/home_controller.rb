@@ -19,6 +19,7 @@ class HomeController < ApplicationController
     # Topic Statistics
     @topic_stats = dashboard_data[:topic_stats]
     @topic_trends = dashboard_data[:topic_trends]
+    @topic_chart_series = dashboard_data[:topic_chart_series]
 
     # Alerts
     @alerts = dashboard_data[:alerts]
@@ -51,50 +52,11 @@ class HomeController < ApplicationController
     }
 
     # EXISTING: Multiple Charts (kept for backward compatibility)
-    @entry_quantities =
-      @topicos.map do |topic|
-        {
-          name: topic.name,
-          topicId: topic.id,
-          data: topic.topic_stat_dailies.normal_range.group_by_day(:topic_date).sum(:entry_count)
-        }
-      end
-
-    @entry_interactions =
-      @topicos.map do |topic|
-        {
-          name: topic.name,
-          topicId: topic.id,
-          data: topic.topic_stat_dailies.normal_range.group_by_day(:topic_date).sum(:total_count)
-        }
-      end
-
-    @neutral_quantity =
-      @topicos.map do |topic|
-        {
-          name: topic.name,
-          topicId: topic.id,
-          data: topic.topic_stat_dailies.normal_range.group_by_day(:topic_date).sum(:neutral_quantity)
-        }
-      end
-
-    @positive_quantity =
-      @topicos.map do |topic|
-        {
-          name: topic.name,
-          topicId: topic.id,
-          data: topic.topic_stat_dailies.normal_range.group_by_day(:topic_date).sum(:positive_quantity)
-        }
-      end
-
-    @negative_quantity =
-      @topicos.map do |topic|
-        {
-          name: topic.name,
-          topicId: topic.id,
-          data: topic.topic_stat_dailies.normal_range.group_by_day(:topic_date).sum(:negative_quantity)
-        }
-      end
+    @entry_quantities = build_topic_chart_series(:entry_quantities)
+    @entry_interactions = build_topic_chart_series(:entry_interactions)
+    @neutral_quantity = build_topic_chart_series(:neutral_quantity)
+    @positive_quantity = build_topic_chart_series(:positive_quantity)
+    @negative_quantity = build_topic_chart_series(:negative_quantity)
 
     @interacciones_ultimo_dia_topico = @topicos.joins(:topic_stat_dailies)
                                                .where(topic_stat_dailies: { topic_date: 1.day.ago.. })
@@ -134,6 +96,22 @@ class HomeController < ApplicationController
 
     # Tapa y Contra Tapa de Diarios
     @newspapers = Newspaper.where(date: Date.today)
+  end
+
+  private
+
+  def build_topic_chart_series(metric)
+    return [] if @topic_chart_series.blank?
+
+    @topicos.map do |topic|
+      topic_series = @topic_chart_series[topic.id] || {}
+
+      {
+        name: topic.name,
+        topicId: topic.id,
+        data: topic_series[metric] || {}
+      }
+    end
   end
 
   def deploy
