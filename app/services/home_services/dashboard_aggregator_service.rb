@@ -24,8 +24,8 @@ module HomeServices
     ENGAGEMENT_WARNING_THRESHOLD = -10   # Moderate drop
 
     # Viral content thresholds
-    VIRAL_MULTIPLIER = 5  # Content engagement > 5x average
-    VIRAL_MINIMUM_ENGAGEMENT = 100  # Minimum interactions to be considered viral
+    VIRAL_MULTIPLIER = 5 # Content engagement > 5x average
+    VIRAL_MINIMUM_ENGAGEMENT = 100 # Minimum interactions to be considered viral
 
     # Controversy thresholds (Facebook)
     CONTROVERSY_CRITICAL_THRESHOLD = 0.7  # 70% polarization
@@ -34,12 +34,12 @@ module HomeServices
     # Reach decline thresholds
     REACH_CRITICAL_DECLINE = -20  # 20% drop
     REACH_WARNING_DECLINE = -15   # 15% drop
-    REACH_MINIMUM = 1000  # Minimum reach to alert
+    REACH_MINIMUM = 1000 # Minimum reach to alert
 
     # Share of Voice thresholds
     SOV_CRITICAL_DROP = 5.0  # 5 percentage points drop
     SOV_WARNING_DROP = 3.0   # 3 percentage points drop
-    SOV_MINIMUM = 5.0  # Minimum SoV to monitor (5%)
+    SOV_MINIMUM = 5.0 # Minimum SoV to monitor (5%)
 
     # Competitive intelligence thresholds
     COMPETITIVE_SOV_THRESHOLD = 15
@@ -82,7 +82,8 @@ module HomeServices
 
     # Memoized tag names to avoid multiple pluck calls
     def tag_names
-      @tag_names_cache ||= @topics.flat_map { |t| t.tags.pluck(:name) }.uniq
+      @tag_names_cache ||= @topics.flat_map { |t| t.tags.pluck(:name) }
+                                  .uniq
     end
 
     # Memoized channel stats to avoid recalculation
@@ -183,9 +184,9 @@ module HomeServices
       interactions = base_scope.call.distinct.sum(interaction_sql)
       reach = base_scope.call.distinct.sum(:views_count) # Actual API data
       prev_interactions = FacebookEntry.where(posted_at: (@start_date - @days_range.days)..@start_date)
-                                      .tagged_with(tag_names, any: true)
-                                      .distinct
-                                      .sum(interaction_sql)
+                                       .tagged_with(tag_names, any: true)
+                                       .distinct
+                                       .sum(interaction_sql)
 
       {
         mentions: mentions,
@@ -262,10 +263,7 @@ module HomeServices
         stats = stats_by_topic[topic.id] || []
         daily_data = stats.each_with_object({}) { |s, h| h[s.topic_date] = s.entry_count || 0 }
 
-        hash[topic.id] = {
-          data: daily_data,
-          direction: calculate_topic_trend_direction_from_stats(stats)
-        }
+        hash[topic.id] = { data: daily_data, direction: calculate_topic_trend_direction_from_stats(stats) }
       end
     end
 
@@ -280,9 +278,15 @@ module HomeServices
           topicId: topic.id,
           entry_quantities: stats.each_with_object({}) { |stat, data| data[stat.topic_date] = stat.entry_count || 0 },
           entry_interactions: stats.each_with_object({}) { |stat, data| data[stat.topic_date] = stat.total_count || 0 },
-          neutral_quantity: stats.each_with_object({}) { |stat, data| data[stat.topic_date] = stat.neutral_quantity || 0 },
-          positive_quantity: stats.each_with_object({}) { |stat, data| data[stat.topic_date] = stat.positive_quantity || 0 },
-          negative_quantity: stats.each_with_object({}) { |stat, data| data[stat.topic_date] = stat.negative_quantity || 0 }
+          neutral_quantity: stats.each_with_object({}) do |stat, data|
+            data[stat.topic_date] = stat.neutral_quantity || 0
+          end,
+          positive_quantity: stats.each_with_object({}) do |stat, data|
+            data[stat.topic_date] = stat.positive_quantity || 0
+          end,
+          negative_quantity: stats.each_with_object({}) do |stat, data|
+            data[stat.topic_date] = stat.negative_quantity || 0
+          end
         }
       end
     end
@@ -302,6 +306,7 @@ module HomeServices
       total = positive + negative + neutral
 
       return 0 if total.zero?
+
       ((positive - negative).to_f / total * 100).round(1)
     end
 
@@ -315,6 +320,7 @@ module HomeServices
       previous_count = previous_stats.sum { |s| s.entry_count || 0 }
 
       return 'stable' if recent_count == previous_count || previous_count.zero?
+
       recent_count > previous_count ? 'up' : 'down'
     end
 
@@ -374,7 +380,7 @@ module HomeServices
         alerts << generate_sov_alert(topic, stats)
       end
 
-      alerts.compact.sort_by { |a| ['high', 'medium', 'low'].index(a[:severity]) }
+      alerts.compact.sort_by { |a| %w[high medium low].index(a[:severity]) }
     end
 
     def generate_sentiment_alerts(topic, sentiment)
@@ -403,16 +409,17 @@ module HomeServices
 
     def generate_trend_alert(topic, stats, _trend)
       # Use 3-day window for more stable trend detection
-      recent_count = stats.select { |s| s.topic_date >= 3.days.ago.to_date }.sum { |s| s.entry_count || 0 }
+      recent_count = stats.select { |s| s.topic_date >= 3.days.ago.to_date }
+                          .sum { |s| s.entry_count || 0 }
 
-      return nil unless recent_count > ALERT_MINIMUM_COUNT
+      return unless recent_count > ALERT_MINIMUM_COUNT
 
       create_alert(
         severity: 'low',
         type: 'info',
         topic: topic,
         message: "📉 Disminución de Menciones: #{topic.name}",
-        details: "Las menciones están disminuyendo en los últimos 3 días comparado con los 3 días anteriores. Considere aumentar actividad."
+        details: 'Las menciones están disminuyendo en los últimos 3 días comparado con los 3 días anteriores. Considere aumentar actividad.'
       )
     end
 
@@ -422,7 +429,7 @@ module HomeServices
       recent_interactions = engagement_data[:recent]
 
       # Don't alert if there's very little engagement (not meaningful)
-      return nil unless recent_interactions > ALERT_MINIMUM_COUNT
+      return unless recent_interactions > ALERT_MINIMUM_COUNT
 
       # Determine severity based on velocity drop
       if velocity <= ENGAGEMENT_CRITICAL_THRESHOLD
@@ -436,7 +443,7 @@ module HomeServices
         message_text = "Caída de Interacciones: #{topic.name}"
         details_text = "Las interacciones disminuyeron #{velocity}% en los últimos 3 días comparado con los 3 días anteriores. Considere revisar la estrategia de contenido."
       else
-        return nil # No alert for minor drops
+        return # No alert for minor drops
       end
 
       create_alert(
@@ -470,30 +477,29 @@ module HomeServices
       return alerts if tag_names.empty?
 
       # Check digital media
-      digital_entries = Entry.enabled
-                             .where(published_at: 6.hours.ago..Time.current)
-                             .tagged_with(tag_names, any: true)
+      digital_entries = Entry.enabled.where(published_at: 6.hours.ago..Time.current).tagged_with(tag_names, any: true)
 
       # Use .size instead of .count to avoid SQL issues with acts_as_taggable_on
       if digital_entries.any?
         # Simple approach: Any entry with > 100 interactions in last 6h is considered viral
         entries_array = digital_entries.to_a
         viral_entries = entries_array.select { |e| e.total_count > VIRAL_MINIMUM_ENGAGEMENT }
-                                    .sort_by { |e| -e.total_count }
+                                     .sort_by { |e| -e.total_count }
 
         if viral_entries.any?
           # Calculate baseline (median/average of non-zero values)
           engagement_values = entries_array.map(&:total_count)
           non_zero_values = engagement_values.select { |v| v > 0 }
 
-          baseline = if non_zero_values.size >= 3
-            sorted = non_zero_values.sort
-            calculate_median(sorted)
-          elsif non_zero_values.any?
-            non_zero_values.sum / non_zero_values.size.to_f
-          else
-            1.0
-          end
+          baseline =
+            if non_zero_values.size >= 3
+              sorted = non_zero_values.sort
+              calculate_median(sorted)
+            elsif non_zero_values.any?
+              non_zero_values.sum / non_zero_values.size.to_f
+            else
+              1.0
+            end
 
           top_viral = viral_entries.first
           alerts << create_alert(
@@ -507,23 +513,24 @@ module HomeServices
       end
 
       # Check Facebook
-      fb_entries = FacebookEntry.where(posted_at: 6.hours.ago..Time.current)
-                                .tagged_with(tag_names, any: true)
+      fb_entries = FacebookEntry.where(posted_at: 6.hours.ago..Time.current).tagged_with(tag_names, any: true)
 
-      if fb_entries.size >= 3  # Minimum sample for median
+      if fb_entries.size >= 3 # Minimum sample for median
         # Load to array to avoid re-querying
         fb_array = fb_entries.to_a
         # Calculate total engagement for each post
-        fb_engagements = fb_array.map { |fb| fb.reactions_total_count + fb.comments_count + fb.share_count }.sort
+        fb_engagements = fb_array.map { |fb| fb.reactions_total_count + fb.comments_count + fb.share_count }
+                                 .sort
         median_fb_engagement = calculate_median(fb_engagements)
 
         # Only generate alert if median is not zero
         unless median_fb_engagement.zero?
           viral_fb_threshold = [median_fb_engagement * VIRAL_MULTIPLIER, VIRAL_MINIMUM_ENGAGEMENT].max
 
-          viral_fb = fb_array.select do |fb|
-            (fb.reactions_total_count + fb.comments_count + fb.share_count) > viral_fb_threshold
-          end
+          viral_fb =
+            fb_array.select do |fb|
+              (fb.reactions_total_count + fb.comments_count + fb.share_count) > viral_fb_threshold
+            end
 
           if viral_fb.any?
             top_fb = viral_fb.max_by { |fb| fb.reactions_total_count + fb.comments_count + fb.share_count }
@@ -540,23 +547,26 @@ module HomeServices
       end
 
       # Check Twitter
-      tw_posts = TwitterPost.where(posted_at: 6.hours.ago..Time.current)
-                           .tagged_with(tag_names, any: true)
+      tw_posts = TwitterPost.where(posted_at: 6.hours.ago..Time.current).tagged_with(tag_names, any: true)
 
-      if tw_posts.size >= 3  # Minimum sample for median
+      if tw_posts.size >= 3 # Minimum sample for median
         # Load to array to avoid re-querying
         tw_array = tw_posts.to_a
         # Calculate total engagement for each tweet
-        tw_engagements = tw_array.map { |tw| tw.favorite_count + tw.retweet_count + tw.reply_count + tw.quote_count }.sort
+        tw_engagements = tw_array.map do |tw|
+          tw.favorite_count + tw.retweet_count + tw.reply_count + tw.quote_count
+        end
+.sort
         median_tw_engagement = calculate_median(tw_engagements)
 
         # Only generate alert if median is not zero
         unless median_tw_engagement.zero?
           viral_tw_threshold = [median_tw_engagement * VIRAL_MULTIPLIER, VIRAL_MINIMUM_ENGAGEMENT].max
 
-          viral_tw = tw_array.select do |tw|
-            (tw.favorite_count + tw.retweet_count + tw.reply_count + tw.quote_count) > viral_tw_threshold
-          end
+          viral_tw =
+            tw_array.select do |tw|
+              (tw.favorite_count + tw.retweet_count + tw.reply_count + tw.quote_count) > viral_tw_threshold
+            end
 
           if viral_tw.any?
             top_tw = viral_tw.max_by { |tw| tw.favorite_count + tw.retweet_count + tw.reply_count + tw.quote_count }
@@ -583,9 +593,9 @@ module HomeServices
 
       # Check for controversial posts in last 24 hours
       controversial_posts = FacebookEntry.where(posted_at: 24.hours.ago..Time.current)
-                                        .tagged_with(tag_names, any: true)
-                                        .where('controversy_index > ?', CONTROVERSY_WARNING_THRESHOLD)
-                                        .order(controversy_index: :desc)
+                                         .tagged_with(tag_names, any: true)
+                                         .where('controversy_index > ?', CONTROVERSY_WARNING_THRESHOLD)
+                                         .order(controversy_index: :desc)
 
       if controversial_posts.any?
         top_controversial = controversial_posts.first
@@ -618,7 +628,7 @@ module HomeServices
     # Alert 3: Reach Decline Detection
     def generate_reach_decline_alert(topic, stats)
       tag_names = topic.tags.pluck(:name)
-      return nil if tag_names.empty?
+      return if tag_names.empty?
 
       # Calculate reach velocity (24h vs 24h)
       recent_stats = stats.select { |s| s.topic_date >= 1.day.ago.to_date }
@@ -650,7 +660,7 @@ module HomeServices
       recent_reach += tw_recent_reach
       previous_reach += tw_previous_reach
 
-      return nil if previous_reach.zero? || recent_reach < REACH_MINIMUM
+      return if previous_reach.zero? || recent_reach < REACH_MINIMUM
 
       reach_change = ((recent_reach - previous_reach).to_f / previous_reach * 100).round(1)
 
@@ -677,28 +687,27 @@ module HomeServices
     def generate_sov_alert(topic, stats)
       # Calculate current SoV
       recent_topic_mentions = stats.select { |s| s.topic_date >= 7.days.ago.to_date }
-                                  .sum { |s| s.entry_count || 0 }
+                                   .sum { |s| s.entry_count || 0 }
 
-      recent_all_mentions = TopicStatDaily.where(topic_date: 7.days.ago.to_date..Date.current)
-                                         .sum(:entry_count)
+      recent_all_mentions = TopicStatDaily.where(topic_date: 7.days.ago.to_date..Date.current).sum(:entry_count)
 
-      return nil if recent_all_mentions.zero? || recent_topic_mentions < ALERT_MINIMUM_COUNT
+      return if recent_all_mentions.zero? || recent_topic_mentions < ALERT_MINIMUM_COUNT
 
       current_sov = (recent_topic_mentions.to_f / recent_all_mentions * 100).round(1)
 
       # Calculate previous SoV (7-14 days ago)
       previous_topic_mentions = stats.select { |s| s.topic_date.between?(14.days.ago.to_date, 7.days.ago.to_date) }
-                                    .sum { |s| s.entry_count || 0 }
+                                     .sum { |s| s.entry_count || 0 }
 
       previous_all_mentions = TopicStatDaily.where(topic_date: 14.days.ago.to_date..7.days.ago.to_date)
-                                           .sum(:entry_count)
+                                            .sum(:entry_count)
 
-      return nil if previous_all_mentions.zero?
+      return if previous_all_mentions.zero?
 
       previous_sov = (previous_topic_mentions.to_f / previous_all_mentions * 100).round(1)
       sov_change = current_sov - previous_sov
 
-      return nil if current_sov < SOV_MINIMUM # Too small to monitor
+      return if current_sov < SOV_MINIMUM # Too small to monitor
 
       if sov_change <= -SOV_CRITICAL_DROP
         create_alert(
@@ -733,7 +742,7 @@ module HomeServices
       if size.odd?
         sorted_values[size / 2].to_f
       else
-        (sorted_values[size / 2 - 1] + sorted_values[size / 2]) / 2.0
+        (sorted_values[(size / 2) - 1] + sorted_values[size / 2]) / 2.0
       end
     end
 
@@ -809,6 +818,7 @@ module HomeServices
       total = base_scope.size
 
       return 0 if total.zero?
+
       ((positive - negative).to_f / total * 100).round(1)
     end
 
@@ -821,6 +831,7 @@ module HomeServices
       count = base_scope.where.not(sentiment_score: nil).size
 
       return 0 if count.zero?
+
       # Convert FacebookEntry sentiment_score (-2.0 to +2.0) to percentage (-100 to +100)
       (total_score / count * 50).round(1)
     end
@@ -921,10 +932,7 @@ module HomeServices
     def calculate_sentiment_confidence
       return { confidence: 0, sample_size: 0, reliability: 'very_low' } if tag_names.empty?
 
-      digital_count = Entry.enabled
-                           .where(published_at: @start_date..@end_date)
-                           .tagged_with(tag_names, any: true)
-                           .size
+      digital_count = Entry.enabled.where(published_at: @start_date..@end_date).tagged_with(tag_names, any: true).size
 
       facebook_count = FacebookEntry.where(posted_at: @start_date..@end_date)
                                     .tagged_with(tag_names, any: true)
@@ -1015,8 +1023,13 @@ module HomeServices
 
       # Convert to day names
       day_names = {
-        0 => 'Domingo', 1 => 'Lunes', 2 => 'Martes', 3 => 'Miércoles',
-        4 => 'Jueves', 5 => 'Viernes', 6 => 'Sábado'
+        0 => 'Domingo',
+        1 => 'Lunes',
+        2 => 'Martes',
+        3 => 'Miércoles',
+        4 => 'Jueves',
+        5 => 'Viernes',
+        6 => 'Sábado'
       }
 
       daily_data.transform_keys { |k| day_names[k] }
@@ -1040,7 +1053,8 @@ module HomeServices
       peak_hours = calculate_peak_hours
       return { morning: '9:00', afternoon: '15:00', evening: '20:00' } if peak_hours.empty?
 
-      top_hours = peak_hours.sort_by { |_k, v| -v }.first(3).map(&:first)
+      top_hours = peak_hours.sort_by { |_k, v| -v }
+                            .first(3).map(&:first)
 
       {
         primary: "#{top_hours[0]}:00 - #{top_hours[0]}:59",
@@ -1052,11 +1066,11 @@ module HomeServices
 
     def generate_time_recommendation(top_hours)
       if top_hours.all? { |h| h.between?(6, 12) }
-        "Tu audiencia es más activa en las mañanas. Publica entre 6:00 y 12:00."
+        'Tu audiencia es más activa en las mañanas. Publica entre 6:00 y 12:00.'
       elsif top_hours.all? { |h| h.between?(12, 18) }
-        "Tu audiencia es más activa en las tardes. Publica entre 12:00 y 18:00."
+        'Tu audiencia es más activa en las tardes. Publica entre 12:00 y 18:00.'
       elsif top_hours.all? { |h| h >= 18 || h < 6 }
-        "Tu audiencia es más activa en las noches. Publica después de las 18:00."
+        'Tu audiencia es más activa en las noches. Publica después de las 18:00.'
       else
         "Tu audiencia está activa en diferentes momentos. Los mejores horarios son #{top_hours[0]}:00, #{top_hours[1]}:00 y #{top_hours[2]}:00."
       end
@@ -1177,6 +1191,7 @@ module HomeServices
 
     def safe_percentage(numerator, denominator, decimals: 0)
       return 0 if denominator.zero?
+
       (numerator.to_f / denominator * 100).round(decimals)
     end
 
