@@ -2,21 +2,20 @@
 
 class TopicController < ApplicationController
   include TopicAuthorizable
-  
-  before_action :authenticate_user!
-  before_action :set_topic, only: [:show, :pdf, :comments, :history]
-  before_action :authorize_topic_access!, only: [:show, :pdf]
 
-  caches_action :show, :pdf, expires_in: 30.minutes,
-                cache_path: proc do |c|
-                  topic = Topic.find_by(id: c.params[:id])
-                  {
-                    topic_id: c.params[:id],
-                    user_id: c.current_user.id,
-                    days_range: c.params[:days_range],
-                    entries_version: topic&.entries_cache_version
-                  }
-                end
+  before_action :authenticate_user!
+  before_action :set_topic, only: %i[show pdf comments history]
+  before_action :authorize_topic_access!, only: %i[show pdf]
+
+  caches_action :show, :pdf, expires_in: 30.minutes, cache_path: proc do |c|
+    topic = Topic.find_by(id: c.params[:id])
+    {
+      topic_id: c.params[:id],
+      user_id: c.current_user.id,
+      days_range: c.params[:days_range],
+      entries_version: topic&.entries_cache_version
+    }
+  end
 
   def entries_data
     topic_id = params[:topic_id]
@@ -27,18 +26,14 @@ class TopicController < ApplicationController
     # Validate topic exists
     topic = Topic.find_by(id: topic_id)
     unless topic
-      render partial: 'shared/error_message',
-             locals: { message: 'Tópico no encontrado' },
-             status: :not_found
+      render partial: 'shared/error_message', locals: { message: 'Tópico no encontrado' }, status: :not_found
       return
     end
 
     # Parse date with error handling
     date = parse_date_filter(date_filter)
     unless date
-      render partial: 'shared/error_message',
-             locals: { message: 'Fecha inválida' },
-             status: :bad_request
+      render partial: 'shared/error_message', locals: { message: 'Fecha inválida' }, status: :bad_request
       return
     end
 
@@ -46,22 +41,24 @@ class TopicController < ApplicationController
     polarity = validate_polarity(polarity)
 
     # Load entries based on parameters
-    entries = if title == 'true'
-                topic.title_chart_entries(date)
-              else
-                topic.chart_entries(date)
-              end
+    entries =
+      if title == 'true'
+        topic.title_chart_entries(date)
+      else
+        topic.chart_entries(date)
+      end
 
     entries = entries.where(published_at: date.all_day)
     entries = entries.where(polarity: polarity) if polarity
 
     # Determine polarity name for display
-    polarity_name = case polarity
-                    when 'neutral', '0' then 'Neutral'
-                    when 'positive', '1' then 'Positiva'
-                    when 'negative', '2' then 'Negativa'
-                    else 'Todas'
-                    end
+    polarity_name =
+      case polarity
+      when 'neutral', '0' then 'Neutral'
+      when 'positive', '1' then 'Positiva'
+      when 'negative', '2' then 'Negativa'
+      else 'Todas'
+      end
 
     render partial: 'home/chart_entries',
            locals: {
@@ -73,9 +70,7 @@ class TopicController < ApplicationController
            layout: false
   rescue ActiveRecord::RecordNotFound => e
     Rails.logger.error "Topic not found in entries_data: #{e.message}"
-    render partial: 'shared/error_message',
-           locals: { message: 'Tópico no encontrado' },
-           status: :not_found
+    render partial: 'shared/error_message', locals: { message: 'Tópico no encontrado' }, status: :not_found
   rescue StandardError => e
     Rails.logger.error "Error in entries_data: #{e.class} - #{e.message}"
     Rails.logger.error e.backtrace.first(5).join("\n")
@@ -86,7 +81,7 @@ class TopicController < ApplicationController
 
   def parse_date_filter(date_string)
     return Date.current if date_string.blank?
-    
+
     Date.parse(date_string)
   rescue ArgumentError => e
     Rails.logger.warn "Invalid date parameter: #{date_string} - #{e.message}"
@@ -127,8 +122,8 @@ class TopicController < ApplicationController
 
   def pdf
     # Get days_range from params, default to 7 days if not provided or invalid
-    @days_range = (params[:days_range].presence&.to_i || DAYS_RANGE || 7)
-    
+    @days_range = params[:days_range].presence&.to_i || DAYS_RANGE || 7
+
     # Use dedicated PDF service
     pdf_data = DigitalDashboardServices::PdfService.call(topic: @topic, days_range: @days_range)
 
@@ -155,19 +150,19 @@ class TopicController < ApplicationController
   # Helper class for grouped data in PDF
   class GroupProxy
     attr_reader :count_data, :sum_data, :id_data, :column
-    
+
     def initialize(count_data, sum_data, id_data, column)
       @count_data = count_data
       @sum_data = sum_data
       @id_data = id_data
       @column = column
     end
-    
+
     def count(*)
       column == 'sites.id' ? id_data : count_data
     end
-    
-    def sum(field)
+
+    def sum(_field)
       sum_data
     end
   end
@@ -184,40 +179,40 @@ class TopicController < ApplicationController
     @site_sums = data[:site_sums]
     @total_entries = data[:total_entries]
     @total_interactions = data[:total_interactions]
-    
+
     # For PDF - wrap @entries to provide pre-calculated grouped data
-    if data[:entries_by_site_count] && data[:entries_by_site_sum] && data[:entries_by_site_id]
-      entries_original = @entries
-      by_site_count = data[:entries_by_site_count]
-      by_site_sum = data[:entries_by_site_sum]
-      by_site_id = data[:entries_by_site_id]
-      total_sum = data[:entries_total_sum]
-      
-      @entries = Struct.new(:relation, :by_site_count, :by_site_sum, :by_site_id, :total_sum) do
-        # Delegate most methods to the original relation
-        def method_missing(method, *args, &block)
-          relation.send(method, *args, &block)
+    return unless data[:entries_by_site_count] && data[:entries_by_site_sum] && data[:entries_by_site_id]
+
+    entries_original = @entries
+    by_site_count = data[:entries_by_site_count]
+    by_site_sum = data[:entries_by_site_sum]
+    by_site_id = data[:entries_by_site_id]
+    total_sum = data[:entries_total_sum]
+
+    @entries = Struct.new(:relation, :by_site_count, :by_site_sum, :by_site_id, :total_sum) do
+      # Delegate most methods to the original relation
+      def method_missing(method, ...)
+        relation.send(method, ...)
+      end
+
+      def respond_to_missing?(method, include_private = false)
+        relation.respond_to?(method, include_private) || super
+      end
+
+      # Override group to return pre-calculated data
+      def group(column)
+        TopicController::GroupProxy.new(by_site_count, by_site_sum, by_site_id, column)
+      end
+
+      # Override sum to return pre-calculated total when called directly
+      def sum(field = nil)
+        if [:total_count, 'total_count'].include?(field)
+          total_sum
+        else
+          relation.sum(field)
         end
-        
-        def respond_to_missing?(method, include_private = false)
-          relation.respond_to?(method, include_private) || super
-        end
-        
-        # Override group to return pre-calculated data
-        def group(column)
-          TopicController::GroupProxy.new(by_site_count, by_site_sum, by_site_id, column)
-        end
-        
-        # Override sum to return pre-calculated total when called directly
-        def sum(field = nil)
-          if field == :total_count || field == 'total_count'
-            total_sum
-          else
-            relation.sum(field)
-          end
-        end
-      end.new(entries_original, by_site_count, by_site_sum, by_site_id, total_sum)
-    end
+      end
+    end.new(entries_original, by_site_count, by_site_sum, by_site_id, total_sum)
   end
 
   def assign_chart_data(data)
@@ -227,29 +222,29 @@ class TopicController < ApplicationController
     @chart_entries_sentiments_sums = data[:chart_entries_sentiments_sums]
     @title_chart_entries_counts = data[:title_chart_entries_counts]
     @title_chart_entries_sums = data[:title_chart_entries_sums]
-    
+
     # For PDF - create objects that respond to count and sum methods for chartkick
     if data[:title_chart_entries_count_data] && data[:title_chart_entries_sum_data]
       @title_chart_entries = create_chart_object(
-        data[:title_chart_entries_count_data], 
+        data[:title_chart_entries_count_data],
         data[:title_chart_entries_sum_data]
       )
     end
-    
-    if data[:chart_entries_sentiments_count_data] && data[:chart_entries_sentiments_sum_data]
-      @chart_entries_sentiments = create_chart_object(
-        data[:chart_entries_sentiments_count_data],
-        data[:chart_entries_sentiments_sum_data]
-      )
-    end
+
+    return unless data[:chart_entries_sentiments_count_data] && data[:chart_entries_sentiments_sum_data]
+
+    @chart_entries_sentiments = create_chart_object(
+      data[:chart_entries_sentiments_count_data],
+      data[:chart_entries_sentiments_sum_data]
+    )
   end
-  
+
   def create_chart_object(count_data, sum_data)
     Struct.new(:count_data, :sum_data) do
       def count(*)
         count_data
       end
-      
+
       def sum(*)
         sum_data
       end
