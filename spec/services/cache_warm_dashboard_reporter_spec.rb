@@ -80,7 +80,11 @@ RSpec.describe CacheWarmDashboardReporter do
     it 'sorts the slowest dashboard calls across topics' do
       slowest = described_class.slowest_dashboard_calls(results, limit: 2)
 
-      expect(slowest.map { |call| [call[:name], call[:topic_name]] }).to eq([[:general, 'Paraguay'], [:facebook, 'Paraguay']])
+      expect(
+        slowest.map do |call|
+          [call[:name], call[:topic_name]]
+        end
+      ).to eq([[:general, 'Paraguay'], [:facebook, 'Paraguay']])
     end
 
     it 'calculates aggregate duration and cache statistics' do

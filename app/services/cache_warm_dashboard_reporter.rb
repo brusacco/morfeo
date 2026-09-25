@@ -10,7 +10,8 @@ class CacheWarmDashboardReporter
   end
 
   def self.slowest_dashboard_calls(results, limit: 10)
-    dashboard_calls(results).sort_by { |call| -call[:duration] }.first(limit)
+    dashboard_calls(results).sort_by { |call| -call[:duration] }
+                            .first(limit)
   end
 
   def self.aggregate_statistics(results)
@@ -22,7 +23,8 @@ class CacheWarmDashboardReporter
         calls: calls.count,
         total: total,
         average: calls.any? ? total / calls.count : 0.0,
-        max: calls.map { |call| call[:duration] }.max || 0.0,
+        max: calls.map { |call| call[:duration] }
+                  .max || 0.0,
         hits: calls.count { |call| call[:cache_status] == :hit },
         misses: calls.count { |call| call[:cache_status] == :miss },
         unknown: calls.count { |call| call[:cache_status].nil? }
@@ -85,10 +87,20 @@ class CacheWarmDashboardReporter
     io.puts "Total wall time: #{format_duration(wall_time)}"
     io.puts 'Note: dashboard totals are summed worker time and do not equal wall time.'
     io.puts "\nTOPICS"
-    io.puts format('%-28s %8s %8s %8s %9s %8s %8s', 'Topic', 'Digital', 'Facebook', 'Twitter', 'Instagram', 'General', 'Total')
+    io.puts format(
+      '%-28s %8s %8s %8s %9s %8s %8s',
+      'Topic',
+      'Digital',
+      'Facebook',
+      'Twitter',
+      'Instagram',
+      'General',
+      'Total'
+    )
     io.puts '-' * 86
 
-    results.sort_by { |result| -result[:duration] }.each do |result|
+    results.sort_by { |result| -result[:duration] }
+           .each do |result|
       dashboards = result.fetch(:dashboards, {})
       io.puts format(
         '%-28s %8s %8s %8s %9s %8s %8s',
@@ -98,20 +110,54 @@ class CacheWarmDashboardReporter
       )
 
       dashboards.each do |name, dashboard|
-        io.puts format('  %-10s %8s %s%s', name.to_s.capitalize, format_duration(dashboard[:duration]), cache_status_label(dashboard[:cache_status]), error_label(dashboard))
+        io.puts format(
+          '  %-10s %8s %s%s',
+          name.to_s.capitalize,
+          format_duration(dashboard[:duration]),
+          cache_status_label(dashboard[:cache_status]),
+          error_label(dashboard)
+        )
       end
     end
 
     io.puts "\nSLOWEST DASHBOARDS"
     self.class.slowest_dashboard_calls(results).each_with_index do |dashboard, index|
-      io.puts format('%2d. %-10s / %-28s %8s %s%s', index + 1, dashboard[:name].to_s.capitalize, truncate(dashboard[:topic_name] || "Topic #{dashboard[:topic_id]}", 28), format_duration(dashboard[:duration]), cache_status_label(dashboard[:cache_status]), error_label(dashboard))
+      io.puts format(
+        '%2d. %-10s / %-28s %8s %s%s',
+        index + 1,
+        dashboard[:name].to_s.capitalize,
+        truncate(dashboard[:topic_name] || "Topic #{dashboard[:topic_id]}", 28),
+        format_duration(dashboard[:duration]),
+        cache_status_label(dashboard[:cache_status]),
+        error_label(dashboard)
+      )
     end
 
     io.puts "\nBY DASHBOARD"
-    io.puts format('%-12s %7s %9s %9s %9s %7s %7s %7s', 'Dashboard', 'Calls', 'Total', 'Avg', 'Max', 'Hits', 'Misses', 'Unknown')
+    io.puts format(
+      '%-12s %7s %9s %9s %9s %7s %7s %7s',
+      'Dashboard',
+      'Calls',
+      'Total',
+      'Avg',
+      'Max',
+      'Hits',
+      'Misses',
+      'Unknown'
+    )
     io.puts '-' * 74
     statistics.each do |name, statistic|
-      io.puts format('%-12s %7d %9s %9s %9s %7d %7d %7d', name.to_s.capitalize, statistic[:calls], format_duration(statistic[:total]), format_duration(statistic[:average]), format_duration(statistic[:max]), statistic[:hits], statistic[:misses], statistic[:unknown])
+      io.puts format(
+        '%-12s %7d %9s %9s %9s %7d %7d %7d',
+        name.to_s.capitalize,
+        statistic[:calls],
+        format_duration(statistic[:total]),
+        format_duration(statistic[:average]),
+        format_duration(statistic[:max]),
+        statistic[:hits],
+        statistic[:misses],
+        statistic[:unknown]
+      )
     end
 
     io.puts "\nCache:"
@@ -139,23 +185,39 @@ class CacheWarmDashboardReporter
     }
   end
 
-  def measure_dashboard(name)
+  def measure_dashboard(name, &block)
     generated = false
     cache_read_hit = false
     started_at = @clock.call
 
     @notifications.subscribed(->(*_) { generated = true }, 'cache_generate.active_support') do
-      @notifications.subscribed(->(_name, _started, _finished, _id, payload) { cache_read_hit ||= payload[:hit] }, 'cache_read.active_support') do
-        yield
-      end
+      @notifications.subscribed(
+        lambda { |_name, _started, _finished, _id, payload|
+          cache_read_hit ||= payload[:hit]
+        },
+        'cache_read.active_support',
+        &block
+      )
     end
 
-    { name: name, duration: @clock.call - started_at, cache_status: generated ? :miss : (cache_read_hit ? :hit : nil) }
+    {
+      name: name,
+      duration: @clock.call - started_at,
+      cache_status: if generated
+                      :miss
+                    else
+                      (cache_read_hit ? :hit : nil)
+                    end
+    }
   rescue StandardError => e
     {
       name: name,
       duration: @clock.call - started_at,
-      cache_status: generated ? :miss : (cache_read_hit ? :hit : nil),
+      cache_status: if generated
+                      :miss
+                    else
+                      (cache_read_hit ? :hit : nil)
+                    end,
       error_class: e.class.name,
       error: e.message,
       backtrace: ENV['CACHE_WARM_DEBUG'] == '1' ? e.backtrace&.first(5) : nil
