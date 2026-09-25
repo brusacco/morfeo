@@ -92,22 +92,6 @@ class HomeController < ApplicationController
     @newspapers = Newspaper.where(date: Date.today)
   end
 
-  private
-
-  def build_topic_chart_series(metric)
-    return [] if @topic_chart_series.blank?
-
-    @topicos.map do |topic|
-      topic_series = @topic_chart_series[topic.id] || {}
-
-      {
-        name: topic.name,
-        topicId: topic.id,
-        data: topic_series[metric] || {}
-      }
-    end
-  end
-
   def deploy
     Dir.chdir('/home/rails/morfeo') do
       system('export RAILS_ENV=production')
@@ -145,5 +129,21 @@ class HomeController < ApplicationController
     @doc = Nokogiri::HTML(URI.parse(@url).open('User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36'))
     @result = WebExtractorServices::ExtractDate.call(@doc)
     render layout: false
+  end
+
+  private
+
+  def build_topic_chart_series(metric)
+    return [] if @topic_chart_series.blank?
+
+    @topicos.map do |topic|
+      topic_series = @topic_chart_series[topic.id] || {}
+
+      {
+        name: topic.name,
+        topicId: topic.id,
+        data: topic_series[metric] || {}
+      }
+    end
   end
 end
