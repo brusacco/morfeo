@@ -28,8 +28,8 @@ Morfeo uses the `whenever` gem to manage cron jobs defined in `config/schedule.r
 - **Home Dashboard**: Warms each distinct active-topic set assigned to users,
   deduplicating equivalent sets and including the empty set when applicable.
 - **Diagnostics**: When one dashboard fails for a topic, the topic summary keeps
-    that dashboard's error class, message, and optional debug backtrace; the
-    detailed performance report continues to identify the failing dashboard.
+  that dashboard's error class, message, and optional debug backtrace; the
+  detailed performance report continues to identify the failing dashboard.
 - **Related**: [Caching Strategy](caching_strategy.md)
 
 ## Hourly Tasks - Core Data Collection
