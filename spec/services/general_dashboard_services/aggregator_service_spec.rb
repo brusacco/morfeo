@@ -180,9 +180,10 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
       )
       persisted_service = described_class.new(topic: persisted_topic)
       count_queries = []
-      subscriber = ActiveSupport::Notifications.subscribe('sql.active_record') do |_name, _started, _finished, _id, payload|
-        count_queries << payload[:sql] if payload[:sql].include?('COUNT')
-      end
+      subscriber =
+        ActiveSupport::Notifications.subscribe('sql.active_record') do |_name, _started, _finished, _id, payload|
+          count_queries << payload[:sql] if payload[:sql].include?('COUNT')
+        end
 
       begin
         expect(persisted_service.send(:overall_trend_velocity)).to include(velocity_percent: 0.0)
