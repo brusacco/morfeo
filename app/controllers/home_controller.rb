@@ -20,6 +20,7 @@ class HomeController < ApplicationController
     @topic_stats = dashboard_data[:topic_stats]
     @topic_trends = dashboard_data[:topic_trends]
     @topic_chart_series = dashboard_data[:topic_chart_series]
+    @daily_topic_rankings = dashboard_data[:daily_topic_rankings]
 
     # Alerts
     @alerts = dashboard_data[:alerts]
@@ -58,15 +59,8 @@ class HomeController < ApplicationController
     @positive_quantity = build_topic_chart_series(:positive_quantity)
     @negative_quantity = build_topic_chart_series(:negative_quantity)
 
-    @interacciones_ultimo_dia_topico = @topicos.joins(:topic_stat_dailies)
-                                               .where(topic_stat_dailies: { topic_date: 1.day.ago.. })
-                                               .group('topics.name').order('sum_topic_stat_dailies_total_count DESC').limit(10)
-                                               .sum('topic_stat_dailies.total_count')
-
-    @notas_ultimo_dia_topico = @topicos.joins(:topic_stat_dailies)
-                                       .where(topic_stat_dailies: { topic_date: 1.day.ago.. })
-                                       .group('topics.name').order('sum_topic_stat_dailies_entry_count DESC').limit(10)
-                                       .sum('topic_stat_dailies.entry_count')
+    @interacciones_ultimo_dia_topico = @daily_topic_rankings[:interactions]
+    @notas_ultimo_dia_topico = @daily_topic_rankings[:entries]
 
     # Tags Cloud - Using direct associations for optimal performance
     # Single query instead of N+1 (one query per topic)

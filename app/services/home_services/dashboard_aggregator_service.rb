@@ -64,6 +64,7 @@ module HomeServices
           topic_stats: calculate_topic_stats,
           topic_trends: calculate_topic_trends,
           topic_chart_series: calculate_topic_chart_series,
+          daily_topic_rankings: calculate_daily_topic_rankings,
           alerts: generate_alerts,
           top_content: fetch_top_content,
           # Phase 2: Enhanced Analytics
@@ -77,7 +78,7 @@ module HomeServices
     private
 
     def cache_key
-      "home_dashboard_#{@topics.map(&:id).sort.join('_')}_#{@days_range}_#{Date.current}"
+      "home_dashboard_v2_#{@topics.map(&:id).sort.join('_')}_#{@days_range}_#{Date.current}"
     end
 
     # Memoized tag names to avoid multiple pluck calls
@@ -291,9 +292,29 @@ module HomeServices
       end
     end
 
+    def calculate_daily_topic_rankings
+      date_range = 1.day.ago.to_date..Date.current
+      stats_by_topic = load_topic_stats_batch
+
+      metrics_by_topic = @topics.filter_map do |topic|
+        stats = (stats_by_topic[topic.id] || []).select { |stat| stat.topic_date.in?(date_range) }
+        next if stats.empty?
+
+        [topic.name, {
+          interactions: stats.sum { |stat| stat.total_count || 0 },
+          entries: stats.sum { |stat| stat.entry_count || 0 }
+        }]
+      end.to_h
+
+      {
+        interactions: metrics_by_topic.sort_by { |_name, metrics| -metrics[:interactions] }.first(10).to_h { |name, metrics| [name, metrics[:interactions]] },
+        entries: metrics_by_topic.sort_by { |_name, metrics| -metrics[:entries] }.first(10).to_h { |name, metrics| [name, metrics[:entries]] }
+      }
+    end
+
     def load_topic_stats_batch
       # Single query to load all stats for all topics
-      TopicStatDaily.where(
+      @topic_stats_by_topic ||= TopicStatDaily.where(
         topic_id: @topics.map(&:id),
         topic_date: @start_date.to_date..@end_date.to_date
       ).group_by(&:topic_id)
