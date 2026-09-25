@@ -110,14 +110,31 @@ class Entry < ApplicationRecord
   end
 
   def self.bigram_occurrences(limit = 100)
-    word_occurrences = Hash.new(0)
+    text_occurrences(bigram_limit: limit)[:bigram_occurrences]
+  end
+
+  def self.word_occurrences(limit = 100)
+    text_occurrences(word_limit: limit)[:word_occurrences]
+  end
+
+  def self.text_occurrences(word_limit: 100, bigram_limit: 100)
+    words = Hash.new(0)
+    bigrams = Hash.new(0)
 
     pluck(:title, :content).each do |title, content|
-      words = "#{title} #{content}".gsub(/[[:punct:]]/, '').split
-      bigrams = words.each_cons(2).map { |word1, word2| "#{word1.downcase} #{word2.downcase}" }
-      bigrams.each do |bigram|
-        next if bigram.split.first.length <= 2 || bigram.split.last.length <= 2
-        next if STOP_WORDS.include?(bigram.split.first) || STOP_WORDS.include?(bigram.split.last)
+      text = "#{title} #{content}"
+
+      text.gsub(/[[:punct:]]/, ' ').split.each do |word|
+        cleaned_word = word.downcase
+        next if STOP_WORDS.include?(cleaned_word) || cleaned_word.length <= 2 || cleaned_word == 'https'
+
+        words[cleaned_word] += 1
+      end
+
+      text.gsub(/[[:punct:]]/, '').split.each_cons(2) do |first_word, second_word|
+        bigram = "#{first_word.downcase} #{second_word.downcase}"
+        next if first_word.length <= 2 || second_word.length <= 2
+        next if STOP_WORDS.include?(first_word) || STOP_WORDS.include?(second_word)
         next if [
           'artículos relacionados',
           'adn digital',
@@ -127,35 +144,18 @@ class Entry < ApplicationRecord
           'link copied'
         ].include?(bigram)
 
-        word_occurrences[bigram] += 1
+        bigrams[bigram] += 1
       end
     end
 
-    word_occurrences.select { |_bigram, count| count > 1 }
-                    .sort_by { |_k, v| v }
-                    .reverse
-                    .take(limit)
-  end
-
-  def self.word_occurrences(limit = 100)
-    word_occurrences = Hash.new(0)
-
-    pluck(:title, :content).each do |title, content|
-      words = "#{title} #{content}".gsub(/[[:punct:]]/, ' ').split
-      words.each do |word|
-        cleaned_word = word.downcase
-        next if STOP_WORDS.include?(cleaned_word)
-        next if cleaned_word.length <= 2
-        next if ['https'].include?(cleaned_word)
-
-        word_occurrences[cleaned_word] += 1
-      end
-    end
-
-    word_occurrences.select { |_word, count| count > 1 }
-                    .sort_by { |_k, v| v }
-                    .reverse
-                    .take(limit)
+    {
+      word_occurrences: words.select { |_word, count| count > 1 }
+                             .sort_by { |_word, count| -count }
+                             .first(word_limit),
+      bigram_occurrences: bigrams.select { |_bigram, count| count > 1 }
+                                .sort_by { |_bigram, count| -count }
+                                .first(bigram_limit)
+    }
   end
 
   def self.tagged_on_entry_quantity(tag, date)

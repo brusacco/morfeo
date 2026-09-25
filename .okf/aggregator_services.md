@@ -168,6 +168,8 @@ end
 - **Database-level aggregation**: Use SQL GROUP BY and SUM instead of Ruby loops
 - **Limited text analysis**: Cap entries for word/bigram analysis (500 max)
 - **Efficient sorting**: Use database ORDER BY for top posts
+- **General dashboard digital metrics**: Fetch current mention count and interactions in one aggregate query; derive reach from the returned interaction total.
+- **Shared text analysis**: `Entry`, `FacebookEntry`, `TwitterPost`, and `InstagramPost` expose `text_occurrences`, allowing word and bigram results to share one source traversal. General reuses the combined result for its recommendation paths and passes its cached tag names to social scopes.
 
 ## Batch Processing
 

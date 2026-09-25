@@ -234,16 +234,22 @@ module GeneralDashboardServices
       @digital_data ||= begin
         entries = topic.report_entries(start_date, end_date)
         previous_entries = topic.report_entries(start_date - (end_date - start_date), start_date)
+        current_stats = entries.distinct.reorder(nil).pluck(
+          Arel.sql('COUNT(DISTINCT entries.id)'),
+          Arel.sql('SUM(entries.total_count)')
+        ).first || [0, 0]
+        count = current_stats[0]
+        interactions = current_stats[1] || 0
         
         # Reach estimation methodology:
         # Conservative 3x multiplier - assumes each interaction represents ~3 readers
         # This is defensible as a conservative estimate (much lower than typical 8-15x)
         # For precise reach, implement tracking pixels on news sites
         {
-          count: entries.distinct.count,
-          interactions: entries.distinct.sum(:total_count),
-          reach: entries.distinct.sum(:total_count) * 3, # Conservative estimate
-          trend: calculate_trend(entries.distinct.count, previous_entries.distinct.count)
+          count: count,
+          interactions: interactions,
+          reach: interactions * 3, # Conservative estimate
+          trend: calculate_trend(count, previous_entries.distinct.count)
         }
       end
     end
@@ -686,19 +692,32 @@ module GeneralDashboardServices
     end
 
     def combined_word_occurrences
-      digital_words = topic.report_entries(start_date, end_date).word_occurrences(50)
-      facebook_words = FacebookEntry.word_occurrences(FacebookEntry.for_topic(topic, start_time: start_date, end_time: end_date), 50)
-      twitter_words = TwitterPost.word_occurrences(TwitterPost.for_topic(topic, start_time: start_date, end_time: end_date), 50)
-      
-      merge_word_occurrences([digital_words, facebook_words, twitter_words])
+      combined_text_occurrences[:word_occurrences]
     end
 
     def combined_bigram_occurrences
-      digital_bigrams = topic.report_entries(start_date, end_date).bigram_occurrences(50)
-      facebook_bigrams = FacebookEntry.bigram_occurrences(FacebookEntry.for_topic(topic, start_time: start_date, end_time: end_date), 50)
-      twitter_bigrams = TwitterPost.bigram_occurrences(TwitterPost.for_topic(topic, start_time: start_date, end_time: end_date), 50)
-      
-      merge_word_occurrences([digital_bigrams, facebook_bigrams, twitter_bigrams])
+      combined_text_occurrences[:bigram_occurrences]
+    end
+
+    def combined_text_occurrences
+      @combined_text_occurrences ||= begin
+        digital_text = topic.report_entries(start_date, end_date).text_occurrences(word_limit: 50, bigram_limit: 50)
+        facebook_text = FacebookEntry.text_occurrences(
+          FacebookEntry.for_topic(topic, start_time: start_date, end_time: end_date, tag_names: @tag_names),
+          word_limit: 50,
+          bigram_limit: 50
+        )
+        twitter_text = TwitterPost.text_occurrences(
+          TwitterPost.for_topic(topic, start_time: start_date, end_time: end_date, tag_names: @tag_names),
+          word_limit: 50,
+          bigram_limit: 50
+        )
+
+        {
+          word_occurrences: merge_word_occurrences([digital_text[:word_occurrences], facebook_text[:word_occurrences], twitter_text[:word_occurrences]]),
+          bigram_occurrences: merge_word_occurrences([digital_text[:bigram_occurrences], facebook_text[:bigram_occurrences], twitter_text[:bigram_occurrences]])
+        }
+      end
     end
 
     def trending_terms
