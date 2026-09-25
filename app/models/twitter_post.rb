@@ -77,7 +77,7 @@ class TwitterPost < ApplicationRecord
     word_occurrences = Hash.new(0)
     bigram_occurrences = Hash.new(0)
 
-    scope.reorder(posted_at: :desc).limit(TEXT_ANALYSIS_LIMIT).select(:id, :text).each do |post|
+    scope.reorder(posted_at: :desc).limit(TEXT_ANALYSIS_LIMIT).select(:id, :twitter_profile_id, :text).each do |post|
       words = post.words
       words.each { |word| word_occurrences[word] += 1 }
       words.each_cons(2) { |first_word, second_word| bigram_occurrences["#{first_word} #{second_word}"] += 1 }
