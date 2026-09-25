@@ -51,7 +51,7 @@ module DigitalDashboardServices
     end
 
     def topic_cache_key(resource)
-      "#{CACHE_NAMESPACE}:topic:#{@topic.id}:#{resource}:#{cache_date_range}"
+      "#{CACHE_NAMESPACE}:topic:#{@topic.id}:#{resource}:#{cache_date_range}:#{entries_cache_version}"
     end
 
     def global_digital_stats_cache_key(date_range)
@@ -60,6 +60,10 @@ module DigitalDashboardServices
 
     def cache_date_range(start_date = @start_date, end_date = @end_date)
       "#{start_date.to_date.iso8601}:#{end_date.to_date.iso8601}"
+    end
+
+    def entries_cache_version
+      @entries_cache_version ||= @topic.entries_cache_version
     end
 
     # Memoized topic data to avoid multiple loads

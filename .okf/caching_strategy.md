@@ -107,6 +107,15 @@ variants. Home v4 also includes Tags Cloud word occurrences in the cached
 payload. During the v3-to-v4 transition, invalidation clears both Home
 generations.
 
+Digital topic cache keys additionally include the current entry count and latest
+`entries.updated_at` timestamp for the topic's date range. This causes the
+dashboard payload to refresh when crawler activity adds, removes, retags, or
+updates a matching entry. `Topic#list_entries` returns a query relation directly
+rather than caching a lazy relation object, so the KPI aggregate and the rendered
+news list are built from the same current entry set. The digital topic action
+cache includes this same entry version, so a cached HTML response cannot bypass
+the refreshed dashboard payload.
+
 ### Digital Share of Voice
 
 When `USE_DIRECT_ENTRY_TOPICS=true`, the cached global digital aggregate used for

@@ -11,6 +11,10 @@ RSpec.describe DigitalDashboardServices::AggregatorService do
   let(:topic) { double('topic', id: 7, tags: tags_relation) }
   let(:service) { described_class.new(topic: topic) }
 
+  before do
+    allow(topic).to receive(:entries_cache_version).and_return('0:none')
+  end
+
   it 'uses distinct subcache keys for distinct effective day ranges' do
     seven_day_service = described_class.allocate
     seven_day_service.send(:initialize, topic: topic, days_range: 7)
@@ -21,16 +25,35 @@ RSpec.describe DigitalDashboardServices::AggregatorService do
     expect(seven_day_service.send(:text_analysis_cache_key)).not_to eq(thirty_day_service.send(:text_analysis_cache_key))
   end
 
-  it 'uses versioned cache keys with explicit date ranges' do
+  it 'uses versioned cache keys with explicit date ranges and entry state' do
     start_date = service.instance_variable_get(:@start_date).to_date.iso8601
     end_date = service.instance_variable_get(:@end_date).to_date.iso8601
+    cache_version = '0:none'
 
-    expect(service.send(:cache_key)).to eq("digital_dashboard:v3:topic:7:payload:#{start_date}:#{end_date}")
-    expect(service.send(:site_data_cache_key)).to eq("digital_dashboard:v3:topic:7:site_data:#{start_date}:#{end_date}")
-    expect(service.send(:text_analysis_cache_key)).to eq("digital_dashboard:v3:topic:7:text_analysis:#{start_date}:#{end_date}")
+    expect(service.send(:cache_key)).to eq("digital_dashboard:v3:topic:7:payload:#{start_date}:#{end_date}:#{cache_version}")
+    expect(service.send(:site_data_cache_key)).to eq("digital_dashboard:v3:topic:7:site_data:#{start_date}:#{end_date}:#{cache_version}")
+    expect(service.send(:text_analysis_cache_key)).to eq("digital_dashboard:v3:topic:7:text_analysis:#{start_date}:#{end_date}:#{cache_version}")
     expect(
       service.send(:global_digital_stats_cache_key, { gte: Date.new(2026, 9, 18), lte: Date.new(2026, 9, 25) })
     ).to eq('digital_dashboard:v3:global_stats:2026-09-18:2026-09-25')
+  end
+
+  it 'changes the payload cache key when the topic entry set changes' do
+    first_update = Time.zone.parse('2026-09-25 10:00:00')
+    second_update = Time.zone.parse('2026-09-25 10:05:00')
+
+    first_service = described_class.allocate
+    first_service.send(:initialize, topic: topic)
+    allow(topic).to receive(:entries_cache_version).and_return("7:#{first_update.utc.iso8601(6)}")
+    first_key = first_service.send(:cache_key)
+
+    second_service = described_class.allocate
+    second_service.send(:initialize, topic: topic)
+    allow(topic).to receive(:entries_cache_version).and_return("25:#{second_update.utc.iso8601(6)}")
+    second_key = second_service.send(:cache_key)
+
+    expect(first_key).not_to eq(second_key)
+    expect(second_key).to end_with("25:#{second_update.utc.iso8601(6)}")
   end
 
   def create_entry(polarity: nil, total_count: 0)

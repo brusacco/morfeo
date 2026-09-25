@@ -84,13 +84,19 @@ class Topic < ApplicationRecord
   end
 
   def list_entries
-    cache_key = "topic_#{id}_list_entries_v3"
+    entries_matching_tags(
+      Entry.enabled.where(published_at: default_date_range[:gte]..default_date_range[:lte])
+    ).order(published_at: :desc).joins(:site).includes(:tags)
+  end
 
-    Rails.cache.fetch(cache_key, expires_in: 30.minutes) do
-      entries_matching_tags(
-        Entry.enabled.where(published_at: default_date_range[:gte]..default_date_range[:lte])
-      ).order(published_at: :desc).joins(:site).includes(:tags)
-    end
+  def entries_cache_version
+    count, latest_update = list_entries.reorder(nil).pick(
+      Arel.sql('COUNT(entries.id)'),
+      Arel.sql('MAX(entries.updated_at)')
+    )
+    latest_update = Time.zone.parse(latest_update) if latest_update.is_a?(String)
+
+    "#{count}:#{latest_update&.utc&.iso8601(6) || 'none'}"
   end
 
   def all_list_entries
