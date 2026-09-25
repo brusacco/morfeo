@@ -23,6 +23,14 @@ RSpec.describe 'Social tag filtering' do
 
       expect(record.class.with_any_tag_ids([])).to be_empty
     end
+
+    it 'excludes tags from a different context' do
+      record = instance_exec(&record_factory)
+      record.tag_list = ['alpha']
+      record.save!
+
+      expect(record.class.with_any_tag_ids([alpha.id], context: :other_context)).not_to include(record)
+    end
   end
 
   describe FacebookEntry do

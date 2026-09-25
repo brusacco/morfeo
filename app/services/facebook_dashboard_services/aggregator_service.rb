@@ -142,14 +142,16 @@ module FacebookDashboardServices
         Arel.sql('COALESCE(SUM(facebook_entries.reactions_total_count + facebook_entries.comments_count + facebook_entries.share_count), 0)')
       )
       pages_by_id = Page.where(id: rows.map(&:first).compact).includes(:site).index_by(&:id)
-      pages_count = rows.map do |id, name, count, _|
-        { page: pages_by_id[id], name: name || 'Sin página', count: count }
-      end
-.sort_by { |data| -data[:count] }
-      pages_interactions = rows.map do |id, name, _, interactions|
-        { page: pages_by_id[id], name: name || 'Sin página', interactions: interactions }
-      end
-.sort_by { |data| -data[:interactions] }
+      pages_count = rows
+                    .map do |id, name, count, _|
+                      { page: pages_by_id[id], name: name || 'Sin página', count: count }
+                    end
+                    .sort_by { |data| -data[:count] }
+      pages_interactions = rows
+                           .map do |id, name, _, interactions|
+                             { page: pages_by_id[id], name: name || 'Sin página', interactions: interactions }
+                           end
+                           .sort_by { |data| -data[:interactions] }
 
       {
         pages_count: pages_count,

@@ -144,14 +144,16 @@ module InstagramDashboardServices
         Arel.sql('COALESCE(SUM(instagram_posts.likes_count + instagram_posts.comments_count), 0)')
       )
       profiles_by_id = InstagramProfile.where(id: rows.map(&:first).compact).includes(:site).index_by(&:id)
-      profiles_count = rows.map do |id, full_name, username, count, _|
-        { profile: profiles_by_id[id], name: full_name || username || 'Sin perfil', count: count }
-      end
-.sort_by { |data| -data[:count] }
-      profiles_interactions = rows.map do |id, full_name, username, _, interactions|
-        { profile: profiles_by_id[id], name: full_name || username || 'Sin perfil', interactions: interactions }
-      end
-.sort_by { |data| -data[:interactions] }
+      profiles_count = rows
+                       .map do |id, full_name, username, count, _|
+                         { profile: profiles_by_id[id], name: full_name || username || 'Sin perfil', count: count }
+                       end
+                       .sort_by { |data| -data[:count] }
+      profiles_interactions = rows
+                              .map do |id, full_name, username, _, interactions|
+                                { profile: profiles_by_id[id], name: full_name || username || 'Sin perfil', interactions: interactions }
+                              end
+                              .sort_by { |data| -data[:interactions] }
 
       {
         profiles_count: profiles_count,

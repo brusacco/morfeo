@@ -141,14 +141,16 @@ module TwitterDashboardServices
         Arel.sql('COALESCE(SUM(twitter_posts.favorite_count + twitter_posts.retweet_count + twitter_posts.reply_count + twitter_posts.quote_count), 0)')
       )
       profiles_by_id = TwitterProfile.where(id: rows.map(&:first).compact).includes(:site).index_by(&:id)
-      profiles_count = rows.map do |id, name, count, _|
-        { profile: profiles_by_id[id], name: name || 'Sin perfil', count: count }
-      end
-.sort_by { |data| -data[:count] }
-      profiles_interactions = rows.map do |id, name, _, interactions|
-        { profile: profiles_by_id[id], name: name || 'Sin perfil', interactions: interactions }
-      end
-.sort_by { |data| -data[:interactions] }
+      profiles_count = rows
+                       .map do |id, name, count, _|
+                         { profile: profiles_by_id[id], name: name || 'Sin perfil', count: count }
+                       end
+                       .sort_by { |data| -data[:count] }
+      profiles_interactions = rows
+                              .map do |id, name, _, interactions|
+                                { profile: profiles_by_id[id], name: name || 'Sin perfil', interactions: interactions }
+                              end
+                              .sort_by { |data| -data[:interactions] }
 
       {
         profiles_count: profiles_count,

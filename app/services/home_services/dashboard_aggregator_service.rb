@@ -861,7 +861,7 @@ module HomeServices
     def calculate_facebook_sentiment
       return 0 if tag_ids.empty?
 
-      base_scope = FacebookEntry.where(posted_at: @start_date..@end_date).tagged_with(tag_names, any: true)
+      base_scope = FacebookEntry.where(posted_at: @start_date..@end_date).with_any_tag_ids(tag_ids, context: :tags)
 
       total_score = base_scope.sum(:sentiment_score)
       count = base_scope.where.not(sentiment_score: nil).size

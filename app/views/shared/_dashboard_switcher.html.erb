@@ -20,24 +20,21 @@
       path: twitter_topic_path(topic),
       icon: 'fa-brands fa-twitter',
       color: 'sky',
-      active: request.path.include?('twitter_topic'),
-      badge: 'BETA'
+      active: request.path.include?('twitter_topic')
     },
     {
       name: 'Instagram',
       path: instagram_topic_path(topic),
       icon: 'fa-brands fa-instagram',
       color: 'pink',
-      active: request.path.include?('instagram_topic'),
-      badge: 'BETA'
+      active: request.path.include?('instagram_topic')
     },
     {
       name: 'General',
       path: general_dashboard_path(topic),
       icon: 'fa-solid fa-chart-pie',
       color: 'purple',
-      active: request.path.include?('general_dashboard'),
-      badge: 'BETA'
+      active: request.path.include?('general_dashboard')
     }
   ]
 %>
