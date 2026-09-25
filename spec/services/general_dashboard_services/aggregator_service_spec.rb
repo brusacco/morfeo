@@ -168,8 +168,8 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
     before do
       allow_any_instance_of(Site).to receive(:save_image)
       persisted_topic.tags << [first_tag, second_tag]
-      create_facebook_entry(posted_at: 2.hours.ago, tags: [first_tag, second_tag])
-      create_facebook_entry(posted_at: 26.hours.ago, tags: [first_tag])
+      create_facebook_entry(posted_at: 2.hours.ago, tags: [first_tag, second_tag], emotional_intensity: 60)
+      create_facebook_entry(posted_at: 26.hours.ago, tags: [first_tag], emotional_intensity: 10)
     end
 
     it 'uses valid ID counts for tagged Facebook entries from the General Dashboard path' do
@@ -193,7 +193,31 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
       end
 
       facebook_count_queries = count_queries.grep(/facebook_entries/)
-      expect(facebook_count_queries).to include(a_string_matching(/COUNT\("facebook_entries"\."id"\)/))
+      expect(facebook_count_queries).to include(a_string_matching(/COUNT\((?:DISTINCT )?"facebook_entries"\."id"\)/))
+      expect(facebook_count_queries).not_to include(a_string_matching(/COUNT\("facebook_entries"\.\*\)/))
+    end
+
+    it 'uses valid ID counts for tagged Facebook sentiment intensity aggregates' do
+      allow(described_class).to receive(:new).and_call_original
+      count_queries = []
+      subscriber =
+        ActiveSupport::Notifications.subscribe('sql.active_record') do |_name, _started, _finished, _id, payload|
+          count_queries << payload[:sql] if payload[:sql].include?('COUNT')
+        end
+
+      begin
+        summary = persisted_topic.facebook_sentiment_summary(start_time: 2.days.ago, end_time: Time.current)
+        persisted_service = described_class.new(topic: persisted_topic)
+
+        expect(summary[:emotional_trends]).to include(high_intensity_count: 1, low_intensity_count: 1)
+        expect { persisted_service.send(:facebook_sentiment) }
+          .not_to raise_error
+      ensure
+        ActiveSupport::Notifications.unsubscribe(subscriber)
+      end
+
+      facebook_count_queries = count_queries.grep(/facebook_entries/)
+      expect(facebook_count_queries).to include(a_string_matching(/COUNT\((?:DISTINCT )?"facebook_entries"\."id"\)/))
       expect(facebook_count_queries).not_to include(a_string_matching(/COUNT\("facebook_entries"\.\*\)/))
     end
 
@@ -203,14 +227,16 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
       expect(persisted_topic.facebook_trend_velocity).to eq(velocity_percent: 0, direction: 'stable')
     end
 
-    def create_facebook_entry(posted_at:, tags:)
-      FacebookEntry.create!(
+    def create_facebook_entry(posted_at:, tags:, emotional_intensity: 0)
+      entry = FacebookEntry.create!(
         page: page,
         facebook_post_id: SecureRandom.uuid,
         posted_at: posted_at,
         reactions_total_count: 10,
         tag_list: tags.map(&:name)
       )
+      entry.update_column(:emotional_intensity, emotional_intensity)
+      entry
     end
   end
 

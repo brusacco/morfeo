@@ -44,7 +44,7 @@ RSpec.describe CacheWarmDashboardReporter do
 
       result = reporter.warm_topic(topic)
 
-      expect(result[:success]).to be(false)
+      expect(result).to include(success: false, error_class: 'ArgumentError', error: 'bad payload')
       expect(result[:dashboards][:digital]).to include(duration: 1.0)
       expect(result[:dashboards][:facebook]).to include(error_class: 'ArgumentError', error: 'bad payload')
       expect(result[:dashboards][:general]).to include(:duration)

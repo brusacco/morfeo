@@ -1378,8 +1378,8 @@ class Topic < ApplicationRecord
   def emotional_intensity_analysis(entries)
     {
       average_intensity: Float(entries.average(:emotional_intensity) || 0).round(2),
-      high_intensity_count: entries.where('emotional_intensity > ?', FacebookEntry::HIGH_EMOTION_THRESHOLD).count,
-      low_intensity_count: entries.where('emotional_intensity < ?', 20.0).count
+      high_intensity_count: entries.where('emotional_intensity > ?', FacebookEntry::HIGH_EMOTION_THRESHOLD).count(:id),
+      low_intensity_count: entries.where('emotional_intensity < ?', 20.0).count(:id)
     }
   end
 

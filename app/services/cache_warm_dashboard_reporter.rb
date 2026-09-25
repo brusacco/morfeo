@@ -67,13 +67,15 @@ class CacheWarmDashboardReporter
       dashboards[name] = measure_dashboard(name, &invocation)
     end
 
+    failed_dashboard = dashboards.values.find { |dashboard| dashboard[:error] }
+
     {
-      success: dashboards.values.none? { |dashboard| dashboard[:error] },
+      success: failed_dashboard.nil?,
       topic_id: topic.id,
       topic_name: topic.name,
       duration: @clock.call - topic_started_at,
       dashboards: dashboards
-    }
+    }.merge(failed_dashboard ? failed_dashboard.slice(:error_class, :error, :backtrace) : {})
   end
 
   def print_report(results:, workers:, wall_time:, io: $stdout)
