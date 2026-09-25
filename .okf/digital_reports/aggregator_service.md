@@ -4,7 +4,7 @@ title: Digital Aggregator Service
 description: Main data aggregation service for digital media topic analytics
 resource: app/services/digital_dashboard_services/aggregator_service.rb
 tags: [digital, reports, service, aggregation, entries]
-timestamp: 2026-09-22T00:00:00Z
+timestamp: 2026-09-25T00:00:00Z
 ---
 
 # Overview
@@ -84,6 +84,7 @@ association suitable only where eventual consistency is acceptable.
 # Key Features
 
 - Sentiment analysis integration (unique to digital reports)
+- Entry totals and per-polarity counts and interaction sums are calculated in one conditional aggregate query, so the topic tag filter is evaluated once.
 - Calendar view data preparation
 - Advanced filtering by polarity
 - Title vs content tag analysis

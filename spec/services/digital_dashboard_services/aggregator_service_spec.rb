@@ -31,4 +31,26 @@ RSpec.describe DigitalDashboardServices::AggregatorService do
       viral_content: [{ id: 1 }]
     )
   end
+
+  it 'combines entry and polarity aggregates in one query' do
+    entries = double('entries')
+    allow(entries).to receive(:reorder).with(nil).and_return(entries)
+    expect(entries).to receive(:pick).once do |sql|
+      expect(sql.to_s).to include('COUNT(entries.id)')
+      expect(sql.to_s).to include('CASE WHEN entries.polarity = 0')
+      expect(sql.to_s).to include('CASE WHEN entries.polarity = 1')
+      expect(sql.to_s).to include('CASE WHEN entries.polarity = 2')
+
+      [5, 150, 2, 30, 2, 100, 1, 20]
+    end
+
+    expect(service.send(:calculate_entry_aggregations, entries)).to eq(
+      entries_count: 5,
+      entries_total_sum: 150,
+      entries_polarity_counts: { 'neutral' => 2, 'positive' => 2, 'negative' => 1 },
+      entries_polarity_sums: { 'neutral' => 30, 'positive' => 100, 'negative' => 20 },
+      total_entries: 5,
+      total_interactions: 150
+    )
+  end
 end

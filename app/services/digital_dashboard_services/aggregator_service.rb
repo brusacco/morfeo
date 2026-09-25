@@ -64,24 +64,38 @@ module DigitalDashboardServices
     end
 
     def calculate_entry_aggregations(entries)
-      # Precompute aggregates to avoid multiple SQL queries.
+      # Topic#list_entries uses EXISTS, so aggregate all entry metrics in one query.
       # Topic#list_entries uses EXISTS, so it returns each entry at most once.
-      entries_count = entries.count
-      entries_total_sum = entries.sum(:total_count)
+      neutral_value = Entry.polarities.fetch('neutral')
+      positive_value = Entry.polarities.fetch('positive')
+      negative_value = Entry.polarities.fetch('negative')
 
-      # Combine polarity aggregations into a single query.
-      # Use reorder(nil) to remove any existing ORDER BY before GROUP BY.
-      polarity_data = entries
-                      .where.not(polarity: nil)
-                      .reorder(nil)
-                      .group(:polarity)
-                      .select('polarity, COUNT(entries.id) as count, SUM(entries.total_count) as sum')
-                      .map { |row| [row.polarity, { count: row.count, sum: row.sum }] }
-                      .to_h
+      entries_count, entries_total_sum,
+        neutral_count, neutral_sum,
+        positive_count, positive_sum,
+        negative_count, negative_sum = entries.reorder(nil).pick(
+          Arel.sql(<<~SQL.squish)
+            COUNT(entries.id),
+            COALESCE(SUM(entries.total_count), 0),
+            COALESCE(SUM(CASE WHEN entries.polarity = #{neutral_value} THEN 1 ELSE 0 END), 0),
+            COALESCE(SUM(CASE WHEN entries.polarity = #{neutral_value} THEN entries.total_count ELSE 0 END), 0),
+            COALESCE(SUM(CASE WHEN entries.polarity = #{positive_value} THEN 1 ELSE 0 END), 0),
+            COALESCE(SUM(CASE WHEN entries.polarity = #{positive_value} THEN entries.total_count ELSE 0 END), 0),
+            COALESCE(SUM(CASE WHEN entries.polarity = #{negative_value} THEN 1 ELSE 0 END), 0),
+            COALESCE(SUM(CASE WHEN entries.polarity = #{negative_value} THEN entries.total_count ELSE 0 END), 0)
+          SQL
+        )
 
-      # Extract counts and sums from the combined data
-      entries_polarity_counts = polarity_data.transform_values { |v| v[:count] }
-      entries_polarity_sums = polarity_data.transform_values { |v| v[:sum] }
+      entries_polarity_counts = {
+        'neutral' => neutral_count,
+        'positive' => positive_count,
+        'negative' => negative_count
+      }.reject { |_polarity, count| count.zero? }
+      entries_polarity_sums = {
+        'neutral' => neutral_sum,
+        'positive' => positive_sum,
+        'negative' => negative_sum
+      }.select { |polarity, _sum| entries_polarity_counts.key?(polarity) }
 
       {
         entries_count: entries_count,
