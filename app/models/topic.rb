@@ -92,10 +92,9 @@ class Topic < ApplicationRecord
   end
 
   def entries_cache_version
-    count, latest_update = list_entries_scope.reorder(nil).pick(
-      Arel.sql('COUNT(entries.id)'),
-      Arel.sql('MAX(entries.updated_at)')
-    )
+    entries = list_entries_scope.reorder(nil)
+    count = entries.count
+    latest_update = entries.maximum(:updated_at)
     latest_update = Time.zone.parse(latest_update) if latest_update.is_a?(String)
 
     "#{count}:#{latest_update&.utc&.iso8601(6) || 'none'}"

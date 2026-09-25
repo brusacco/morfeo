@@ -53,6 +53,20 @@ RSpec.describe Topic, type: :model do
     expect(topic.entries_cache_version).to start_with('1:')
   end
 
+  it 'uses count and maximum instead of pick for the payload version' do
+    topic = create(:topic)
+    entries = double('entries')
+    latest_update = Time.zone.parse('2026-09-25 10:05:00')
+
+    allow(topic).to receive(:list_entries_scope).and_return(entries)
+    allow(entries).to receive(:reorder).with(nil).and_return(entries)
+    allow(entries).to receive(:count).and_return(543)
+    allow(entries).to receive(:maximum).with(:updated_at).and_return(latest_update)
+    expect(entries).not_to receive(:pick)
+
+    expect(topic.entries_cache_version).to eq("543:#{latest_update.utc.iso8601(6)}")
+  end
+
   it 'reuses the Facebook entry relation for emotional intensity aggregates' do
     entries = double('entries')
     high_intensity_entries = double('high_intensity_entries', count: 3)

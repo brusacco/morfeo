@@ -131,6 +131,11 @@ create Proc object without a block`. Use `proc { |controller| { ... } }`, as
   payload version. The header count must use `entries.count`, which forces a
   current count over the same scope rendered by the table; reserve
   `list_entries` for rendering the cached list.
+- Do not calculate the payload version with
+  `entries.pick(COUNT(entries.id), MAX(entries.updated_at))`. On the digital
+  entry relation this returned a partial aggregate in production (`5`) while
+  `entries.count` returned the actual list size (`543`). Use `entries.count` and
+  `entries.maximum(:updated_at)` as separate calculations.
 - Do not derive an action-cache version by running `COUNT` and `MAX(updated_at)`
   over `Topic#list_entries` for every request. That relation includes topic-tag
   filtering and joins, so the key calculation repeats an expensive query before
