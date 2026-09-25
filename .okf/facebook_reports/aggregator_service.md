@@ -80,6 +80,11 @@ Returns a hash with the following keys:
 - Groupdate gem for temporal aggregation
 - Custom sentiment analysis algorithms
 
+# Performance
+
+- The service passes its already-loaded topic tag names to `FacebookEntry.for_topic`, avoiding a second tag lookup for the primary dashboard scope.
+- Word and bigram frequencies are produced together from one traversal of the filtered posts.
+
 # Related
 
 - [FacebookTopicController](controller.md) - Uses this service for data loading

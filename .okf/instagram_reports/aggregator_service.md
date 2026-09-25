@@ -74,6 +74,11 @@ Returns a hash with the following keys:
 - No view count estimation formula (uses actual API data when available)
 - No sentiment analysis (unlike Facebook)
 
+# Performance
+
+- The service passes its already-loaded topic tag names to `InstagramPost.for_topic`, avoiding a second tag lookup for the primary dashboard scope.
+- Word and bigram frequencies are produced together from one traversal of the filtered posts.
+
 # Related
 
 - [InstagramTopicController](controller.md) - Uses this service for data loading

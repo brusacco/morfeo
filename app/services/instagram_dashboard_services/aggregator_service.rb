@@ -48,8 +48,8 @@ module InstagramDashboardServices
       return empty_instagram_data if @tag_names.empty?
 
       # Single base query with all necessary includes
-      posts = InstagramPost.for_topic(@topic, start_time: @start_time, end_time: @end_time)
-      
+      posts = InstagramPost.for_topic(@topic, start_time: @start_time, end_time: @end_time, tag_names: @tag_names)
+
       # Execute aggregations efficiently
       chart_data = calculate_chart_data(posts)
       statistics = calculate_statistics(posts)
@@ -76,8 +76,8 @@ module InstagramDashboardServices
     def calculate_statistics(posts)
       total_posts = posts.size
       total_interactions = InstagramPost.total_interactions(posts)
-      total_views = InstagramPost.total_views(posts)  # Video views only
-      
+      total_views = InstagramPost.total_views(posts) # Video views only
+
       # Safe division
       average_interactions = total_posts.zero? ? 0 : (total_interactions.to_f / total_posts).round(1)
 
@@ -97,12 +97,10 @@ module InstagramDashboardServices
     end
 
     def calculate_text_analysis(posts)
-      {
-        word_occurrences: InstagramPost.word_occurrences(posts),
-        bigram_occurrences: InstagramPost.bigram_occurrences(posts),
+      InstagramPost.text_occurrences(posts).merge(
         positive_words: parse_word_list(@topic.positive_words),
         negative_words: parse_word_list(@topic.negative_words)
-      }
+      )
     end
 
     def calculate_tag_data(posts)
@@ -131,7 +129,10 @@ module InstagramDashboardServices
       loaded_posts = posts.includes(instagram_profile: :site).to_a
 
       # Group in memory (more efficient than multiple queries)
-      profiles_group = loaded_posts.group_by { |post| post.instagram_profile&.full_name || post.instagram_profile&.username || 'Sin perfil' }
+      profiles_group =
+        loaded_posts.group_by do |post|
+          post.instagram_profile&.full_name || post.instagram_profile&.username || 'Sin perfil'
+        end
 
       # Calculate metrics in one pass
       profiles_data = calculate_profiles_metrics(profiles_group)
@@ -162,13 +163,10 @@ module InstagramDashboardServices
       # Batch site queries for efficiency
       base_query = posts.joins(instagram_profile: :site).reorder(nil)
 
-      site_top_counts = base_query.group('sites.id')
-                                  .order(Arel.sql('COUNT(*) DESC'))
-                                  .limit(12)
-                                  .count
+      site_top_counts = base_query.group('sites.id').order(Arel.sql('COUNT(*) DESC')).limit(12).count
 
       site_counts = base_query.group('sites.name').count
-      
+
       # Instagram: likes + comments
       site_sums = base_query.group('sites.name')
                             .sum(Arel.sql('instagram_posts.likes_count + instagram_posts.comments_count'))
@@ -260,27 +258,28 @@ module InstagramDashboardServices
       # Calculate baseline for comparison (median of non-zero values, or 1 if none)
       engagement_values = posts_array.map(&:total_interactions)
       non_zero_values = engagement_values.select { |v| v > 0 }
-      
-      baseline = if non_zero_values.size >= 3
-        # Use median of non-zero values if we have enough data
-        sorted = non_zero_values.sort
-        calculate_median(sorted)
-      elsif non_zero_values.any?
-        # Use average of non-zero values if we have 1-2 values
-        non_zero_values.sum / non_zero_values.size.to_f
-      else
-        # All zeros, use 1 to avoid division by zero
-        1.0
-      end
+
+      baseline =
+        if non_zero_values.size >= 3
+          # Use median of non-zero values if we have enough data
+          sorted = non_zero_values.sort
+          calculate_median(sorted)
+        elsif non_zero_values.any?
+          # Use average of non-zero values if we have 1-2 values
+          non_zero_values.sum / non_zero_values.size.to_f
+        else
+          # All zeros, use 1 to avoid division by zero
+          1.0
+        end
 
       # Dynamic threshold: Content is viral if it's 5x above median OR has >50 interactions
       # This adapts to the topic's typical engagement levels
       dynamic_threshold = [baseline * 5, 50].min
-      
+
       # Get viral posts
       viral_posts = posts_array.select { |p| p.total_interactions > dynamic_threshold }
-                              .sort_by { |p| -p.total_interactions }
-                              .take(10)
+                               .sort_by { |p| -p.total_interactions }
+                               .take(10)
 
       return [] if viral_posts.empty?
 
@@ -299,9 +298,8 @@ module InstagramDashboardServices
       if size.odd?
         sorted_array[size / 2].to_f
       else
-        (sorted_array[size / 2 - 1] + sorted_array[size / 2]) / 2.0
+        (sorted_array[(size / 2) - 1] + sorted_array[size / 2]) / 2.0
       end
     end
   end
 end
-

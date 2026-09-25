@@ -4,7 +4,7 @@ require 'rails_helper'
 
 RSpec.describe FacebookDashboardServices::AggregatorService do
   let(:tags_relation) { double('tags_relation', pluck: %w[alpha beta]) }
-  let(:topic) { double('topic', id: 7, tags: tags_relation) }
+  let(:topic) { double('topic', id: 7, tags: tags_relation, positive_words: nil, negative_words: nil) }
   let(:service) { described_class.new(topic: topic) }
 
   before do
@@ -28,5 +28,25 @@ RSpec.describe FacebookDashboardServices::AggregatorService do
       sentiment_analysis: { sentiment: 'data' },
       viral_content: [{ id: 1 }]
     )
+  end
+
+  it 'reuses memoized tag names and combined text analysis for the dashboard entries' do
+    entries = double('entries')
+    text_analysis = { word_occurrences: [['alpha', 2]], bigram_occurrences: [['alpha beta', 2]] }
+
+    allow(service).to receive_messages(calculate_chart_data: {}, calculate_statistics: {}, calculate_tag_data: {})
+    expect(FacebookEntry).to receive(:for_topic)
+      .with(topic,
+            start_time: service.instance_variable_get(:@start_time),
+            end_time: service.instance_variable_get(:@end_time),
+            tag_names: %w[
+              alpha beta
+            ])
+      .and_return(entries)
+    expect(FacebookEntry).to receive(:text_occurrences).with(entries).and_return(text_analysis)
+
+    result = service.send(:load_facebook_data)
+
+    expect(result).to include(text_analysis)
   end
 end

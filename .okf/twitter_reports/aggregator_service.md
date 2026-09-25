@@ -74,6 +74,11 @@ Returns a hash with the following keys:
 - Engagement metrics: favorites, retweets, replies, quotes (no reaction breakdown)
 - No sentiment analysis (unlike Facebook)
 
+# Performance
+
+- The service passes its already-loaded topic tag names to `TwitterPost.for_topic`, avoiding a second tag lookup for the primary dashboard scope.
+- Word and bigram frequencies are produced together from one traversal of the filtered posts.
+
 # Related
 
 - [TwitterTopicController](controller.md) - Uses this service for data loading

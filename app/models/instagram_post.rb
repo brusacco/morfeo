@@ -16,15 +16,18 @@ class InstagramPost < ApplicationRecord
 
   # Scopes
   scope :recent, -> { order(posted_at: :desc) }
-  scope :for_profile, lambda { |profile_username|
-    joins(:instagram_profile).where(instagram_profiles: { username: profile_username })
-  }
-  scope :within_range, lambda { |start_time, end_time|
-    where(posted_at: start_time..end_time)
-  }
-  scope :for_tags, lambda { |tag_names|
-    tag_names.present? ? tagged_with(tag_names, any: true) : all
-  }
+  scope :for_profile,
+        lambda { |profile_username|
+          joins(:instagram_profile).where(instagram_profiles: { username: profile_username })
+        }
+  scope :within_range,
+        lambda { |start_time, end_time|
+          where(posted_at: start_time..end_time)
+        }
+  scope :for_tags,
+        lambda { |tag_names|
+          tag_names.present? ? tagged_with(tag_names, any: true) : all
+        }
   scope :videos, -> { where(media_type: 'GraphVideo') }
   scope :images, -> { where(media_type: 'GraphImage') }
   scope :carousels, -> { where(media_type: 'GraphSidecar') }
@@ -32,8 +35,13 @@ class InstagramPost < ApplicationRecord
   scope :feed_posts, -> { where(product_type: 'feed') }
 
   # Class methods for topic filtering
-  def self.for_topic(topic, start_time: DAYS_RANGE.days.ago.beginning_of_day, end_time: Time.zone.now.end_of_day)
-    tag_names = topic.tags.pluck(:name)
+  def self.for_topic(
+    topic,
+    start_time: DAYS_RANGE.days.ago.beginning_of_day,
+    end_time: Time.zone.now.end_of_day,
+    tag_names: nil
+  )
+    tag_names ||= topic.tags.pluck(:name)
     for_tags(tag_names).within_range(start_time, end_time).includes(instagram_profile: :site).recent
   end
 
@@ -59,24 +67,36 @@ class InstagramPost < ApplicationRecord
 
   # Word occurrences analysis
   def self.word_occurrences(scope = all, limit = 100)
-    occurrences = Hash.new(0)
-    scope.find_each do |post|
-      post.words.each { |word| occurrences[word] += 1 }
-    end
-    occurrences.select { |_word, count| count > 1 }
-               .sort_by { |_, count| -count }
-               .first(limit)
+    text_occurrences(scope, word_limit: limit)[:word_occurrences]
   end
 
   # Bigram occurrences analysis
   def self.bigram_occurrences(scope = all, limit = 100)
-    occurrences = Hash.new(0)
+    text_occurrences(scope, bigram_limit: limit)[:bigram_occurrences]
+  end
+
+  def self.text_occurrences(scope = all, word_limit: 100, bigram_limit: 100)
+    word_occurrences = Hash.new(0)
+    bigram_occurrences = Hash.new(0)
+
     scope.find_each do |post|
-      post.bigrams.each { |bigram| occurrences[bigram] += 1 if bigram.present? }
+      words = post.words
+      words.each { |word| word_occurrences[word] += 1 }
+      words.each_cons(2) { |first_word, second_word| bigram_occurrences["#{first_word} #{second_word}"] += 1 }
     end
-    occurrences.select { |_bigram, count| count > 1 }
-               .sort_by { |_, count| -count }
-               .first(limit)
+
+    {
+      word_occurrences: word_occurrences.select do |_word, count|
+        count > 1
+      end
+.sort_by { |_, count| -count }
+                                        .first(word_limit),
+      bigram_occurrences: bigram_occurrences.select do |_bigram, count|
+        count > 1
+      end
+.sort_by { |_, count| -count }
+                                            .first(bigram_limit)
+    }
   end
 
   # Instance Methods
@@ -104,6 +124,7 @@ class InstagramPost < ApplicationRecord
     return 'Video' if media_type == 'GraphVideo'
     return 'Carrusel' if media_type == 'GraphSidecar'
     return 'Imagen' if media_type == 'GraphImage'
+
     'Post'
   end
 
@@ -201,7 +222,7 @@ class InstagramPost < ApplicationRecord
   # Get local post image path (for serving from public directory)
   # Format: /images/instagram/{uid}/{year}/{month}/{day}/{shortcode}.jpg
   def local_post_image_path
-    return nil unless instagram_profile&.uid.present? && posted_at.present? && shortcode.present?
+    return unless instagram_profile&.uid.present? && posted_at.present? && shortcode.present?
 
     year = posted_at.strftime('%Y')
     month = posted_at.strftime('%m')
@@ -218,7 +239,15 @@ class InstagramPost < ApplicationRecord
     month = posted_at.strftime('%m')
     day = posted_at.strftime('%d')
 
-    file_path = Rails.root.join('public', 'images', 'instagram', instagram_profile.uid, year, month, day, "#{shortcode}.jpg")
+    file_path = Rails.public_path.join(
+      'images',
+      'instagram',
+      instagram_profile.uid,
+      year,
+      month,
+      day,
+      "#{shortcode}.jpg"
+    )
     File.exist?(file_path)
   end
 
@@ -254,7 +283,7 @@ class InstagramPost < ApplicationRecord
     month = posted_at.strftime('%m')
     day = posted_at.strftime('%d')
 
-    directory = Rails.root.join('public', 'images', 'instagram', instagram_profile.uid, year, month, day)
+    directory = Rails.public_path.join('images', 'instagram', instagram_profile.uid, year, month, day)
     FileUtils.mkdir_p(directory) unless File.directory?(directory)
 
     # Download and save image
@@ -268,9 +297,7 @@ class InstagramPost < ApplicationRecord
     response = HTTParty.get(image_url, timeout: 30, follow_redirects: true)
 
     if response.success?
-      File.open(file_path, 'wb') do |file|
-        file.write(response.body)
-      end
+      File.binwrite(file_path, response.body)
       Rails.logger.info "Successfully downloaded Instagram post image for #{shortcode} (@#{instagram_profile.username}) to: #{file_path}"
       true
     else

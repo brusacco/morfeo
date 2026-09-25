@@ -55,8 +55,13 @@ class FacebookEntry < ApplicationRecord
   scope :controversial, -> { where('controversy_index > ?', CONTROVERSY_THRESHOLD) }
   scope :high_emotion, -> { where('emotional_intensity > ?', HIGH_EMOTION_THRESHOLD) }
 
-  def self.for_topic(topic, start_time: DAYS_RANGE.days.ago.beginning_of_day, end_time: Time.zone.now.end_of_day)
-    tag_names = topic.tags.pluck(:name)
+  def self.for_topic(
+    topic,
+    start_time: DAYS_RANGE.days.ago.beginning_of_day,
+    end_time: Time.zone.now.end_of_day,
+    tag_names: nil
+  )
+    tag_names ||= topic.tags.pluck(:name)
     for_tags(tag_names).within_range(start_time, end_time).includes(page: :site).recent
   end
 
@@ -81,23 +86,35 @@ class FacebookEntry < ApplicationRecord
   end
 
   def self.word_occurrences(scope = all, limit = 100)
-    occurrences = Hash.new(0)
-    scope.find_each do |entry|
-      entry.words.each { |word| occurrences[word] += 1 }
-    end
-    occurrences.select { |_word, count| count > 1 }
-               .sort_by { |_, count| -count }
-               .first(limit)
+    text_occurrences(scope, word_limit: limit)[:word_occurrences]
   end
 
   def self.bigram_occurrences(scope = all, limit = 100)
-    occurrences = Hash.new(0)
+    text_occurrences(scope, bigram_limit: limit)[:bigram_occurrences]
+  end
+
+  def self.text_occurrences(scope = all, word_limit: 100, bigram_limit: 100)
+    word_occurrences = Hash.new(0)
+    bigram_occurrences = Hash.new(0)
+
     scope.find_each do |entry|
-      entry.bigrams.each { |bigram| occurrences[bigram] += 1 if bigram.present? }
+      words = entry.words
+      words.each { |word| word_occurrences[word] += 1 }
+      words.each_cons(2) { |first_word, second_word| bigram_occurrences["#{first_word} #{second_word}"] += 1 }
     end
-    occurrences.select { |_bigram, count| count > 1 }
-               .sort_by { |_, count| -count }
-               .first(limit)
+
+    {
+      word_occurrences: word_occurrences.select do |_word, count|
+        count > 1
+      end
+.sort_by { |_, count| -count }
+                                        .first(word_limit),
+      bigram_occurrences: bigram_occurrences.select do |_bigram, count|
+        count > 1
+      end
+.sort_by { |_, count| -count }
+                                            .first(bigram_limit)
+    }
   end
 
   def total_reactions

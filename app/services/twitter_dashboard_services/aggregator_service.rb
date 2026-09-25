@@ -48,8 +48,8 @@ module TwitterDashboardServices
       return empty_twitter_data if @tag_names.empty?
 
       # Single base query with all necessary includes
-      posts = TwitterPost.for_topic(@topic, start_time: @start_time, end_time: @end_time)
-      
+      posts = TwitterPost.for_topic(@topic, start_time: @start_time, end_time: @end_time, tag_names: @tag_names)
+
       # Execute aggregations efficiently
       chart_data = calculate_chart_data(posts)
       statistics = calculate_statistics(posts)
@@ -77,7 +77,7 @@ module TwitterDashboardServices
       total_posts = posts.size
       total_interactions = TwitterPost.total_interactions(posts)
       total_views = TwitterPost.total_views(posts)
-      
+
       # Safe division
       average_interactions = total_posts.zero? ? 0 : (total_interactions.to_f / total_posts).round(1)
 
@@ -96,12 +96,10 @@ module TwitterDashboardServices
     end
 
     def calculate_text_analysis(posts)
-      {
-        word_occurrences: TwitterPost.word_occurrences(posts),
-        bigram_occurrences: TwitterPost.bigram_occurrences(posts),
+      TwitterPost.text_occurrences(posts).merge(
         positive_words: parse_word_list(@topic.positive_words),
         negative_words: parse_word_list(@topic.negative_words)
-      }
+      )
     end
 
     def calculate_tag_data(posts)
@@ -160,13 +158,10 @@ module TwitterDashboardServices
       # Batch site queries for efficiency
       base_query = posts.joins(twitter_profile: :site).reorder(nil)
 
-      site_top_counts = base_query.group('sites.id')
-                                  .order(Arel.sql('COUNT(*) DESC'))
-                                  .limit(12)
-                                  .count
+      site_top_counts = base_query.group('sites.id').order(Arel.sql('COUNT(*) DESC')).limit(12).count
 
       site_counts = base_query.group('sites.name').count
-      
+
       site_sums = base_query.group('sites.name')
                             .sum(Arel.sql('twitter_posts.favorite_count + twitter_posts.retweet_count + twitter_posts.reply_count + twitter_posts.quote_count'))
 
@@ -257,27 +252,28 @@ module TwitterDashboardServices
       # Calculate baseline for comparison (median of non-zero values, or 1 if none)
       engagement_values = posts_array.map(&:total_interactions)
       non_zero_values = engagement_values.select { |v| v > 0 }
-      
-      baseline = if non_zero_values.size >= 3
-        # Use median of non-zero values if we have enough data
-        sorted = non_zero_values.sort
-        calculate_median(sorted)
-      elsif non_zero_values.any?
-        # Use average of non-zero values if we have 1-2 values
-        non_zero_values.sum / non_zero_values.size.to_f
-      else
-        # All zeros, use 1 to avoid division by zero
-        1.0
-      end
+
+      baseline =
+        if non_zero_values.size >= 3
+          # Use median of non-zero values if we have enough data
+          sorted = non_zero_values.sort
+          calculate_median(sorted)
+        elsif non_zero_values.any?
+          # Use average of non-zero values if we have 1-2 values
+          non_zero_values.sum / non_zero_values.size.to_f
+        else
+          # All zeros, use 1 to avoid division by zero
+          1.0
+        end
 
       # Dynamic threshold: Content is viral if it's 5x above median OR has >50 interactions
       # This adapts to the topic's typical engagement levels
       dynamic_threshold = [baseline * 5, 50].min
-      
+
       # Get viral posts
       viral_posts = posts_array.select { |p| p.total_interactions > dynamic_threshold }
-                              .sort_by { |p| -p.total_interactions }
-                              .take(10)
+                               .sort_by { |p| -p.total_interactions }
+                               .take(10)
 
       return [] if viral_posts.empty?
 
@@ -296,7 +292,7 @@ module TwitterDashboardServices
       if size.odd?
         sorted_array[size / 2].to_f
       else
-        (sorted_array[size / 2 - 1] + sorted_array[size / 2]) / 2.0
+        (sorted_array[(size / 2) - 1] + sorted_array[size / 2]) / 2.0
       end
     end
   end

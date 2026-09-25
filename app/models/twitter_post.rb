@@ -23,8 +23,13 @@ class TwitterPost < ApplicationRecord
           tag_names.present? ? tagged_with(tag_names, any: true) : all
         }
 
-  def self.for_topic(topic, start_time: DAYS_RANGE.days.ago.beginning_of_day, end_time: Time.zone.now.end_of_day)
-    tag_names = topic.tags.pluck(:name)
+  def self.for_topic(
+    topic,
+    start_time: DAYS_RANGE.days.ago.beginning_of_day,
+    end_time: Time.zone.now.end_of_day,
+    tag_names: nil
+  )
+    tag_names ||= topic.tags.pluck(:name)
     for_tags(tag_names).within_range(start_time, end_time).includes(twitter_profile: :site).recent
   end
 
@@ -49,23 +54,35 @@ class TwitterPost < ApplicationRecord
   end
 
   def self.word_occurrences(scope = all, limit = 100)
-    occurrences = Hash.new(0)
-    scope.find_each do |post|
-      post.words.each { |word| occurrences[word] += 1 }
-    end
-    occurrences.select { |_word, count| count > 1 }
-               .sort_by { |_, count| -count }
-               .first(limit)
+    text_occurrences(scope, word_limit: limit)[:word_occurrences]
   end
 
   def self.bigram_occurrences(scope = all, limit = 100)
-    occurrences = Hash.new(0)
+    text_occurrences(scope, bigram_limit: limit)[:bigram_occurrences]
+  end
+
+  def self.text_occurrences(scope = all, word_limit: 100, bigram_limit: 100)
+    word_occurrences = Hash.new(0)
+    bigram_occurrences = Hash.new(0)
+
     scope.find_each do |post|
-      post.bigrams.each { |bigram| occurrences[bigram] += 1 if bigram.present? }
+      words = post.words
+      words.each { |word| word_occurrences[word] += 1 }
+      words.each_cons(2) { |first_word, second_word| bigram_occurrences["#{first_word} #{second_word}"] += 1 }
     end
-    occurrences.select { |_bigram, count| count > 1 }
-               .sort_by { |_, count| -count }
-               .first(limit)
+
+    {
+      word_occurrences: word_occurrences.select do |_word, count|
+        count > 1
+      end
+.sort_by { |_, count| -count }
+                                        .first(word_limit),
+      bigram_occurrences: bigram_occurrences.select do |_bigram, count|
+        count > 1
+      end
+.sort_by { |_, count| -count }
+                                            .first(bigram_limit)
+    }
   end
 
   def total_interactions
@@ -106,6 +123,7 @@ class TwitterPost < ApplicationRecord
     return 'Video' if has_video?
     return 'Imagen' if has_images?
     return 'Link' if has_external_url?
+
     'Tweet'
   end
 
@@ -119,8 +137,8 @@ class TwitterPost < ApplicationRecord
     media_array = parsed_payload.dig('legacy', 'extended_entities', 'media') ||
                   parsed_payload.dig('legacy', 'entities', 'media') ||
                   []
-    
-    media_array.any? { |m| m['type'] == 'video' || m['type'] == 'animated_gif' }
+
+    media_array.any? { |m| %w[video animated_gif].include?(m['type']) }
   rescue StandardError
     false
   end
@@ -242,23 +260,19 @@ class TwitterPost < ApplicationRecord
         # JSON string
         JSON.parse(payload)
       end
-    else
-      nil
     end
   end
 
   # Extract image from Twitter card (link preview)
   def extract_card_image(parsed_payload)
     # Check for card object in different possible locations
-    card = parsed_payload['card'] ||
-           parsed_payload.dig('legacy', 'card') ||
-           parsed_payload.dig('tweet_card', 'legacy')
+    card = parsed_payload['card'] || parsed_payload.dig('legacy', 'card') || parsed_payload.dig('tweet_card', 'legacy')
 
-    return nil unless card
+    return unless card
 
     # Get binding_values which contains the card data
     binding_values = card['binding_values'] || card.dig('legacy', 'binding_values')
-    return nil unless binding_values
+    return unless binding_values
 
     # Try different image key patterns used by Twitter
     image_keys = [
@@ -278,8 +292,7 @@ class TwitterPost < ApplicationRecord
       next unless image_data
 
       # Extract URL from the value structure
-      image_url = image_data.dig('value', 'image_value', 'url') ||
-                  image_data.dig('value', 'string_value')
+      image_url = image_data.dig('value', 'image_value', 'url') || image_data.dig('value', 'string_value')
 
       return image_url if image_url&.start_with?('http')
     end
