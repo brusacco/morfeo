@@ -56,6 +56,21 @@ RSpec.describe DigitalDashboardServices::AggregatorService do
     expect(second_key).to end_with("25:#{second_update.utc.iso8601(6)}")
   end
 
+  it 'uses the current entries relation count for the dashboard header' do
+    entries = double('entries')
+    aggregate_entries = double('aggregate_entries')
+    aggregate_row = [5, 0, 0, 0, 0, 0, 0, 0]
+
+    allow(entries).to receive(:reorder).with(nil).and_return(aggregate_entries)
+    allow(aggregate_entries).to receive(:pick).and_return(aggregate_row)
+    allow(entries).to receive(:count).and_return(543)
+
+    result = service.send(:calculate_entry_aggregations, entries)
+
+    expect(result[:total_entries]).to eq(543)
+    expect(entries).to have_received(:count)
+  end
+
   def create_entry(polarity: nil, total_count: 0)
     Entry.create!(
       url: "https://example.test/entries/#{SecureRandom.uuid}",
@@ -91,9 +106,10 @@ RSpec.describe DigitalDashboardServices::AggregatorService do
     )
   end
 
-  it 'combines entry and polarity aggregates in one query' do
+  it 'combines entry and polarity aggregates while counting the current relation for the header' do
     entries = double('entries')
     allow(entries).to receive(:reorder).with(nil).and_return(entries)
+    expect(entries).to receive(:count).once.and_return(5)
     expect(entries).to receive(:pick).once do |*columns|
       expect(columns.map(&:to_s)).to include(
         'COUNT(entries.id)',

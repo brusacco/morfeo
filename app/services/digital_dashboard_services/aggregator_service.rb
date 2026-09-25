@@ -119,10 +119,12 @@ module DigitalDashboardServices
         )
       row ||= Array.new(8, 0)
 
-      entries_count, entries_total_sum,
+      _aggregate_entries_count, entries_total_sum,
         neutral_count, neutral_sum,
         positive_count, positive_sum,
         negative_count, negative_sum = row
+
+      entries_count = entries.count
 
       entries_polarity_counts = {
         'neutral' => neutral_count,
