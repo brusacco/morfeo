@@ -136,7 +136,6 @@ RSpec.describe FacebookDashboardServices::AggregatorService do
 
   it 'falls back to safe temporal defaults when source methods fail' do
     %i[
-      facebook_temporal_intelligence_summary
       facebook_optimal_publishing_time
       facebook_trend_velocity
       facebook_engagement_velocity
@@ -147,7 +146,14 @@ RSpec.describe FacebookDashboardServices::AggregatorService do
     ].each { |method_name| allow(topic).to receive(method_name).and_raise('unavailable') }
 
     expect(service.send(:load_temporal_intelligence)).to eq(
-      temporal_summary: nil,
+      temporal_summary: {
+        optimal_time: nil,
+        trend_velocity: { velocity_percent: 0, direction: 'stable' },
+        engagement_velocity: { velocity_percent: 0, direction: 'stable' },
+        content_half_life: nil,
+        peak_hours: [],
+        peak_days: []
+      },
       optimal_time: nil,
       trend_velocity: { velocity_percent: 0, direction: 'stable' },
       engagement_velocity: { velocity_percent: 0, direction: 'stable' },

@@ -113,7 +113,6 @@ RSpec.describe TwitterDashboardServices::AggregatorService do
 
   it 'falls back to safe temporal defaults when source methods fail' do
     %i[
-      twitter_temporal_intelligence_summary
       twitter_optimal_publishing_time
       twitter_trend_velocity
       twitter_engagement_velocity
@@ -124,7 +123,14 @@ RSpec.describe TwitterDashboardServices::AggregatorService do
     ].each { |method_name| allow(topic).to receive(method_name).and_raise('unavailable') }
 
     expect(service.send(:load_temporal_intelligence)).to eq(
-      temporal_summary: nil,
+      temporal_summary: {
+        optimal_time: nil,
+        trend_velocity: { velocity_percent: 0, direction: 'stable' },
+        engagement_velocity: { velocity_percent: 0, direction: 'stable' },
+        content_half_life: nil,
+        peak_hours: [],
+        peak_days: []
+      },
       optimal_time: nil,
       trend_velocity: { velocity_percent: 0, direction: 'stable' },
       engagement_velocity: { velocity_percent: 0, direction: 'stable' },

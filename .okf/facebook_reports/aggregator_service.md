@@ -56,6 +56,10 @@ from containing lazily evaluated Active Record relations.
 `calculate_statistics` produces scalar KPIs only. `top_posts` is calculated once
 by `attach_post_relations` after the cached snapshot is read.
 
+The aggregator loads each temporal component once and derives
+`temporal_summary` from those values, avoiding a second set of Topic temporal
+method calls.
+
 - `pages_data` - Page-level analytics
   - `pages_count` - Posts by page
   - `pages_interactions` - Interactions by page

@@ -206,14 +206,30 @@ module FacebookDashboardServices
     end
 
     def load_temporal_intelligence
+      optimal_time = safe_call { @topic.facebook_optimal_publishing_time }
+      trend_velocity = safe_call { @topic.facebook_trend_velocity } || default_velocity
+      engagement_velocity = safe_call { @topic.facebook_engagement_velocity } || default_velocity
+      content_half_life = safe_call { @topic.facebook_content_half_life }
+      peak_hours = safe_call { @topic.facebook_peak_publishing_times_by_hour } || {}
+      peak_days = safe_call { @topic.facebook_peak_publishing_times_by_day } || {}
+
       {
-        temporal_summary: safe_call { @topic.facebook_temporal_intelligence_summary },
-        optimal_time: safe_call { @topic.facebook_optimal_publishing_time },
-        trend_velocity: safe_call { @topic.facebook_trend_velocity } || default_velocity,
-        engagement_velocity: safe_call { @topic.facebook_engagement_velocity } || default_velocity,
-        content_half_life: safe_call { @topic.facebook_content_half_life },
-        peak_hours: safe_call { @topic.facebook_peak_publishing_times_by_hour } || {},
-        peak_days: safe_call { @topic.facebook_peak_publishing_times_by_day } || {},
+        temporal_summary: {
+          optimal_time: optimal_time,
+          trend_velocity: trend_velocity,
+          engagement_velocity: engagement_velocity,
+          content_half_life: content_half_life,
+          peak_hours: peak_hours.sort_by { |_, value| -value[:avg_engagement] }
+                                .first(3),
+          peak_days: peak_days.sort_by { |_, value| -value[:avg_engagement] }
+                              .first(3)
+        },
+        optimal_time: optimal_time,
+        trend_velocity: trend_velocity,
+        engagement_velocity: engagement_velocity,
+        content_half_life: content_half_life,
+        peak_hours: peak_hours,
+        peak_days: peak_days,
         heatmap_data: safe_call { @topic.facebook_engagement_heatmap_data } || []
       }
     end
