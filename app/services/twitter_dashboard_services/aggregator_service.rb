@@ -36,7 +36,7 @@ module TwitterDashboardServices
     private
 
     def cache_key
-      "twitter_dashboard:v5:topic:#{@topic.id}:payload:#{cache_date_range}"
+      "twitter_dashboard:v6:topic:#{@topic.id}:payload:#{cache_date_range}"
     end
 
     def cache_date_range
@@ -115,6 +115,8 @@ module TwitterDashboardServices
         total_posts: total_posts,
         total_interactions: total_interactions,
         total_views: total_views,
+        views_estimated: false,
+        views_source: :actual,
         average_interactions: average_interactions
       }
     end
@@ -272,6 +274,8 @@ module TwitterDashboardServices
         total_posts: 0,
         total_interactions: 0,
         total_views: 0,
+        views_estimated: false,
+        views_source: :actual,
         average_interactions: 0,
         top_posts: [],
         word_occurrences: {},

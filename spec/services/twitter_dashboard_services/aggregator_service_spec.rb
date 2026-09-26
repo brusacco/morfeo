@@ -61,7 +61,7 @@ RSpec.describe TwitterDashboardServices::AggregatorService do
     start_date = service.instance_variable_get(:@start_time).to_date.iso8601
     end_date = service.instance_variable_get(:@end_time).to_date.iso8601
 
-    expect(service.send(:cache_key)).to eq("twitter_dashboard:v5:topic:7:payload:#{start_date}:#{end_date}")
+    expect(service.send(:cache_key)).to eq("twitter_dashboard:v6:topic:7:payload:#{start_date}:#{end_date}")
   end
 
   it 'shares cached snapshots across limits but not date ranges' do
@@ -118,7 +118,8 @@ RSpec.describe TwitterDashboardServices::AggregatorService do
     allow(aggregate_posts).to receive(:pluck).and_return([])
 
     expect(service.send(:calculate_statistics, posts)).to eq(
-      total_posts: 0, total_interactions: 0, total_views: 0, average_interactions: 0
+      total_posts: 0, total_interactions: 0, total_views: 0, views_estimated: false, views_source: :actual,
+      average_interactions: 0
     )
   end
 
@@ -130,7 +131,8 @@ RSpec.describe TwitterDashboardServices::AggregatorService do
     allow(aggregate_posts).to receive(:pluck).and_return([[3, 10, 40]])
 
     expect(service.send(:calculate_statistics, posts)).to include(
-      total_posts: 3, total_interactions: 10, total_views: 40, average_interactions: 3.3
+      total_posts: 3, total_interactions: 10, total_views: 40, views_estimated: false, views_source: :actual,
+      average_interactions: 3.3
     )
   end
 

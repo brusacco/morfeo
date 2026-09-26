@@ -106,8 +106,8 @@ CONTROVERSY_WARNING_THRESHOLD = 0.5   # 50% polarization
 - Compares **24h vs 24h** (consistent with other alerts)
 - Calculates multi-channel reach:
   - Digital: `interactions × 3` (conservative estimate)
-  - Facebook: `views_count` (actual API data)
-  - Twitter: `views_count` (actual API data)
+   - Facebook: `views_count` (Morfeo estimate)
+   - Twitter/X: `views_count` (observed API data when available)
 - Minimum reach: **1,000** to avoid noise
 
 **Alert Levels**:

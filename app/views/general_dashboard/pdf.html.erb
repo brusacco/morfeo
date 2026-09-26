@@ -194,7 +194,7 @@
             El tópico <strong><%= @topic.name %></strong> registró un total de 
             <strong><%= @presenter.formatted_total_mentions %></strong> menciones
             con <strong><%= @presenter.formatted_total_interactions %></strong> interacciones,
-            alcanzando un <strong>Estimated Reach</strong> de <strong><%= @presenter.formatted_total_reach %></strong> personas.
+            con un total de <strong>visualizaciones y alcance potencial estimados</strong> de <strong><%= @presenter.formatted_total_reach %></strong> exposiciones. Esta cifra incluye estimaciones de Morfeo y no representa personas únicas.
           </p>
           <p class="mt-md">
             El sentimiento general es <strong><%= @presenter.sentiment_text %></strong> 
@@ -215,7 +215,7 @@
               <th>Canal</th>
               <th style="text-align: right;"><%= pdf_metric_label(:entries) %></th>
               <th style="text-align: right;"><%= pdf_metric_label(:interactions) %></th>
-              <th style="text-align: right;">Estimated Reach</th>
+              <th style="text-align: right;">Visualizaciones y alcance potencial</th>
             </tr>
           </thead>
           <tbody>

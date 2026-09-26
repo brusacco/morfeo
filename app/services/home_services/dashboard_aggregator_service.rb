@@ -79,7 +79,7 @@ module HomeServices
     private
 
     def cache_key
-      "home_dashboard:v5:topics:#{@topics.map(&:id).uniq.sort.join(',')}:payload:#{cache_date_range}"
+      "home_dashboard:v6:topics:#{@topics.map(&:id).uniq.sort.join(',')}:payload:#{cache_date_range}"
     end
 
     def cache_date_range
@@ -143,6 +143,7 @@ module HomeServices
         total_mentions: total_mentions,
         total_interactions: total_interactions,
         total_reach: total_reach,
+        total_reach_estimated: [digital, facebook, twitter, instagram].any? { |stats| stats[:reach_estimated] },
         average_sentiment: calculate_weighted_sentiment(digital, facebook, twitter, sentiment_mentions),
         engagement_rate: safe_percentage(total_interactions, total_reach, decimals: 2),
         trend_velocity: calculate_trend_velocity(total_interactions, previous_interactions),
@@ -204,6 +205,8 @@ module HomeServices
         mentions: mentions,
         interactions: interactions,
         reach: reach,
+        reach_estimated: true,
+        reach_source: :estimated,
         engagement_rate: safe_percentage(interactions, reach, decimals: 2),
         trend: calculate_trend_percent(interactions, prev_interactions),
         sentiment: calculate_digital_sentiment
@@ -228,6 +231,8 @@ module HomeServices
         mentions: mentions,
         interactions: interactions,
         reach: reach,
+        reach_estimated: true,
+        reach_source: :estimated,
         engagement_rate: safe_percentage(interactions, reach, decimals: 2),
         trend: calculate_trend_percent(interactions, prev_interactions),
         sentiment: calculate_facebook_sentiment
@@ -253,6 +258,8 @@ module HomeServices
         mentions: mentions,
         interactions: interactions,
         reach: reach,
+        reach_estimated: views.zero?,
+        reach_source: views.zero? ? :fallback_estimate : :actual,
         engagement_rate: safe_percentage(interactions, reach, decimals: 2),
         trend: calculate_trend_percent(interactions, prev_interactions),
         sentiment: 0.0 # Twitter sentiment not implemented yet
@@ -277,6 +284,8 @@ module HomeServices
         mentions: mentions,
         interactions: interactions,
         reach: reach,
+        reach_estimated: false,
+        reach_source: :actual,
         engagement_rate: safe_percentage(interactions, reach, decimals: 2),
         trend: calculate_trend_percent(interactions, prev_interactions),
         sentiment: 0.0
@@ -726,7 +735,7 @@ module HomeServices
       recent_reach = recent_stats.sum { |s| (s.total_count || 0) * DIGITAL_REACH_MULTIPLIER }
       previous_reach = previous_stats.sum { |s| (s.total_count || 0) * DIGITAL_REACH_MULTIPLIER }
 
-      # Add Facebook actual reach (views_count)
+      # Add Facebook modeled visualizations (views_count)
       fb_recent_reach = FacebookEntry.where(posted_at: 24.hours.ago..Time.current)
                                      .tagged_with(tag_names, any: true)
                                      .sum(:views_count)

@@ -127,7 +127,7 @@ module GeneralDashboardHelper
     case metric_name
     when :mentions then 1.0        # Direct counts - 100% accurate
     when :interactions then 1.0    # Direct counts - 100% accurate
-    when :facebook_reach then 0.95 # Meta API views - very reliable
+    when :facebook_reach then 0.6  # Morfeo estimate from followers and engagement
     when :digital_reach then 0.6   # Estimated (3x multiplier) - moderate confidence
     when :twitter_reach then 0.90  # Twitter API views - very reliable (when available)
     when :sentiment then 0.85      # AI-based - good confidence

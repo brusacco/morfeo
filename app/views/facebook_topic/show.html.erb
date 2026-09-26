@@ -241,7 +241,7 @@
 
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-purple-300 transition-all duration-200 cursor-default group">
           <div class="flex items-center justify-between mb-2">
-            <div class="text-sm font-medium text-gray-500 uppercase tracking-wide">Vistas</div>
+            <div class="text-sm font-medium text-gray-500 uppercase tracking-wide">Visualizaciones estimadas</div>
             <div class="p-2 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
               <i class="fa-solid fa-eye text-purple-600 group-hover:text-purple-700 transition-colors" aria-hidden="true"></i>
             </div>
@@ -249,7 +249,7 @@
           <div class="mt-2 text-3xl font-bold text-purple-600 group-hover:scale-105 transition-transform">
             <%= number_with_delimiter(@total_views) %>
           </div>
-          <p class="mt-2 text-sm text-gray-500">Estimación de vistas totales basada en engagement.</p>
+          <p class="mt-2 text-sm text-gray-500" title="Valor estimado por Morfeo; no es una métrica proporcionada directamente por Facebook.">Estimación de Morfeo basada en seguidores e interacciones.</p>
         </div>
 
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-green-300 transition-all duration-200 cursor-default group">

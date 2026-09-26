@@ -50,13 +50,13 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
     expect(service.send(:build_top_content_snapshot)).to eq(trending_topics: %w[alpha beta])
   end
 
-  it 'uses a v5 cache key for the selected reporting period' do
+  it 'uses a v6 cache key for the selected reporting period' do
     start_date = Time.zone.parse('2026-09-01 10:00')
     end_date = Time.zone.parse('2026-09-15 22:00')
     allow(described_class).to receive(:new).and_call_original
     dated_service = described_class.new(topic: topic, start_date: start_date, end_date: end_date)
 
-    expect(dated_service.send(:cache_key)).to eq('general_dashboard:v5:topic:7:payload:2026-09-01:2026-09-15')
+    expect(dated_service.send(:cache_key)).to eq('general_dashboard:v6:topic:7:payload:2026-09-01:2026-09-15')
   end
 
   it 'attaches top content relations after the cached snapshot is read' do
@@ -118,7 +118,9 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
     allow(previous_distinct_entries).to receive(:count).and_return(2)
     expect(current_distinct_entries).to receive(:pluck).once.and_return([[3, 12]])
 
-    expect(service.send(:digital_data)).to eq(count: 3, interactions: 12, reach: 36, reach_estimated: true, trend: 50.0)
+    expect(service.send(:digital_data)).to eq(
+      count: 3, interactions: 12, reach: 36, reach_estimated: true, reach_source: :estimated, trend: 50.0
+    )
   end
 
   it 'normalizes missing digital aggregates to zero' do
@@ -132,7 +134,9 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
     allow(current_distinct_entries).to receive(:pluck).and_return([[0, nil]])
     allow(previous_entries).to receive(:distinct).and_return(previous_distinct_entries)
 
-    expect(service.send(:digital_data)).to eq(count: 0, interactions: 0, reach: 0, reach_estimated: true, trend: 0)
+    expect(service.send(:digital_data)).to eq(
+      count: 0, interactions: 0, reach: 0, reach_estimated: true, reach_source: :estimated, trend: 0
+    )
   end
 
   it 'does not recommend a publishing time without temporal data' do
@@ -182,6 +186,7 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
       interactions: 5,
       reach: 50,
       reach_estimated: true,
+      reach_source: :fallback_estimate,
       trend: 100.0
     )
   end
@@ -207,7 +212,8 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
       count: 0,
       interactions: 0,
       reach: 0,
-      reach_estimated: false,
+      reach_estimated: true,
+      reach_source: :estimated,
       trend: 0
     )
     expect(empty_service.send(:twitter_data)).to eq(
@@ -215,6 +221,7 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
       interactions: 0,
       reach: 0,
       reach_estimated: false,
+      reach_source: :actual,
       trend: 0
     )
   end
@@ -303,10 +310,10 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
   it 'preserves reach provenance in the reach analysis payload' do
     allow(service).to receive_messages(
       total_reach: 130,
-      digital_data: { reach: 30, reach_estimated: true },
-      facebook_data: { reach: 80, reach_estimated: false },
-      twitter_data: { reach: 20, reach_estimated: true },
-      instagram_data: { reach: 10, reach_estimated: false },
+      digital_data: { reach: 30, reach_estimated: true, reach_source: :estimated },
+      facebook_data: { reach: 80, reach_estimated: true, reach_source: :estimated },
+      twitter_data: { reach: 20, reach_estimated: true, reach_source: :fallback_estimate },
+      instagram_data: { reach: 10, reach_estimated: false, reach_source: :actual },
       unique_sources_count: 4,
       geographic_distribution: {}
     )
@@ -314,7 +321,9 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
     expect(service.send(:build_reach_analysis)).to include(
       total_reach: 130,
       by_channel: { digital: 30, facebook: 80, twitter: 20, instagram: 10 },
-      estimated_channels: { digital: true, facebook: false, twitter: true, instagram: false }
+      estimated_channels: { digital: true, facebook: true, twitter: true, instagram: false },
+      sources_by_channel: { digital: :estimated, facebook: :estimated, twitter: :fallback_estimate, instagram: :actual },
+      total_reach_estimated: true
     )
   end
 

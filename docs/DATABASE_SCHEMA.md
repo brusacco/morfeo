@@ -232,7 +232,7 @@ CREATE TABLE facebook_entries (
   reactions_total_count INT DEFAULT 0,
   comments_count INT DEFAULT 0,
   share_count INT DEFAULT 0,
-  views_count INT DEFAULT 0,  -- ACTUAL from Meta API
+  views_count INT DEFAULT 0,  -- estimated by Morfeo; not a Meta API reach metric
   -- Sentiment analysis
   sentiment_score DECIMAL(5,2),
   sentiment_label INT DEFAULT 0,  -- enum: 0-4

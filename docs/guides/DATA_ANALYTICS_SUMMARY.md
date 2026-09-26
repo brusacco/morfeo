@@ -201,18 +201,17 @@ end
 #### **Implementation Status**: PARTIAL  
 #### **Confidence Level**: 82% (varies by source)
 
-#### **Facebook Reach** ✅ **ACTUAL DATA**
+#### **Facebook Visualizations** ⚠️ **ESTIMATED**
 
-**Source**: Meta Graph API `views_count` field  
-**Method**: Direct API call  
-**Confidence**: 95%  
+**Source**: Morfeo-derived `FacebookEntry#views_count`
+**Method**: Model based on followers and interactions
+**Confidence**: 60%
 **Formula**:
 ```ruby
-reach = FacebookEntry.sum(:views_count)
+estimated_visualizations = FacebookEntry.sum(:views_count)
 ```
 
-**Validation**: ✅ Official Meta metric  
-**Limitation**: Only available for pages with sufficient followers
+**Limitation**: Not an observed Meta reach or unique-person metric
 
 ---
 

@@ -62,7 +62,7 @@ total_interactions = digital_data[:interactions] + facebook_data[:interactions] 
 digital_reach = entries.sum(:total_count) * 10  # ❌ Arbitrary 10x multiplier
 
 # Facebook
-facebook_reach = FacebookEntry.sum(:views_count)  # ✅ Actual data
+facebook_reach = FacebookEntry.sum(:views_count)  # ⚠️ Morfeo estimate, not Meta API reach
 
 # Twitter
 twitter_reach = views > 0 ? views : interactions * 20  # ❌ Arbitrary 20x multiplier
@@ -83,7 +83,7 @@ total_reach = digital_reach + facebook_reach + twitter_reach
    - 20x multiplier has no scientific backing
    - Should use actual data or mark as "estimated"
 
-3. **Mixed Data Types**: Combining actual reach (Facebook) with estimated reach (Digital, Twitter fallback) without distinguishing them
+3. **Mixed Data Types**: Combining Facebook and digital estimates with observed X/Instagram views without distinguishing them
 
 **Recommendations**:
 ```ruby

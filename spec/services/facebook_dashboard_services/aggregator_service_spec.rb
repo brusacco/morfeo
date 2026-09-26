@@ -69,7 +69,7 @@ RSpec.describe FacebookDashboardServices::AggregatorService do
     start_date = service.instance_variable_get(:@start_time).to_date.iso8601
     end_date = service.instance_variable_get(:@end_time).to_date.iso8601
 
-    expect(service.send(:cache_key)).to eq("facebook_dashboard:v5:topic:7:payload:#{start_date}:#{end_date}")
+    expect(service.send(:cache_key)).to eq("facebook_dashboard:v6:topic:7:payload:#{start_date}:#{end_date}")
   end
 
   it 'shares cached snapshots across limits but not date ranges' do
@@ -138,6 +138,8 @@ RSpec.describe FacebookDashboardServices::AggregatorService do
       total_posts: 0,
       total_interactions: 0,
       total_views: 0,
+      views_estimated: true,
+      views_source: :estimated,
       average_interactions: 0
     )
   end
@@ -153,6 +155,8 @@ RSpec.describe FacebookDashboardServices::AggregatorService do
       total_posts: 3,
       total_interactions: 10,
       total_views: 40,
+      views_estimated: true,
+      views_source: :estimated,
       average_interactions: 3.3
     )
   end

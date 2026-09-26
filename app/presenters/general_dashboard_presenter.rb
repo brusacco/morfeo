@@ -390,7 +390,7 @@ class GeneralDashboardPresenter
         color: '#10b981'
       },
       {
-        label: I18n.t('pdf.metrics.reach'),
+        label: 'Visualizaciones y alcance potencial estimados',
         value: formatted_total_reach,
         icon: '🎯',
         color: '#f59e0b'

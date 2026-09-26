@@ -36,7 +36,7 @@ module FacebookDashboardServices
     private
 
     def cache_key
-      "facebook_dashboard:v5:topic:#{@topic.id}:payload:#{cache_date_range}"
+      "facebook_dashboard:v6:topic:#{@topic.id}:payload:#{cache_date_range}"
     end
 
     def cache_date_range
@@ -116,6 +116,8 @@ module FacebookDashboardServices
         total_posts: total_posts,
         total_interactions: total_interactions,
         total_views: total_views,
+        views_estimated: true,
+        views_source: :estimated,
         average_interactions: average_interactions
       }
     end
@@ -311,6 +313,8 @@ module FacebookDashboardServices
         total_posts: 0,
         total_interactions: 0,
         total_views: 0,
+        views_estimated: true,
+        views_source: :estimated,
         average_interactions: 0,
         top_posts: [],
         word_occurrences: {},

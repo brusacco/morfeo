@@ -274,7 +274,7 @@
           <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
           <div class="relative">
             <div class="flex items-center justify-between mb-3">
-              <div class="text-sm font-semibold uppercase tracking-wider text-green-100">Estimated Reach</div>
+              <div class="text-sm font-semibold uppercase tracking-wider text-green-100">Visualizaciones y alcance potencial estimados</div>
               <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
                 <i class="fa-solid fa-users text-2xl"></i>
               </div>
@@ -282,9 +282,9 @@
             <div class="text-4xl font-bold mb-2">
               <%= number_with_delimiter(@executive_summary[:total_reach]) %>*
             </div>
-            <div class="text-sm text-green-100">Incluye alcance observado y estimado</div>
+            <div class="text-sm text-green-100">Incluye vistas observadas y estimaciones de Morfeo; no representa personas únicas.</div>
             <div class="text-xs text-green-200 mt-2">
-              * Digital: interacciones x3 | Twitter: interacciones x10 cuando no hay vistas
+              * Facebook: visualizaciones estimadas | Digital: interacciones x3 | Twitter/X: interacciones x10 cuando no hay vistas
             </div>
           </div>
         </div>
@@ -333,7 +333,7 @@
           <div class="text-3xl font-bold text-indigo-600 mb-2">
             <%= number_with_precision(@executive_summary[:engagement_rate], precision: 2) %>%
           </div>
-          <div class="text-sm text-gray-600">Interacciones / Alcance</div>
+          <div class="text-sm text-gray-600">Interacciones / visualizaciones y alcance potencial</div>
         </div>
 
         <!-- Trend Velocity -->

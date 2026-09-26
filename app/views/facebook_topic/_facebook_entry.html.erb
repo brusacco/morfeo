@@ -100,10 +100,10 @@
             <%= number_with_delimiter(facebook_entry.share_count) %>
           </div>
         </div>
-        <div class="group/metric" role="group" aria-label="Vistas: <%= number_with_delimiter(facebook_entry.views_count) %>">
+        <div class="group/metric" role="group" aria-label="Visualizaciones estimadas: <%= number_with_delimiter(facebook_entry.views_count) %>" title="Valor estimado por Morfeo; no es una métrica proporcionada directamente por Facebook.">
           <div class="text-xs text-gray-500 mb-1">
             <i class="fa-solid fa-eye text-amber-600" aria-hidden="true"></i>
-            <span class="sr-only">Vistas</span>
+            <span class="sr-only">Visualizaciones estimadas</span>
           </div>
           <div class="text-sm font-semibold text-amber-600 group-hover/metric:scale-110 transition-transform">
             <%= number_with_delimiter(facebook_entry.views_count) %>

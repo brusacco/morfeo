@@ -193,9 +193,9 @@ HomeServices::DashboardAggregatorService
 
 ### Reach Calculations (Following Project Standards)
 
-#### Facebook Reach
-- **Source**: Meta API `views_count` field
-- **Accuracy**: 95% (Actual API data)
+#### Facebook Visualizations
+- **Source**: Morfeo-derived `views_count` field
+- **Accuracy**: estimated, not an observed Meta metric
 - **Implementation**: `FacebookEntry.sum(:views_count)`
 
 #### Twitter Reach

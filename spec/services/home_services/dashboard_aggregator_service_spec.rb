@@ -7,12 +7,12 @@ RSpec.describe HomeServices::DashboardAggregatorService do
   let(:service) { described_class.new(topics: Topic.where(id: topics.map(&:id)), days_range: 7) }
 
   describe '#cache_key' do
-    it 'uses a v5 key with sorted topic IDs and an explicit date range' do
+    it 'uses a v6 key with sorted topic IDs and an explicit date range' do
       topic_ids = topics.map(&:id).sort.join(',')
       start_date = service.instance_variable_get(:@start_date).to_date.iso8601
       end_date = service.instance_variable_get(:@end_date).to_date.iso8601
 
-      expect(service.send(:cache_key)).to eq("home_dashboard:v5:topics:#{topic_ids}:payload:#{start_date}:#{end_date}")
+      expect(service.send(:cache_key)).to eq("home_dashboard:v6:topics:#{topic_ids}:payload:#{start_date}:#{end_date}")
     end
 
     it 'is stable for reordered or duplicate topic inputs' do
@@ -28,7 +28,7 @@ RSpec.describe HomeServices::DashboardAggregatorService do
       empty_topics = described_class.new(topics: Topic.none, days_range: 7)
 
       expect(longer_range.send(:cache_key)).not_to eq(service.send(:cache_key))
-      expect(empty_topics.send(:cache_key)).to start_with('home_dashboard:v5:topics::payload:')
+      expect(empty_topics.send(:cache_key)).to start_with('home_dashboard:v6:topics::payload:')
     end
   end
 
@@ -155,6 +155,21 @@ RSpec.describe HomeServices::DashboardAggregatorService do
   end
 
   describe 'Instagram channel integration' do
+    it 'marks the combined total as estimated when a channel is modeled' do
+      allow(service).to receive_messages(
+        digital_channel_stats: { mentions: 1, interactions: 2, reach: 6, reach_estimated: true, sentiment: 0 },
+        facebook_channel_stats: { mentions: 1, interactions: 2, reach: 3, reach_estimated: true, sentiment: 0 },
+        twitter_channel_stats: { mentions: 1, interactions: 2, reach: 4, reach_estimated: false, sentiment: 0 },
+        instagram_channel_stats: { mentions: 1, interactions: 2, reach: 5, reach_estimated: false, sentiment: 0 },
+        calculate_previous_period_interactions: 0
+      )
+
+      expect(service.send(:calculate_executive_summary)).to include(
+        total_reach: 18,
+        total_reach_estimated: true
+      )
+    end
+
     it 'includes Instagram in executive totals and channel comparison data' do
       allow(service).to receive_messages(
         digital_channel_stats: {
@@ -163,7 +178,8 @@ RSpec.describe HomeServices::DashboardAggregatorService do
           reach: 12,
           engagement_rate: 33.33,
           trend: 0,
-          sentiment: 10
+          sentiment: 10,
+          reach_estimated: false
         },
         facebook_channel_stats: {
           mentions: 3,
@@ -171,7 +187,8 @@ RSpec.describe HomeServices::DashboardAggregatorService do
           reach: 18,
           engagement_rate: 33.33,
           trend: 0,
-          sentiment: 20
+          sentiment: 20,
+          reach_estimated: false
         },
         twitter_channel_stats: {
           mentions: 4,
@@ -179,7 +196,8 @@ RSpec.describe HomeServices::DashboardAggregatorService do
           reach: 24,
           engagement_rate: 33.33,
           trend: 0,
-          sentiment: 0
+          sentiment: 0,
+          reach_estimated: false
         },
         instagram_channel_stats: {
           mentions: 5,
@@ -187,7 +205,8 @@ RSpec.describe HomeServices::DashboardAggregatorService do
           reach: 30,
           engagement_rate: 33.33,
           trend: 0,
-          sentiment: 0
+          sentiment: 0,
+          reach_estimated: false
         },
         calculate_previous_period_interactions: 0
       )
@@ -195,7 +214,8 @@ RSpec.describe HomeServices::DashboardAggregatorService do
       expect(service.send(:calculate_executive_summary)).to include(
         total_mentions: 14,
         total_interactions: 28,
-        total_reach: 84
+        total_reach: 84,
+        total_reach_estimated: false
       )
       expect(service.send(:calculate_channel_stats).fetch(:instagram)).to include(
         name: 'Instagram',

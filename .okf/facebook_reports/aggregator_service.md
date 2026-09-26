@@ -33,6 +33,8 @@ Returns a hash with the following keys:
   - `total_posts` - Total post count
   - `total_interactions` - Sum of all engagement
   - `total_views` - Sum of estimated views
+  - `views_estimated` - Always `true`; `total_views` is modeled by Morfeo
+  - `views_source` - `:estimated`
   - `average_interactions` - Mean interactions per post
   - `top_posts` - Top performing posts
   - `word_occurrences` - Word frequency hash
@@ -44,7 +46,7 @@ Returns a hash with the following keys:
 
 ## Cache Contract
 
-Facebook dashboard snapshots use the `facebook_dashboard:v5` namespace and the
+Facebook dashboard snapshots use the `facebook_dashboard:v6` namespace and the
 aggregator-owned 30-minute TTL. The cached `facebook_data` contains scalar KPIs
 such as `total_posts`, `total_interactions`, `total_views`, and
 `average_interactions`, together with chart and text-analysis values.

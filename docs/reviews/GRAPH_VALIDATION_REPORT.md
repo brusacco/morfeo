@@ -115,11 +115,11 @@ This document validates all charts, graphs, and data visualizations in the Gener
 ### Validation
 ⚠️ **Data Accuracy Concerns**:
 - Digital: Estimated (interactions × 10) ⚠️
-- Facebook: Actual views (Meta API) ✅
+- Facebook: Modeled visualizations (Morfeo estimate) ⚠️
 - Twitter: Actual views OR estimated (interactions × 20) ⚠️
 
 ### Issues
-1. **Mixed Data Types**: Combining estimated and actual reach
+1. **Mixed Data Types**: Combining modeled values and observed views
 2. **No Visual Indicator**: Chart doesn't show which are estimates
 3. **Potentially Misleading**: Looks like all data is equally reliable
 

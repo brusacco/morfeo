@@ -26,7 +26,7 @@ module GeneralDashboardServices
     private
 
     def cache_key
-      "general_dashboard:v5:topic:#{topic.id}:payload:#{start_date.to_date.iso8601}:#{end_date.to_date.iso8601}"
+      "general_dashboard:v6:topic:#{topic.id}:payload:#{start_date.to_date.iso8601}:#{end_date.to_date.iso8601}"
     end
 
     def build_dashboard_snapshot
@@ -63,6 +63,7 @@ module GeneralDashboardServices
         total_mentions: total_mentions,
         total_interactions: total_interactions,
         total_reach: total_reach,
+        total_reach_estimated: reach_estimated?,
         average_sentiment: average_sentiment,
         trend_velocity: overall_trend_velocity,
         share_of_voice: share_of_voice,
@@ -195,6 +196,13 @@ module GeneralDashboardServices
           twitter: twitter_data[:reach_estimated],
           instagram: instagram_data[:reach_estimated]
         },
+        sources_by_channel: {
+          digital: digital_data[:reach_source],
+          facebook: facebook_data[:reach_source],
+          twitter: twitter_data[:reach_source],
+          instagram: instagram_data[:reach_source]
+        },
+        total_reach_estimated: reach_estimated?,
         # estimated_impressions: total_impressions,  # REMOVED - Not defensible without tracking pixels
         unique_sources: unique_sources_count,
         geographic_distribution: geographic_distribution
@@ -288,6 +296,7 @@ module GeneralDashboardServices
             interactions: interactions,
             reach: interactions * 3, # Conservative estimate
             reach_estimated: true,
+            reach_source: :estimated,
             trend: calculate_trend(count, previous_entries.distinct.count)
           }
         end
@@ -296,7 +305,7 @@ module GeneralDashboardServices
     def facebook_data
       @facebook_data ||=
         begin
-          return { count: 0, interactions: 0, reach: 0, reach_estimated: false, trend: 0 } if @tag_names.empty?
+          return { count: 0, interactions: 0, reach: 0, reach_estimated: true, reach_source: :estimated, trend: 0 } if @tag_names.empty?
 
           # Single combined query for all aggregations (more efficient)
           current_stats = FacebookEntry
@@ -319,7 +328,8 @@ module GeneralDashboardServices
             count: current_stats[0],
             interactions: current_stats[1] || 0,
             reach: current_stats[2] || 0,
-            reach_estimated: false,
+            reach_estimated: true,
+            reach_source: :estimated,
             trend: calculate_trend(current_stats[0], previous_entries_count)
           }
         end
@@ -328,7 +338,7 @@ module GeneralDashboardServices
     def twitter_data
       @twitter_data ||=
         begin
-          return { count: 0, interactions: 0, reach: 0, reach_estimated: false, trend: 0 } if @tag_names.empty?
+          return { count: 0, interactions: 0, reach: 0, reach_estimated: false, reach_source: :actual, trend: 0 } if @tag_names.empty?
 
           # Single combined query for all aggregations (more efficient)
           current_stats = TwitterPost
@@ -360,6 +370,7 @@ module GeneralDashboardServices
             interactions: interactions,
             reach: reach,
             reach_estimated: views.zero?,
+            reach_source: views.zero? ? :fallback_estimate : :actual,
             trend: calculate_trend(posts_count, previous_posts_count)
           }
         end
@@ -368,7 +379,7 @@ module GeneralDashboardServices
     def instagram_data
       @instagram_data ||=
         if @tag_names.empty?
-          { count: 0, interactions: 0, reach: 0, reach_estimated: false, trend: 0 }
+          { count: 0, interactions: 0, reach: 0, reach_estimated: false, reach_source: :actual, trend: 0 }
         else
           current_stats = InstagramPost
                           .where(posted_at: start_date..end_date)
@@ -389,6 +400,7 @@ module GeneralDashboardServices
             interactions: current_stats[1] || 0,
             reach: current_stats[2] || 0,
             reach_estimated: false,
+            reach_source: :actual,
             trend: calculate_trend(current_stats[0], previous_posts_count)
           }
         end
@@ -404,6 +416,10 @@ module GeneralDashboardServices
 
     def total_reach
       digital_data[:reach] + facebook_data[:reach] + twitter_data[:reach] + instagram_data[:reach]
+    end
+
+    def reach_estimated?
+      [digital_data, facebook_data, twitter_data, instagram_data].any? { |data| data[:reach_estimated] }
     end
 
     # REMOVED - Not a valid industry standard, cannot defend methodology

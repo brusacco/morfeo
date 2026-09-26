@@ -34,7 +34,7 @@ These metrics are **accurate and reliable**:
 
 **Current Approach**:
 - Digital Media: Interactions × 10
-- Facebook: Actual views (Meta API) ✅
+- Facebook: Morfeo-modeled visualizations
 - Twitter: Views when available, else Interactions × 20
 
 **Issue**: Arbitrary multipliers (10x, 20x) lack scientific validation
@@ -46,7 +46,7 @@ These metrics are **accurate and reliable**:
 
 **Recommendation**:
 ```
-Option 1: Use only Facebook actual reach (conservative, defensible)
+Option 1: Separate observed views from modeled visualizations
 Option 2: Implement tracking pixels for accurate digital reach
 Option 3: Clearly label as "estimated" with confidence range
 ```
