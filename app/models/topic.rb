@@ -506,14 +506,17 @@ class Topic < ApplicationRecord
   # FACEBOOK TEMPORAL INTELLIGENCE METHODS
   # ============================================
 
-  def facebook_peak_publishing_times_by_hour
-    Rails.cache.fetch("topic_#{id}_fb_peak_times_hour", expires_in: 30.minutes) do
+  def facebook_peak_publishing_times_by_hour(start_time: DAYS_RANGE.days.ago, end_time: Time.zone.now)
+    Rails.cache.fetch(
+      "topic_#{id}_fb_peak_times_hour_#{start_time.to_date}_#{end_time.to_date}",
+      expires_in: 30.minutes
+    ) do
       tag_names = tags.pluck(:name)
       return {} if tag_names.empty?
 
       hourly_data = FacebookEntry
                     .from(FacebookEntry.table_name)
-                    .where('facebook_entries.posted_at >= ?', DAYS_RANGE.days.ago)
+                    .where(facebook_entries: { posted_at: start_time..end_time })
                     .where('reactions_total_count + comments_count + share_count > 0')
                     .tagged_with(tag_names, any: true)
                     .unscope(:select)
@@ -529,14 +532,17 @@ class Topic < ApplicationRecord
     end
   end
 
-  def facebook_peak_publishing_times_by_day
-    Rails.cache.fetch("topic_#{id}_fb_peak_times_day", expires_in: 30.minutes) do
+  def facebook_peak_publishing_times_by_day(start_time: DAYS_RANGE.days.ago, end_time: Time.zone.now)
+    Rails.cache.fetch(
+      "topic_#{id}_fb_peak_times_day_#{start_time.to_date}_#{end_time.to_date}",
+      expires_in: 30.minutes
+    ) do
       tag_names = tags.pluck(:name)
       return {} if tag_names.empty?
 
       daily_data = FacebookEntry
                    .from(FacebookEntry.table_name)
-                   .where('facebook_entries.posted_at >= ?', DAYS_RANGE.days.ago)
+                   .where(facebook_entries: { posted_at: start_time..end_time })
                    .where('reactions_total_count + comments_count + share_count > 0')
                    .tagged_with(tag_names, any: true)
                    .unscope(:select)
@@ -558,14 +564,17 @@ class Topic < ApplicationRecord
     end
   end
 
-  def facebook_engagement_heatmap_data
-    Rails.cache.fetch("topic_#{id}_fb_engagement_heatmap", expires_in: 30.minutes) do
+  def facebook_engagement_heatmap_data(start_time: DAYS_RANGE.days.ago, end_time: Time.zone.now)
+    Rails.cache.fetch(
+      "topic_#{id}_fb_engagement_heatmap_#{start_time.to_date}_#{end_time.to_date}",
+      expires_in: 30.minutes
+    ) do
       tag_names = tags.pluck(:name)
       return [] if tag_names.empty?
 
       heatmap_data = FacebookEntry
                      .from(FacebookEntry.table_name)
-                     .where('facebook_entries.posted_at >= ?', DAYS_RANGE.days.ago)
+                     .where(facebook_entries: { posted_at: start_time..end_time })
                      .where('reactions_total_count + comments_count + share_count > 0')
                      .tagged_with(tag_names, any: true)
                      .unscope(:select)
@@ -596,9 +605,12 @@ class Topic < ApplicationRecord
     end
   end
 
-  def facebook_optimal_publishing_time
-    Rails.cache.fetch("topic_#{id}_fb_optimal_time", expires_in: 30.minutes) do
-      heatmap = facebook_engagement_heatmap_data
+  def facebook_optimal_publishing_time(start_time: DAYS_RANGE.days.ago, end_time: Time.zone.now)
+    Rails.cache.fetch(
+      "topic_#{id}_fb_optimal_time_#{start_time.to_date}_#{end_time.to_date}",
+      expires_in: 30.minutes
+    ) do
+      heatmap = facebook_engagement_heatmap_data(start_time: start_time, end_time: end_time)
       return if heatmap.empty?
 
       best = heatmap.max_by { |d| d[:avg_engagement] }
@@ -611,20 +623,26 @@ class Topic < ApplicationRecord
     end
   end
 
-  def facebook_trend_velocity
-    Rails.cache.fetch("topic_#{id}_fb_trend_velocity", expires_in: 30.minutes) do
+  def facebook_trend_velocity(start_time: DAYS_RANGE.days.ago, end_time: Time.zone.now)
+    Rails.cache.fetch(
+      "topic_#{id}_fb_trend_velocity_#{start_time.to_date}_#{end_time.to_date}",
+      expires_in: 30.minutes
+    ) do
       tag_names = tags.pluck(:name)
       return { velocity_percent: 0, direction: 'stable' } if tag_names.empty?
 
+      comparison_end = [end_time, Time.current].min
+      recent_start = [comparison_end - 24.hours, start_time].max
+      previous_start = [recent_start - 24.hours, start_time].max
+
       recent_count = FacebookEntry
-                     .where('facebook_entries.posted_at >= ?', 24.hours.ago)
-                     .where('facebook_entries.posted_at <= ?', Time.current)
+                     .where(facebook_entries: { posted_at: recent_start..comparison_end })
                      .tagged_with(tag_names, any: true)
                      .count(:id)
 
       previous_count = FacebookEntry
-                       .where('facebook_entries.posted_at >= ?', 48.hours.ago)
-                       .where('facebook_entries.posted_at < ?', 24.hours.ago)
+                       .where('facebook_entries.posted_at >= ?', previous_start)
+                       .where('facebook_entries.posted_at < ?', recent_start)
                        .tagged_with(tag_names, any: true)
                        .count(:id)
 
@@ -650,20 +668,26 @@ class Topic < ApplicationRecord
     end
   end
 
-  def facebook_engagement_velocity
-    Rails.cache.fetch("topic_#{id}_fb_engagement_velocity", expires_in: 30.minutes) do
+  def facebook_engagement_velocity(start_time: DAYS_RANGE.days.ago, end_time: Time.zone.now)
+    Rails.cache.fetch(
+      "topic_#{id}_fb_engagement_velocity_#{start_time.to_date}_#{end_time.to_date}",
+      expires_in: 30.minutes
+    ) do
       tag_names = tags.pluck(:name)
       return { velocity_percent: 0, direction: 'stable' } if tag_names.empty?
 
+      comparison_end = [end_time, Time.current].min
+      recent_start = [comparison_end - 24.hours, start_time].max
+      previous_start = [recent_start - 24.hours, start_time].max
+
       recent_interactions = FacebookEntry
-                            .where('facebook_entries.posted_at >= ?', 24.hours.ago)
-                            .where('facebook_entries.posted_at <= ?', Time.current)
+                            .where(facebook_entries: { posted_at: recent_start..comparison_end })
                             .tagged_with(tag_names, any: true)
                             .sum('reactions_total_count + comments_count + share_count')
 
       previous_interactions = FacebookEntry
-                              .where('facebook_entries.posted_at >= ?', 48.hours.ago)
-                              .where('facebook_entries.posted_at < ?', 24.hours.ago)
+                              .where('facebook_entries.posted_at >= ?', previous_start)
+                              .where('facebook_entries.posted_at < ?', recent_start)
                               .tagged_with(tag_names, any: true)
                               .sum('reactions_total_count + comments_count + share_count')
 
@@ -689,13 +713,16 @@ class Topic < ApplicationRecord
     end
   end
 
-  def facebook_content_half_life
-    Rails.cache.fetch("topic_#{id}_fb_content_half_life", expires_in: 30.minutes) do
+  def facebook_content_half_life(start_time: DAYS_RANGE.days.ago, end_time: Time.zone.now)
+    Rails.cache.fetch(
+      "topic_#{id}_fb_content_half_life_#{start_time.to_date}_#{end_time.to_date}",
+      expires_in: 30.minutes
+    ) do
       tag_names = tags.pluck(:name)
       return if tag_names.empty?
 
       recent_entries = FacebookEntry
-                       .where('facebook_entries.posted_at >= ?', 30.days.ago)
+                       .where(facebook_entries: { posted_at: start_time..end_time })
                        .where('reactions_total_count + comments_count + share_count > 0')
                        .tagged_with(tag_names, any: true)
                        .order('facebook_entries.posted_at DESC')
@@ -734,16 +761,20 @@ class Topic < ApplicationRecord
     end
   end
 
-  def facebook_temporal_intelligence_summary
+  def facebook_temporal_intelligence_summary(start_time: DAYS_RANGE.days.ago, end_time: Time.zone.now)
     {
-      optimal_time: facebook_optimal_publishing_time,
-      trend_velocity: facebook_trend_velocity,
-      engagement_velocity: facebook_engagement_velocity,
-      content_half_life: facebook_content_half_life,
-      peak_hours: facebook_peak_publishing_times_by_hour.sort_by { |_, v| -v[:avg_engagement] }
-                                                        .first(3),
-      peak_days: facebook_peak_publishing_times_by_day.sort_by { |_, v| -v[:avg_engagement] }
-                                                      .first(3)
+      optimal_time: facebook_optimal_publishing_time(start_time: start_time, end_time: end_time),
+      trend_velocity: facebook_trend_velocity(start_time: start_time, end_time: end_time),
+      engagement_velocity: facebook_engagement_velocity(start_time: start_time, end_time: end_time),
+      content_half_life: facebook_content_half_life(start_time: start_time, end_time: end_time),
+      peak_hours: facebook_peak_publishing_times_by_hour(start_time: start_time, end_time: end_time).sort_by do |_, v|
+        -v[:avg_engagement]
+      end
+                                                                                                    .first(3),
+      peak_days: facebook_peak_publishing_times_by_day(start_time: start_time, end_time: end_time).sort_by do |_, v|
+        -v[:avg_engagement]
+      end
+                                                                                                  .first(3)
     }
   end
 
@@ -751,14 +782,17 @@ class Topic < ApplicationRecord
   # TWITTER TEMPORAL INTELLIGENCE METHODS
   # ============================================
 
-  def twitter_peak_publishing_times_by_hour
-    Rails.cache.fetch("topic_#{id}_tw_peak_times_hour", expires_in: 30.minutes) do
+  def twitter_peak_publishing_times_by_hour(start_time: DAYS_RANGE.days.ago, end_time: Time.zone.now)
+    Rails.cache.fetch(
+      "topic_#{id}_tw_peak_times_hour_#{start_time.to_date}_#{end_time.to_date}",
+      expires_in: 30.minutes
+    ) do
       tag_names = tags.pluck(:name)
       return {} if tag_names.empty?
 
       hourly_data = TwitterPost
                     .from(TwitterPost.table_name)
-                    .where('twitter_posts.posted_at >= ?', DAYS_RANGE.days.ago)
+                    .where(twitter_posts: { posted_at: start_time..end_time })
                     .where('favorite_count + retweet_count + reply_count + quote_count > 0')
                     .tagged_with(tag_names, any: true)
                     .unscope(:select)
@@ -774,14 +808,17 @@ class Topic < ApplicationRecord
     end
   end
 
-  def twitter_peak_publishing_times_by_day
-    Rails.cache.fetch("topic_#{id}_tw_peak_times_day", expires_in: 30.minutes) do
+  def twitter_peak_publishing_times_by_day(start_time: DAYS_RANGE.days.ago, end_time: Time.zone.now)
+    Rails.cache.fetch(
+      "topic_#{id}_tw_peak_times_day_#{start_time.to_date}_#{end_time.to_date}",
+      expires_in: 30.minutes
+    ) do
       tag_names = tags.pluck(:name)
       return {} if tag_names.empty?
 
       daily_data = TwitterPost
                    .from(TwitterPost.table_name)
-                   .where('twitter_posts.posted_at >= ?', DAYS_RANGE.days.ago)
+                   .where(twitter_posts: { posted_at: start_time..end_time })
                    .where('favorite_count + retweet_count + reply_count + quote_count > 0')
                    .tagged_with(tag_names, any: true)
                    .unscope(:select)
@@ -803,14 +840,17 @@ class Topic < ApplicationRecord
     end
   end
 
-  def twitter_engagement_heatmap_data
-    Rails.cache.fetch("topic_#{id}_tw_engagement_heatmap", expires_in: 30.minutes) do
+  def twitter_engagement_heatmap_data(start_time: DAYS_RANGE.days.ago, end_time: Time.zone.now)
+    Rails.cache.fetch(
+      "topic_#{id}_tw_engagement_heatmap_#{start_time.to_date}_#{end_time.to_date}",
+      expires_in: 30.minutes
+    ) do
       tag_names = tags.pluck(:name)
       return [] if tag_names.empty?
 
       heatmap_data = TwitterPost
                      .from(TwitterPost.table_name)
-                     .where('twitter_posts.posted_at >= ?', DAYS_RANGE.days.ago)
+                     .where(twitter_posts: { posted_at: start_time..end_time })
                      .where('favorite_count + retweet_count + reply_count + quote_count > 0')
                      .tagged_with(tag_names, any: true)
                      .unscope(:select)
@@ -841,9 +881,12 @@ class Topic < ApplicationRecord
     end
   end
 
-  def twitter_optimal_publishing_time
-    Rails.cache.fetch("topic_#{id}_tw_optimal_time", expires_in: 30.minutes) do
-      heatmap = twitter_engagement_heatmap_data
+  def twitter_optimal_publishing_time(start_time: DAYS_RANGE.days.ago, end_time: Time.zone.now)
+    Rails.cache.fetch(
+      "topic_#{id}_tw_optimal_time_#{start_time.to_date}_#{end_time.to_date}",
+      expires_in: 30.minutes
+    ) do
+      heatmap = twitter_engagement_heatmap_data(start_time: start_time, end_time: end_time)
       return if heatmap.empty?
 
       best = heatmap.max_by { |d| d[:avg_engagement] }
@@ -856,20 +899,26 @@ class Topic < ApplicationRecord
     end
   end
 
-  def twitter_trend_velocity
-    Rails.cache.fetch("topic_#{id}_tw_trend_velocity", expires_in: 30.minutes) do
+  def twitter_trend_velocity(start_time: DAYS_RANGE.days.ago, end_time: Time.zone.now)
+    Rails.cache.fetch(
+      "topic_#{id}_tw_trend_velocity_#{start_time.to_date}_#{end_time.to_date}",
+      expires_in: 30.minutes
+    ) do
       tag_names = tags.pluck(:name)
       return { velocity_percent: 0, direction: 'stable' } if tag_names.empty?
 
+      comparison_end = [end_time, Time.current].min
+      recent_start = [comparison_end - 24.hours, start_time].max
+      previous_start = [recent_start - 24.hours, start_time].max
+
       recent_count = TwitterPost
-                     .where('twitter_posts.posted_at >= ?', 24.hours.ago)
-                     .where('twitter_posts.posted_at <= ?', Time.current)
+                     .where(twitter_posts: { posted_at: recent_start..comparison_end })
                      .tagged_with(tag_names, any: true)
                      .size
 
       previous_count = TwitterPost
-                       .where('twitter_posts.posted_at >= ?', 48.hours.ago)
-                       .where('twitter_posts.posted_at < ?', 24.hours.ago)
+                       .where('twitter_posts.posted_at >= ?', previous_start)
+                       .where('twitter_posts.posted_at < ?', recent_start)
                        .tagged_with(tag_names, any: true)
                        .size
 
@@ -895,20 +944,26 @@ class Topic < ApplicationRecord
     end
   end
 
-  def twitter_engagement_velocity
-    Rails.cache.fetch("topic_#{id}_tw_engagement_velocity", expires_in: 30.minutes) do
+  def twitter_engagement_velocity(start_time: DAYS_RANGE.days.ago, end_time: Time.zone.now)
+    Rails.cache.fetch(
+      "topic_#{id}_tw_engagement_velocity_#{start_time.to_date}_#{end_time.to_date}",
+      expires_in: 30.minutes
+    ) do
       tag_names = tags.pluck(:name)
       return { velocity_percent: 0, direction: 'stable' } if tag_names.empty?
 
+      comparison_end = [end_time, Time.current].min
+      recent_start = [comparison_end - 24.hours, start_time].max
+      previous_start = [recent_start - 24.hours, start_time].max
+
       recent_interactions = TwitterPost
-                            .where('twitter_posts.posted_at >= ?', 24.hours.ago)
-                            .where('twitter_posts.posted_at <= ?', Time.current)
+                            .where(twitter_posts: { posted_at: recent_start..comparison_end })
                             .tagged_with(tag_names, any: true)
                             .sum('favorite_count + retweet_count + reply_count + quote_count')
 
       previous_interactions = TwitterPost
-                              .where('twitter_posts.posted_at >= ?', 48.hours.ago)
-                              .where('twitter_posts.posted_at < ?', 24.hours.ago)
+                              .where('twitter_posts.posted_at >= ?', previous_start)
+                              .where('twitter_posts.posted_at < ?', recent_start)
                               .tagged_with(tag_names, any: true)
                               .sum('favorite_count + retweet_count + reply_count + quote_count')
 
@@ -934,13 +989,16 @@ class Topic < ApplicationRecord
     end
   end
 
-  def twitter_content_half_life
-    Rails.cache.fetch("topic_#{id}_tw_content_half_life", expires_in: 30.minutes) do
+  def twitter_content_half_life(start_time: DAYS_RANGE.days.ago, end_time: Time.zone.now)
+    Rails.cache.fetch(
+      "topic_#{id}_tw_content_half_life_#{start_time.to_date}_#{end_time.to_date}",
+      expires_in: 30.minutes
+    ) do
       tag_names = tags.pluck(:name)
       return if tag_names.empty?
 
       recent_posts = TwitterPost
-                     .where('twitter_posts.posted_at >= ?', 30.days.ago)
+                     .where(twitter_posts: { posted_at: start_time..end_time })
                      .where('favorite_count + retweet_count + reply_count + quote_count > 0')
                      .tagged_with(tag_names, any: true)
                      .order('twitter_posts.posted_at DESC')
@@ -979,16 +1037,20 @@ class Topic < ApplicationRecord
     end
   end
 
-  def twitter_temporal_intelligence_summary
+  def twitter_temporal_intelligence_summary(start_time: DAYS_RANGE.days.ago, end_time: Time.zone.now)
     {
-      optimal_time: twitter_optimal_publishing_time,
-      trend_velocity: twitter_trend_velocity,
-      engagement_velocity: twitter_engagement_velocity,
-      content_half_life: twitter_content_half_life,
-      peak_hours: twitter_peak_publishing_times_by_hour.sort_by { |_, v| -v[:avg_engagement] }
-                                                       .first(3),
-      peak_days: twitter_peak_publishing_times_by_day.sort_by { |_, v| -v[:avg_engagement] }
-                                                     .first(3)
+      optimal_time: twitter_optimal_publishing_time(start_time: start_time, end_time: end_time),
+      trend_velocity: twitter_trend_velocity(start_time: start_time, end_time: end_time),
+      engagement_velocity: twitter_engagement_velocity(start_time: start_time, end_time: end_time),
+      content_half_life: twitter_content_half_life(start_time: start_time, end_time: end_time),
+      peak_hours: twitter_peak_publishing_times_by_hour(start_time: start_time, end_time: end_time).sort_by do |_, v|
+        -v[:avg_engagement]
+      end
+                                                                                                   .first(3),
+      peak_days: twitter_peak_publishing_times_by_day(start_time: start_time, end_time: end_time).sort_by do |_, v|
+        -v[:avg_engagement]
+      end
+                                                                                                 .first(3)
     }
   end
 
@@ -996,14 +1058,17 @@ class Topic < ApplicationRecord
   # INSTAGRAM TEMPORAL INTELLIGENCE METHODS
   # ============================================
 
-  def instagram_peak_publishing_times_by_hour
-    Rails.cache.fetch("topic_#{id}_ig_peak_times_hour", expires_in: 30.minutes) do
+  def instagram_peak_publishing_times_by_hour(start_time: DAYS_RANGE.days.ago, end_time: Time.zone.now)
+    Rails.cache.fetch(
+      "topic_#{id}_ig_peak_times_hour_#{start_time.to_date}_#{end_time.to_date}",
+      expires_in: 30.minutes
+    ) do
       tag_names = tags.pluck(:name)
       return {} if tag_names.empty?
 
       hourly_data = InstagramPost
                     .from(InstagramPost.table_name)
-                    .where('instagram_posts.posted_at >= ?', DAYS_RANGE.days.ago)
+                    .where(instagram_posts: { posted_at: start_time..end_time })
                     .where('likes_count + comments_count > 0')
                     .tagged_with(tag_names, any: true)
                     .unscope(:select)
@@ -1019,14 +1084,17 @@ class Topic < ApplicationRecord
     end
   end
 
-  def instagram_peak_publishing_times_by_day
-    Rails.cache.fetch("topic_#{id}_ig_peak_times_day", expires_in: 30.minutes) do
+  def instagram_peak_publishing_times_by_day(start_time: DAYS_RANGE.days.ago, end_time: Time.zone.now)
+    Rails.cache.fetch(
+      "topic_#{id}_ig_peak_times_day_#{start_time.to_date}_#{end_time.to_date}",
+      expires_in: 30.minutes
+    ) do
       tag_names = tags.pluck(:name)
       return {} if tag_names.empty?
 
       daily_data = InstagramPost
                    .from(InstagramPost.table_name)
-                   .where('instagram_posts.posted_at >= ?', DAYS_RANGE.days.ago)
+                   .where(instagram_posts: { posted_at: start_time..end_time })
                    .where('likes_count + comments_count > 0')
                    .tagged_with(tag_names, any: true)
                    .unscope(:select)
@@ -1048,14 +1116,17 @@ class Topic < ApplicationRecord
     end
   end
 
-  def instagram_engagement_heatmap_data
-    Rails.cache.fetch("topic_#{id}_ig_engagement_heatmap", expires_in: 30.minutes) do
+  def instagram_engagement_heatmap_data(start_time: DAYS_RANGE.days.ago, end_time: Time.zone.now)
+    Rails.cache.fetch(
+      "topic_#{id}_ig_engagement_heatmap_#{start_time.to_date}_#{end_time.to_date}",
+      expires_in: 30.minutes
+    ) do
       tag_names = tags.pluck(:name)
       return [] if tag_names.empty?
 
       heatmap_data = InstagramPost
                      .from(InstagramPost.table_name)
-                     .where('instagram_posts.posted_at >= ?', DAYS_RANGE.days.ago)
+                     .where(instagram_posts: { posted_at: start_time..end_time })
                      .where('likes_count + comments_count > 0')
                      .tagged_with(tag_names, any: true)
                      .unscope(:select)
@@ -1086,9 +1157,12 @@ class Topic < ApplicationRecord
     end
   end
 
-  def instagram_optimal_publishing_time
-    Rails.cache.fetch("topic_#{id}_ig_optimal_time", expires_in: 30.minutes) do
-      heatmap = instagram_engagement_heatmap_data
+  def instagram_optimal_publishing_time(start_time: DAYS_RANGE.days.ago, end_time: Time.zone.now)
+    Rails.cache.fetch(
+      "topic_#{id}_ig_optimal_time_#{start_time.to_date}_#{end_time.to_date}",
+      expires_in: 30.minutes
+    ) do
+      heatmap = instagram_engagement_heatmap_data(start_time: start_time, end_time: end_time)
       return if heatmap.empty?
 
       best = heatmap.max_by { |d| d[:avg_engagement] }
@@ -1101,20 +1175,26 @@ class Topic < ApplicationRecord
     end
   end
 
-  def instagram_trend_velocity
-    Rails.cache.fetch("topic_#{id}_ig_trend_velocity", expires_in: 30.minutes) do
+  def instagram_trend_velocity(start_time: DAYS_RANGE.days.ago, end_time: Time.zone.now)
+    Rails.cache.fetch(
+      "topic_#{id}_ig_trend_velocity_#{start_time.to_date}_#{end_time.to_date}",
+      expires_in: 30.minutes
+    ) do
       tag_names = tags.pluck(:name)
       return { velocity_percent: 0, direction: 'stable' } if tag_names.empty?
 
+      comparison_end = [end_time, Time.current].min
+      recent_start = [comparison_end - 24.hours, start_time].max
+      previous_start = [recent_start - 24.hours, start_time].max
+
       recent_count = InstagramPost
-                     .where('instagram_posts.posted_at >= ?', 24.hours.ago)
-                     .where('instagram_posts.posted_at <= ?', Time.current)
+                     .where(instagram_posts: { posted_at: recent_start..comparison_end })
                      .tagged_with(tag_names, any: true)
                      .size
 
       previous_count = InstagramPost
-                       .where('instagram_posts.posted_at >= ?', 48.hours.ago)
-                       .where('instagram_posts.posted_at < ?', 24.hours.ago)
+                       .where('instagram_posts.posted_at >= ?', previous_start)
+                       .where('instagram_posts.posted_at < ?', recent_start)
                        .tagged_with(tag_names, any: true)
                        .size
 
@@ -1140,20 +1220,26 @@ class Topic < ApplicationRecord
     end
   end
 
-  def instagram_engagement_velocity
-    Rails.cache.fetch("topic_#{id}_ig_engagement_velocity", expires_in: 30.minutes) do
+  def instagram_engagement_velocity(start_time: DAYS_RANGE.days.ago, end_time: Time.zone.now)
+    Rails.cache.fetch(
+      "topic_#{id}_ig_engagement_velocity_#{start_time.to_date}_#{end_time.to_date}",
+      expires_in: 30.minutes
+    ) do
       tag_names = tags.pluck(:name)
       return { velocity_percent: 0, direction: 'stable' } if tag_names.empty?
 
+      comparison_end = [end_time, Time.current].min
+      recent_start = [comparison_end - 24.hours, start_time].max
+      previous_start = [recent_start - 24.hours, start_time].max
+
       recent_interactions = InstagramPost
-                            .where('instagram_posts.posted_at >= ?', 24.hours.ago)
-                            .where('instagram_posts.posted_at <= ?', Time.current)
+                            .where(instagram_posts: { posted_at: recent_start..comparison_end })
                             .tagged_with(tag_names, any: true)
                             .sum('likes_count + comments_count')
 
       previous_interactions = InstagramPost
-                              .where('instagram_posts.posted_at >= ?', 48.hours.ago)
-                              .where('instagram_posts.posted_at < ?', 24.hours.ago)
+                              .where('instagram_posts.posted_at >= ?', previous_start)
+                              .where('instagram_posts.posted_at < ?', recent_start)
                               .tagged_with(tag_names, any: true)
                               .sum('likes_count + comments_count')
 
@@ -1179,13 +1265,16 @@ class Topic < ApplicationRecord
     end
   end
 
-  def instagram_content_half_life
-    Rails.cache.fetch("topic_#{id}_ig_content_half_life", expires_in: 30.minutes) do
+  def instagram_content_half_life(start_time: DAYS_RANGE.days.ago, end_time: Time.zone.now)
+    Rails.cache.fetch(
+      "topic_#{id}_ig_content_half_life_#{start_time.to_date}_#{end_time.to_date}",
+      expires_in: 30.minutes
+    ) do
       tag_names = tags.pluck(:name)
       return if tag_names.empty?
 
       recent_posts = InstagramPost
-                     .where('instagram_posts.posted_at >= ?', 30.days.ago)
+                     .where(instagram_posts: { posted_at: start_time..end_time })
                      .where('likes_count + comments_count > 0')
                      .tagged_with(tag_names, any: true)
                      .order('instagram_posts.posted_at DESC')
@@ -1225,16 +1314,20 @@ class Topic < ApplicationRecord
     end
   end
 
-  def instagram_temporal_intelligence_summary
+  def instagram_temporal_intelligence_summary(start_time: DAYS_RANGE.days.ago, end_time: Time.zone.now)
     {
-      optimal_time: instagram_optimal_publishing_time,
-      trend_velocity: instagram_trend_velocity,
-      engagement_velocity: instagram_engagement_velocity,
-      content_half_life: instagram_content_half_life,
-      peak_hours: instagram_peak_publishing_times_by_hour.sort_by { |_, v| -v[:avg_engagement] }
-                                                         .first(3),
-      peak_days: instagram_peak_publishing_times_by_day.sort_by { |_, v| -v[:avg_engagement] }
-                                                       .first(3)
+      optimal_time: instagram_optimal_publishing_time(start_time: start_time, end_time: end_time),
+      trend_velocity: instagram_trend_velocity(start_time: start_time, end_time: end_time),
+      engagement_velocity: instagram_engagement_velocity(start_time: start_time, end_time: end_time),
+      content_half_life: instagram_content_half_life(start_time: start_time, end_time: end_time),
+      peak_hours: instagram_peak_publishing_times_by_hour(start_time: start_time, end_time: end_time).sort_by do |_, v|
+        -v[:avg_engagement]
+      end
+                                                                                                     .first(3),
+      peak_days: instagram_peak_publishing_times_by_day(start_time: start_time, end_time: end_time).sort_by do |_, v|
+        -v[:avg_engagement]
+      end
+                                                                                                   .first(3)
     }
   end
 

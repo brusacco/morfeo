@@ -4,7 +4,7 @@ title: Twitter Aggregator Service
 description: Main data aggregation service for Twitter topic analytics
 resource: app/services/twitter_dashboard_services/aggregator_service.rb
 tags: [twitter, reports, service, aggregation]
-timestamp: 2026-09-22T00:00:00Z
+timestamp: 2026-09-26T00:00:00Z
 ---
 
 # Overview
@@ -70,17 +70,36 @@ Returns a hash with the following keys:
 
 ## Cache Contract
 
-The `twitter_dashboard:v4` snapshot is owned by the aggregator and expires in
+The `twitter_dashboard:v5` snapshot is owned by the aggregator and expires in
 30 minutes. It stores scalar KPIs and analytical values; `posts` and
 `top_posts` are attached after the cache read so Active Record relations are not
-serialized into the snapshot.
+serialized into the snapshot. Its key does not include `top_posts_limit`, so
+requests with different limits share the same cached analytics payload. Service
+specs verify that the shared snapshot is built once while each request attaches
+its own limited `top_posts` relation.
 
 `calculate_statistics` produces scalar KPIs only. `top_posts` is calculated once
 by `attach_post_relations` after the cached snapshot is read.
 
-The aggregator loads each temporal component once and derives
-`temporal_summary` from those values, avoiding a second set of Topic temporal
-method calls.
+The aggregator loads each temporal component once with its explicit
+`start_time` and `end_time`, and derives `temporal_summary` from those values.
+Topic temporal caches include the date range, preventing data calculated for a
+different dashboard range from being reused.
+
+## Recent Aggregation Changes
+
+On 2026-09-26, KPI and temporal aggregation were simplified:
+
+- KPI calculation no longer constructs `top_posts`; the relation is attached
+  once after the cache read.
+- Snapshot cache keys no longer include `top_posts_limit`; each request applies
+  its own limit while attaching post relations after the cache read.
+- Temporal components are loaded once, and the aggregator derives the summary
+  from those values instead of calling the Topic summary method. Each component
+  receives the dashboard date range and has a range-specific cache key.
+
+Twitter has no sentiment-analysis payload. Its temporal intelligence still
+receives the dashboard date range.
 
 # Key Differences from Facebook
 

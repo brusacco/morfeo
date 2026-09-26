@@ -36,7 +36,7 @@ module TwitterDashboardServices
     private
 
     def cache_key
-      "twitter_dashboard:v4:topic:#{@topic.id}:limit:#{@top_posts_limit}:payload:#{cache_date_range}"
+      "twitter_dashboard:v5:topic:#{@topic.id}:payload:#{cache_date_range}"
     end
 
     def cache_date_range
@@ -205,12 +205,20 @@ module TwitterDashboardServices
     end
 
     def load_temporal_intelligence
-      optimal_time = safe_call { @topic.twitter_optimal_publishing_time }
-      trend_velocity = safe_call { @topic.twitter_trend_velocity } || default_velocity
-      engagement_velocity = safe_call { @topic.twitter_engagement_velocity } || default_velocity
-      content_half_life = safe_call { @topic.twitter_content_half_life }
-      peak_hours = safe_call { @topic.twitter_peak_publishing_times_by_hour } || {}
-      peak_days = safe_call { @topic.twitter_peak_publishing_times_by_day } || {}
+      optimal_time = safe_call { @topic.twitter_optimal_publishing_time(start_time: @start_time, end_time: @end_time) }
+      trend_velocity = safe_call do
+        @topic.twitter_trend_velocity(start_time: @start_time, end_time: @end_time)
+      end || default_velocity
+      engagement_velocity = safe_call do
+        @topic.twitter_engagement_velocity(start_time: @start_time, end_time: @end_time)
+      end || default_velocity
+      content_half_life = safe_call { @topic.twitter_content_half_life(start_time: @start_time, end_time: @end_time) }
+      peak_hours = safe_call do
+        @topic.twitter_peak_publishing_times_by_hour(start_time: @start_time, end_time: @end_time)
+      end || {}
+      peak_days = safe_call do
+        @topic.twitter_peak_publishing_times_by_day(start_time: @start_time, end_time: @end_time)
+      end || {}
 
       {
         temporal_summary: {
@@ -229,7 +237,9 @@ module TwitterDashboardServices
         content_half_life: content_half_life,
         peak_hours: peak_hours,
         peak_days: peak_days,
-        heatmap_data: safe_call { @topic.twitter_engagement_heatmap_data } || []
+        heatmap_data: safe_call do
+          @topic.twitter_engagement_heatmap_data(start_time: @start_time, end_time: @end_time)
+        end || []
       }
     end
 

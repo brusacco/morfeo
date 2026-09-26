@@ -4,7 +4,7 @@ title: Facebook Aggregator Service
 description: Main data aggregation service for Facebook topic analytics
 resource: app/services/facebook_dashboard_services/aggregator_service.rb
 tags: [facebook, reports, service, aggregation]
-timestamp: 2026-09-22T00:00:00Z
+timestamp: 2026-09-26T00:00:00Z
 ---
 
 # Overview
@@ -44,21 +44,43 @@ Returns a hash with the following keys:
 
 ## Cache Contract
 
-Facebook dashboard snapshots use the `facebook_dashboard:v4` namespace and the
+Facebook dashboard snapshots use the `facebook_dashboard:v5` namespace and the
 aggregator-owned 30-minute TTL. The cached `facebook_data` contains scalar KPIs
 such as `total_posts`, `total_interactions`, `total_views`, and
 `average_interactions`, together with chart and text-analysis values.
 
 The `entries` and `top_posts` relations are attached after the snapshot is read.
 They are not serialized into the cache payload, preventing a stale KPI snapshot
-from containing lazily evaluated Active Record relations.
+from containing lazily evaluated Active Record relations. The snapshot key does
+not include `top_posts_limit`, so requests with different limits share the same
+cached analytics payload. Service specs verify that the shared snapshot is built
+once while each request attaches its own limited `top_posts` relation.
 
 `calculate_statistics` produces scalar KPIs only. `top_posts` is calculated once
 by `attach_post_relations` after the cached snapshot is read.
 
-The aggregator loads each temporal component once and derives
-`temporal_summary` from those values, avoiding a second set of Topic temporal
-method calls.
+The aggregator loads each temporal component once with its explicit
+`start_time` and `end_time`, and derives `temporal_summary` from those values.
+Topic temporal caches include the date range, preventing data calculated for a
+different dashboard range from being reused.
+
+Sentiment analysis receives the aggregator's explicit `start_time` and
+`end_time`, so its data window and cache key match the rest of the dashboard.
+
+## Recent Aggregation Changes
+
+On 2026-09-26, the dashboard aggregation flow was aligned around one explicit
+date range and one construction point for each relation or temporal value:
+
+- KPI calculation no longer constructs `top_posts`; the relation is attached
+  once after the cache read.
+- Snapshot cache keys no longer include `top_posts_limit`; each request applies
+  its own limit while attaching post relations after the cache read.
+- Temporal components are loaded once, and the aggregator derives the summary
+  from those values instead of calling the Topic summary method. Each component
+  receives the dashboard date range and has a range-specific cache key.
+- Sentiment analysis receives `start_time` and `end_time` from the dashboard,
+  keeping its source data and cache key consistent with `facebook_data`.
 
 - `pages_data` - Page-level analytics
   - `pages_count` - Posts by page

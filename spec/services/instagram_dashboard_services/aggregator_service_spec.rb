@@ -62,21 +62,44 @@ RSpec.describe InstagramDashboardServices::AggregatorService do
     ).to include(posts: posts, top_posts: top_posts)
   end
 
-  it 'uses a versioned cache key with topic, limit, and explicit date range' do
+  it 'uses a versioned cache key with topic and explicit date range' do
     start_date = service.instance_variable_get(:@start_time).to_date.iso8601
     end_date = service.instance_variable_get(:@end_time).to_date.iso8601
 
-    expect(service.send(:cache_key)).to eq("instagram_dashboard:v4:topic:7:limit:20:payload:#{start_date}:#{end_date}")
+    expect(service.send(:cache_key)).to eq("instagram_dashboard:v5:topic:7:payload:#{start_date}:#{end_date}")
   end
 
-  it 'does not collide across limits or date ranges' do
+  it 'shares cached snapshots across limits but not date ranges' do
     allow(described_class).to receive(:new).and_call_original
     short_range = described_class.new(topic: topic, top_posts_limit: 20, days_range: 7)
     long_range = described_class.new(topic: topic, top_posts_limit: 20, days_range: 30)
     larger_limit = described_class.new(topic: topic, top_posts_limit: 50, days_range: 7)
 
     expect(short_range.send(:cache_key)).not_to eq(long_range.send(:cache_key))
-    expect(short_range.send(:cache_key)).not_to eq(larger_limit.send(:cache_key))
+    expect(short_range.send(:cache_key)).to eq(larger_limit.send(:cache_key))
+  end
+
+  it 'reuses a cached snapshot while applying each requested top-post limit' do
+    allow(described_class).to receive(:new).and_call_original
+    short_limit = described_class.new(topic: topic, top_posts_limit: 20)
+    large_limit = described_class.new(topic: topic, top_posts_limit: 50)
+    posts = double('posts')
+    snapshot = { instagram_data: { total_posts: 3 } }
+    cached_snapshots = {}
+
+    allow(Rails.cache).to receive(:fetch) do |key, **_options, &block|
+      cached_snapshots.fetch(key) { cached_snapshots[key] = block.call }
+    end
+    expect(short_limit).to receive(:build_dashboard_snapshot).once.and_return(snapshot)
+    expect(large_limit).not_to receive(:build_dashboard_snapshot)
+    [short_limit, large_limit].each do |service_instance|
+      allow(service_instance).to receive(:instagram_posts).and_return(posts)
+    end
+    allow(short_limit).to receive(:top_posts).with(posts).and_return([:short_limit_post])
+    allow(large_limit).to receive(:top_posts).with(posts).and_return([:large_limit_post])
+
+    expect(short_limit.call[:instagram_data]).to include(posts: posts, top_posts: [:short_limit_post])
+    expect(large_limit.call[:instagram_data]).to include(posts: posts, top_posts: [:large_limit_post])
   end
 
   it 'returns empty dashboard data when the topic has no tags' do
@@ -117,6 +140,9 @@ RSpec.describe InstagramDashboardServices::AggregatorService do
   end
 
   it 'falls back to safe temporal defaults when source methods fail' do
+    start_time = service.instance_variable_get(:@start_time)
+    end_time = service.instance_variable_get(:@end_time)
+
     %i[
       instagram_optimal_publishing_time
       instagram_trend_velocity
@@ -125,7 +151,9 @@ RSpec.describe InstagramDashboardServices::AggregatorService do
       instagram_peak_publishing_times_by_hour
       instagram_peak_publishing_times_by_day
       instagram_engagement_heatmap_data
-    ].each { |method_name| allow(topic).to receive(method_name).and_raise('unavailable') }
+    ].each do |method_name|
+      allow(topic).to receive(method_name).with(start_time: start_time, end_time: end_time).and_raise('unavailable')
+    end
 
     expect(service.send(:load_temporal_intelligence)).to eq(
       temporal_summary: {
