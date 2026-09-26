@@ -128,23 +128,23 @@
           </div>
         </div>
         <% if instagram_post.has_video? %>
-          <div class="group/metric" role="group" aria-label="Vistas: <%= number_with_delimiter(instagram_post.video_view_count || 0) %>">
+          <div class="group/metric" role="group" aria-label="Vistas: <%= instagram_post.video_view_count.nil? ? 'N/D' : number_with_delimiter(instagram_post.video_view_count) %>">
             <div class="text-xs text-gray-500 mb-1">
               <i class="fa-solid fa-play text-purple-600" aria-hidden="true"></i>
               <span class="sr-only">Vistas</span>
             </div>
             <div class="text-sm font-semibold text-purple-600 group-hover/metric:scale-110 transition-transform">
-              <%= number_with_delimiter(instagram_post.video_view_count || 0) %>
+              <%= instagram_post.video_view_count.nil? ? 'N/D' : number_with_delimiter(instagram_post.video_view_count) %>
             </div>
           </div>
         <% else %>
-          <div class="group/metric" role="group" aria-label="Alcance estimado">
+          <div class="group/metric" role="group" aria-label="Vistas no disponibles">
             <div class="text-xs text-gray-500 mb-1">
               <i class="fa-solid fa-eye text-amber-600" aria-hidden="true"></i>
-              <span class="sr-only">Alcance</span>
+              <span class="sr-only">Vistas</span>
             </div>
             <div class="text-sm font-semibold text-amber-600 group-hover/metric:scale-110 transition-transform">
-              <%= number_with_delimiter((instagram_post.total_interactions * 10).round) %>
+              N/D
             </div>
           </div>
         <% end %>

@@ -2,6 +2,24 @@
 
 ## 2026-09-26
 
+- Consolidated the verified read-only Facebook, X, and Instagram production
+  statistics into a cross-channel calibration reference, including datasets,
+  distributions, model errors, data-quality findings, and reuse limitations.
+- Corrected Instagram dashboard semantics: provider `video_view_count` is now
+  exposed as observed views or `N/D`, never as reach and never through an
+  interaction-based fallback. General and Home exclude Instagram views from
+  reach totals and reach charts.
+- Recorded the read-only X calibration: approximately 97.82% positive observed
+  view coverage, no sufficiently superior simple fallback, and the existing
+  zero-versus-unavailable provenance limitation.
+- Recorded the read-only production analysis of Instagram metrics: provider video
+  views cover applicable videos but not non-video posts; no simple fallback is
+  sufficiently defensible; video views are not unique reach. Documented the
+  current General/Home semantic limitation that maps those views to a reach key.
+- Recorded the read-only production calibration of Facebook reach estimation:
+  564,456 posts, v1/v2 bounded-formula evidence, parameter sensitivity, and the
+  absence of observed Facebook reach ground truth. Documented that page followers
+  are mutable `fan_count` values rather than per-post historical snapshots.
 - Added Instagram as the fourth Home Dashboard channel across executive totals,
   channel comparisons, charts, temporal engagement, and Top Content. Versioned
   its payload cache from `home_dashboard:v4` to `home_dashboard:v5`.

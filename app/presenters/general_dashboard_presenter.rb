@@ -167,12 +167,6 @@ class GeneralDashboardPresenter
         reach: reach_by_channel[:twitter] || 0,
         color: TWITTER_PRIMARY_COLOR,
         estimated: estimated_reach?(:twitter)
-      },
-      {
-        channel: I18n.t('pdf.channels.instagram'),
-        reach: reach_by_channel[:instagram] || 0,
-        color: INSTAGRAM_PRIMARY_COLOR,
-        estimated: estimated_reach?(:instagram)
       }
     ]
   end
@@ -353,8 +347,7 @@ class GeneralDashboardPresenter
     {
       I18n.t('pdf.channels.digital') => digital_performance[:reach],
       I18n.t('pdf.channels.facebook') => facebook_performance[:reach],
-      I18n.t('pdf.channels.twitter') => twitter_performance[:reach],
-      I18n.t('pdf.channels.instagram') => instagram_performance[:reach]
+      I18n.t('pdf.channels.twitter') => twitter_performance[:reach]
     }
   end
 
@@ -431,7 +424,8 @@ class GeneralDashboardPresenter
         channel: I18n.t('pdf.channels.instagram'),
         mentions: instagram_performance[:mentions],
         interactions: instagram_performance[:interactions],
-        reach: instagram_performance[:reach],
+        metric_label: 'Visualizaciones',
+        metric_value: instagram_performance[:views],
         color: INSTAGRAM_PRIMARY_COLOR
       }
     ]

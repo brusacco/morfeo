@@ -4,7 +4,7 @@ title: FacebookEntry
 description: Facebook posts from tracked Pages with comprehensive engagement metrics
 resource: app/models/facebook_entry.rb
 tags: [social, facebook, analytics]
-timestamp: 2026-09-22T00:00:00Z
+timestamp: 2026-09-26T00:00:00Z
 ---
 
 # Overview
@@ -53,6 +53,12 @@ Estimated views apply Morfeo's $1.2$ repeated-exposure assumption to estimated
 reach. The `before_save :calculate_views_count` callback persists the resulting
 estimated views in `views_count` for new or updated records.
 
+`views_count` is not a provider observation and must not be treated as a
+historical label for validating the reach formula. Its follower input comes from
+the associated Page's current or periodically refreshed `fan_count`, not from a
+snapshot taken when the post was published. The empirical rationale and parameter
+limits are documented in [Views Estimation](../business_rules/views_estimation.md).
+
 # Key Methods
 
 - `self.for_topic(topic, start_time:, end_time:)` - Filter by topic and date range
@@ -86,3 +92,8 @@ The system can automatically link Facebook posts to news articles they reference
 - [Engagement Metrics](../business_rules/engagement_metrics.md) - Facebook engagement calculations
 - [Sentiment Analysis](../business_rules/sentiment_analysis.md) - Facebook sentiment rules
 - [Views Estimation](../business_rules/views_estimation.md) - Facebook views formula
+
+# Citations
+
+- Production read-only Facebook calibration analysis, 2026-09-26. See
+  [Views Estimation](../business_rules/views_estimation.md).

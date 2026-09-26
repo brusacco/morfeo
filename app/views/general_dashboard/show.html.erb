@@ -274,7 +274,7 @@
           <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
           <div class="relative">
             <div class="flex items-center justify-between mb-3">
-              <div class="text-sm font-semibold uppercase tracking-wider text-green-100">Visualizaciones y alcance potencial estimados</div>
+              <div class="text-sm font-semibold uppercase tracking-wider text-green-100">Alcance potencial total</div>
               <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
                 <i class="fa-solid fa-users text-2xl"></i>
               </div>
@@ -282,9 +282,9 @@
             <div class="text-4xl font-bold mb-2">
               <%= number_with_delimiter(@executive_summary[:total_reach]) %>*
             </div>
-            <div class="text-sm text-green-100">Incluye vistas observadas y estimaciones de Morfeo; no representa personas únicas.</div>
+            <div class="text-sm text-green-100">Incluye estimaciones de Morfeo y vistas de canales con alcance; no representa personas únicas.</div>
             <div class="text-xs text-green-200 mt-2">
-              * Facebook: visualizaciones estimadas | Digital: interacciones x3 | Twitter/X: interacciones x10 cuando no hay vistas
+              * Instagram: las visualizaciones de video se muestran por separado y no se incluyen en este total.
             </div>
           </div>
         </div>
@@ -441,16 +441,21 @@
                 <span class="text-lg font-bold <%= text_color %>"><%= number_with_delimiter(channel[:interactions]) %></span>
               </div>
 
-              <!-- Reach -->
+              <!-- Reach / observed Instagram video views -->
               <div class="flex items-center justify-between">
-                <span class="text-sm font-medium text-gray-600"><%= channel[:reach_estimated] ? 'Estimated Reach' : 'Alcance observado' %></span>
-                <span class="text-lg font-bold <%= text_color %>"><%= number_with_delimiter(channel[:reach]) %></span>
+                <% if key == :instagram %>
+                  <span class="text-sm font-medium text-gray-600">Visualizaciones</span>
+                  <span class="text-lg font-bold <%= text_color %>"><%= channel[:views].nil? ? 'N/D' : number_with_delimiter(channel[:views]) %></span>
+                <% else %>
+                  <span class="text-sm font-medium text-gray-600"><%= channel[:reach_estimated] ? 'Estimated Reach' : 'Alcance observado' %></span>
+                  <span class="text-lg font-bold <%= text_color %>"><%= number_with_delimiter(channel[:reach]) %></span>
+                <% end %>
               </div>
 
               <!-- Engagement Rate -->
               <div class="flex items-center justify-between pt-3 border-t border-gray-200">
                 <span class="text-sm font-medium text-gray-600">Eng. Rate</span>
-                <span class="text-xl font-bold <%= text_color %>"><%= number_with_precision(channel[:engagement_rate], precision: 2) %>%</span>
+                <span class="text-xl font-bold <%= text_color %>"><%= channel[:engagement_rate].nil? ? 'N/D' : "#{number_with_precision(channel[:engagement_rate], precision: 2)}%" %></span>
               </div>
 
               <!-- Sentiment -->

@@ -149,8 +149,7 @@ class GeneralDashboardController < ApplicationController
     @chart_channel_reach = {
       'Digital' => @channel_performance[:digital][:reach],
       'Facebook' => @channel_performance[:facebook][:reach],
-      'Twitter' => @channel_performance[:twitter][:reach],
-      'Instagram' => @channel_performance[:instagram][:reach]
+      'Twitter' => @channel_performance[:twitter][:reach]
     }
 
     # Sentiment distribution

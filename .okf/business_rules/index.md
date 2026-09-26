@@ -18,6 +18,7 @@ High-level business rules that govern the Morfeo news monitoring and analytics p
 
 - [Sentiment Analysis](sentiment_analysis.md) - Sentiment analysis rules by platform
 - [Views Estimation](views_estimation.md) - Views calculation rules
+- [Metric Calibration Evidence 2026-09-26](metric_calibration_evidence_2026_09_26.md) - Production statistical reference and model-comparison results
 - [Reporting](reporting.md) - Report generation and access rules
 
 ## Access Control

@@ -4,7 +4,7 @@ title: Instagram Services
 description: Instagram API integration services for data fetching and processing
 resource: app/services/instagram_services/
 tags: [instagram, api, service, integration]
-timestamp: 2026-09-22T00:00:00Z
+timestamp: 2026-09-26T00:00:00Z
 ---
 
 # Overview
@@ -31,7 +31,14 @@ Extracts and persists posts from Instagram API responses.
 
 - Downloads post images
 - Handles media types (images, videos, carousels)
-- Stores posts as InstagramPost records
+- Stores `media_type`, `product_type`, likes, comments, and provider
+  `video_view_count` as InstagramPost records
+- Preserves absent `video_view_count` as `NULL`; likes and comments default to
+  zero when absent in the payload
+
+The current post API payload does not persist post-level reach, impressions,
+plays, shares, or saves. Provider video views are observed views, not unique
+reach.
 
 ## ExtractTags
 
@@ -58,3 +65,4 @@ Auto-tags posts using Tag vocabulary with text matching.
 - [InstagramPost Model](../models/instagram_post.md) - Stores fetched posts
 - [InstagramProfile Model](../models/instagram_profile.md) - Stores profile data
 - [Instagram Reports Infrastructure](../instagram_reports/) - Analytics dashboard
+- [Views Estimation](../business_rules/views_estimation.md) - Metric provenance and fallback limits

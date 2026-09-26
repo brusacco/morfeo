@@ -36,7 +36,7 @@ module InstagramDashboardServices
     private
 
     def cache_key
-      "instagram_dashboard:v6:topic:#{@topic.id}:payload:#{cache_date_range}"
+      "instagram_dashboard:v7:topic:#{@topic.id}:payload:#{cache_date_range}"
     end
 
     def cache_date_range
@@ -105,8 +105,8 @@ module InstagramDashboardServices
       total_posts, total_interactions, total_views = posts.except(:includes).reorder(nil).pluck(
         Arel.sql('COUNT(*)'),
         Arel.sql('COALESCE(SUM(instagram_posts.likes_count + instagram_posts.comments_count), 0)'),
-        Arel.sql('COALESCE(SUM(instagram_posts.video_view_count), 0)')
-      ).first || [0, 0, 0]
+        Arel.sql('SUM(instagram_posts.video_view_count)')
+      ).first || [0, 0, nil]
 
       # Safe division
       average_interactions = total_posts.zero? ? 0 : (total_interactions.to_f / total_posts).round(1)
@@ -116,7 +116,7 @@ module InstagramDashboardServices
         total_interactions: total_interactions,
         total_views: total_views,
         views_estimated: false,
-        views_source: :actual,
+        views_source: total_views.nil? ? :unavailable : :actual,
         average_interactions: average_interactions
       }
     end
@@ -283,9 +283,9 @@ module InstagramDashboardServices
         chart_interactions: {},
         total_posts: 0,
         total_interactions: 0,
-        total_views: 0,
+        total_views: nil,
         views_estimated: false,
-        views_source: :actual,
+        views_source: :unavailable,
         average_interactions: 0,
         top_posts: [],
         word_occurrences: {},

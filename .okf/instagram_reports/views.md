@@ -4,7 +4,7 @@ title: Instagram Topic Views
 description: Dashboard views and PDF templates for Instagram analytics
 resource: app/views/instagram_topic/
 tags: [instagram, reports, views, templates]
-timestamp: 2026-09-22T00:00:00Z
+timestamp: 2026-09-26T00:00:00Z
 ---
 
 # Overview
@@ -18,7 +18,7 @@ The Instagram topic views provide a comprehensive analytics dashboard with multi
 Main analytics dashboard with 9 sections:
 
 1. **Header** - Topic name, breadcrumbs, PDF generation button
-2. **KPI Cards** - Total posts, interactions, views, average interactions
+2. **KPI Cards** - Total posts, interactions, observed video views, average interactions
 3. **Temporal Charts** - Posts/day and interactions/day column charts
 4. **Tag Analysis** - Tag distribution and interaction pie charts
 5. **Word Cloud** - Visual word frequency with sentiment coloring
@@ -81,6 +81,15 @@ Uses Chartkick with Highcharts adapter for:
 - Pie/donut charts (distributions)
 - Click handlers for date drill-down
 
+# Metric Semantics
+
+The Instagram dashboard `total_views` KPI is the aggregator's sum of observed
+`video_view_count`. It is not unique reach and does not apply to images,
+carousels, or other non-video content. This documentation records the required
+meaning even where cross-channel consumers currently map the same value to a
+`reach` key; that mapping is a known semantic issue, not a change in provider
+metric provenance.
+
 # Styling
 
 - Primary color: Pink/Purple gradient (Instagram branding)
@@ -92,3 +101,4 @@ Uses Chartkick with Highcharts adapter for:
 
 - [InstagramTopicController](controller.md) - Controller that renders these views
 - [Aggregator Service](aggregator_service.md) - Provides data for the views
+- [Views Estimation](../business_rules/views_estimation.md) - Observed-video metric rules

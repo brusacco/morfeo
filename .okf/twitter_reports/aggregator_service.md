@@ -32,7 +32,8 @@ Returns a hash with the following keys:
   - `chart_interactions` - Daily interaction totals
   - `total_posts` - Total post count
   - `total_interactions` - Sum of all engagement
-  - `total_views` - Sum of view counts (real API data)
+  - `total_views` - Sum of stored provider view counts; zero values have
+    ambiguous observed-versus-unavailable provenance
   - `average_interactions` - Mean interactions per post
   - `top_posts` - Top performing posts
   - `word_occurrences` - Word frequency hash
@@ -103,7 +104,12 @@ receives the dashboard date range.
 
 # Key Differences from Facebook
 
-- `views_count` is **real API data** (not estimated)
+- Positive `views_count` values are provider observations. A stored zero is
+  ambiguous because ingestion conflates missing provider values and observed
+  zero. The aggregate interaction fallback must remain labeled as estimated.
+- A production calibration found approximately $97.82\%$ positive observed-view
+  coverage and no sufficiently superior simple fallback; no formula change was
+  selected.
 - Engagement metrics: favorites, retweets, replies, quotes (no reaction breakdown)
 - No sentiment analysis (unlike Facebook)
 
@@ -118,3 +124,8 @@ receives the dashboard date range.
 - [Twitter Topic Views](views.md) - Consumes the aggregated data
 - [TwitterPost Model](../models/twitter_post.md) - Primary data source
 - [TwitterProfile Model](../models/twitter_profile.md) - Profile metadata source
+- [Views Estimation](../business_rules/views_estimation.md) - View provenance and fallback decision
+
+# Citations
+
+- Production read-only X calibration, 2026-09-26.

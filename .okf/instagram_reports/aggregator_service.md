@@ -32,7 +32,11 @@ Returns a hash with the following keys:
   - `chart_interactions` - Daily interaction totals
   - `total_posts` - Total post count
   - `total_interactions` - Sum of all engagement
-  - `total_views` - Sum of view counts
+  - `total_views` - `SUM(video_view_count)`, observed video views only; this is
+    not unique reach and excludes content without provider video views. It is
+    `nil` when no matched post has a provider-reported view value.
+  - `views_source` - `:actual` for a non-null aggregate (including observed
+    zero), otherwise `:unavailable`
   - `average_interactions` - Mean interactions per post
   - `top_posts` - Top performing posts
   - `word_occurrences` - Word frequency hash
@@ -70,7 +74,7 @@ Returns a hash with the following keys:
 
 ## Cache Contract
 
-The `instagram_dashboard:v5` snapshot is owned by the aggregator and expires in
+The `instagram_dashboard:v7` snapshot is owned by the aggregator and expires in
 30 minutes. It stores scalar KPIs and analytical values; `posts` and
 `top_posts` are attached after the cache read so Active Record relations are not
 serialized into the snapshot. Its key does not include `top_posts_limit`, so
@@ -101,10 +105,20 @@ On 2026-09-26, KPI and temporal aggregation were simplified:
 Instagram has no sentiment-analysis payload. Its temporal intelligence still
 receives the dashboard date range.
 
+# Metric Contract
+
+`calculate_statistics` returns `views_estimated: false`. Its `views_source` is
+`:actual` only when the SQL aggregate is non-null, including a provider-reported
+zero; it is `:unavailable` when no matched post has provider-reported views.
+That provenance does not make it a reach metric: repeated views are possible and
+non-video posts do not contribute a comparable view count. The service does not
+use `InstagramPost#estimated_reach` as a fallback.
+
 # Key Differences from Facebook/Twitter
 
 - Engagement metrics: likes, comments (simpler than Facebook's reaction breakdown)
-- No view count estimation formula (uses actual API data when available)
+- Observed video views are available only for applicable video content; no
+  approved fallback formula exists for unavailable values
 - No sentiment analysis (unlike Facebook)
 
 # Performance
@@ -118,3 +132,8 @@ receives the dashboard date range.
 - [Instagram Topic Views](views.md) - Consumes the aggregated data
 - [InstagramPost Model](../models/instagram_post.md) - Primary data source
 - [InstagramProfile Model](../models/instagram_profile.md) - Profile metadata source
+- [Views Estimation](../business_rules/views_estimation.md) - Video-view semantics and fallback decision
+
+# Citations
+
+- Production read-only Instagram analysis, 2026-09-26.

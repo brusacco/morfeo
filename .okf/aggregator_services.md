@@ -109,7 +109,7 @@ current `v4` namespaces during the transition.
 - Loads profiles data (posts per profile, interactions per profile)
 - Detects viral content
 
-**Cache Key**: `instagram_dashboard:v4:topic:{topic_id}:limit:{top_posts_limit}:payload:{start_date}:{end_date}`
+**Cache Key**: `instagram_dashboard:v7:topic:{topic_id}:payload:{start_date}:{end_date}`
 
 ## General Dashboard Aggregator
 
@@ -129,7 +129,7 @@ current `v4` namespaces during the transition.
 - Identifies top content and viral content across all platforms
 - Generates publishing-time recommendations only from available temporal engagement data; it does not supply a default day or time.
 
-**Cache Key**: `general_dashboard:v5:topic:{topic_id}:payload:{start_date}:{end_date}`
+**Cache Key**: `general_dashboard:v7:topic:{topic_id}:payload:{start_date}:{end_date}`
 
 All dashboard `show` actions delegate KPI and analytical-value freshness to
 their aggregator snapshots. Digital and social aggregators attach their primary
@@ -142,10 +142,14 @@ prevents the cache-miss path from building those relations twice.
 
 Instagram is a fourth General Dashboard channel. Its topic-scoped metrics use
 the selected date range and topic tags: mentions are post counts, interactions
-are likes plus comments, and reach is observed `video_view_count` without a
-fallback multiplier. Instagram therefore participates in total mentions, total
-interactions, total reach, channel performance, Share of Voice, growth rate,
-combined temporal recommendations, top content, and viral-content analysis.
+are likes plus comments, and `views` is `SUM(video_view_count)`. The value is
+provider-observed video views, never reach; it is `nil`/`N/D` when the aggregate
+has no provider values and remains zero when the provider reports zero. Instagram
+does not participate in cross-channel reach totals, reach breakdowns, or reach
+charts, and it has no estimate fallback. The General Dashboard and PDF must say
+that Instagram video views are displayed separately and excluded from `Total
+Reach`, so adjacent channel cards cannot be interpreted as components of that
+total.
 
 Instagram temporal calls receive the General Dashboard `start_date` and
 `end_date`, matching Facebook and Twitter range semantics. Instagram has no
@@ -164,7 +168,7 @@ to the original post and show the profile, caption, and total interactions.
 
 **Purpose**: Aggregates cross-topic home dashboard metrics.
 
-**Cache Key**: `home_dashboard:v5:topics:{sorted_unique_topic_ids}:payload:{start_date}:{end_date}`
+**Cache Key**: `home_dashboard:v7:topics:{sorted_unique_topic_ids}:payload:{start_date}:{end_date}`
 
 The key includes the complete sorted topic set, so a topic update invalidates the
 Home namespace as well as the affected topic-specific dashboard caches. The
@@ -172,10 +176,13 @@ payload includes `word_occurrences` for the Tags Cloud, so a cache hit performs
 no text-corpus analysis.
 
 Home aggregates Digital, Facebook, Twitter, and Instagram. Instagram contributes
-tag-scoped mentions, likes plus comments as interactions, observed video views as
-reach, prior-period trend calculations, temporal engagement, and top content.
-It appears in channel cards and comparison charts but remains excluded from the
-weighted sentiment calculation because it has no integrated sentiment source.
+tag-scoped mentions, likes plus comments as interactions, and provider-observed
+video `views`. Those views are not unique reach, remain `N/D` when unavailable,
+and have no fallback for non-video posts. They are excluded from total reach and
+reach charts; the Home KPI explicitly states that Instagram video views are
+shown separately. Instagram still contributes prior-period trend calculations,
+temporal engagement, and top content, while remaining excluded from weighted
+sentiment because it has no integrated sentiment source.
 
 ## Site Dashboard Aggregator
 

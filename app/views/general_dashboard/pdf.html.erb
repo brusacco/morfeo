@@ -194,7 +194,7 @@
             El tópico <strong><%= @topic.name %></strong> registró un total de 
             <strong><%= @presenter.formatted_total_mentions %></strong> menciones
             con <strong><%= @presenter.formatted_total_interactions %></strong> interacciones,
-            con un total de <strong>visualizaciones y alcance potencial estimados</strong> de <strong><%= @presenter.formatted_total_reach %></strong> exposiciones. Esta cifra incluye estimaciones de Morfeo y no representa personas únicas.
+            con un total de <strong>alcance potencial estimado</strong> de <strong><%= @presenter.formatted_total_reach %></strong> exposiciones. Esta cifra incluye estimaciones de Morfeo y no representa personas únicas; las visualizaciones de video de Instagram se muestran por separado y no se incluyen en este total.
           </p>
           <p class="mt-md">
             El sentimiento general es <strong><%= @presenter.sentiment_text %></strong> 
@@ -215,11 +215,12 @@
               <th>Canal</th>
               <th style="text-align: right;"><%= pdf_metric_label(:entries) %></th>
               <th style="text-align: right;"><%= pdf_metric_label(:interactions) %></th>
-              <th style="text-align: right;">Visualizaciones y alcance potencial</th>
+              <th style="text-align: right;">Alcance / visualizaciones</th>
             </tr>
           </thead>
           <tbody>
             <% @presenter.channel_performance_metrics.each do |channel| %>
+              <% metric_value = channel.key?(:metric_value) ? channel[:metric_value] : channel[:reach] %>
               <tr>
                 <td>
                   <span class="pdf-badge" style="background: <%= channel[:color] %>15; color: <%= channel[:color] %>;">
@@ -228,7 +229,7 @@
                 </td>
                 <td style="text-align: right;"><%= pdf_format_number(channel[:mentions]) %></td>
                 <td style="text-align: right;"><%= pdf_format_number(channel[:interactions]) %></td>
-                <td style="text-align: right;"><%= pdf_format_number(channel[:reach]) %></td>
+                <td style="text-align: right;"><%= channel[:metric_label] || 'Alcance' %>: <%= metric_value.nil? ? 'N/D' : pdf_format_number(metric_value) %></td>
               </tr>
             <% end %>
           </tbody>

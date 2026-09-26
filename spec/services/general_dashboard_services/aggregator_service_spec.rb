@@ -50,13 +50,13 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
     expect(service.send(:build_top_content_snapshot)).to eq(trending_topics: %w[alpha beta])
   end
 
-  it 'uses a v6 cache key for the selected reporting period' do
+  it 'uses a v7 cache key for the selected reporting period' do
     start_date = Time.zone.parse('2026-09-01 10:00')
     end_date = Time.zone.parse('2026-09-15 22:00')
     allow(described_class).to receive(:new).and_call_original
     dated_service = described_class.new(topic: topic, start_date: start_date, end_date: end_date)
 
-    expect(dated_service.send(:cache_key)).to eq('general_dashboard:v6:topic:7:payload:2026-09-01:2026-09-15')
+    expect(dated_service.send(:cache_key)).to eq('general_dashboard:v7:topic:7:payload:2026-09-01:2026-09-15')
   end
 
   it 'attaches top content relations after the cached snapshot is read' do
@@ -80,12 +80,12 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
     )
   end
 
-  it 'includes Instagram in channel metrics and cross-channel totals' do
+  it 'keeps observed Instagram video views separate from cross-channel reach totals' do
     allow(service).to receive_messages(
       digital_data: { count: 2, interactions: 4, reach: 12, reach_estimated: true, trend: 1 },
       facebook_data: { count: 3, interactions: 6, reach: 18, reach_estimated: false, trend: 2 },
       twitter_data: { count: 4, interactions: 8, reach: 24, reach_estimated: false, trend: 3 },
-      instagram_data: { count: 5, interactions: 10, reach: 30, reach_estimated: false, trend: 4 },
+      instagram_data: { count: 5, interactions: 10, views: 30, views_source: :actual, trend: 4 },
       digital_sentiment: { average: 0 },
       facebook_sentiment: { average: 0 },
       twitter_sentiment: { average: 0 },
@@ -94,15 +94,51 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
 
     expect(service.send(:total_mentions)).to eq(14)
     expect(service.send(:total_interactions)).to eq(28)
-    expect(service.send(:total_reach)).to eq(84)
+    expect(service.send(:total_reach)).to eq(54)
     expect(service.send(:build_channel_performance).fetch(:instagram)).to include(
       name: 'Instagram',
       mentions: 5,
       interactions: 10,
-      reach: 30,
-      reach_estimated: false,
+      views: 30,
+      views_source: :actual,
       trend: 4
     )
+  end
+
+  it 'retains provider-reported Instagram views when interactions are zero' do
+    allow(service).to receive_messages(
+      digital_data: { count: 0, interactions: 0, reach: 0, reach_estimated: false, trend: 0 },
+      facebook_data: { count: 0, interactions: 0, reach: 0, reach_estimated: false, trend: 0 },
+      twitter_data: { count: 0, interactions: 0, reach: 0, reach_estimated: false, trend: 0 },
+      instagram_data: { count: 1, interactions: 0, views: 4965, views_source: :actual, trend: 0 },
+      digital_sentiment: { average: 0 },
+      facebook_sentiment: { average: 0 },
+      twitter_sentiment: { average: 0 },
+      instagram_sentiment: { average: 0 }
+    )
+
+    instagram = service.send(:build_channel_performance).fetch(:instagram)
+
+    expect(instagram).to include(views: 4965, views_source: :actual)
+    expect(instagram).not_to have_key(:reach)
+  end
+
+  it 'keeps unavailable Instagram views distinct from an observed zero' do
+    allow(service).to receive_messages(
+      digital_data: { count: 0, interactions: 0, reach: 0, reach_estimated: false, trend: 0 },
+      facebook_data: { count: 0, interactions: 0, reach: 0, reach_estimated: false, trend: 0 },
+      twitter_data: { count: 0, interactions: 0, reach: 0, reach_estimated: false, trend: 0 },
+      instagram_data: { count: 1, interactions: 10, views: nil, views_source: :unavailable, trend: 0 },
+      digital_sentiment: { average: 0 },
+      facebook_sentiment: { average: 0 },
+      twitter_sentiment: { average: 0 },
+      instagram_sentiment: { average: 0 }
+    )
+
+    unavailable = service.send(:build_channel_performance).fetch(:instagram)
+
+    expect(unavailable).to include(views: nil, views_source: :unavailable)
+    expect(unavailable).not_to have_key(:reach)
   end
 
   it 'loads current digital metrics with one aggregate query' do
@@ -313,20 +349,19 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
       digital_data: { reach: 30, reach_estimated: true, reach_source: :estimated },
       facebook_data: { reach: 80, reach_estimated: true, reach_source: :estimated },
       twitter_data: { reach: 20, reach_estimated: true, reach_source: :fallback_estimate },
-      instagram_data: { reach: 10, reach_estimated: false, reach_source: :actual },
+      instagram_data: { views: 10, views_source: :actual },
       unique_sources_count: 4,
       geographic_distribution: {}
     )
 
     expect(service.send(:build_reach_analysis)).to include(
       total_reach: 130,
-      by_channel: { digital: 30, facebook: 80, twitter: 20, instagram: 10 },
-      estimated_channels: { digital: true, facebook: true, twitter: true, instagram: false },
+      by_channel: { digital: 30, facebook: 80, twitter: 20 },
+      estimated_channels: { digital: true, facebook: true, twitter: true },
       sources_by_channel: {
         digital: :estimated,
         facebook: :estimated,
-        twitter: :fallback_estimate,
-        instagram: :actual
+        twitter: :fallback_estimate
       },
       total_reach_estimated: true
     )

@@ -143,7 +143,7 @@
             <%= number_with_delimiter(@executive_summary[:total_reach]) %>*
           </div>
           <div class="text-xs text-green-100 mt-2">
-            * Digital: estimado (3x) | FB/Twitter: API real
+            * Las visualizaciones de video de Instagram se muestran por separado y no se incluyen en este total.
           </div>
         </div>
       </div>
@@ -421,16 +421,21 @@
                 <span class="text-lg font-bold text-<%= channel[:color] %>-600"><%= number_with_delimiter(channel[:interactions]) %></span>
               </div>
 
-              <!-- Reach -->
+              <!-- Reach / observed Instagram video views -->
               <div class="flex items-center justify-between">
-                <span class="text-sm font-medium text-gray-600">Alcance</span>
-                <span class="text-lg font-bold text-<%= channel[:color] %>-600"><%= number_with_delimiter(channel[:reach]) %></span>
+                <% if key == :instagram %>
+                  <span class="text-sm font-medium text-gray-600">Visualizaciones</span>
+                  <span class="text-lg font-bold text-<%= channel[:color] %>-600"><%= channel[:views].nil? ? 'N/D' : number_with_delimiter(channel[:views]) %></span>
+                <% else %>
+                  <span class="text-sm font-medium text-gray-600">Alcance</span>
+                  <span class="text-lg font-bold text-<%= channel[:color] %>-600"><%= number_with_delimiter(channel[:reach]) %></span>
+                <% end %>
               </div>
 
               <!-- Engagement Rate -->
               <div class="flex items-center justify-between pt-3 border-t border-gray-200">
                 <span class="text-sm font-medium text-gray-600">Eng. Rate</span>
-                <span class="text-xl font-bold text-<%= channel[:color] %>-600"><%= number_with_precision(channel[:engagement_rate], precision: 2) %>%</span>
+                <span class="text-xl font-bold text-<%= channel[:color] %>-600"><%= channel[:engagement_rate].nil? ? 'N/D' : "#{number_with_precision(channel[:engagement_rate], precision: 2)}%" %></span>
               </div>
 
               <!-- Trend -->

@@ -53,8 +53,7 @@ class HomeController < ApplicationController
     @chart_channel_reach = {
       'Digital' => @channel_stats[:digital][:reach],
       'Facebook' => @channel_stats[:facebook][:reach],
-      'Twitter' => @channel_stats[:twitter][:reach],
-      'Instagram' => @channel_stats[:instagram][:reach]
+      'Twitter' => @channel_stats[:twitter][:reach]
     }
 
     # EXISTING: Multiple Charts (kept for backward compatibility)

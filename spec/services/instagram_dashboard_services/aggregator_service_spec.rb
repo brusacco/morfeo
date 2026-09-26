@@ -66,7 +66,7 @@ RSpec.describe InstagramDashboardServices::AggregatorService do
     start_date = service.instance_variable_get(:@start_time).to_date.iso8601
     end_date = service.instance_variable_get(:@end_time).to_date.iso8601
 
-    expect(service.send(:cache_key)).to eq("instagram_dashboard:v6:topic:7:payload:#{start_date}:#{end_date}")
+    expect(service.send(:cache_key)).to eq("instagram_dashboard:v7:topic:7:payload:#{start_date}:#{end_date}")
   end
 
   it 'shares cached snapshots across limits but not date ranges' do
@@ -108,7 +108,7 @@ RSpec.describe InstagramDashboardServices::AggregatorService do
     empty_service = described_class.new(topic: empty_topic)
 
     expect(empty_service.send(:load_instagram_data)).to include(
-      tag_list: [], total_posts: 0, total_interactions: 0, total_views: 0, average_interactions: 0, top_posts: []
+      tag_list: [], total_posts: 0, total_interactions: 0, total_views: nil, average_interactions: 0, top_posts: []
     )
     expect(empty_service.send(:load_profiles_data)).to eq(
       profiles_count: [], profiles_interactions: [], site_top_counts: {}, site_counts: {}, site_sums: {}
@@ -125,9 +125,9 @@ RSpec.describe InstagramDashboardServices::AggregatorService do
     expect(service.send(:calculate_statistics, posts)).to eq(
       total_posts: 0,
       total_interactions: 0,
-      total_views: 0,
+      total_views: nil,
       views_estimated: false,
-      views_source: :actual,
+      views_source: :unavailable,
       average_interactions: 0
     )
   end
@@ -147,6 +147,48 @@ RSpec.describe InstagramDashboardServices::AggregatorService do
       views_source: :actual,
       average_interactions: 3.3
     )
+  end
+
+  it 'uses the observed video-view aggregate without an interaction fallback' do
+    profile = InstagramProfile.create!(uid: SecureRandom.uuid, username: SecureRandom.hex(8))
+    posts =
+      [100, 200, nil, 300].map do |video_view_count|
+        InstagramPost.create!(
+          instagram_profile: profile,
+          shortcode: SecureRandom.hex(8),
+          posted_at: Time.current,
+          likes_count: 0,
+          comments_count: 0,
+          video_view_count: video_view_count
+        )
+      end
+
+    expect(service.send(:calculate_statistics, InstagramPost.where(id: posts))).to include(
+      total_posts: 4,
+      total_interactions: 0,
+      total_views: 600,
+      views_source: :actual
+    )
+  end
+
+  it 'preserves provider-reported zero video views as observed' do
+    posts = double('posts')
+    aggregate_posts = double('aggregate_posts')
+    allow(posts).to receive(:except).with(:includes).and_return(aggregate_posts)
+    allow(aggregate_posts).to receive(:reorder).with(nil).and_return(aggregate_posts)
+    allow(aggregate_posts).to receive(:pluck).and_return([[1, 10, 0]])
+
+    expect(service.send(:calculate_statistics, posts)).to include(total_views: 0, views_source: :actual)
+  end
+
+  it 'leaves missing video views unavailable without estimating them' do
+    posts = double('posts')
+    aggregate_posts = double('aggregate_posts')
+    allow(posts).to receive(:except).with(:includes).and_return(aggregate_posts)
+    allow(aggregate_posts).to receive(:reorder).with(nil).and_return(aggregate_posts)
+    allow(aggregate_posts).to receive(:pluck).and_return([[1, 10, nil]])
+
+    expect(service.send(:calculate_statistics, posts)).to include(total_views: nil, views_source: :unavailable)
   end
 
   it 'falls back to safe temporal defaults when source methods fail' do

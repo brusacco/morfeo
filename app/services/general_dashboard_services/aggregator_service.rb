@@ -26,7 +26,7 @@ module GeneralDashboardServices
     private
 
     def cache_key
-      "general_dashboard:v6:topic:#{topic.id}:payload:#{start_date.to_date.iso8601}:#{end_date.to_date.iso8601}"
+      "general_dashboard:v7:topic:#{topic.id}:payload:#{start_date.to_date.iso8601}:#{end_date.to_date.iso8601}"
     end
 
     def build_dashboard_snapshot
@@ -126,9 +126,13 @@ module GeneralDashboardServices
           color: 'pink',
           mentions: instagram_data[:count],
           interactions: instagram_data[:interactions],
-          reach: instagram_data[:reach],
-          reach_estimated: instagram_data[:reach_estimated],
-          engagement_rate: calculate_engagement_rate(instagram_data[:interactions], instagram_data[:reach]),
+          views: instagram_data[:views],
+          views_source: instagram_data[:views_source],
+          engagement_rate: if instagram_data[:views].nil?
+                             nil
+                           else
+                             calculate_engagement_rate(instagram_data[:interactions], instagram_data[:views])
+                           end,
           sentiment: instagram_sentiment,
           trend: instagram_data[:trend],
           share: calculate_share(instagram_data[:count], total_mentions)
@@ -187,20 +191,17 @@ module GeneralDashboardServices
         by_channel: {
           digital: digital_data[:reach],
           facebook: facebook_data[:reach],
-          twitter: twitter_data[:reach],
-          instagram: instagram_data[:reach]
+          twitter: twitter_data[:reach]
         },
         estimated_channels: {
           digital: digital_data[:reach_estimated],
           facebook: facebook_data[:reach_estimated],
-          twitter: twitter_data[:reach_estimated],
-          instagram: instagram_data[:reach_estimated]
+          twitter: twitter_data[:reach_estimated]
         },
         sources_by_channel: {
           digital: digital_data[:reach_source],
           facebook: facebook_data[:reach_source],
-          twitter: twitter_data[:reach_source],
-          instagram: instagram_data[:reach_source]
+          twitter: twitter_data[:reach_source]
         },
         total_reach_estimated: reach_estimated?,
         # estimated_impressions: total_impressions,  # REMOVED - Not defensible without tracking pixels
@@ -397,7 +398,7 @@ module GeneralDashboardServices
     def instagram_data
       @instagram_data ||=
         if @tag_names.empty?
-          { count: 0, interactions: 0, reach: 0, reach_estimated: false, reach_source: :actual, trend: 0 }
+          { count: 0, interactions: 0, views: nil, views_source: :unavailable, trend: 0 }
         else
           current_stats = InstagramPost
                           .where(posted_at: start_date..end_date)
@@ -416,9 +417,8 @@ module GeneralDashboardServices
           {
             count: current_stats[0],
             interactions: current_stats[1] || 0,
-            reach: current_stats[2] || 0,
-            reach_estimated: false,
-            reach_source: :actual,
+            views: current_stats[2],
+            views_source: current_stats[2].nil? ? :unavailable : :actual,
             trend: calculate_trend(current_stats[0], previous_posts_count)
           }
         end
@@ -433,11 +433,11 @@ module GeneralDashboardServices
     end
 
     def total_reach
-      digital_data[:reach] + facebook_data[:reach] + twitter_data[:reach] + instagram_data[:reach]
+      digital_data[:reach] + facebook_data[:reach] + twitter_data[:reach]
     end
 
     def reach_estimated?
-      [digital_data, facebook_data, twitter_data, instagram_data].any? { |data| data[:reach_estimated] }
+      [digital_data, facebook_data, twitter_data].any? { |data| data[:reach_estimated] }
     end
 
     # REMOVED - Not a valid industry standard, cannot defend methodology

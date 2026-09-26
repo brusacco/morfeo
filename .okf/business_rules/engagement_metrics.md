@@ -3,7 +3,7 @@ type: Business Rule
 title: Engagement Metrics
 description: Platform-specific engagement metric calculations
 tags: [engagement, metrics, analytics, calculations]
-timestamp: 2026-09-22T00:00:00Z
+timestamp: 2026-09-26T00:00:00Z
 ---
 
 # Overview
@@ -32,9 +32,14 @@ Each platform has different engagement metrics. Morfeo calculates total interact
 
 ## Instagram
 
-- Metrics: `likes_count`, `comments_count`
+- Metrics: `likes_count`, `comments_count`, and provider-supplied
+  `video_view_count` for video posts
 - Total interactions: `likes_count + comments_count`
-- Views: Not available from API
+- Video views: observed where `video_view_count` is present; they are not unique
+  reach. The current ingest path preserves `NULL` for a missing video-view field
+  but maps missing likes/comments to zero, so only the former distinguishes
+  absence from an observed zero.
+- Shares and saves: unavailable in the current post schema and ingestion flow.
 
 # Analytics Calculations
 
@@ -54,3 +59,4 @@ All platforms support:
 - [FacebookEntry Model](../models/facebook_entry.md) - Facebook metrics
 - [TwitterPost Model](../models/twitter_post.md) - Twitter metrics
 - [InstagramPost Model](../models/instagram_post.md) - Instagram metrics
+- [Views Estimation](views_estimation.md) - Observed-video and fallback rules

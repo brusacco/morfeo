@@ -145,7 +145,7 @@
         <div class="flex items-center justify-between">
           <div>
             <p class="text-sm font-medium text-gray-600">Vistas de Video</p>
-            <p class="text-3xl font-bold text-gray-900 mt-2"><%= number_with_delimiter(@total_views || 0) %></p>
+            <p class="text-3xl font-bold text-gray-900 mt-2"><%= @total_views.nil? ? 'N/D' : number_with_delimiter(@total_views) %></p>
             <p class="text-xs text-gray-500 mt-1">Solo videos</p>
           </div>
           <div class="p-3 bg-purple-100 rounded-lg">
