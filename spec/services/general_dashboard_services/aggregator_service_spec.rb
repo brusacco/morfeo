@@ -24,6 +24,7 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
       build_word_analysis_lightweight: { words: 'data' },
       build_recommendations: { recommendations: ['a'] }
     )
+    allow(service).to receive(:attach_content_relations) { |snapshot| snapshot }
 
     expect(described_class.call(topic: topic)).to eq(
       executive_summary: { executive: 'summary' },
@@ -38,13 +39,32 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
     )
   end
 
-  it 'uses a v3 cache key for the selected reporting period' do
+  it 'uses a v4 cache key for the selected reporting period' do
     start_date = Time.zone.parse('2026-09-01 10:00')
     end_date = Time.zone.parse('2026-09-15 22:00')
     allow(described_class).to receive(:new).and_call_original
     dated_service = described_class.new(topic: topic, start_date: start_date, end_date: end_date)
 
-    expect(dated_service.send(:cache_key)).to eq('general_dashboard:v3:topic:7:payload:2026-09-01:2026-09-15')
+    expect(dated_service.send(:cache_key)).to eq('general_dashboard:v4:topic:7:payload:2026-09-01:2026-09-15')
+  end
+
+  it 'attaches top content relations after the cached snapshot is read' do
+    snapshot = { top_content: { trending_topics: %w[alpha beta] } }
+    viral_content = { digital: [], facebook: [], twitter: [] }
+    allow(service).to receive_messages(
+      top_digital_entries: [:digital_entry],
+      top_facebook_posts: [:facebook_post],
+      top_tweets: [:tweet],
+      identify_viral_content: viral_content
+    )
+
+    expect(service.send(:attach_content_relations, snapshot)[:top_content]).to eq(
+      trending_topics: %w[alpha beta],
+      top_entries: [:digital_entry],
+      top_facebook_posts: [:facebook_post],
+      top_tweets: [:tweet],
+      viral_content: viral_content
+    )
   end
 
   it 'loads current digital metrics with one aggregate query' do

@@ -22,20 +22,54 @@ RSpec.describe FacebookDashboardServices::AggregatorService do
       detect_viral_content: [{ id: 1 }]
     )
 
-    expect(described_class.call(topic: topic)).to eq(
-      facebook_data: { facebook: 'data' },
+    result = described_class.call(topic: topic)
+
+    expect(result.except(:facebook_data)).to eq(
       pages_data: { pages: 'data' },
       temporal_intelligence: { temporal: 'data' },
       sentiment_analysis: { sentiment: 'data' },
       viral_content: [{ id: 1 }]
     )
+    expect(result[:facebook_data]).to include(:facebook, :entries, :top_posts)
+    expect(result[:facebook_data][:facebook]).to eq('data')
+  end
+
+  it 'keeps KPI scalars in the cached snapshot and attaches post relations afterwards' do
+    posts = double('posts')
+    top_posts = [double('post')]
+    snapshot = {
+      facebook_data: { total_posts: 3, total_interactions: 10, total_views: 40, average_interactions: 3.3 },
+      pages_data: {},
+      temporal_intelligence: {},
+      sentiment_analysis: {},
+      viral_content: []
+    }
+
+    allow(service).to receive(:facebook_data).and_return(
+      snapshot[:facebook_data].merge(entries: :cached_relation, top_posts: :cached_top_posts)
+    )
+    allow(service).to receive_messages(
+      load_pages_data: {},
+      load_temporal_intelligence: {},
+      load_sentiment_analysis: {},
+      detect_viral_content: [],
+      facebook_entries: posts
+    )
+    allow(service).to receive(:top_posts).with(posts).and_return(top_posts)
+
+    expect(service.send(:build_dashboard_snapshot)).to eq(snapshot)
+
+    result = service.send(:attach_post_relations, snapshot)
+
+    expect(result[:facebook_data]).to include(entries: posts, top_posts: top_posts)
+    expect(result[:facebook_data]).to include(snapshot[:facebook_data])
   end
 
   it 'uses a versioned cache key with topic, limit, and explicit date range' do
     start_date = service.instance_variable_get(:@start_time).to_date.iso8601
     end_date = service.instance_variable_get(:@end_time).to_date.iso8601
 
-    expect(service.send(:cache_key)).to eq("facebook_dashboard:v3:topic:7:limit:20:payload:#{start_date}:#{end_date}")
+    expect(service.send(:cache_key)).to eq("facebook_dashboard:v4:topic:7:limit:20:payload:#{start_date}:#{end_date}")
   end
 
   it 'does not collide across limits or date ranges' do

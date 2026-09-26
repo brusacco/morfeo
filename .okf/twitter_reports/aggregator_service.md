@@ -68,6 +68,13 @@ Returns a hash with the following keys:
 - `Topic` model for tag filtering
 - Groupdate gem for temporal aggregation
 
+## Cache Contract
+
+The `twitter_dashboard:v4` snapshot is owned by the aggregator and expires in
+30 minutes. It stores scalar KPIs and analytical values; `posts` and
+`top_posts` are attached after the cache read so Active Record relations are not
+serialized into the snapshot.
+
 # Key Differences from Facebook
 
 - `views_count` is **real API data** (not estimated)

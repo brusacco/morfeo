@@ -26,7 +26,7 @@ Morfeo uses a multi-layer caching strategy to deliver fast report generation and
 
 # Caching Layers
 
-## 1. Action Caching (Controller Level)
+## 1. PDF Action Caching (Controller Level)
 
 Controllers use `caches_action` to cache rendered views:
 
@@ -37,10 +37,13 @@ caches_action :show, :pdf, expires_in: 30.minutes,
 
 **Applied to:**
 
-- All topic dashboard controllers (digital, Facebook, Twitter, Instagram)
+- Dashboard PDF actions
 - Entry controller (popular, commented, week views)
 - Tag controller (show, report, pdf)
-- Home controller (index)
+
+Dashboard `show` and Home `index` actions do not cache rendered HTML. They call
+their aggregators on every request, and the aggregator-owned snapshots determine
+the 30-minute freshness of KPIs and analytical values.
 
 ## 2. Service-Level Caching
 
@@ -91,10 +94,10 @@ Dashboard caches use versioned namespaces with ISO date boundaries:
 ```
 digital_dashboard:v4:topic:{topic_id}:{resource}:{start_date}:{end_date}
 digital_dashboard:v4:global_stats:{start_date}:{end_date}
-facebook_dashboard:v3:topic:{topic_id}:limit:{limit}:payload:{start_date}:{end_date}
-twitter_dashboard:v3:topic:{topic_id}:limit:{limit}:payload:{start_date}:{end_date}
-instagram_dashboard:v3:topic:{topic_id}:limit:{limit}:payload:{start_date}:{end_date}
-general_dashboard:v3:topic:{topic_id}:payload:{start_date}:{end_date}
+facebook_dashboard:v4:topic:{topic_id}:limit:{limit}:payload:{start_date}:{end_date}
+twitter_dashboard:v4:topic:{topic_id}:limit:{limit}:payload:{start_date}:{end_date}
+instagram_dashboard:v4:topic:{topic_id}:limit:{limit}:payload:{start_date}:{end_date}
+general_dashboard:v4:topic:{topic_id}:payload:{start_date}:{end_date}
 home_dashboard:v4:topics:{sorted_unique_topic_ids}:payload:{start_date}:{end_date}
 ```
 
@@ -118,6 +121,19 @@ snapshot, so no lazy `ActiveRecord::Relation` is serialized into the dashboard
 payload. Dashboard action-cache keys use the topic ID, user ID, and requested
 date range.
 
+Facebook uses the same scalar-snapshot contract in `facebook_dashboard:v4`:
+`total_posts`, `total_interactions`, `total_views`, and `average_interactions`
+are cached by the aggregator for 30 minutes, while `entries` and `top_posts` are
+attached after cache retrieval. The manual cache-clear and topic-update tasks
+clear both Facebook v3 and v4 patterns while old v3 keys expire naturally.
+
+Twitter and Instagram use the same v4 contract for `total_posts`,
+`total_interactions`, `total_views`, and `average_interactions`; their `posts`
+and `top_posts` relations are attached after snapshot retrieval. General v4
+caches executive and channel KPI snapshots while attaching its top-content and
+viral-content relations after the cache read. Manual invalidation clears both
+v3 and v4 for each dashboard during the transition.
+
 ### Implementation Pitfalls
 
 - Do not write `cache_path: proc do ... end` in a `caches_action` declaration.
@@ -134,6 +150,11 @@ create Proc object without a block`. Use `proc { |controller| { ... } }`, as
 - Do not serialize `ActiveRecord::Relation` objects into the aggregate dashboard
   payload. Cached scalars and a lazily evaluated relation can represent different
   moments. Attach the table and top-entry relations after the snapshot is read.
+- For a Digital Dashboard row containing multiple SQL aggregates, use
+  `relation.except(:includes).reorder(nil).pluck(...).first`, not `pick(...)`.
+  `pick` applies a limit and returned partial aggregate values in production,
+  which made Interactions, Average, and Sentiment show zero while the entry count
+  remained correct.
 
 ### Digital Share of Voice
 

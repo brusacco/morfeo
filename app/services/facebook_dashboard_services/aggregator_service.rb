@@ -25,25 +25,38 @@ module FacebookDashboardServices
     end
 
     def call
-      fetch_cached_with_race_protection(cache_key, expires_in: CACHE_EXPIRATION) do
-        {
-          facebook_data: facebook_data,
-          pages_data: load_pages_data,
-          temporal_intelligence: load_temporal_intelligence,
-          sentiment_analysis: load_sentiment_analysis,
-          viral_content: detect_viral_content
-        }
-      end
+      snapshot =
+        fetch_cached_with_race_protection(cache_key, expires_in: CACHE_EXPIRATION) do
+          build_dashboard_snapshot
+        end
+
+      attach_post_relations(snapshot)
     end
 
     private
 
     def cache_key
-      "facebook_dashboard:v3:topic:#{@topic.id}:limit:#{@top_posts_limit}:payload:#{cache_date_range}"
+      "facebook_dashboard:v4:topic:#{@topic.id}:limit:#{@top_posts_limit}:payload:#{cache_date_range}"
     end
 
     def cache_date_range
       "#{@start_time.to_date.iso8601}:#{@end_time.to_date.iso8601}"
+    end
+
+    def build_dashboard_snapshot
+      {
+        facebook_data: facebook_data.except(:entries, :top_posts),
+        pages_data: load_pages_data,
+        temporal_intelligence: load_temporal_intelligence,
+        sentiment_analysis: load_sentiment_analysis,
+        viral_content: detect_viral_content
+      }
+    end
+
+    def attach_post_relations(snapshot)
+      posts = facebook_entries
+
+      snapshot.merge(facebook_data: snapshot.fetch(:facebook_data).merge(entries: posts, top_posts: top_posts(posts)))
     end
 
     # Memoized facebook data to avoid reloading entries multiple times
@@ -51,11 +64,20 @@ module FacebookDashboardServices
       @facebook_data_cache ||= load_facebook_data
     end
 
+    def facebook_entries
+      @facebook_entries ||= FacebookEntry.for_topic(
+        @topic,
+        start_time: @start_time,
+        end_time: @end_time,
+        tag_ids: @tag_ids
+      )
+    end
+
     def load_facebook_data
       return empty_facebook_data if @tag_names.empty?
 
       # Single base query with all necessary includes
-      entries = FacebookEntry.for_topic(@topic, start_time: @start_time, end_time: @end_time, tag_ids: @tag_ids)
+      entries = facebook_entries
 
       # Execute aggregations efficiently
       chart_data = calculate_chart_data(entries)
@@ -90,18 +112,20 @@ module FacebookDashboardServices
       # Safe division
       average_interactions = total_posts.zero? ? 0 : (total_interactions.to_f / total_posts).round(1)
 
-      # Use database ORDER BY for efficiency (single query)
-      top_posts = entries.reorder(
-        Arel.sql('(facebook_entries.reactions_total_count + facebook_entries.comments_count + facebook_entries.share_count) DESC')
-      ).limit(@top_posts_limit)
-
       {
         total_posts: total_posts,
         total_interactions: total_interactions,
         total_views: total_views,
         average_interactions: average_interactions,
-        top_posts: top_posts
+        top_posts: top_posts(entries)
       }
+    end
+
+    # Use database ORDER BY for efficiency (single query)
+    def top_posts(entries)
+      entries.reorder(
+        Arel.sql('(facebook_entries.reactions_total_count + facebook_entries.comments_count + facebook_entries.share_count) DESC')
+      ).limit(@top_posts_limit)
     end
 
     def calculate_text_analysis(entries)

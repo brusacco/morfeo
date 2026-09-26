@@ -5,24 +5,27 @@
 class GeneralDashboardController < ApplicationController
   include TopicAuthorizable
   include PdfCacheable
-  
+
   before_action :authenticate_user!
   before_action :set_topic
-  before_action :authorize_topic_access!, only: [:show, :pdf]
+  before_action :authorize_topic_access!, only: %i[show pdf]
 
-  caches_action :show, :pdf, expires_in: PDF_CACHE_DURATIONS[:general],
-                cache_path: proc { |c| { topic_id: c.params[:id], user_id: c.current_user.id, days_range: c.params[:days_range] } }
+  caches_action :pdf,
+                expires_in: PDF_CACHE_DURATIONS[:general],
+                cache_path: proc { |c|
+                  { topic_id: c.params[:id], user_id: c.current_user.id, days_range: c.params[:days_range] }
+                }
 
   def show
     @start_date = start_date
     @end_date = end_date
-    
+
     @dashboard_data = GeneralDashboardServices::AggregatorService.call(
       topic: @topic,
       start_date: @start_date,
       end_date: @end_date
     )
-    
+
     # Extract data for easy view access
     @executive_summary = @dashboard_data[:executive_summary]
     @channel_performance = @dashboard_data[:channel_performance]
@@ -33,31 +36,28 @@ class GeneralDashboardController < ApplicationController
     @top_content = @dashboard_data[:top_content]
     @word_analysis = @dashboard_data[:word_analysis]
     @recommendations = @dashboard_data[:recommendations]
-    
+
     # Prepare chart data
     prepare_chart_data
   end
 
   def pdf
     # Get days_range from params, default to DEFAULT_DAYS_RANGE if not provided or invalid
-    days_range = (params[:days_range].presence&.to_i || DAYS_RANGE || PdfConstants::DEFAULT_DAYS_RANGE)
-    
+    days_range = params[:days_range].presence&.to_i || DAYS_RANGE || PdfConstants::DEFAULT_DAYS_RANGE
+
     @start_date = days_range.days.ago.beginning_of_day
     @end_date = Time.zone.now.end_of_day
-    
+
     # Use caching for expensive PDF generation
-    @dashboard_data = fetch_cached_pdf(
-      type: :general,
-      topic_id: @topic.id,
-      days_range: days_range
-    ) do
-      GeneralDashboardServices::AggregatorService.call(
-        topic: @topic,
-        start_date: @start_date,
-        end_date: @end_date
-      )
-    end
-    
+    @dashboard_data =
+      fetch_cached_pdf(
+        type: :general,
+        topic_id: @topic.id,
+        days_range: days_range
+      ) do
+        GeneralDashboardServices::AggregatorService.call(topic: @topic, start_date: @start_date, end_date: @end_date)
+      end
+
     # Initialize presenter
     @presenter = GeneralDashboardPresenter.new(
       data: @dashboard_data,
@@ -65,7 +65,7 @@ class GeneralDashboardController < ApplicationController
       start_date: @start_date,
       end_date: @end_date
     )
-    
+
     # Keep legacy instance variables for backward compatibility
     @executive_summary = @dashboard_data[:executive_summary]
     @channel_performance = @dashboard_data[:channel_performance]
@@ -76,16 +76,16 @@ class GeneralDashboardController < ApplicationController
     @top_content = @dashboard_data[:top_content]
     @word_analysis = @dashboard_data[:word_analysis]
     @recommendations = @dashboard_data[:recommendations]
-    
+
     # Prepare chart data
     prepare_chart_data
-    
+
     render layout: false
   rescue StandardError => e
     # Log full error details
     Rails.logger.error "Error generating PDF for topic #{@topic.id}: #{e.class} - #{e.message}"
     Rails.logger.error e.backtrace.first(10).join("\n")
-    
+
     # Show simple error page that prints
     render html: <<~HTML.html_safe, layout: false
       <!DOCTYPE html>
@@ -137,26 +137,26 @@ class GeneralDashboardController < ApplicationController
       'Facebook' => @channel_performance[:facebook][:mentions],
       'Twitter' => @channel_performance[:twitter][:mentions]
     }
-    
+
     @chart_channel_interactions = {
       'Digital' => @channel_performance[:digital][:interactions],
       'Facebook' => @channel_performance[:facebook][:interactions],
       'Twitter' => @channel_performance[:twitter][:interactions]
     }
-    
+
     @chart_channel_reach = {
       'Digital' => @channel_performance[:digital][:reach],
       'Facebook' => @channel_performance[:facebook][:reach],
       'Twitter' => @channel_performance[:twitter][:reach]
     }
-    
+
     # Sentiment distribution
     @chart_sentiment_distribution = {
       'Positivo' => @sentiment_analysis[:overall][:distribution][:positive],
       'Neutral' => @sentiment_analysis[:overall][:distribution][:neutral],
       'Negativo' => @sentiment_analysis[:overall][:distribution][:negative]
     }
-    
+
     # Share of voice
     @chart_share_of_voice = {
       @topic.name => @competitive_analysis[:share_of_voice],
@@ -164,4 +164,3 @@ class GeneralDashboardController < ApplicationController
     }
   end
 end
-

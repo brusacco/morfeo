@@ -19,9 +19,13 @@ RSpec.describe 'cache:clear' do
       digital_dashboard:v3:*
       digital_dashboard:v4:*
       facebook_dashboard:v3:*
+      facebook_dashboard:v4:*
       twitter_dashboard:v3:*
+      twitter_dashboard:v4:*
       instagram_dashboard:v3:*
+      instagram_dashboard:v4:*
       general_dashboard:v3:*
+      general_dashboard:v4:*
       home_dashboard:v3:*
       home_dashboard:v4:*
     ].each do |pattern|

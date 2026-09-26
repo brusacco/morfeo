@@ -15,25 +15,43 @@ module GeneralDashboardServices
     end
 
     def call
-      fetch_cached_with_race_protection(cache_key, expires_in: 30.minutes) do
-        {
-          executive_summary: build_executive_summary,
-          channel_performance: build_channel_performance,
-          temporal_intelligence: build_temporal_intelligence_lightweight,
-          sentiment_analysis: build_sentiment_analysis,
-          reach_analysis: build_reach_analysis,
-          competitive_analysis: build_competitive_analysis,
-          top_content: build_top_content,
-          word_analysis: build_word_analysis_lightweight,
-          recommendations: build_recommendations
-        }
-      end
+      snapshot =
+        fetch_cached_with_race_protection(cache_key, expires_in: 30.minutes) do
+          build_dashboard_snapshot
+        end
+
+      attach_content_relations(snapshot)
     end
 
     private
 
     def cache_key
-      "general_dashboard:v3:topic:#{topic.id}:payload:#{start_date.to_date.iso8601}:#{end_date.to_date.iso8601}"
+      "general_dashboard:v4:topic:#{topic.id}:payload:#{start_date.to_date.iso8601}:#{end_date.to_date.iso8601}"
+    end
+
+    def build_dashboard_snapshot
+      {
+        executive_summary: build_executive_summary,
+        channel_performance: build_channel_performance,
+        temporal_intelligence: build_temporal_intelligence_lightweight,
+        sentiment_analysis: build_sentiment_analysis,
+        reach_analysis: build_reach_analysis,
+        competitive_analysis: build_competitive_analysis,
+        top_content: build_top_content.except(:top_entries, :top_facebook_posts, :top_tweets, :viral_content),
+        word_analysis: build_word_analysis_lightweight,
+        recommendations: build_recommendations
+      }
+    end
+
+    def attach_content_relations(snapshot)
+      snapshot.merge(
+        top_content: snapshot.fetch(:top_content).merge(
+          top_entries: top_digital_entries,
+          top_facebook_posts: top_facebook_posts,
+          top_tweets: top_tweets,
+          viral_content: identify_viral_content
+        )
+      )
     end
 
     # ========================================

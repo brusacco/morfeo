@@ -2,10 +2,10 @@
 
 class InstagramTopicController < ApplicationController
   include TopicAuthorizable
-  
+
   before_action :authenticate_user!
   before_action :set_topic
-  before_action :authorize_topic_access!, only: [:show, :pdf]
+  before_action :authorize_topic_access!, only: %i[show pdf]
 
   # Constants
   TOP_POSTS_SHOW_LIMIT = 20
@@ -14,8 +14,11 @@ class InstagramTopicController < ApplicationController
   SITE_LIMIT = 12
   CACHE_DURATION = 30.minutes
 
-  caches_action :show, :pdf, expires_in: CACHE_DURATION,
-                cache_path: proc { |c| { topic_id: c.params[:id], user_id: c.current_user.id, days_range: c.params[:days_range] } }
+  caches_action :pdf,
+                expires_in: CACHE_DURATION,
+                cache_path: proc { |c|
+                  { topic_id: c.params[:id], user_id: c.current_user.id, days_range: c.params[:days_range] }
+                }
 
   def show
     # Use service to load all data
@@ -35,26 +38,22 @@ class InstagramTopicController < ApplicationController
   def entries_data
     # Validate topic exists (set by set_topic before_action)
     unless @topic
-      render partial: 'shared/error_message',
-             locals: { message: 'Tópico no encontrado' },
-             status: :not_found
+      render partial: 'shared/error_message', locals: { message: 'Tópico no encontrado' }, status: :not_found
       return
     end
 
     # Parse date with error handling
     date = parse_date_param || Date.current
-    
+
     # Load Instagram posts for the date
     posts = InstagramPost.for_topic(@topic, start_time: date.beginning_of_day, end_time: date.end_of_day)
-                        .reorder(Arel.sql('(likes_count + comments_count) DESC'))
+                         .reorder(Arel.sql('(likes_count + comments_count) DESC'))
 
     render partial: 'instagram_topic/chart_entries',
            locals: { posts: posts, entries_date: date, topic_name: @topic.name }
   rescue ActiveRecord::RecordNotFound => e
     Rails.logger.error "Error loading Instagram posts: #{e.message}"
-    render partial: 'shared/error_message',
-           locals: { message: 'Tópico no encontrado' },
-           status: :not_found
+    render partial: 'shared/error_message', locals: { message: 'Tópico no encontrado' }, status: :not_found
   rescue StandardError => e
     Rails.logger.error "Error in Instagram entries_data: #{e.class} - #{e.message}"
     Rails.logger.error e.backtrace.first(5).join("\n")
@@ -65,8 +64,8 @@ class InstagramTopicController < ApplicationController
 
   def pdf
     # Get days_range from params, default to 7 days if not provided or invalid
-    @days_range = (params[:days_range].presence&.to_i || DAYS_RANGE || 7)
-    
+    @days_range = params[:days_range].presence&.to_i || DAYS_RANGE || 7
+
     # Use service to load data for PDF
     dashboard_data = InstagramDashboardServices::AggregatorService.call(
       topic: @topic,
@@ -134,4 +133,3 @@ class InstagramTopicController < ApplicationController
     @heatmap_data = data[:heatmap_data]
   end
 end
-

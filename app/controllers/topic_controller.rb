@@ -7,8 +7,7 @@ class TopicController < ApplicationController
   before_action :set_topic, only: %i[show pdf comments history]
   before_action :authorize_topic_access!, only: %i[show pdf]
 
-  caches_action :show,
-                :pdf,
+  caches_action :pdf,
                 expires_in: 30.minutes,
                 cache_path: proc { |c|
                   { topic_id: c.params[:id], user_id: c.current_user.id, days_range: c.params[:days_range] }

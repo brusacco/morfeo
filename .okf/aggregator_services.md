@@ -73,7 +73,7 @@ current `v4` namespaces during the transition.
 - Performs sentiment analysis (reaction breakdown, sentiment labels)
 - Detects viral content
 
-**Cache Key**: `facebook_dashboard:v3:topic:{topic_id}:limit:{top_posts_limit}:payload:{start_date}:{end_date}`
+**Cache Key**: `facebook_dashboard:v4:topic:{topic_id}:limit:{top_posts_limit}:payload:{start_date}:{end_date}`
 
 ## Twitter Dashboard Aggregator
 
@@ -91,7 +91,7 @@ current `v4` namespaces during the transition.
 - Loads profiles data (posts per profile, interactions per profile)
 - Detects viral content
 
-**Cache Key**: `twitter_dashboard:v3:topic:{topic_id}:limit:{top_posts_limit}:payload:{start_date}:{end_date}`
+**Cache Key**: `twitter_dashboard:v4:topic:{topic_id}:limit:{top_posts_limit}:payload:{start_date}:{end_date}`
 
 ## Instagram Dashboard Aggregator
 
@@ -109,7 +109,7 @@ current `v4` namespaces during the transition.
 - Loads profiles data (posts per profile, interactions per profile)
 - Detects viral content
 
-**Cache Key**: `instagram_dashboard:v3:topic:{topic_id}:limit:{top_posts_limit}:payload:{start_date}:{end_date}`
+**Cache Key**: `instagram_dashboard:v4:topic:{topic_id}:limit:{top_posts_limit}:payload:{start_date}:{end_date}`
 
 ## General Dashboard Aggregator
 
@@ -129,7 +129,12 @@ current `v4` namespaces during the transition.
 - Identifies top content across all platforms
 - Generates publishing-time recommendations only from available temporal engagement data; it does not supply a default day or time.
 
-**Cache Key**: `general_dashboard:v3:topic:{topic_id}:payload:{start_date}:{end_date}`
+**Cache Key**: `general_dashboard:v4:topic:{topic_id}:payload:{start_date}:{end_date}`
+
+All dashboard `show` actions delegate KPI and analytical-value freshness to
+their aggregator snapshots. Digital and social aggregators attach their primary
+entry/post relations after a snapshot is read; General does the same for its
+top-content relations.
 
 ## Home Dashboard Aggregator
 

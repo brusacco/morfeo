@@ -109,7 +109,7 @@ module DigitalDashboardServices
       negative_value = Entry.polarities.fetch('negative')
 
       row =
-        entries.except(:includes).reorder(nil).pick(
+        entries.except(:includes).reorder(nil).pluck(
           Arel.sql('COUNT(entries.id)'),
           Arel.sql('COALESCE(SUM(entries.total_count), 0)'),
           Arel.sql("COALESCE(SUM(CASE WHEN entries.polarity = #{neutral_value} THEN 1 ELSE 0 END), 0)"),
@@ -127,7 +127,7 @@ module DigitalDashboardServices
             "COALESCE(SUM(CASE WHEN entries.polarity = #{negative_value} " \
             'THEN entries.total_count ELSE 0 END), 0)'
           )
-        )
+        ).first
       row ||= Array.new(8, 0)
 
       _aggregate_entries_count, entries_total_sum,
@@ -305,10 +305,10 @@ module DigitalDashboardServices
                                            .where(published_at: date_range[:gte]..date_range[:lte])
                                            .joins(:site)
                                            .reorder(nil)
-                                           .pick(
+                                           .pluck(
                                              Arel.sql('COUNT(entries.id)'),
                                              Arel.sql('COALESCE(SUM(entries.total_count), 0)')
-                                           )
+                                           ).first
 
         { entries_count: entries_count, interactions: interactions }
       end

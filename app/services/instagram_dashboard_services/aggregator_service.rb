@@ -25,24 +25,37 @@ module InstagramDashboardServices
     end
 
     def call
-      fetch_cached_with_race_protection(cache_key, expires_in: CACHE_EXPIRATION) do
-        {
-          instagram_data: instagram_data,
-          profiles_data: load_profiles_data,
-          temporal_intelligence: load_temporal_intelligence,
-          viral_content: detect_viral_content
-        }
-      end
+      snapshot =
+        fetch_cached_with_race_protection(cache_key, expires_in: CACHE_EXPIRATION) do
+          build_dashboard_snapshot
+        end
+
+      attach_post_relations(snapshot)
     end
 
     private
 
     def cache_key
-      "instagram_dashboard:v3:topic:#{@topic.id}:limit:#{@top_posts_limit}:payload:#{cache_date_range}"
+      "instagram_dashboard:v4:topic:#{@topic.id}:limit:#{@top_posts_limit}:payload:#{cache_date_range}"
     end
 
     def cache_date_range
       "#{@start_time.to_date.iso8601}:#{@end_time.to_date.iso8601}"
+    end
+
+    def build_dashboard_snapshot
+      {
+        instagram_data: instagram_data.except(:posts, :top_posts),
+        profiles_data: load_profiles_data,
+        temporal_intelligence: load_temporal_intelligence,
+        viral_content: detect_viral_content
+      }
+    end
+
+    def attach_post_relations(snapshot)
+      posts = instagram_posts
+
+      snapshot.merge(instagram_data: snapshot.fetch(:instagram_data).merge(posts: posts, top_posts: top_posts(posts)))
     end
 
     # Memoized instagram data to avoid reloading posts multiple times
@@ -50,11 +63,20 @@ module InstagramDashboardServices
       @instagram_data_cache ||= load_instagram_data
     end
 
+    def instagram_posts
+      @instagram_posts ||= InstagramPost.for_topic(
+        @topic,
+        start_time: @start_time,
+        end_time: @end_time,
+        tag_ids: @tag_ids
+      )
+    end
+
     def load_instagram_data
       return empty_instagram_data if @tag_names.empty?
 
       # Single base query with all necessary includes
-      posts = InstagramPost.for_topic(@topic, start_time: @start_time, end_time: @end_time, tag_ids: @tag_ids)
+      posts = instagram_posts
 
       # Execute aggregations efficiently
       chart_data = calculate_chart_data(posts)
@@ -89,19 +111,21 @@ module InstagramDashboardServices
       # Safe division
       average_interactions = total_posts.zero? ? 0 : (total_interactions.to_f / total_posts).round(1)
 
-      # Use database ORDER BY for efficiency (single query)
-      # Instagram: likes_count + comments_count
-      top_posts = posts.reorder(
-        Arel.sql('(instagram_posts.likes_count + instagram_posts.comments_count) DESC')
-      ).limit(@top_posts_limit)
-
       {
         total_posts: total_posts,
         total_interactions: total_interactions,
         total_views: total_views,
         average_interactions: average_interactions,
-        top_posts: top_posts
+        top_posts: top_posts(posts)
       }
+    end
+
+    # Use database ORDER BY for efficiency (single query)
+    # Instagram: likes_count + comments_count
+    def top_posts(posts)
+      posts.reorder(
+        Arel.sql('(instagram_posts.likes_count + instagram_posts.comments_count) DESC')
+      ).limit(@top_posts_limit)
     end
 
     def calculate_text_analysis(posts)

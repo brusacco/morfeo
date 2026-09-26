@@ -21,19 +21,47 @@ RSpec.describe TwitterDashboardServices::AggregatorService do
       detect_viral_content: [{ id: 1 }]
     )
 
-    expect(described_class.call(topic: topic)).to eq(
-      twitter_data: { twitter: 'data' },
+    result = described_class.call(topic: topic)
+
+    expect(result.except(:twitter_data)).to eq(
       profiles_data: { profiles: 'data' },
       temporal_intelligence: { temporal: 'data' },
       viral_content: [{ id: 1 }]
     )
+    expect(result[:twitter_data]).to include(:twitter, :posts, :top_posts)
+    expect(result[:twitter_data][:twitter]).to eq('data')
+  end
+
+  it 'keeps KPI scalars in the cached snapshot and attaches post relations afterwards' do
+    posts = double('posts')
+    top_posts = [double('post')]
+    snapshot = {
+      twitter_data: { total_posts: 3, total_interactions: 10, total_views: 40, average_interactions: 3.3 },
+      profiles_data: {},
+      temporal_intelligence: {},
+      viral_content: []
+    }
+
+    allow(service).to receive(:twitter_data).and_return(
+      snapshot[:twitter_data].merge(posts: :cached_relation, top_posts: :cached_top_posts)
+    )
+    allow(service).to receive_messages(
+      load_profiles_data: {},
+      load_temporal_intelligence: {},
+      detect_viral_content: [],
+      twitter_posts: posts
+    )
+    allow(service).to receive(:top_posts).with(posts).and_return(top_posts)
+
+    expect(service.send(:build_dashboard_snapshot)).to eq(snapshot)
+    expect(service.send(:attach_post_relations, snapshot)[:twitter_data]).to include(posts: posts, top_posts: top_posts)
   end
 
   it 'uses a versioned cache key with topic, limit, and explicit date range' do
     start_date = service.instance_variable_get(:@start_time).to_date.iso8601
     end_date = service.instance_variable_get(:@end_time).to_date.iso8601
 
-    expect(service.send(:cache_key)).to eq("twitter_dashboard:v3:topic:7:limit:20:payload:#{start_date}:#{end_date}")
+    expect(service.send(:cache_key)).to eq("twitter_dashboard:v4:topic:7:limit:20:payload:#{start_date}:#{end_date}")
   end
 
   it 'does not collide across limits or date ranges' do

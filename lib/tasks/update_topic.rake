@@ -8,9 +8,13 @@ module TopicUpdateCacheInvalidation
       "topic_#{topic_id}_*",
       "digital_dashboard:v3:topic:#{topic_id}:*",
       "facebook_dashboard:v3:topic:#{topic_id}:*",
+      "facebook_dashboard:v4:topic:#{topic_id}:*",
       "twitter_dashboard:v3:topic:#{topic_id}:*",
+      "twitter_dashboard:v4:topic:#{topic_id}:*",
       "instagram_dashboard:v3:topic:#{topic_id}:*",
+      "instagram_dashboard:v4:topic:#{topic_id}:*",
       "general_dashboard:v3:topic:#{topic_id}:*",
+      "general_dashboard:v4:topic:#{topic_id}:*",
       'home_dashboard:v3:*',
       'home_dashboard:v4:*'
     ]

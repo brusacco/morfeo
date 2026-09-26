@@ -141,7 +141,7 @@ RSpec.describe DigitalDashboardServices::AggregatorService do
 
     allow(entries).to receive(:except).with(:includes).and_return(entries)
     allow(entries).to receive(:reorder).with(nil).and_return(aggregate_entries)
-    allow(aggregate_entries).to receive(:pick).and_return(aggregate_row)
+    allow(aggregate_entries).to receive(:pluck).and_return([aggregate_row])
     allow(entries).to receive(:count).and_return(543)
 
     result = service.send(:calculate_entry_aggregations, entries)
@@ -191,7 +191,7 @@ RSpec.describe DigitalDashboardServices::AggregatorService do
     allow(entries).to receive(:except).with(:includes).and_return(entries)
     allow(entries).to receive(:reorder).with(nil).and_return(entries)
     expect(entries).to receive(:count).once.and_return(5)
-    expect(entries).to receive(:pick).once do |*columns|
+    expect(entries).to receive(:pluck).once do |*columns|
       expect(columns.map(&:to_s)).to include(
         'COUNT(entries.id)',
         'COALESCE(SUM(entries.total_count), 0)',
@@ -200,7 +200,7 @@ RSpec.describe DigitalDashboardServices::AggregatorService do
         'COALESCE(SUM(CASE WHEN entries.polarity = 2 THEN 1 ELSE 0 END), 0)'
       )
 
-      [5, 150, 2, 30, 2, 100, 1, 20]
+      [[5, 150, 2, 30, 2, 100, 1, 20]]
     end
 
     expect(service.send(:calculate_entry_aggregations, entries)).to eq(
@@ -367,11 +367,11 @@ RSpec.describe DigitalDashboardServices::AggregatorService do
     allow(entries).to receive(:where).with(published_at: date_range[:gte]..date_range[:lte]).and_return(entries)
     allow(entries).to receive(:joins).with(:site).and_return(entries)
     allow(entries).to receive(:reorder).with(nil).and_return(entries)
-    expect(entries).to receive(:pick).once do |count_sql, sum_sql|
+    expect(entries).to receive(:pluck).once do |count_sql, sum_sql|
       expect(count_sql.to_s).to eq('COUNT(entries.id)')
       expect(sum_sql.to_s).to eq('COALESCE(SUM(entries.total_count), 0)')
 
-      [7, 70]
+      [[7, 70]]
     end
 
     expect(service.send(:global_digital_stats)).to eq(entries_count: 7, interactions: 70)

@@ -42,6 +42,17 @@ Returns a hash with the following keys:
   - `positive_words` - Positive sentiment words
   - `negative_words` - Negative sentiment words
 
+## Cache Contract
+
+Facebook dashboard snapshots use the `facebook_dashboard:v4` namespace and the
+aggregator-owned 30-minute TTL. The cached `facebook_data` contains scalar KPIs
+such as `total_posts`, `total_interactions`, `total_views`, and
+`average_interactions`, together with chart and text-analysis values.
+
+The `entries` and `top_posts` relations are attached after the snapshot is read.
+They are not serialized into the cache payload, preventing a stale KPI snapshot
+from containing lazily evaluated Active Record relations.
+
 - `pages_data` - Page-level analytics
   - `pages_count` - Posts by page
   - `pages_interactions` - Interactions by page
