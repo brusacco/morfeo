@@ -246,8 +246,13 @@ NEW DOCKER NER STRACTOR
   -p 0.0.0.0:8001:8000 \
   -v morfeo_gliner_models:/models/huggingface \
   morfeo-entity-extractor
+  
 
+  sudo docker start morfeo-entity-extractor
+  sudo docker stop morfeo-entity-extractor
+  
   sudo docker logs -f morfeo-entity-extractor
+
   
   curl -s -X POST http://www.morfeo.com.py:8001/v1/entities \
   -H 'Content-Type: application/json' \

@@ -3,7 +3,7 @@ type: Architecture
 title: PDF Report Generation
 description: PDF report generation system using Grover and Chrome headless
 tags: [pdf, reports, grover, generation]
-timestamp: 2026-09-22T00:00:00Z
+timestamp: 2026-09-26T00:00:00Z
 ---
 
 # Overview
@@ -78,7 +78,9 @@ Digital, Facebook, and Twitter use dedicated PDF services. Instagram reuses its 
 - **Controller**: `GeneralDashboardController#pdf`
 - **Service**: `GeneralDashboardServices::AggregatorService`
 - **Route**: `GET /general_dashboards/:id/pdf`
-- **Content**: CEO-level executive summary combining all platforms
+- **Content**: CEO-level executive summary combining digital, Facebook, Twitter,
+  and Instagram. Channel comparisons, reach breakdowns, charts, and featured
+  content include Instagram posts when present.
 
 ## Tag PDF Reports
 

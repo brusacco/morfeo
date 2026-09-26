@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # Presenter for General Dashboard (cross-channel analytics)
-# Encapsulates CEO-level reporting logic combining Digital, Facebook, and Twitter data
+# Encapsulates CEO-level reporting logic combining Digital, Facebook, Twitter, and Instagram data
 class GeneralDashboardPresenter
   include ActionView::Helpers::NumberHelper
   include PdfConstants
@@ -77,11 +77,16 @@ class GeneralDashboardPresenter
     channel_performance[:twitter] || default_channel_data
   end
 
+  def instagram_performance
+    channel_performance[:instagram] || default_channel_data
+  end
+
   def dominant_channel
     performances = {
       digital: digital_performance[:mentions],
       facebook: facebook_performance[:mentions],
-      twitter: twitter_performance[:mentions]
+      twitter: twitter_performance[:mentions],
+      instagram: instagram_performance[:mentions]
     }
     performances.max_by { |_k, v| v }
                 &.first || :digital
@@ -162,6 +167,12 @@ class GeneralDashboardPresenter
         reach: reach_by_channel[:twitter] || 0,
         color: TWITTER_PRIMARY_COLOR,
         estimated: estimated_reach?(:twitter)
+      },
+      {
+        channel: I18n.t('pdf.channels.instagram'),
+        reach: reach_by_channel[:instagram] || 0,
+        color: INSTAGRAM_PRIMARY_COLOR,
+        estimated: estimated_reach?(:instagram)
       }
     ]
   end
@@ -324,7 +335,8 @@ class GeneralDashboardPresenter
     {
       I18n.t('pdf.channels.digital') => digital_performance[:mentions],
       I18n.t('pdf.channels.facebook') => facebook_performance[:mentions],
-      I18n.t('pdf.channels.twitter') => twitter_performance[:mentions]
+      I18n.t('pdf.channels.twitter') => twitter_performance[:mentions],
+      I18n.t('pdf.channels.instagram') => instagram_performance[:mentions]
     }
   end
 
@@ -332,7 +344,8 @@ class GeneralDashboardPresenter
     {
       I18n.t('pdf.channels.digital') => digital_performance[:interactions],
       I18n.t('pdf.channels.facebook') => facebook_performance[:interactions],
-      I18n.t('pdf.channels.twitter') => twitter_performance[:interactions]
+      I18n.t('pdf.channels.twitter') => twitter_performance[:interactions],
+      I18n.t('pdf.channels.instagram') => instagram_performance[:interactions]
     }
   end
 
@@ -340,7 +353,8 @@ class GeneralDashboardPresenter
     {
       I18n.t('pdf.channels.digital') => digital_performance[:reach],
       I18n.t('pdf.channels.facebook') => facebook_performance[:reach],
-      I18n.t('pdf.channels.twitter') => twitter_performance[:reach]
+      I18n.t('pdf.channels.twitter') => twitter_performance[:reach],
+      I18n.t('pdf.channels.instagram') => instagram_performance[:reach]
     }
   end
 
@@ -412,6 +426,13 @@ class GeneralDashboardPresenter
         interactions: twitter_performance[:interactions],
         reach: twitter_performance[:reach],
         color: TWITTER_PRIMARY_COLOR
+      },
+      {
+        channel: I18n.t('pdf.channels.instagram'),
+        mentions: instagram_performance[:mentions],
+        interactions: instagram_performance[:interactions],
+        reach: instagram_performance[:reach],
+        color: INSTAGRAM_PRIMARY_COLOR
       }
     ]
   end

@@ -4,6 +4,7 @@ es:
       digital_report: "Reporte Medios Digitales"
       facebook_report: "Reporte Facebook"
       twitter_report: "Reporte Twitter"
+      instagram_report: "Reporte Instagram"
       general_report: "Reporte General"
       
     sections:
@@ -121,6 +122,7 @@ es:
       digital: "medios digitales"
       facebook: "Facebook"
       twitter: "Twitter"
+      instagram: "Instagram"
       
     content_types:
       entries: "notas"

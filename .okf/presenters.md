@@ -7,6 +7,7 @@ tags:
   - presenters
   - views
   - formatting
+timestamp: 2026-09-26T00:00:00Z
 ---
 
 # Presenters
@@ -31,7 +32,15 @@ Formats Facebook sentiment data for display.
 
 **File:** `app/presenters/general_dashboard_presenter.rb`
 
-Formats cross-channel dashboard data for display.
+Formats four-channel dashboard data for display and PDF generation. Its channel
+performance, reach breakdown, and comparison chart methods include digital,
+Facebook, Twitter, and Instagram; Instagram uses the PDF brand color and the
+localized channel label.
+
+The General Dashboard PDF renders Instagram in its channel comparisons and
+featured-content section when posts are present. The presenter links this
+presentation contract to the [General Dashboard Aggregator](aggregator_services.md),
+which owns the underlying cache and metric semantics.
 
 ### Sentiment Chart Presenter
 

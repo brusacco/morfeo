@@ -27,6 +27,9 @@ module PdfConstants
   TWITTER_LIKE_COLOR = '#e0245e'       # Red/Pink
   TWITTER_RETWEET_COLOR = '#17bf63'    # Green
   TWITTER_REPLY_COLOR = '#1da1f2'      # Blue
+
+  # Chart Colors - Instagram
+  INSTAGRAM_PRIMARY_COLOR = '#e1306c'  # Instagram pink
   
   # Chart Colors - Sentiment
   SENTIMENT_POSITIVE_COLOR = '#10b981' # Green

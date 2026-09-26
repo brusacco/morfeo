@@ -135,19 +135,22 @@ class GeneralDashboardController < ApplicationController
     @chart_channel_mentions = {
       'Digital' => @channel_performance[:digital][:mentions],
       'Facebook' => @channel_performance[:facebook][:mentions],
-      'Twitter' => @channel_performance[:twitter][:mentions]
+      'Twitter' => @channel_performance[:twitter][:mentions],
+      'Instagram' => @channel_performance[:instagram][:mentions]
     }
 
     @chart_channel_interactions = {
       'Digital' => @channel_performance[:digital][:interactions],
       'Facebook' => @channel_performance[:facebook][:interactions],
-      'Twitter' => @channel_performance[:twitter][:interactions]
+      'Twitter' => @channel_performance[:twitter][:interactions],
+      'Instagram' => @channel_performance[:instagram][:interactions]
     }
 
     @chart_channel_reach = {
       'Digital' => @channel_performance[:digital][:reach],
       'Facebook' => @channel_performance[:facebook][:reach],
-      'Twitter' => @channel_performance[:twitter][:reach]
+      'Twitter' => @channel_performance[:twitter][:reach],
+      'Instagram' => @channel_performance[:instagram][:reach]
     }
 
     # Sentiment distribution

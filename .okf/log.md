@@ -1,5 +1,18 @@
 # Change Log
 
+## 2026-09-26
+
+- Added Instagram as the fourth channel in the General Dashboard: its tagged,
+  range-scoped posts now contribute to mentions, interactions, observed video-view
+  reach, competitive totals, temporal aggregates, top content, viral content,
+  charts, and the General Dashboard PDF.
+- Versioned the General Dashboard snapshot key from `general_dashboard:v4` to
+  `general_dashboard:v5`. The cache now stores only stable top-content metadata
+  and attaches all relational content after the cache read, avoiding redundant
+  cache-miss construction.
+- Kept Instagram out of weighted global sentiment and distribution calculations
+  because no equivalent sentiment source is implemented.
+
 ## 2026-09-25
 
 - Added Rails `race_condition_ttl` protection to all dashboard aggregator caches and Digital's costly subcaches to prevent cache stampedes after Redis expiration.

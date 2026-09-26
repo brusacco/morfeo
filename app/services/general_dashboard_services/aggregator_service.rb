@@ -26,7 +26,7 @@ module GeneralDashboardServices
     private
 
     def cache_key
-      "general_dashboard:v4:topic:#{topic.id}:payload:#{start_date.to_date.iso8601}:#{end_date.to_date.iso8601}"
+      "general_dashboard:v5:topic:#{topic.id}:payload:#{start_date.to_date.iso8601}:#{end_date.to_date.iso8601}"
     end
 
     def build_dashboard_snapshot
@@ -37,7 +37,7 @@ module GeneralDashboardServices
         sentiment_analysis: build_sentiment_analysis,
         reach_analysis: build_reach_analysis,
         competitive_analysis: build_competitive_analysis,
-        top_content: build_top_content.except(:top_entries, :top_facebook_posts, :top_tweets, :viral_content),
+        top_content: build_top_content_snapshot,
         word_analysis: build_word_analysis_lightweight,
         recommendations: build_recommendations
       }
@@ -49,6 +49,7 @@ module GeneralDashboardServices
           top_entries: top_digital_entries,
           top_facebook_posts: top_facebook_posts,
           top_tweets: top_tweets,
+          top_instagram_posts: top_instagram_posts,
           viral_content: identify_viral_content
         )
       )
@@ -117,6 +118,19 @@ module GeneralDashboardServices
           sentiment: twitter_sentiment,
           trend: twitter_data[:trend],
           share: calculate_share(twitter_data[:count], total_mentions)
+        },
+        instagram: {
+          name: 'Instagram',
+          icon: 'fa-brands fa-instagram',
+          color: 'pink',
+          mentions: instagram_data[:count],
+          interactions: instagram_data[:interactions],
+          reach: instagram_data[:reach],
+          reach_estimated: instagram_data[:reach_estimated],
+          engagement_rate: calculate_engagement_rate(instagram_data[:interactions], instagram_data[:reach]),
+          sentiment: instagram_sentiment,
+          trend: instagram_data[:trend],
+          share: calculate_share(instagram_data[:count], total_mentions)
         }
       }
     end
@@ -172,12 +186,14 @@ module GeneralDashboardServices
         by_channel: {
           digital: digital_data[:reach],
           facebook: facebook_data[:reach],
-          twitter: twitter_data[:reach]
+          twitter: twitter_data[:reach],
+          instagram: instagram_data[:reach]
         },
         estimated_channels: {
           digital: digital_data[:reach_estimated],
           facebook: facebook_data[:reach_estimated],
-          twitter: twitter_data[:reach_estimated]
+          twitter: twitter_data[:reach_estimated],
+          instagram: instagram_data[:reach_estimated]
         },
         # estimated_impressions: total_impressions,  # REMOVED - Not defensible without tracking pixels
         unique_sources: unique_sources_count,
@@ -213,12 +229,8 @@ module GeneralDashboardServices
     # ========================================
     # TOP CONTENT
     # ========================================
-    def build_top_content
+    def build_top_content_snapshot
       {
-        top_entries: top_digital_entries,
-        top_facebook_posts: top_facebook_posts,
-        top_tweets: top_tweets,
-        viral_content: identify_viral_content,
         trending_topics: trending_topics
       }
     end
@@ -353,16 +365,45 @@ module GeneralDashboardServices
         end
     end
 
+    def instagram_data
+      @instagram_data ||=
+        if @tag_names.empty?
+          { count: 0, interactions: 0, reach: 0, reach_estimated: false, trend: 0 }
+        else
+          current_stats = InstagramPost
+                          .where(posted_at: start_date..end_date)
+                          .tagged_with(@tag_names, any: true)
+                          .pluck(
+                            Arel.sql('COUNT(DISTINCT instagram_posts.id)'),
+                            Arel.sql('SUM(likes_count + comments_count)'),
+                            Arel.sql('SUM(video_view_count)')
+                          )
+                          .first || [0, 0, 0]
+          previous_posts_count = InstagramPost
+                                 .where(posted_at: (start_date - (end_date - start_date))..start_date)
+                                 .tagged_with(@tag_names, any: true)
+                                 .count('DISTINCT instagram_posts.id')
+
+          {
+            count: current_stats[0],
+            interactions: current_stats[1] || 0,
+            reach: current_stats[2] || 0,
+            reach_estimated: false,
+            trend: calculate_trend(current_stats[0], previous_posts_count)
+          }
+        end
+    end
+
     def total_mentions
-      digital_data[:count] + facebook_data[:count] + twitter_data[:count]
+      digital_data[:count] + facebook_data[:count] + twitter_data[:count] + instagram_data[:count]
     end
 
     def total_interactions
-      digital_data[:interactions] + facebook_data[:interactions] + twitter_data[:interactions]
+      digital_data[:interactions] + facebook_data[:interactions] + twitter_data[:interactions] + instagram_data[:interactions]
     end
 
     def total_reach
-      digital_data[:reach] + facebook_data[:reach] + twitter_data[:reach]
+      digital_data[:reach] + facebook_data[:reach] + twitter_data[:reach] + instagram_data[:reach]
     end
 
     # REMOVED - Not a valid industry standard, cannot defend methodology
@@ -435,6 +476,10 @@ module GeneralDashboardServices
       @twitter_sentiment ||= { average: 0, distribution: {} }
     end
 
+    def instagram_sentiment
+      @instagram_sentiment ||= { average: 0, distribution: {} }
+    end
+
     def digital_sentiment_detail
       digital_sentiment.merge(channel: 'digital')
     end
@@ -445,6 +490,10 @@ module GeneralDashboardServices
 
     def twitter_sentiment_detail
       twitter_sentiment.merge(channel: 'twitter')
+    end
+
+    def instagram_sentiment_detail
+      instagram_sentiment.merge(channel: 'instagram')
     end
 
     def combined_sentiment_distribution
@@ -534,10 +583,11 @@ module GeneralDashboardServices
       @all_topics_mentions ||=
         begin
           digital = Entry.enabled.where(published_at: start_date..end_date).count
-          # Use count(:id) for Facebook and Twitter to avoid tagged_with issues
+          # Use count(:id) for social sources to avoid tagged_with issues
           facebook = FacebookEntry.where(posted_at: start_date..end_date).count(:id)
           twitter = TwitterPost.where(posted_at: start_date..end_date).count(:id)
-          digital + facebook + twitter
+          instagram = InstagramPost.where(posted_at: start_date..end_date).count(:id)
+          digital + facebook + twitter + instagram
         end
     end
 
@@ -547,7 +597,8 @@ module GeneralDashboardServices
           digital = Entry.enabled.where(published_at: start_date..end_date).sum(:total_count)
           facebook = FacebookEntry.where(posted_at: start_date..end_date).sum(Arel.sql('reactions_total_count + comments_count + share_count'))
           twitter = TwitterPost.where(posted_at: start_date..end_date).sum(Arel.sql('favorite_count + retweet_count + reply_count + quote_count'))
-          digital + facebook + twitter
+          instagram = InstagramPost.where(posted_at: start_date..end_date).sum(Arel.sql('likes_count + comments_count'))
+          digital + facebook + twitter + instagram
         end
     end
 
@@ -571,7 +622,7 @@ module GeneralDashboardServices
 
     def growth_rate
       # Simplified growth calculation using trend velocities already calculated
-      avg_trend = (digital_data[:trend] + facebook_data[:trend] + twitter_data[:trend]) / 3.0
+      avg_trend = (digital_data[:trend] + facebook_data[:trend] + twitter_data[:trend] + instagram_data[:trend]) / 4.0
       avg_trend.round(1)
     end
 
@@ -581,21 +632,23 @@ module GeneralDashboardServices
 
     def calculate_combined_optimal_time
       digital_optimal = topic.optimal_publishing_time
-      facebook_optimal = topic.facebook_optimal_publishing_time
-      twitter_optimal = topic.twitter_optimal_publishing_time
+      facebook_optimal = topic.facebook_optimal_publishing_time(start_time: start_date, end_time: end_date)
+      twitter_optimal = topic.twitter_optimal_publishing_time(start_time: start_date, end_time: end_date)
+      instagram_optimal = topic.instagram_optimal_publishing_time(start_time: start_date, end_time: end_date)
 
       # Weight by engagement
-      [digital_optimal, facebook_optimal, twitter_optimal].compact.max_by { |opt| opt[:avg_engagement] }
+      [digital_optimal, facebook_optimal, twitter_optimal, instagram_optimal].compact.max_by { |opt| opt[:avg_engagement] }
     end
 
     def combined_peak_hours
       # Aggregate peak hours across all channels
       digital_peaks = topic.peak_publishing_times_by_hour
-      facebook_peaks = topic.facebook_peak_publishing_times_by_hour
-      twitter_peaks = topic.twitter_peak_publishing_times_by_hour
+      facebook_peaks = topic.facebook_peak_publishing_times_by_hour(start_time: start_date, end_time: end_date)
+      twitter_peaks = topic.twitter_peak_publishing_times_by_hour(start_time: start_date, end_time: end_date)
+      instagram_peaks = topic.instagram_peak_publishing_times_by_hour(start_time: start_date, end_time: end_date)
 
       combined = {}
-      [digital_peaks, facebook_peaks, twitter_peaks].each do |peaks|
+      [digital_peaks, facebook_peaks, twitter_peaks, instagram_peaks].each do |peaks|
         peaks.each do |hour, data|
           combined[hour] ||= { avg_engagement: 0, entry_count: 0 }
           combined[hour][:avg_engagement] += data[:avg_engagement]
@@ -610,11 +663,12 @@ module GeneralDashboardServices
     def combined_peak_days
       # Aggregate peak days across all channels
       digital_peaks = topic.peak_publishing_times_by_day
-      facebook_peaks = topic.facebook_peak_publishing_times_by_day
-      twitter_peaks = topic.twitter_peak_publishing_times_by_day
+      facebook_peaks = topic.facebook_peak_publishing_times_by_day(start_time: start_date, end_time: end_date)
+      twitter_peaks = topic.twitter_peak_publishing_times_by_day(start_time: start_date, end_time: end_date)
+      instagram_peaks = topic.instagram_peak_publishing_times_by_day(start_time: start_date, end_time: end_date)
 
       combined = {}
-      [digital_peaks, facebook_peaks, twitter_peaks].each do |peaks|
+      [digital_peaks, facebook_peaks, twitter_peaks, instagram_peaks].each do |peaks|
         peaks.each do |day, data|
           combined[day] ||= { avg_engagement: 0, entry_count: 0 }
           combined[day][:avg_engagement] += data[:avg_engagement]
@@ -635,18 +689,24 @@ module GeneralDashboardServices
         end
       facebook_trend =
         begin
-          topic.facebook_trend_velocity[:velocity_percent]
+          topic.facebook_trend_velocity(start_time: start_date, end_time: end_date)[:velocity_percent]
         rescue StandardError
           0
         end
       twitter_trend =
         begin
-          topic.twitter_trend_velocity[:velocity_percent]
+          topic.twitter_trend_velocity(start_time: start_date, end_time: end_date)[:velocity_percent]
+        rescue StandardError
+          0
+        end
+      instagram_trend =
+        begin
+          topic.instagram_trend_velocity(start_time: start_date, end_time: end_date)[:velocity_percent]
         rescue StandardError
           0
         end
 
-      avg = ((digital_trend + facebook_trend + twitter_trend) / 3.0).round(1)
+      avg = ((digital_trend + facebook_trend + twitter_trend + instagram_trend) / 4.0).round(1)
 
       {
         velocity_percent: avg,
@@ -672,18 +732,24 @@ module GeneralDashboardServices
         end
       facebook_eng =
         begin
-          topic.facebook_engagement_velocity[:velocity_percent]
+          topic.facebook_engagement_velocity(start_time: start_date, end_time: end_date)[:velocity_percent]
         rescue StandardError
           0
         end
       twitter_eng =
         begin
-          topic.twitter_engagement_velocity[:velocity_percent]
+          topic.twitter_engagement_velocity(start_time: start_date, end_time: end_date)[:velocity_percent]
+        rescue StandardError
+          0
+        end
+      instagram_eng =
+        begin
+          topic.instagram_engagement_velocity(start_time: start_date, end_time: end_date)[:velocity_percent]
         rescue StandardError
           0
         end
 
-      avg = ((digital_eng + facebook_eng + twitter_eng) / 3.0).round(1)
+      avg = ((digital_eng + facebook_eng + twitter_eng + instagram_eng) / 4.0).round(1)
 
       {
         velocity_percent: avg,
@@ -731,13 +797,33 @@ module GeneralDashboardServices
                  .includes(:twitter_profile) # Eager load to avoid N+1
     end
 
+    def top_instagram_posts
+      return InstagramPost.none if @tag_names.empty?
+
+      InstagramPost.where(posted_at: start_date..end_date)
+                   .tagged_with(@tag_names, any: true)
+                   .order(Arel.sql('likes_count + comments_count DESC'))
+                   .limit(5)
+                   .includes(:instagram_profile)
+    end
+
     def identify_viral_content
       # Content with exceptionally high engagement
       {
         digital: identify_viral_digital,
         facebook: identify_viral_facebook,
-        twitter: identify_viral_twitter
+        twitter: identify_viral_twitter,
+        instagram: identify_viral_instagram
       }
+    end
+
+    def identify_viral_instagram
+      return [] if instagram_data[:count].zero?
+
+      avg_engagement = instagram_data[:interactions] / Float(instagram_data[:count])
+      threshold = avg_engagement * 5
+
+      top_instagram_posts.select { |post| post.total_interactions > threshold }
     end
 
     def identify_viral_digital
@@ -814,6 +900,13 @@ module GeneralDashboardServices
             )
           }
         end
+      return InstagramPost.none if @tag_names.empty?
+
+      InstagramPost.where(posted_at: start_date..end_date)
+           .tagged_with(@tag_names, any: true)
+           .order(Arel.sql('likes_count + comments_count DESC'))
+           .limit(5)
+           .includes(:instagram_profile)
     end
 
     def trending_terms

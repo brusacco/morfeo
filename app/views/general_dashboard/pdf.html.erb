@@ -241,14 +241,14 @@
                   data: @presenter.channel_mentions_chart_data,
                   type: :pie_chart,
                   donut: true,
-                  colors: [PdfConstants::DIGITAL_PRIMARY_COLOR, PdfConstants::FACEBOOK_PRIMARY_COLOR, PdfConstants::TWITTER_PRIMARY_COLOR]
+                  colors: [PdfConstants::DIGITAL_PRIMARY_COLOR, PdfConstants::FACEBOOK_PRIMARY_COLOR, PdfConstants::TWITTER_PRIMARY_COLOR, PdfConstants::INSTAGRAM_PRIMARY_COLOR]
                 ),
                 build_pdf_chart_config_enhanced(
                   title: "Interacciones por Canal",
                   data: @presenter.channel_interactions_chart_data,
                   type: :pie_chart,
                   donut: true,
-                  colors: [PdfConstants::DIGITAL_PRIMARY_COLOR, PdfConstants::FACEBOOK_PRIMARY_COLOR, PdfConstants::TWITTER_PRIMARY_COLOR]
+                  colors: [PdfConstants::DIGITAL_PRIMARY_COLOR, PdfConstants::FACEBOOK_PRIMARY_COLOR, PdfConstants::TWITTER_PRIMARY_COLOR, PdfConstants::INSTAGRAM_PRIMARY_COLOR]
                 )
               ] %>
       </div>
@@ -436,9 +436,31 @@
             </tbody>
           </table>
         <% end %>
+
+        <% if @top_content && @top_content[:top_instagram_posts]&.any? %>
+          <h3 class="mt-lg">Instagram - Top <%= [@top_content[:top_instagram_posts].size, 10].min %></h3>
+          <table class="pdf-table-top-content">
+            <thead>
+              <tr>
+                <th style="width: 60%;">Publicación</th>
+                <th style="width: 20%;">Perfil</th>
+                <th style="width: 20%; text-align: right;">Interacciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @top_content[:top_instagram_posts].first(10).each do |post| %>
+                <tr>
+                  <td><%= truncate(post.caption.presence || 'Sin descripción', length: 80) %></td>
+                  <td>@<%= post.instagram_profile&.username || 'N/A' %></td>
+                  <td style="text-align: right;"><%= pdf_format_number(post.total_interactions || 0) %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        <% end %>
         
         <!-- No Content Message -->
-        <% unless (@top_content && (@top_content[:top_entries]&.any? || @top_content[:top_facebook_posts]&.any? || @top_content[:top_tweets]&.any?)) %>
+        <% unless (@top_content && (@top_content[:top_entries]&.any? || @top_content[:top_facebook_posts]&.any? || @top_content[:top_tweets]&.any? || @top_content[:top_instagram_posts]&.any?)) %>
           <div class="pdf-empty-state">
             <p style="text-align: center; color: #6b7280; padding: 40px;">
               📊 No hay contenido destacado disponible para este período.

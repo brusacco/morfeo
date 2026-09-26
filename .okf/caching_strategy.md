@@ -3,7 +3,7 @@ type: Architecture
 title: Caching Strategy
 description: Multi-layer caching architecture for fast report generation and dashboard performance
 tags: [caching, performance, redis, optimization]
-timestamp: 2026-09-25T00:00:00Z
+timestamp: 2026-09-26T00:00:00Z
 ---
 
 # Overview
@@ -97,7 +97,7 @@ digital_dashboard:v4:global_stats:{start_date}:{end_date}
 facebook_dashboard:v4:topic:{topic_id}:limit:{limit}:payload:{start_date}:{end_date}
 twitter_dashboard:v4:topic:{topic_id}:limit:{limit}:payload:{start_date}:{end_date}
 instagram_dashboard:v4:topic:{topic_id}:limit:{limit}:payload:{start_date}:{end_date}
-general_dashboard:v4:topic:{topic_id}:payload:{start_date}:{end_date}
+general_dashboard:v5:topic:{topic_id}:payload:{start_date}:{end_date}
 home_dashboard:v4:topics:{sorted_unique_topic_ids}:payload:{start_date}:{end_date}
 ```
 
@@ -129,10 +129,12 @@ clear both Facebook v3 and v4 patterns while old v3 keys expire naturally.
 
 Twitter and Instagram use the same v4 contract for `total_posts`,
 `total_interactions`, `total_views`, and `average_interactions`; their `posts`
-and `top_posts` relations are attached after snapshot retrieval. General v4
-caches executive and channel KPI snapshots while attaching its top-content and
-viral-content relations after the cache read. Manual invalidation clears both
-v3 and v4 for each dashboard during the transition.
+and `top_posts` relations are attached after snapshot retrieval. General v5
+caches executive and channel KPI snapshots, including Instagram as a fourth
+channel, while attaching top-content and viral-content relations after the cache
+read. The v5 namespace prevents older three-channel payloads from being read
+after the channel contract changed. Manual invalidation clears prior namespaces
+as they expire naturally.
 
 ### Implementation Pitfalls
 

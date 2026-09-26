@@ -20,7 +20,7 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
       build_sentiment_analysis: { sentiment: 'data' },
       build_reach_analysis: { reach: 'data' },
       build_competitive_analysis: { competitive: 'data' },
-      build_top_content: { top: 'data' },
+      build_top_content_snapshot: { top: 'data' },
       build_word_analysis_lightweight: { words: 'data' },
       build_recommendations: { recommendations: ['a'] }
     )
@@ -39,13 +39,24 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
     )
   end
 
-  it 'uses a v4 cache key for the selected reporting period' do
+  it 'caches only stable top content data' do
+    allow(service).to receive(:trending_topics).and_return(%w[alpha beta])
+
+    expect(service).not_to receive(:top_digital_entries)
+    expect(service).not_to receive(:top_facebook_posts)
+    expect(service).not_to receive(:top_tweets)
+    expect(service).not_to receive(:identify_viral_content)
+
+    expect(service.send(:build_top_content_snapshot)).to eq(trending_topics: %w[alpha beta])
+  end
+
+  it 'uses a v5 cache key for the selected reporting period' do
     start_date = Time.zone.parse('2026-09-01 10:00')
     end_date = Time.zone.parse('2026-09-15 22:00')
     allow(described_class).to receive(:new).and_call_original
     dated_service = described_class.new(topic: topic, start_date: start_date, end_date: end_date)
 
-    expect(dated_service.send(:cache_key)).to eq('general_dashboard:v4:topic:7:payload:2026-09-01:2026-09-15')
+    expect(dated_service.send(:cache_key)).to eq('general_dashboard:v5:topic:7:payload:2026-09-01:2026-09-15')
   end
 
   it 'attaches top content relations after the cached snapshot is read' do
@@ -55,6 +66,7 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
       top_digital_entries: [:digital_entry],
       top_facebook_posts: [:facebook_post],
       top_tweets: [:tweet],
+      top_instagram_posts: [:instagram_post],
       identify_viral_content: viral_content
     )
 
@@ -63,7 +75,33 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
       top_entries: [:digital_entry],
       top_facebook_posts: [:facebook_post],
       top_tweets: [:tweet],
+      top_instagram_posts: [:instagram_post],
       viral_content: viral_content
+    )
+  end
+
+  it 'includes Instagram in channel metrics and cross-channel totals' do
+    allow(service).to receive_messages(
+      digital_data: { count: 2, interactions: 4, reach: 12, reach_estimated: true, trend: 1 },
+      facebook_data: { count: 3, interactions: 6, reach: 18, reach_estimated: false, trend: 2 },
+      twitter_data: { count: 4, interactions: 8, reach: 24, reach_estimated: false, trend: 3 },
+      instagram_data: { count: 5, interactions: 10, reach: 30, reach_estimated: false, trend: 4 },
+      digital_sentiment: { average: 0 },
+      facebook_sentiment: { average: 0 },
+      twitter_sentiment: { average: 0 },
+      instagram_sentiment: { average: 0 }
+    )
+
+    expect(service.send(:total_mentions)).to eq(14)
+    expect(service.send(:total_interactions)).to eq(28)
+    expect(service.send(:total_reach)).to eq(84)
+    expect(service.send(:build_channel_performance).fetch(:instagram)).to include(
+      name: 'Instagram',
+      mentions: 5,
+      interactions: 10,
+      reach: 30,
+      reach_estimated: false,
+      trend: 4
     )
   end
 
@@ -101,7 +139,8 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
     allow(topic).to receive_messages(
       optimal_publishing_time: nil,
       facebook_optimal_publishing_time: nil,
-      twitter_optimal_publishing_time: nil
+      twitter_optimal_publishing_time: nil,
+      instagram_optimal_publishing_time: nil
     )
 
     expect(service.send(:calculate_combined_optimal_time)).to be_nil
@@ -118,7 +157,8 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
     allow(topic).to receive_messages(
       optimal_publishing_time: digital,
       facebook_optimal_publishing_time: facebook,
-      twitter_optimal_publishing_time: twitter
+      twitter_optimal_publishing_time: twitter,
+      instagram_optimal_publishing_time: nil
     )
 
     expect(service.send(:calculate_combined_optimal_time)).to eq(facebook)
@@ -266,14 +306,15 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
       digital_data: { reach: 30, reach_estimated: true },
       facebook_data: { reach: 80, reach_estimated: false },
       twitter_data: { reach: 20, reach_estimated: true },
+      instagram_data: { reach: 10, reach_estimated: false },
       unique_sources_count: 4,
       geographic_distribution: {}
     )
 
     expect(service.send(:build_reach_analysis)).to include(
       total_reach: 130,
-      by_channel: { digital: 30, facebook: 80, twitter: 20 },
-      estimated_channels: { digital: true, facebook: false, twitter: true }
+      by_channel: { digital: 30, facebook: 80, twitter: 20, instagram: 10 },
+      estimated_channels: { digital: true, facebook: false, twitter: true, instagram: false }
     )
   end
 
@@ -357,7 +398,8 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
         9 => { avg_engagement: 4, entry_count: 1 },
         18 => { avg_engagement: 6, entry_count: 3 }
       },
-      twitter_peak_publishing_times_by_hour: { 12 => { avg_engagement: 5, entry_count: 2 } }
+      twitter_peak_publishing_times_by_hour: { 12 => { avg_engagement: 5, entry_count: 2 } },
+      instagram_peak_publishing_times_by_hour: {}
     )
 
     expect(service.send(:combined_peak_hours)).to eq(
@@ -374,7 +416,8 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
         1 => { avg_engagement: 3, entry_count: 2 },
         3 => { avg_engagement: 7, entry_count: 1 }
       },
-      twitter_peak_publishing_times_by_day: { 5 => { avg_engagement: 4, entry_count: 2 } }
+      twitter_peak_publishing_times_by_day: { 5 => { avg_engagement: 4, entry_count: 2 } },
+      instagram_peak_publishing_times_by_day: {}
     )
 
     expect(service.send(:combined_peak_days)).to eq(
@@ -384,14 +427,53 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
     )
   end
 
+  it 'propagates the selected period to range-aware social temporal methods' do
+    start_date = Time.zone.parse('2026-09-01 00:00')
+    end_date = Time.zone.parse('2026-09-15 23:59')
+    allow(described_class).to receive(:new).and_call_original
+    dated_service = described_class.new(topic: topic, start_date: start_date, end_date: end_date)
+    range = { start_time: start_date, end_time: end_date }
+
+    allow(topic).to receive_messages(
+      optimal_publishing_time: nil,
+      peak_publishing_times_by_hour: {},
+      peak_publishing_times_by_day: {},
+      trend_velocity: { velocity_percent: 0 },
+      engagement_velocity: { velocity_percent: 0 }
+    )
+    expect(topic).to receive(:facebook_optimal_publishing_time).with(**range).and_return(nil)
+    expect(topic).to receive(:twitter_optimal_publishing_time).with(**range).and_return(nil)
+    expect(topic).to receive(:instagram_optimal_publishing_time).with(**range).and_return(nil)
+    expect(topic).to receive(:facebook_peak_publishing_times_by_hour).with(**range).and_return({})
+    expect(topic).to receive(:twitter_peak_publishing_times_by_hour).with(**range).and_return({})
+    expect(topic).to receive(:instagram_peak_publishing_times_by_hour).with(**range).and_return({})
+    expect(topic).to receive(:facebook_peak_publishing_times_by_day).with(**range).and_return({})
+    expect(topic).to receive(:twitter_peak_publishing_times_by_day).with(**range).and_return({})
+    expect(topic).to receive(:instagram_peak_publishing_times_by_day).with(**range).and_return({})
+    expect(topic).to receive(:facebook_trend_velocity).with(**range).and_return(velocity_percent: 0)
+    expect(topic).to receive(:twitter_trend_velocity).with(**range).and_return(velocity_percent: 0)
+    expect(topic).to receive(:instagram_trend_velocity).with(**range).and_return(velocity_percent: 0)
+    expect(topic).to receive(:facebook_engagement_velocity).with(**range).and_return(velocity_percent: 0)
+    expect(topic).to receive(:twitter_engagement_velocity).with(**range).and_return(velocity_percent: 0)
+    expect(topic).to receive(:instagram_engagement_velocity).with(**range).and_return(velocity_percent: 0)
+
+    dated_service.send(:calculate_combined_optimal_time)
+    dated_service.send(:combined_peak_hours)
+    dated_service.send(:combined_peak_days)
+    dated_service.send(:overall_trend_velocity)
+    dated_service.send(:overall_engagement_velocity)
+  end
+
   it 'falls back to stable zero velocity when source velocity calls fail' do
     allow(topic).to receive_messages(
       trend_velocity: -> { raise 'unavailable' },
       facebook_trend_velocity: -> { raise 'unavailable' },
       twitter_trend_velocity: -> { raise 'unavailable' },
+      instagram_trend_velocity: -> { raise 'unavailable' },
       engagement_velocity: -> { raise 'unavailable' },
       facebook_engagement_velocity: -> { raise 'unavailable' },
-      twitter_engagement_velocity: -> { raise 'unavailable' }
+      twitter_engagement_velocity: -> { raise 'unavailable' },
+      instagram_engagement_velocity: -> { raise 'unavailable' }
     )
 
     expect(service.send(:overall_trend_velocity)).to include(
