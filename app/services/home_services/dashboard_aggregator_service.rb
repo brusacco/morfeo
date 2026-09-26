@@ -79,7 +79,7 @@ module HomeServices
     private
 
     def cache_key
-      "home_dashboard:v9:topics:#{@topics.map(&:id).uniq.sort.join(',')}:payload:#{cache_date_range}"
+      "home_dashboard:v10:topics:#{@topics.map(&:id).uniq.sort.join(',')}:payload:#{cache_date_range}"
     end
 
     def cache_date_range
@@ -293,7 +293,7 @@ module HomeServices
     end
 
     def unavailable_instagram_stats
-      zero_stats.merge(views: nil, views_source: :unavailable, engagement_rate: nil)
+      zero_stats.except(:reach).merge(views: nil, views_source: :unavailable, engagement_rate: nil)
     end
 
     def zero_stats

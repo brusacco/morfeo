@@ -178,7 +178,7 @@ to the original post and show the profile, caption, and total interactions.
 
 **Purpose**: Aggregates cross-topic home dashboard metrics.
 
-**Cache Key**: `home_dashboard:v9:topics:{sorted_unique_topic_ids}:payload:{start_date}:{end_date}`
+**Cache Key**: `home_dashboard:v10:topics:{sorted_unique_topic_ids}:payload:{start_date}:{end_date}`
 
 The key includes the complete sorted topic set, so a topic update invalidates the
 Home namespace as well as the affected topic-specific dashboard caches. The
@@ -188,11 +188,12 @@ no text-corpus analysis.
 Home aggregates Digital, Facebook, Twitter, and Instagram. Instagram contributes
 tag-scoped mentions, likes plus comments as interactions, and provider-observed
 video `views`. Those views are not unique reach, remain `N/D` when unavailable,
-and have no fallback for non-video posts. They are excluded from total reach and
-reach charts; the Home KPI explicitly states that Instagram video views are
-shown separately. Instagram still contributes prior-period trend calculations,
-temporal engagement, and top content, while remaining excluded from weighted
-sentiment because it has no integrated sentiment source.
+and have no fallback for non-video posts. An unavailable Instagram payload omits
+the `reach` key rather than reporting zero reach. Instagram is excluded from
+total reach and reach charts; the Home KPI explicitly states that Instagram video
+views are shown separately. Instagram still contributes prior-period trend
+calculations, temporal engagement, and top content, while remaining excluded
+from weighted sentiment because it has no integrated sentiment source.
 
 Home preserves Instagram in `total_interactions`, trends, and channel data, but
 calculates its cross-channel `engagement_rate` from Digital, Facebook, and X

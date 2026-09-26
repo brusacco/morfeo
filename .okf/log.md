@@ -2,6 +2,8 @@
 
 ## 2026-09-26
 
+- Removed the inapplicable `reach: 0` key from unavailable Instagram Home
+  channel data and versioned the Home dashboard cache payload from v9 to v10.
 - Renamed the General PDF total-reach KPI to `Alcance potencial total` so its
   label does not imply that separately displayed Instagram video views are
   included.

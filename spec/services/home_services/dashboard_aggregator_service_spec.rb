@@ -7,12 +7,12 @@ RSpec.describe HomeServices::DashboardAggregatorService do
   let(:service) { described_class.new(topics: Topic.where(id: topics.map(&:id)), days_range: 7) }
 
   describe '#cache_key' do
-    it 'uses a v9 key with sorted topic IDs and an explicit date range' do
+    it 'uses a v10 key with sorted topic IDs and an explicit date range' do
       topic_ids = topics.map(&:id).sort.join(',')
       start_date = service.instance_variable_get(:@start_date).to_date.iso8601
       end_date = service.instance_variable_get(:@end_date).to_date.iso8601
 
-      expect(service.send(:cache_key)).to eq("home_dashboard:v9:topics:#{topic_ids}:payload:#{start_date}:#{end_date}")
+      expect(service.send(:cache_key)).to eq("home_dashboard:v10:topics:#{topic_ids}:payload:#{start_date}:#{end_date}")
     end
 
     it 'is stable for reordered or duplicate topic inputs' do
@@ -28,7 +28,7 @@ RSpec.describe HomeServices::DashboardAggregatorService do
       empty_topics = described_class.new(topics: Topic.none, days_range: 7)
 
       expect(longer_range.send(:cache_key)).not_to eq(service.send(:cache_key))
-      expect(empty_topics.send(:cache_key)).to start_with('home_dashboard:v9:topics::payload:')
+      expect(empty_topics.send(:cache_key)).to start_with('home_dashboard:v10:topics::payload:')
     end
   end
 
@@ -227,11 +227,10 @@ RSpec.describe HomeServices::DashboardAggregatorService do
     end
 
     it 'marks Instagram engagement unavailable when no video views are available' do
-      expect(service.send(:instagram_channel_stats)).to include(
-        views: nil,
-        views_source: :unavailable,
-        engagement_rate: nil
-      )
+      stats = service.send(:instagram_channel_stats)
+
+      expect(stats).to include(views: nil, views_source: :unavailable, engagement_rate: nil)
+      expect(stats).not_to have_key(:reach)
     end
   end
 
