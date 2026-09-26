@@ -46,18 +46,19 @@ module GeneralDashboardHelper
   # Chart data preparation
   def prepare_sentiment_pie_data(distribution)
     return {} unless distribution.is_a?(Hash)
-    
+
     data = {}
     distribution.each do |key, value|
-      label = case key
-              when :very_positive then 'Muy Positivo'
-              when :positive then 'Positivo'
-              when :neutral then 'Neutral'
-              when :negative then 'Negativo'
-              when :very_negative then 'Muy Negativo'
-              else key.to_s.titleize
-              end
-      
+      label =
+        case key
+        when :very_positive then 'Muy Positivo'
+        when :positive then 'Positivo'
+        when :neutral then 'Neutral'
+        when :negative then 'Negativo'
+        when :very_negative then 'Muy Negativo'
+        else key.to_s.titleize
+        end
+
       count = value.is_a?(Hash) ? value[:count] : value
       data[label] = count
     end
@@ -66,7 +67,7 @@ module GeneralDashboardHelper
 
   def prepare_reaction_breakdown(breakdown)
     return {} unless breakdown.is_a?(Hash)
-    
+
     {
       '❤️ Love' => breakdown[:love],
       '😂 Haha' => breakdown[:haha],
@@ -82,15 +83,16 @@ module GeneralDashboardHelper
   def polarity_percentages(hash)
     total = hash.values.sum
     return {} if total.zero?
-    
+
     result = {}
     hash.each do |key, value|
-      label = case key
-              when 'negative', :negative then 'Negativas'
-              when 'neutral', :neutral then 'Neutras'
-              when 'positive', :positive then 'Positivas'
-              else key.to_s.titleize
-              end
+      label =
+        case key
+        when 'negative', :negative then 'Negativas'
+        when 'neutral', :neutral then 'Neutras'
+        when 'positive', :positive then 'Positivas'
+        else key.to_s.titleize
+        end
       result[label] = ((value.to_f / total) * 100).round(1)
     end
     result
@@ -98,6 +100,7 @@ module GeneralDashboardHelper
 
   def share_of_voice_percentage(part, whole)
     return 0 if whole.nil? || whole.zero?
+
     ((part.to_f / whole) * 100).round(1)
   end
 
@@ -136,4 +139,3 @@ module GeneralDashboardHelper
     end
   end
 end
-

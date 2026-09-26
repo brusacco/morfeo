@@ -1,4 +1,5 @@
 # Morfeo Data Analytics Implementation Summary
+
 **Last Updated**: November 1, 2025  
 **Role**: Senior Data Analyst Perspective  
 **Version**: 1.0
@@ -28,10 +29,12 @@ This document provides a **data-centric analysis** of Morfeo's implemented featu
 
 ### **1. Multi-Channel Data Aggregation** ✅ **PRODUCTION**
 
-#### **Implementation Status**: COMPLETE  
+#### **Implementation Status**: COMPLETE
+
 #### **Confidence Level**: 95%
 
 **Description**: Unified analytics across three data sources:
+
 - Digital Media (Web scraping)
 - Facebook (Meta Graph API)
 - Twitter (Twitter API v2)
@@ -45,12 +48,14 @@ This document provides a **data-centric analysis** of Morfeo's implemented featu
 | **Sentiment** | ✅ 85% | ✅ 85% | ❌ N/A | ✅ 85% |
 
 **Implementation**:
+
 - Service: `GeneralDashboardServices::AggregatorService`
 - Controller: `GeneralDashboardController`
 - View: `app/views/general_dashboard/show.html.erb`
 - PDF Export: ✅ Available
 
 **Data Sources**:
+
 ```ruby
 # Digital Media
 Entry.where(published_at: range)
@@ -75,20 +80,23 @@ TwitterPost.where(posted_at: range)
 
 ### **2. Topic-Based Content Monitoring** ✅ **PRODUCTION**
 
-#### **Implementation Status**: MATURE  
+#### **Implementation Status**: MATURE
+
 #### **Confidence Level**: 100%
 
 **Description**: Tag-based content filtering using `acts_as_taggable_on` gem.
 
 **Tagging System**:
+
 - **Tags Table**: Keywords and variations
 - **Taggable Models**: `Entry`, `FacebookEntry`, `TwitterPost`
 - **Join Table**: Polymorphic `taggings`
 
 **Example Topic Configuration**:
+
 ```ruby
 Topic: "Santiago Peña"
-Tags: 
+Tags:
   - "Santiago Peña"
   - "Presidente Peña"
   - "Peña"
@@ -97,11 +105,13 @@ Variations: "santi pena, santiago pena, S. Peña"
 ```
 
 **Query Pattern**:
+
 ```ruby
 Entry.tagged_with(['santiago peña', 'presidente'], any: true)
 ```
 
 **Accuracy**:
+
 - **Precision**: 90-95% (few false positives)
 - **Recall**: 80-85% (some false negatives due to variations)
 - **F1 Score**: ~0.88
@@ -113,25 +123,29 @@ Entry.tagged_with(['santiago peña', 'presidente'], any: true)
 
 ### **3. Sentiment Analysis** ✅ **PRODUCTION**
 
-#### **Implementation Status**: COMPLETE  
+#### **Implementation Status**: COMPLETE
+
 #### **Confidence Level**: 85%
 
 #### **Digital Media Sentiment** (OpenAI GPT-3.5-turbo)
 
 **Method**: AI-powered text analysis  
 **Prompt**:
+
 ```text
 Analizar el sentimiento de la siguiente noticia:
 {title} {description} {content}
 Responder solo con: negativa, positiva o neutra.
 ```
 
-**Scale**: 
+**Scale**:
+
 - Negative (2)
 - Neutral (0)
 - Positive (1)
 
-**Accuracy**: 
+**Accuracy**:
+
 - **Precision**: ~85% (vs. manual coding)
 - **Recall**: ~80%
 - **Cost**: $0.002 per article
@@ -144,6 +158,7 @@ Responder solo con: negativa, positiva o neutra.
 
 **Method**: Weighted reaction analysis  
 **Weights**:
+
 ```ruby
 reactions_like_count:      0.5  (slightly positive)
 reactions_love_count:      2.0  (very positive)
@@ -155,6 +170,7 @@ reactions_thankful_count:  2.0  (very positive)
 ```
 
 **Score Calculation**:
+
 ```ruby
 sentiment_score = (
   Σ(reaction_count × weight)
@@ -170,6 +186,7 @@ end
 ```
 
 **Additional Metrics**:
+
 - **Controversy Index**: Polarization measure (0-1)
   ```ruby
   controversy = 1 - |positive - negative| / total
@@ -179,7 +196,8 @@ end
   intensity = (love + angry + sad + wow + thankful) / total × 100
   ```
 
-**Accuracy**: 
+**Accuracy**:
+
 - **Correlation with manual coding**: r = 0.78 (strong)
 - **Statistical significance**: p < 0.001
 - **Confidence threshold**: 30+ reactions
@@ -198,7 +216,8 @@ end
 
 ### **4. Reach Estimation** ⚠️ **PRODUCTION (WITH DISCLAIMERS)**
 
-#### **Implementation Status**: PARTIAL  
+#### **Implementation Status**: PARTIAL
+
 #### **Confidence Level**: 82% (varies by source)
 
 #### **Facebook Visualizations** ⚠️ **ESTIMATED**
@@ -207,6 +226,7 @@ end
 **Method**: Model based on followers and interactions
 **Confidence**: 60%
 **Formula**:
+
 ```ruby
 estimated_visualizations = FacebookEntry.sum(:views_count)
 ```
@@ -221,6 +241,7 @@ estimated_visualizations = FacebookEntry.sum(:views_count)
 **Method**: Direct API call  
 **Confidence**: 90%  
 **Formula**:
+
 ```ruby
 views = TwitterPost.sum(:views_count)
 reach = views > 0 ? views : total_interactions × 10
@@ -237,11 +258,13 @@ reach = views > 0 ? views : total_interactions × 10
 **Method**: Conservative multiplier  
 **Confidence**: 60%  
 **Formula**:
+
 ```ruby
 reach = Entry.sum(:total_count) × 3
 ```
 
 **Rationale**:
+
 - Each interaction represents ~3 readers (conservative)
 - Industry benchmarks: 8-15x multiplier
 - We use 3x to under-promise
@@ -253,12 +276,14 @@ reach = Entry.sum(:total_count) × 3
 
 ### **5. Share of Voice** ✅ **PRODUCTION**
 
-#### **Implementation Status**: COMPLETE  
+#### **Implementation Status**: COMPLETE
+
 #### **Confidence Level**: 95%
 
 **Description**: Topic prominence in media landscape
 
 **Formula**:
+
 ```ruby
 share_of_voice = (topic_mentions / all_mentions) × 100
 ```
@@ -279,7 +304,8 @@ share_of_voice = (topic_mentions / all_mentions) × 100
 
 ### **6. Temporal Intelligence** ✅ **PRODUCTION**
 
-#### **Implementation Status**: COMPLETE  
+#### **Implementation Status**: COMPLETE
+
 #### **Confidence Level**: 90%
 
 **Features**:
@@ -302,6 +328,7 @@ share_of_voice = (topic_mentions / all_mentions) × 100
    - % change in mentions/interactions
 
 **Implementation**:
+
 - Service: `Topic` model methods
 - Cache: 2 hours
 - Visualization: Highcharts
@@ -312,12 +339,14 @@ share_of_voice = (topic_mentions / all_mentions) × 100
 
 ### **7. Word & Bigram Analysis** ✅ **PRODUCTION**
 
-#### **Implementation Status**: COMPLETE  
+#### **Implementation Status**: COMPLETE
+
 #### **Confidence Level**: 95%
 
 **Description**: NLP-based keyword extraction
 
 **Method**:
+
 ```ruby
 # Single words
 text.scan(/[[:alpha:]]+/)
@@ -332,6 +361,7 @@ words.each_cons(2).map { |w1, w2| "#{w1} #{w2}" }
 **Output**: Top 100 words/bigrams
 
 **Use Cases**:
+
 - Trending topics
 - Keyword clouds
 - Content recommendations
@@ -342,16 +372,19 @@ words.each_cons(2).map { |w1, w2| "#{w1} #{w2}" }
 
 ### **8. Daily Statistics Aggregation** ✅ **PRODUCTION**
 
-#### **Implementation Status**: MATURE  
+#### **Implementation Status**: MATURE
+
 #### **Confidence Level**: 100%
 
 **Description**: Pre-calculated daily metrics for performance
 
 **Tables**:
+
 - `topic_stat_dailies` - Content-based stats
 - `title_topic_stat_dailies` - Title-based stats
 
 **Fields**:
+
 ```ruby
 topic_date: Date
 entry_count: Integer
@@ -373,12 +406,14 @@ neutral_interaction: Integer
 
 ### **9. Cross-Channel Content Linking** ⚠️ **PARTIAL**
 
-#### **Implementation Status**: EXPERIMENTAL  
+#### **Implementation Status**: EXPERIMENTAL
+
 #### **Confidence Level**: 70%
 
 **Description**: Link social media posts to news articles
 
 **Method**:
+
 ```ruby
 # Facebook
 facebook_entry.attachment_target_url == entry.url
@@ -388,6 +423,7 @@ twitter_post.external_urls.include?(entry.url)
 ```
 
 **Challenges**:
+
 - URL variations (www, https, query params)
 - URL shorteners (bit.ly, t.co)
 - Redirects
@@ -410,6 +446,7 @@ twitter_post.external_urls.include?(entry.url)
 **Sites Monitored**: 15-20 Paraguayan news sites
 
 **Process**:
+
 ```
 1. Crawl site (depth: 2, threads: 5)
 2. Extract metadata (title, description, image)
@@ -421,6 +458,7 @@ twitter_post.external_urls.include?(entry.url)
 ```
 
 **Data Quality**:
+
 - **Completeness**: 95% (some sites have incomplete metadata)
 - **Accuracy**: 90% (date parsing errors ~10%)
 - **Timeliness**: 1-2 hour delay
@@ -434,6 +472,7 @@ twitter_post.external_urls.include?(entry.url)
 **Pages Monitored**: ~30 fanpages
 
 **Process**:
+
 ```
 1. Fetch page posts (limit: 25, pages: 2)
 2. Extract message, attachments, reactions
@@ -443,6 +482,7 @@ twitter_post.external_urls.include?(entry.url)
 ```
 
 **Data Quality**:
+
 - **Completeness**: 98% (API very reliable)
 - **Accuracy**: 100% (direct API data)
 - **Timeliness**: 3-hour delay
@@ -458,6 +498,7 @@ twitter_post.external_urls.include?(entry.url)
 **Profiles Monitored**: ~20 profiles
 
 **Process**:
+
 ```
 1. Fetch user tweets (max_results: 100)
 2. Extract text, metrics, media
@@ -466,6 +507,7 @@ twitter_post.external_urls.include?(entry.url)
 ```
 
 **Data Quality**:
+
 - **Completeness**: 95% (some fields optional)
 - **Accuracy**: 100% (direct API data)
 - **Timeliness**: 3-hour delay
@@ -478,19 +520,20 @@ twitter_post.external_urls.include?(entry.url)
 
 ### **Primary Metrics**
 
-| Metric | Definition | Data Source | Accuracy | Confidence |
-|--------|------------|-------------|----------|------------|
-| **Mentions** | Count of content items | Database COUNT | 100% | ✅ Absolute |
-| **Interactions** | Sum of engagements | API data | 100% | ✅ Absolute |
-| **Reach** | Unique users who saw content | API + estimation | 82% | ⚠️ Varies |
-| **Sentiment** | Positive/neutral/negative | AI + reactions | 85% | ✅ Good |
-| **Share of Voice** | % of total mentions | Calculated | 95% | ✅ High |
+| Metric             | Definition                   | Data Source      | Accuracy | Confidence  |
+| ------------------ | ---------------------------- | ---------------- | -------- | ----------- |
+| **Mentions**       | Count of content items       | Database COUNT   | 100%     | ✅ Absolute |
+| **Interactions**   | Sum of engagements           | API data         | 100%     | ✅ Absolute |
+| **Reach**          | Unique users who saw content | API + estimation | 82%      | ⚠️ Varies   |
+| **Sentiment**      | Positive/neutral/negative    | AI + reactions   | 85%      | ✅ Good     |
+| **Share of Voice** | % of total mentions          | Calculated       | 95%      | ✅ High     |
 
 ---
 
 ### **Engagement Metrics**
 
 #### **Digital Media**
+
 ```ruby
 total_count = reaction_count + comment_count + share_count + comment_plugin_count
 ```
@@ -501,6 +544,7 @@ total_count = reaction_count + comment_count + share_count + comment_plugin_coun
 ---
 
 #### **Facebook**
+
 ```ruby
 total_interactions = reactions_total_count + comments_count + share_count
 ```
@@ -511,6 +555,7 @@ total_interactions = reactions_total_count + comments_count + share_count
 ---
 
 #### **Twitter**
+
 ```ruby
 total_interactions = favorite_count + retweet_count + reply_count + quote_count
 ```
@@ -525,16 +570,19 @@ total_interactions = favorite_count + retweet_count + reply_count + quote_count
 ### **Sample Size Analysis**
 
 #### **Mentions (n=10,000+)**
+
 - **Power**: 99%
 - **Confidence Interval**: ±1% at 95% confidence
 - **Validity**: ✅ Excellent
 
 #### **Sentiment (n=1,000+)**
+
 - **Power**: 95%
 - **Confidence Interval**: ±3% at 95% confidence
 - **Validity**: ✅ Good
 
 #### **Temporal Patterns (n=30 days)**
+
 - **Power**: 90%
 - **Confidence Interval**: ±5% at 95% confidence
 - **Validity**: ✅ Adequate
@@ -543,13 +591,13 @@ total_interactions = favorite_count + retweet_count + reply_count + quote_count
 
 ### **Confidence Intervals**
 
-| Metric | Sample Size | Margin of Error | Confidence |
-|--------|-------------|-----------------|------------|
-| Total Mentions | 10,000+ | ±1% | 95% |
-| Total Interactions | 50,000+ | ±0.5% | 95% |
-| Sentiment Distribution | 1,000+ | ±3% | 95% |
-| Share of Voice | 10,000+ | ±1% | 95% |
-| Reach (estimated) | Varies | ±15-20% | 60% |
+| Metric                 | Sample Size | Margin of Error | Confidence |
+| ---------------------- | ----------- | --------------- | ---------- |
+| Total Mentions         | 10,000+     | ±1%             | 95%        |
+| Total Interactions     | 50,000+     | ±0.5%           | 95%        |
+| Sentiment Distribution | 1,000+      | ±3%             | 95%        |
+| Share of Voice         | 10,000+     | ±1%             | 95%        |
+| Reach (estimated)      | Varies      | ±15-20%         | 60%        |
 
 ---
 
@@ -561,6 +609,7 @@ total_interactions = favorite_count + retweet_count + reply_count + quote_count
 **URL**: `/general_dashboards/:topic_id`
 
 **Sections**:
+
 1. Executive Summary (7 KPIs)
 2. Channel Performance (3 cards)
 3. Sentiment Analysis (5 charts)
@@ -571,12 +620,14 @@ total_interactions = favorite_count + retweet_count + reply_count + quote_count
 8. Recommendations (5 insights)
 
 **Performance**:
+
 - Load Time: 2-5 seconds
 - Cache: 30 minutes
 - Database Queries: ~20
 - API Calls: 0 (cached)
 
-**Data Quality**: 
+**Data Quality**:
+
 - ✅ Mentions: 100%
 - ✅ Interactions: 100%
 - ⚠️ Reach: 82%
@@ -590,6 +641,7 @@ total_interactions = favorite_count + retweet_count + reply_count + quote_count
 **URL**: `/facebook_topics/:topic_id`
 
 **Key Features**:
+
 - Sentiment analysis (reaction-based)
 - Controversy detection
 - Emotional intensity tracking
@@ -606,6 +658,7 @@ total_interactions = favorite_count + retweet_count + reply_count + quote_count
 **URL**: `/twitter_topics/:topic_id`
 
 **Key Features**:
+
 - Engagement tracking
 - Views analysis (when available)
 - Tweet type breakdown
@@ -622,6 +675,7 @@ total_interactions = favorite_count + retweet_count + reply_count + quote_count
 **URL**: `/topics/:topic_id`
 
 **Key Features**:
+
 - Site-level analysis
 - Engagement tracking
 - Sentiment distribution
@@ -703,37 +757,41 @@ total_interactions = favorite_count + retweet_count + reply_count + quote_count
 ### **Data Limitations**
 
 1. **Reach Data**
+
    ```
    ⚠️ DISCLAIMER: Digital media reach is an estimate
    based on social media engagement. Actual page
    views are not available for third-party sites.
-   
+
    Methodology: Interactions × 3 (conservative multiplier)
    Confidence: 60%
    ```
 
 2. **Sentiment Analysis**
+
    ```
    ⚠️ DISCLAIMER: Sentiment analysis is AI-powered
    and may not always reflect human interpretation.
-   
+
    Accuracy: ~85% (validated against manual coding)
    Cost: $0.002 per article (OpenAI API)
    ```
 
 3. **Historical Data**
+
    ```
    ⚠️ LIMITATION: Data availability varies by source
-   
+
    - Digital: 30+ days (full history)
    - Facebook: 30 days (API limit)
    - Twitter: 7-14 days (API limit)
    ```
 
 4. **Real-Time Data**
+
    ```
    ⚠️ DELAY: Data is not real-time
-   
+
    - Digital: 1-2 hour delay
    - Facebook: 3-hour delay
    - Twitter: 3-hour delay
@@ -745,26 +803,29 @@ total_interactions = favorite_count + retweet_count + reply_count + quote_count
 ### **Statistical Limitations**
 
 1. **Small Sample Sizes**
+
    ```
    ⚠️ WARNING: Some topics have <100 mentions
-   
+
    Statistical validity requires n≥30 for basic
    analysis and n≥100 for sentiment confidence.
    ```
 
 2. **Seasonal Variations**
+
    ```
    ⚠️ NOTE: Data patterns vary by time period
-   
+
    - Weekends: Lower volume
    - Holidays: Reduced coverage
    - Election cycles: Increased activity
    ```
 
 3. **Platform Bias**
+
    ```
    ⚠️ BIAS: Different demographics per platform
-   
+
    - Digital: General audience
    - Facebook: Older demographic (35-55)
    - Twitter: Younger, tech-savvy (25-45)
@@ -869,10 +930,10 @@ total_interactions = favorite_count + retweet_count + reply_count + quote_count
 
 ## 📝 Change Log
 
-| Date | Version | Changes |
-|------|---------|---------|
-| 2025-10-31 | 1.0 | Initial implementation summary |
-| 2025-11-01 | 1.0 | Data analytics documentation complete |
+| Date       | Version | Changes                               |
+| ---------- | ------- | ------------------------------------- |
+| 2025-10-31 | 1.0     | Initial implementation summary        |
+| 2025-11-01 | 1.0     | Data analytics documentation complete |
 
 ---
 
@@ -883,7 +944,7 @@ total_interactions = favorite_count + retweet_count + reply_count + quote_count
 ---
 
 **For Questions or Clarifications**:
+
 - Technical Implementation: See `SYSTEM_ARCHITECTURE.md`
 - Database Schema: See `DATABASE_SCHEMA.md`
 - User Guide: See `docs/guides/GENERAL_DASHBOARD_USER_GUIDE.md`
-

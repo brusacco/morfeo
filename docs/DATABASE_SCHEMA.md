@@ -1,4 +1,5 @@
 # Morfeo Database Schema Documentation
+
 **Last Updated**: November 1, 2025
 
 ## 📊 Database Overview
@@ -65,6 +66,7 @@ Morfeo uses MySQL 8.0 with a comprehensive schema designed for multi-channel med
 ## 📋 Table Catalog
 
 ### Content Tables (16)
+
 - `entries` - Digital media articles
 - `facebook_entries` - Facebook posts
 - `twitter_posts` - Tweets
@@ -79,17 +81,20 @@ Morfeo uses MySQL 8.0 with a comprehensive schema designed for multi-channel med
 - `newspaper_texts` - Print content
 
 ### Access Control (3)
+
 - `users` - Client users
 - `admin_users` - Administrators
 - `user_topics` - User-topic permissions
 
 ### Analytics & Reporting (4)
+
 - `topic_stat_dailies` - Daily statistics
 - `title_topic_stat_dailies` - Title-based stats
 - `reports` - AI-generated reports
 - `templates` - Report templates
 
 ### System Tables (6)
+
 - `active_admin_comments` - Admin interface comments
 - `active_storage_*` - File attachments (3 tables)
 - `versions` - Audit trail (PaperTrail)
@@ -102,31 +107,37 @@ Morfeo uses MySQL 8.0 with a comprehensive schema designed for multi-channel med
 ## 🔑 Primary Key Relationships
 
 ### Topics & Tags (Many-to-Many)
+
 ```sql
 topics (id) ←→ tags_topics (tag_id, topic_id) ←→ tags (id)
 ```
 
 ### User Access Control (Many-to-Many)
+
 ```sql
 users (id) ←→ user_topics (user_id, topic_id) ←→ topics (id)
 ```
 
 ### Digital Media (One-to-Many)
+
 ```sql
 sites (id) ←→ entries (site_id)
 ```
 
 ### Facebook (One-to-Many)
+
 ```sql
 sites (id) ←→ pages (site_id) ←→ facebook_entries (page_id)
 ```
 
 ### Twitter (One-to-Many)
+
 ```sql
 sites (id) ←→ twitter_profiles (site_id) ←→ twitter_posts (twitter_profile_id)
 ```
 
 ### Cross-Channel Linking (Optional)
+
 ```sql
 entries (id) ←→ facebook_entries (entry_id) [optional]
 entries (id) ←→ twitter_posts (entry_id) [optional]
@@ -137,6 +148,7 @@ entries (id) ←→ twitter_posts (entry_id) [optional]
 ## 🏗️ Table Schemas
 
 ### `topics`
+
 ```sql
 CREATE TABLE topics (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -152,6 +164,7 @@ CREATE TABLE topics (
 ```
 
 ### `tags`
+
 ```sql
 CREATE TABLE tags (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -164,6 +177,7 @@ CREATE TABLE tags (
 ```
 
 ### `entries` (Digital Media)
+
 ```sql
 CREATE TABLE entries (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -202,6 +216,7 @@ CREATE TABLE entries (
 ```
 
 ### `facebook_entries`
+
 ```sql
 CREATE TABLE facebook_entries (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -262,6 +277,7 @@ CREATE TABLE facebook_entries (
 ```
 
 ### `twitter_posts`
+
 ```sql
 CREATE TABLE twitter_posts (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -298,6 +314,7 @@ CREATE TABLE twitter_posts (
 ```
 
 ### `sites`
+
 ```sql
 CREATE TABLE sites (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -324,6 +341,7 @@ CREATE TABLE sites (
 ```
 
 ### `pages` (Facebook)
+
 ```sql
 CREATE TABLE pages (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -343,6 +361,7 @@ CREATE TABLE pages (
 ```
 
 ### `twitter_profiles`
+
 ```sql
 CREATE TABLE twitter_profiles (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -362,6 +381,7 @@ CREATE TABLE twitter_profiles (
 ```
 
 ### `users`
+
 ```sql
 CREATE TABLE users (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -381,6 +401,7 @@ CREATE TABLE users (
 ```
 
 ### `user_topics` (Join table)
+
 ```sql
 CREATE TABLE user_topics (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -402,6 +423,7 @@ CREATE TABLE user_topics (
 ### Performance-Critical Indexes
 
 #### Date Range Queries (Most Common)
+
 ```sql
 -- entries
 INDEX(published_at)
@@ -418,6 +440,7 @@ INDEX(twitter_profile_id, posted_at)
 ```
 
 #### Tag-Based Queries (acts_as_taggable_on)
+
 ```sql
 -- taggings
 INDEX(taggable_type, taggable_id)
@@ -426,6 +449,7 @@ INDEX(taggable_id, taggable_type, context)
 ```
 
 #### Engagement Metrics
+
 ```sql
 -- entries
 INDEX(total_count)
@@ -440,6 +464,7 @@ INDEX(controversy_index, sentiment_score)
 ## 📊 Key Constraints & Validations
 
 ### Unique Constraints
+
 ```sql
 entries.url               -- No duplicate articles
 facebook_entries.facebook_post_id  -- No duplicate posts
@@ -452,6 +477,7 @@ users.email               -- No duplicate user emails
 ```
 
 ### Foreign Key Constraints
+
 ```sql
 facebook_entries.page_id → pages.id
 facebook_entries.entry_id → entries.id (optional)
@@ -471,6 +497,7 @@ user_topics.topic_id → topics.id
 ### 1. Content Ingestion Flow
 
 #### Digital Media (Web Scraping)
+
 ```
 Sidekiq Job → Scraper Service
   ↓
@@ -490,6 +517,7 @@ Auto-tag (Searchkick + acts_as_taggable_on)
 ```
 
 #### Facebook (Meta API)
+
 ```
 Sidekiq Job → Facebook Service
   ↓
@@ -507,6 +535,7 @@ Try to link to Entry (via attachment_target_url)
 ```
 
 #### Twitter (Twitter API v2)
+
 ```
 Sidekiq Job → Twitter Service
   ↓
@@ -561,6 +590,7 @@ Render View (show.html.erb)
 ### Query Patterns
 
 #### ✅ Efficient Tag Queries
+
 ```ruby
 # ALWAYS use distinct count with acts_as_taggable_on
 FacebookEntry.tagged_with(tags, any: true)
@@ -568,6 +598,7 @@ FacebookEntry.tagged_with(tags, any: true)
 ```
 
 #### ✅ Avoid N+1 with Eager Loading
+
 ```ruby
 # ALWAYS include associations
 Entry.includes(:site).where(...)
@@ -576,6 +607,7 @@ TwitterPost.includes(:twitter_profile).where(...)
 ```
 
 #### ✅ Use Scopes for Common Patterns
+
 ```ruby
 Entry.enabled.normal_range.has_interactions
 FacebookEntry.for_topic(topic, start_time:, end_time:)
@@ -583,6 +615,7 @@ TwitterPost.for_topic(topic, start_time:, end_time:)
 ```
 
 ### Caching Strategy
+
 ```ruby
 # Topic queries: 30 minutes
 Rails.cache.fetch("topic_#{id}_list_entries", expires_in: 30.minutes)
@@ -613,4 +646,3 @@ Rails.cache.fetch("general_dashboard_#{topic.id}_#{date}", expires_in: 30.minute
 **Database Version**: MySQL 8.0  
 **Rails Version**: 7.0.8  
 **Ruby Version**: 3.1.6
-

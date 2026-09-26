@@ -123,7 +123,11 @@ RSpec.describe InstagramDashboardServices::AggregatorService do
     allow(aggregate_posts).to receive(:pluck).and_return([])
 
     expect(service.send(:calculate_statistics, posts)).to eq(
-      total_posts: 0, total_interactions: 0, total_views: 0, views_estimated: false, views_source: :actual,
+      total_posts: 0,
+      total_interactions: 0,
+      total_views: 0,
+      views_estimated: false,
+      views_source: :actual,
       average_interactions: 0
     )
   end
@@ -136,7 +140,11 @@ RSpec.describe InstagramDashboardServices::AggregatorService do
     allow(aggregate_posts).to receive(:pluck).and_return([[3, 10, 40]])
 
     expect(service.send(:calculate_statistics, posts)).to include(
-      total_posts: 3, total_interactions: 10, total_views: 40, views_estimated: false, views_source: :actual,
+      total_posts: 3,
+      total_interactions: 10,
+      total_views: 40,
+      views_estimated: false,
+      views_source: :actual,
       average_interactions: 3.3
     )
   end

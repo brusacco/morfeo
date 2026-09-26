@@ -164,10 +164,7 @@ RSpec.describe HomeServices::DashboardAggregatorService do
         calculate_previous_period_interactions: 0
       )
 
-      expect(service.send(:calculate_executive_summary)).to include(
-        total_reach: 18,
-        total_reach_estimated: true
-      )
+      expect(service.send(:calculate_executive_summary)).to include(total_reach: 18, total_reach_estimated: true)
     end
 
     it 'includes Instagram in executive totals and channel comparison data' do

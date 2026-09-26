@@ -305,7 +305,16 @@ module GeneralDashboardServices
     def facebook_data
       @facebook_data ||=
         begin
-          return { count: 0, interactions: 0, reach: 0, reach_estimated: true, reach_source: :estimated, trend: 0 } if @tag_names.empty?
+          if @tag_names.empty?
+            return {
+              count: 0,
+              interactions: 0,
+              reach: 0,
+              reach_estimated: true,
+              reach_source: :estimated,
+              trend: 0
+            }
+          end
 
           # Single combined query for all aggregations (more efficient)
           current_stats = FacebookEntry
@@ -338,7 +347,16 @@ module GeneralDashboardServices
     def twitter_data
       @twitter_data ||=
         begin
-          return { count: 0, interactions: 0, reach: 0, reach_estimated: false, reach_source: :actual, trend: 0 } if @tag_names.empty?
+          if @tag_names.empty?
+            return {
+              count: 0,
+              interactions: 0,
+              reach: 0,
+              reach_estimated: false,
+              reach_source: :actual,
+              trend: 0
+            }
+          end
 
           # Single combined query for all aggregations (more efficient)
           current_stats = TwitterPost

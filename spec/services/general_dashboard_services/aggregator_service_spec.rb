@@ -322,7 +322,12 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
       total_reach: 130,
       by_channel: { digital: 30, facebook: 80, twitter: 20, instagram: 10 },
       estimated_channels: { digital: true, facebook: true, twitter: true, instagram: false },
-      sources_by_channel: { digital: :estimated, facebook: :estimated, twitter: :fallback_estimate, instagram: :actual },
+      sources_by_channel: {
+        digital: :estimated,
+        facebook: :estimated,
+        twitter: :fallback_estimate,
+        instagram: :actual
+      },
       total_reach_estimated: true
     )
   end

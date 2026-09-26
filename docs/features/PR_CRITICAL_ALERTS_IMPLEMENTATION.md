@@ -19,33 +19,39 @@ Implemented **4 new critical alerts** specifically designed for PR analysts and 
 **Purpose**: Detect content that's going viral for immediate amplification opportunities.
 
 **Detection Logic**:
+
 - Monitors content from last **6 hours** (recent enough to amplify)
 - Calculates average engagement per channel
 - Flags content with engagement **> 5x average**
 - Minimum threshold: **100 interactions**
 
 **Channels Monitored**:
+
 - ✅ Digital Media (Entry)
 - ✅ Facebook (FacebookEntry)
 - ✅ Twitter (TwitterPost)
 
 **Alert Levels**:
+
 - **High** (all viral content) - Immediate action required
 
 **Alert Message**:
+
 ```
 🔥 Contenido Viral Detectado: {topic}
-Artículo con {X} interacciones ({Y}x el promedio). 
+Artículo con {X} interacciones ({Y}x el promedio).
 ¡Oportunidad para amplificar! URL: {url}
 ```
 
 **PR Action Required**:
+
 - Push paid media immediately
 - Amplify on other channels
 - Leverage for brand visibility
 - Monitor sentiment to avoid backfire
 
 **Configuration**:
+
 ```ruby
 VIRAL_MULTIPLIER = 5  # 5x average engagement
 VIRAL_MINIMUM_ENGAGEMENT = 100  # Minimum interactions
@@ -58,6 +64,7 @@ VIRAL_MINIMUM_ENGAGEMENT = 100  # Minimum interactions
 **Purpose**: Detect polarizing content that could escalate to reputation crisis.
 
 **Detection Logic**:
+
 - Uses existing `controversy_index` from FacebookEntry
 - Monitors last **24 hours**
 - `controversy_index` = measure of polarization (0-1)
@@ -65,32 +72,37 @@ VIRAL_MINIMUM_ENGAGEMENT = 100  # Minimum interactions
   - Balanced reactions = Low controversy
 
 **Alert Levels**:
+
 - **High** (>= 70% polarization): Crisis risk
 - **Medium** (>= 50% polarization): Monitor closely
 
 **Alert Messages**:
 
 **Critical**:
+
 ```
 ⚠️ Crisis de Controversia: {topic}
-Post altamente polarizado detectado (X% controversia). 
+Post altamente polarizado detectado (X% controversia).
 Audiencia dividida. Requiere monitoreo inmediato y posible respuesta.
 ```
 
 **Warning**:
+
 ```
 ⚡ Contenido Controversial: {topic}
-Post con polarización moderada (X% controversia). 
+Post con polarización moderada (X% controversia).
 Monitorear de cerca.
 ```
 
 **PR Action Required**:
+
 - Assess sentiment distribution
 - Prepare crisis response if needed
 - Monitor escalation
 - Consider damage control strategy
 
 **Configuration**:
+
 ```ruby
 CONTROVERSY_CRITICAL_THRESHOLD = 0.7  # 70% polarization
 CONTROVERSY_WARNING_THRESHOLD = 0.5   # 50% polarization
@@ -103,41 +115,47 @@ CONTROVERSY_WARNING_THRESHOLD = 0.5   # 50% polarization
 **Purpose**: Detect visibility problems across all channels.
 
 **Detection Logic**:
+
 - Compares **24h vs 24h** (consistent with other alerts)
 - Calculates multi-channel reach:
   - Digital: `interactions × 3` (conservative estimate)
-   - Facebook: `views_count` (Morfeo estimate)
-   - Twitter/X: `views_count` (observed API data when available)
+  - Facebook: `views_count` (Morfeo estimate)
+  - Twitter/X: `views_count` (observed API data when available)
 - Minimum reach: **1,000** to avoid noise
 
 **Alert Levels**:
+
 - **High** (<= -20% drop): Critical visibility issue
 - **Medium** (<= -15% drop): Warning trend
 
 **Alert Messages**:
 
 **Critical**:
+
 ```
 📉 Caída Crítica de Alcance: {topic}
-El alcance cayó X% en las últimas 24 horas (de {prev} a {curr}). 
-Problemas de visibilidad detectados. 
+El alcance cayó X% en las últimas 24 horas (de {prev} a {curr}).
+Problemas de visibilidad detectados.
 Revisar algoritmos y estrategia de distribución.
 ```
 
 **Warning**:
+
 ```
 ⚠️ Alcance en Descenso: {topic}
-El alcance disminuyó X% en las últimas 24 horas. 
+El alcance disminuyó X% en las últimas 24 horas.
 Monitorear tendencia y considerar ajustes en la estrategia.
 ```
 
 **PR Action Required**:
+
 - Check platform algorithm changes
 - Review content distribution strategy
 - Consider paid boost
 - Analyze audience behavior changes
 
 **Configuration**:
+
 ```ruby
 REACH_CRITICAL_DECLINE = -20  # 20% drop
 REACH_WARNING_DECLINE = -15   # 15% drop
@@ -151,39 +169,45 @@ REACH_MINIMUM = 1000  # Minimum reach to alert
 **Purpose**: Detect when losing ground to competition.
 
 **Detection Logic**:
+
 - Compares **7-day windows** (7 days ago vs 7-14 days ago)
 - Calculates percentage of total market mentions
 - Minimum SoV: **5%** (significant enough to monitor)
 - Minimum mentions: **10** per period
 
 **Alert Levels**:
+
 - **High** (<= -5 points drop): Critical competitive loss
 - **Medium** (<= -3 points drop): Warning trend
 
 **Alert Messages**:
 
 **Critical**:
+
 ```
 🎯 Share of Voice en Caída Crítica: {topic}
-SoV cayó X puntos porcentuales (de Y% a Z%). 
-Perdiendo terreno vs competencia. 
+SoV cayó X puntos porcentuales (de Y% a Z%).
+Perdiendo terreno vs competencia.
 Revisar budget y estrategia inmediatamente.
 ```
 
 **Warning**:
+
 ```
 ⚡ Share of Voice Descendiendo: {topic}
-SoV disminuyó X puntos porcentuales (de Y% a Z%). 
+SoV disminuyó X puntos porcentuales (de Y% a Z%).
 Monitorear competencia y considerar ajustes.
 ```
 
 **PR Action Required**:
+
 - Analyze competitor activity
 - Review budget allocation
 - Adjust content strategy
 - Increase proactive communication
 
 **Configuration**:
+
 ```ruby
 SOV_CRITICAL_DROP = 5.0  # 5 percentage points drop
 SOV_WARNING_DROP = 3.0   # 3 percentage points drop
@@ -220,15 +244,15 @@ Alerts are sorted by severity in this order:
 
 All alerts now use **consistent time windows**:
 
-| Alert Type | Time Window | Rationale |
-|------------|-------------|-----------|
-| **Viral Content** | 6 hours | Recent enough to amplify |
-| **Controversy** | 24 hours | Real-time crisis detection |
-| **Reach Decline** | 24h vs 24h | Consistent with velocity metrics |
-| **Share of Voice** | 7 days vs 7 days | Competitive trends need longer window |
-| **Sentiment** | Current period | Based on aggregated stats |
-| **Mentions Decline** | 24h vs 24h | Standardized |
-| **Engagement Decline** | 24h vs 24h | Standardized |
+| Alert Type             | Time Window      | Rationale                             |
+| ---------------------- | ---------------- | ------------------------------------- |
+| **Viral Content**      | 6 hours          | Recent enough to amplify              |
+| **Controversy**        | 24 hours         | Real-time crisis detection            |
+| **Reach Decline**      | 24h vs 24h       | Consistent with velocity metrics      |
+| **Share of Voice**     | 7 days vs 7 days | Competitive trends need longer window |
+| **Sentiment**          | Current period   | Based on aggregated stats             |
+| **Mentions Decline**   | 24h vs 24h       | Standardized                          |
+| **Engagement Decline** | 24h vs 24h       | Standardized                          |
 
 ---
 
@@ -271,6 +295,7 @@ All alerts intelligently combine data from:
 ### Caching
 
 All alerts are cached as part of the main dashboard service:
+
 - **Cache Level**: Redis via `Rails.cache`
 - **Expiration**: 30 minutes
 - **Cache Key**: Includes topics, days_range, and date
@@ -285,6 +310,7 @@ All alerts are cached as part of the main dashboard service:
 ### Performance Impact
 
 Estimated additional queries per dashboard load:
+
 - Viral alerts: 3 queries (one per channel)
 - Controversy: 1 query
 - Reach decline: 4 queries (stats + live data)
@@ -299,10 +325,12 @@ Estimated additional queries per dashboard load:
 ### Test Case 1: Viral Content Detection
 
 **Setup**:
+
 - Topic has 10 entries with avg 50 interactions
 - One entry has 300 interactions (6x average)
 
 **Expected**:
+
 - ✅ Alert triggered (> 5x and > 100 minimum)
 - Severity: High
 - Message includes URL and multiplier
@@ -312,10 +340,12 @@ Estimated additional queries per dashboard load:
 ### Test Case 2: Controversy on Facebook
 
 **Setup**:
+
 - Post with `controversy_index = 0.75`
 - Posted in last 24 hours
 
 **Expected**:
+
 - ✅ Alert triggered (> 0.7 threshold)
 - Severity: High
 - Message warns of crisis risk
@@ -325,10 +355,12 @@ Estimated additional queries per dashboard load:
 ### Test Case 3: Reach Decline
 
 **Setup**:
+
 - Yesterday: 50,000 reach
 - Today: 38,000 reach (-24%)
 
 **Expected**:
+
 - ✅ Alert triggered (<= -20% threshold)
 - Severity: High
 - Shows actual numbers in message
@@ -338,10 +370,12 @@ Estimated additional queries per dashboard load:
 ### Test Case 4: Share of Voice Drop
 
 **Setup**:
+
 - Previous week: 15% SoV
 - This week: 9% SoV (-6 points)
 
 **Expected**:
+
 - ✅ Alert triggered (<= -5 points threshold)
 - Severity: High
 - Indicates competitive loss
@@ -373,24 +407,28 @@ All thresholds are configurable via constants in:
 ### Recommended Adjustments by Market
 
 **High-Activity Markets** (USA, Brazil):
+
 ```ruby
 VIRAL_MULTIPLIER = 7  # Higher bar for viral
 VIRAL_MINIMUM_ENGAGEMENT = 500  # More interactions required
 ```
 
 **Low-Activity Markets** (Paraguay):
+
 ```ruby
 VIRAL_MULTIPLIER = 5  # Current (good)
 VIRAL_MINIMUM_ENGAGEMENT = 100  # Current (good)
 ```
 
 **Aggressive Monitoring**:
+
 ```ruby
 REACH_WARNING_DECLINE = -10  # Alert on smaller drops
 SOV_WARNING_DROP = 2.0  # More sensitive to competition
 ```
 
 **Conservative Monitoring**:
+
 ```ruby
 REACH_CRITICAL_DECLINE = -30  # Only major issues
 SOV_CRITICAL_DROP = 7.0  # Significant drops only
@@ -445,6 +483,7 @@ SOV_CRITICAL_DROP = 7.0  # Significant drops only
 ## 📝 Files Modified
 
 **Main Implementation**:
+
 - `app/services/home_services/dashboard_aggregator_service.rb`
   - Added 4 new alert methods
   - Added threshold constants
@@ -472,6 +511,7 @@ SOV_CRITICAL_DROP = 7.0  # Significant drops only
 ## 🎯 Success Metrics
 
 **Measure alert effectiveness by**:
+
 1. Time to action (how quickly PR team responds)
 2. False positive rate (< 10% target)
 3. Missed crises (should be zero)
@@ -486,4 +526,3 @@ SOV_CRITICAL_DROP = 7.0  # Significant drops only
 **Verified By**: Cursor AI  
 **Approved By**: Bruno Sacco  
 **Documentation**: Complete
-

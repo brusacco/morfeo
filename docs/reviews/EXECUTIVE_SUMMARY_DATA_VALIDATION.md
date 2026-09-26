@@ -1,4 +1,5 @@
 # General Dashboard - Data Validation Summary
+
 **Executive Brief for CEO Presentation**
 
 ---
@@ -15,16 +16,16 @@ The General Dashboard successfully aggregates data from all sources (Digital Med
 
 These metrics are **accurate and reliable**:
 
-| Metric | Status | Data Source | Confidence |
-|--------|--------|-------------|------------|
-| **Total Mentions** | ✅ Validated | Direct DB count | 100% |
-| **Total Interactions** | ✅ Validated | API + DB aggregation | 100% |
-| **Share of Voice** | ✅ Validated | Comparative analysis | 95% |
-| **Engagement Rate** | ✅ Formula correct | Interactions/Reach | 95%* |
-| **Sentiment Score** | ✅ Weighted average | Multi-source | 85% |
-| **Channel Breakdown** | ✅ Validated | Per-platform | 100% |
+| Metric                 | Status              | Data Source          | Confidence |
+| ---------------------- | ------------------- | -------------------- | ---------- |
+| **Total Mentions**     | ✅ Validated        | Direct DB count      | 100%       |
+| **Total Interactions** | ✅ Validated        | API + DB aggregation | 100%       |
+| **Share of Voice**     | ✅ Validated        | Comparative analysis | 95%        |
+| **Engagement Rate**    | ✅ Formula correct  | Interactions/Reach   | 95%\*      |
+| **Sentiment Score**    | ✅ Weighted average | Multi-source         | 85%        |
+| **Channel Breakdown**  | ✅ Validated        | Per-platform         | 100%       |
 
-*Depends on reach accuracy (see below)
+\*Depends on reach accuracy (see below)
 
 ---
 
@@ -33,18 +34,21 @@ These metrics are **accurate and reliable**:
 ### 1. Total Reach - Estimation Method ⚠️
 
 **Current Approach**:
+
 - Digital Media: Interactions × 10
 - Facebook: Morfeo-modeled visualizations
 - Twitter: Views when available, else Interactions × 20
 
 **Issue**: Arbitrary multipliers (10x, 20x) lack scientific validation
 
-**Client Risk**: 
+**Client Risk**:
+
 - If questioned, cannot defend multiplier choice
 - May overstate or understate actual reach
 - Competitors may use different methods
 
 **Recommendation**:
+
 ```
 Option 1: Separate observed views from modeled visualizations
 Option 2: Implement tracking pixels for accurate digital reach
@@ -60,10 +64,12 @@ Option 3: Clearly label as "estimated" with confidence range
 **Current**: `Reach × 1.3` (claimed as "industry standard")
 
 **Issue**: This is **not** an industry standard
+
 - Real frequency varies: 1.5-3.0 depending on platform
 - Cannot defend this calculation to data-savvy stakeholders
 
-**Recommendation**: 
+**Recommendation**:
+
 ```
 Remove from dashboard OR clearly mark as rough estimate
 Better: Show reach only (more defensible)
@@ -80,6 +86,7 @@ Better: Show reach only (more defensible)
 **Issue**: No historical or statistical basis for thresholds
 
 **Recommendation**:
+
 ```
 Phase 1: Use current thresholds but add disclaimer
 Phase 2: Calculate historical baselines for each topic
@@ -93,7 +100,9 @@ Phase 3: Use statistical significance (Z-scores)
 ## Performance Concerns 🔴
 
 ### Market Position Calculation
+
 **Issue**: Creates separate service call for each topic
+
 - With 50 topics = 300+ database queries
 - Will cause timeouts in production
 
@@ -106,12 +115,14 @@ Phase 3: Use statistical significance (Z-scores)
 ## Critical Fixes Required Before CEO Meeting
 
 ### Must-Do (1 day):
+
 1. ✅ Fix division-by-zero risk in viral content detection
 2. ✅ Optimize market position query (performance)
 3. ⚠️ Add disclaimers to estimated metrics
 4. ⚠️ Test with production data (verify all totals)
 
 ### Should-Do (2 days):
+
 5. Revise reach calculation or add confidence levels
 6. Remove impressions metric or mark as rough estimate
 7. Add data freshness indicators
@@ -123,13 +134,13 @@ Phase 3: Use statistical significance (Z-scores)
 
 ### Sample Size Confidence
 
-| Mentions | Confidence Level | Interpretation |
-|----------|------------------|----------------|
-| < 10 | 20% | Insights not reliable |
-| 10-50 | 50% | Directional indicators |
-| 50-200 | 70% | Moderate confidence |
-| 200-1,000 | 85% | Good confidence |
-| 1,000+ | 95% | High confidence |
+| Mentions  | Confidence Level | Interpretation         |
+| --------- | ---------------- | ---------------------- |
+| < 10      | 20%              | Insights not reliable  |
+| 10-50     | 50%              | Directional indicators |
+| 50-200    | 70%              | Moderate confidence    |
+| 200-1,000 | 85%              | Good confidence        |
+| 1,000+    | 95%              | High confidence        |
 
 **Currently Implemented**: ✅ Yes, shown in sentiment analysis
 
@@ -137,30 +148,33 @@ Phase 3: Use statistical significance (Z-scores)
 
 ## Recommendations Engine - Validation Status
 
-| Recommendation Type | Scientific Basis | Actionability | Status |
-|---------------------|------------------|---------------|--------|
-| Best Publishing Time | ✅ Historical data | ✅ Specific | Ready |
-| Best Channel | ✅ Engagement rates | ✅ Clear | Ready |
-| Viral Content | ⚠️ Arbitrary threshold | ⚠️ Generic | Needs work |
-| Sentiment Actions | ⚠️ Threshold-based | ✅ Clear | Functional |
-| Growth Opportunities | ✅ Benchmarking | ✅ Specific | Ready |
+| Recommendation Type  | Scientific Basis       | Actionability | Status     |
+| -------------------- | ---------------------- | ------------- | ---------- |
+| Best Publishing Time | ✅ Historical data     | ✅ Specific   | Ready      |
+| Best Channel         | ✅ Engagement rates    | ✅ Clear      | Ready      |
+| Viral Content        | ⚠️ Arbitrary threshold | ⚠️ Generic    | Needs work |
+| Sentiment Actions    | ⚠️ Threshold-based     | ✅ Clear      | Functional |
+| Growth Opportunities | ✅ Benchmarking        | ✅ Specific   | Ready      |
 
 ---
 
 ## Client Presentation Guidance
 
 ### What to Emphasize ✅
+
 - **Multi-channel integration** - First time all data sources combined
 - **Trend analysis** - Compare vs. previous period
 - **Channel performance** - See which platforms work best
 - **Actionable insights** - Best times, best channels
 
 ### What to Caveat ⚠️
+
 - **Reach estimates** - "Digital reach is estimated; Facebook is actual"
 - **Sample size** - "Confidence increases with more data points"
 - **Sentiment accuracy** - "Based on AI analysis, ~85% accuracy"
 
 ### What NOT to Say ❌
+
 - "Industry standard impressions" - Not defendable
 - "100% accuracy" - No metric is perfect
 - "Real-time data" - Data has latency
@@ -169,13 +183,13 @@ Phase 3: Use statistical significance (Z-scores)
 
 ## Comparison to Individual Dashboards
 
-| Feature | Individual Dashboard | General Dashboard | Advantage |
-|---------|---------------------|-------------------|-----------|
-| Data Depth | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | Individual |
-| Cross-Channel | ❌ | ✅ | General |
-| CEO-Ready | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | General |
-| Detail Level | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | Individual |
-| Strategic View | ⭐⭐ | ⭐⭐⭐⭐⭐ | General |
+| Feature        | Individual Dashboard | General Dashboard | Advantage  |
+| -------------- | -------------------- | ----------------- | ---------- |
+| Data Depth     | ⭐⭐⭐⭐⭐           | ⭐⭐⭐            | Individual |
+| Cross-Channel  | ❌                   | ✅                | General    |
+| CEO-Ready      | ⭐⭐⭐               | ⭐⭐⭐⭐⭐        | General    |
+| Detail Level   | ⭐⭐⭐⭐⭐           | ⭐⭐⭐            | Individual |
+| Strategic View | ⭐⭐                 | ⭐⭐⭐⭐⭐        | General    |
 
 **Positioning**: General Dashboard is for **strategic decisions**, Individual Dashboards are for **tactical execution**
 
@@ -184,11 +198,13 @@ Phase 3: Use statistical significance (Z-scores)
 ## Risk Assessment
 
 ### Technical Risks
+
 - 🟢 **Low**: Core calculations (mentions, interactions, trends)
 - 🟡 **Medium**: Estimation methods (reach, impressions)
 - 🔴 **High**: Performance with many topics (must fix)
 
 ### Business Risks
+
 - 🟢 **Low**: Internal use only
 - 🟡 **Medium**: Client presentations (add disclaimers)
 - 🔴 **High**: Competitor comparison (validate methodology first)
@@ -213,18 +229,21 @@ Before presenting to CEO/clients:
 ## Next Steps
 
 ### Immediate (Today)
+
 1. Review this document with technical lead
 2. Implement critical performance fix
 3. Add data disclaimers to UI
 4. Test with real client data
 
 ### Before CEO Meeting
+
 5. Verify all calculations with manual SQL
 6. Prepare answers for "How is this calculated?"
 7. Have fallback plan if live data fails
 8. Prepare printed PDF as backup
 
 ### After First Presentation
+
 9. Gather feedback on usefulness
 10. Refine based on CEO questions
 11. Implement statistical improvements
@@ -243,4 +262,3 @@ Before presenting to CEO/clients:
 **Prepared by**: Senior Data Analyst Review  
 **Date**: October 31, 2025  
 **Next Review**: After implementing critical fixes
-

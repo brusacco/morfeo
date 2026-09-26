@@ -12,6 +12,7 @@
 This document provides a comprehensive review of the General Dashboard's data calculations, statistical methods, and recommendations. Several **critical issues** have been identified that compromise data accuracy and scientific validity.
 
 ### Overall Assessment
+
 - ✅ **Good**: Database query efficiency, trend calculations, percentage calculations
 - ⚠️ **Needs Review**: Reach estimation methods, sentiment aggregation, confidence intervals
 - ❌ **Critical Issues**: Unvalidated multipliers, missing statistical significance tests, arbitrary thresholds
@@ -21,12 +22,15 @@ This document provides a comprehensive review of the General Dashboard's data ca
 ## Section 1: Executive Summary Metrics
 
 ### 1.1 Total Mentions ✅
-**Calculation**: 
+
+**Calculation**:
+
 ```ruby
 total_mentions = digital_data[:count] + facebook_data[:count] + twitter_data[:count]
 ```
 
 **Assessment**: ✅ **ACCURATE**
+
 - Direct summation of distinct counts from each platform
 - Uses `count('DISTINCT table.id')` to avoid duplicates
 - No overlapping data sources
@@ -36,17 +40,21 @@ total_mentions = digital_data[:count] + facebook_data[:count] + twitter_data[:co
 ---
 
 ### 1.2 Total Interactions ✅
+
 **Calculation**:
+
 ```ruby
 total_interactions = digital_data[:interactions] + facebook_data[:interactions] + twitter_data[:interactions]
 ```
 
 **Where**:
+
 - Digital: `entries.sum(:total_count)`
 - Facebook: `sum(reactions_total_count + comments_count + share_count)`
 - Twitter: `sum(favorite_count + retweet_count + reply_count + quote_count)`
 
 **Assessment**: ✅ **ACCURATE**
+
 - Proper aggregation of interaction metrics
 - No double-counting between platforms
 - SQL uses `Arel.sql()` for safety
@@ -56,7 +64,9 @@ total_interactions = digital_data[:interactions] + facebook_data[:interactions] 
 ---
 
 ### 1.3 Total Reach ❌ CRITICAL ISSUE
+
 **Current Calculation**:
+
 ```ruby
 # Digital
 digital_reach = entries.sum(:total_count) * 10  # ❌ Arbitrary 10x multiplier
@@ -73,6 +83,7 @@ total_reach = digital_reach + facebook_reach + twitter_reach
 **Assessment**: ❌ **SCIENTIFICALLY INVALID**
 
 **Problems**:
+
 1. **Digital Media Multiplier (10x)**: No empirical basis
    - Industry standards vary widely (3x to 50x depending on source authority)
    - Does not account for site traffic differences
@@ -86,12 +97,13 @@ total_reach = digital_reach + facebook_reach + twitter_reach
 3. **Mixed Data Types**: Combining Facebook and digital estimates with observed X/Instagram views without distinguishing them
 
 **Recommendations**:
+
 ```ruby
 # OPTION 1: Use actual data only (Conservative, Accurate)
 def total_reach
   actual_reach = facebook_data[:reach]  # Only Facebook has reliable reach data
   estimated_reach = digital_data[:interactions] + twitter_data[:interactions]
-  
+
   {
     actual: actual_reach,
     estimated: estimated_reach,
@@ -102,7 +114,7 @@ end
 # OPTION 2: Use industry-validated multipliers with confidence intervals
 def digital_reach_with_confidence
   interactions = entries.sum(:total_count)
-  
+
   # Research-backed multipliers by site authority
   # Source: Nielsen/ComScore media reach studies
   multipliers = {
@@ -110,13 +122,13 @@ def digital_reach_with_confidence
     medium_authority: 8,  # Regional news
     low_authority: 3      # Blogs, small sites
   }
-  
+
   # Calculate weighted reach
   site_reaches = entries.group_by(&:site).map do |site, site_entries|
     authority = site.authority_score || 'medium_authority'
     site_entries.sum(&:total_count) * multipliers[authority.to_sym]
   end
-  
+
   {
     reach: site_reaches.sum,
     confidence: 0.6,  # 60% confidence in estimation
@@ -143,16 +155,18 @@ end
 ---
 
 ### 1.4 Average Sentiment ⚠️ NEEDS VALIDATION
+
 **Current Calculation**:
+
 ```ruby
 def average_sentiment
   digital_score = digital_sentiment[:average] * digital_data[:count]
   facebook_score = facebook_sentiment[:average] * facebook_data[:count]
   twitter_score = twitter_sentiment[:average] * twitter_data[:count]
-  
+
   total = digital_data[:count] + facebook_data[:count] + twitter_data[:count]
   return 0 if total.zero?
-  
+
   ((digital_score + facebook_score + twitter_score) / total).round(2)
 end
 ```
@@ -160,6 +174,7 @@ end
 **Assessment**: ⚠️ **METHODOLOGICALLY QUESTIONABLE**
 
 **Problems**:
+
 1. **Different Sentiment Scales**:
    - Digital: Calculated as `(positive - negative) / total * 100` → Range: -100 to +100
    - Facebook: Uses Meta's sentiment API → Range: Unknown (likely 0-5 or 0-100)
@@ -175,26 +190,27 @@ end
    - 5 mentions vs 5,000 mentions should have different confidence
 
 **Recommendations**:
+
 ```ruby
 def average_sentiment_validated
   # Normalize all sentiments to -100 to +100 scale
   digital_norm = normalize_to_scale(digital_sentiment[:average], -100, 100)
   facebook_norm = normalize_to_scale(facebook_sentiment[:average], 0, 100, to_bipolar: true)
   twitter_norm = 0  # Not implemented
-  
+
   # Calculate weighted average
   total_weight = digital_data[:count] + facebook_data[:count] + twitter_data[:count]
   return { score: 0, confidence: 0, note: "Insufficient data" } if total_weight.zero?
-  
+
   weighted_score = (
     digital_norm * digital_data[:count] +
     facebook_norm * facebook_data[:count] +
     twitter_norm * twitter_data[:count]
   ) / total_weight
-  
+
   # Calculate confidence based on sample size
   confidence = calculate_confidence_from_sample_size(total_weight)
-  
+
   {
     score: weighted_score.round(2),
     confidence: confidence,
@@ -227,7 +243,9 @@ end
 ---
 
 ### 1.5 Engagement Rate ✅
+
 **Calculation**:
+
 ```ruby
 def calculate_engagement_rate(interactions, reach)
   return 0 if reach.zero?
@@ -235,19 +253,21 @@ def calculate_engagement_rate(interactions, reach)
 end
 ```
 
-**Assessment**: ✅ **FORMULA CORRECT** 
+**Assessment**: ✅ **FORMULA CORRECT**
 ⚠️ **BUT** accuracy depends on reach accuracy (see 1.3)
 
 **Industry Benchmark**:
+
 - Social Media: 1-5% is good
 - News Media: 0.1-1% is typical
 - Viral content: 10%+
 
 **Recommendation**: Add benchmark comparisons
+
 ```ruby
 def engagement_rate_with_context
   rate = calculate_engagement_rate(total_interactions, total_reach)
-  
+
   {
     rate: rate,
     interpretation: case rate
@@ -269,7 +289,9 @@ end
 ---
 
 ### 1.6 Share of Voice ✅
+
 **Calculation**:
+
 ```ruby
 def share_of_voice
   return 0 if all_topics_mentions.zero?
@@ -278,14 +300,16 @@ end
 ```
 
 **Assessment**: ✅ **ACCURATE**
+
 - Standard PR metric calculation
 - Correctly compares topic to total market
 
 **Recommendation**: Add competitive context
+
 ```ruby
 def share_of_voice_with_context
   sov = share_of_voice
-  
+
   {
     value: sov,
     interpretation: case sov
@@ -308,7 +332,9 @@ end
 ## Section 2: Channel Performance
 
 ### 2.1 Digital Data ✅
+
 **Assessment**: ✅ **ACCURATE**
+
 - Uses existing `report_entries` scope (validated in other dashboards)
 - Proper trend calculation comparing equal time periods
 - No issues identified
@@ -316,7 +342,9 @@ end
 ---
 
 ### 2.2 Facebook Data ✅
+
 **Assessment**: ✅ **ACCURATE**
+
 - Uses distinct counting to avoid duplicates
 - Proper interaction aggregation
 - Actual `views_count` from Meta API
@@ -325,20 +353,23 @@ end
 ---
 
 ### 2.3 Twitter Data ⚠️
+
 **Assessment**: ⚠️ **PARTIALLY ACCURATE**
 
 **Issue**: Fallback reach estimation
+
 ```ruby
 reach = views > 0 ? views : interactions * 20  # ❌ Arbitrary multiplier
 ```
 
 **Recommendation**:
+
 ```ruby
 # Check actual Twitter API availability
 reach = if views > 0
   { value: views, type: 'actual' }
 else
-  { 
+  {
     value: interactions * 10,  # More conservative multiplier
     type: 'estimated',
     note: 'Estimado: API de Twitter no proporcionó vistas'
@@ -351,7 +382,9 @@ end
 ## Section 3: Sentiment Analysis
 
 ### 3.1 Overall Sentiment Confidence ✅ (Good Approach)
+
 **Current**:
+
 ```ruby
 def overall_sentiment_confidence
   total = total_mentions
@@ -366,24 +399,26 @@ end
 ```
 
 **Assessment**: ✅ **GOOD STATISTICAL THINKING**
+
 - Acknowledges sample size impact
 - Reasonable thresholds
 
 **Enhancement**: Add statistical basis
+
 ```ruby
 # Based on Wilson Score Interval for proportion confidence
 def overall_sentiment_confidence_statistical
   n = total_mentions
   return 0 if n.zero?
-  
+
   # Confidence interval width (95% confidence level)
   # Smaller width = higher confidence
   z = 1.96  # 95% confidence
   p = 0.5   # Worst case (maximum variance)
-  
+
   margin_of_error = z * Math.sqrt((p * (1 - p)) / n)
   confidence = 1 - margin_of_error
-  
+
   confidence.round(2)
 end
 ```
@@ -391,7 +426,9 @@ end
 ---
 
 ### 3.2 Sentiment Alerts ❌ CRITICAL ISSUE
+
 **Current**:
+
 ```ruby
 # Negative spike detection
 if average_sentiment < -30
@@ -407,23 +444,25 @@ end
 **Assessment**: ❌ **ARBITRARY THRESHOLDS WITHOUT VALIDATION**
 
 **Problems**:
+
 1. Thresholds (-30, -20) have no empirical basis
 2. No consideration of historical volatility
 3. No false positive/negative analysis
 4. Could trigger unnecessary crisis responses
 
 **Recommendations**:
+
 ```ruby
 def detect_sentiment_alerts_validated
   alerts = []
   current = average_sentiment
   historical_avg = topic.historical_sentiment_average  # Need to implement
   historical_std = topic.historical_sentiment_std_dev  # Need to implement
-  
+
   # Statistical significance test (Z-score)
   if historical_std > 0
     z_score = (current - historical_avg) / historical_std
-    
+
     # Crisis: More than 2 standard deviations below normal
     if z_score < -2.0 && current < -20
       alerts << {
@@ -435,7 +474,7 @@ def detect_sentiment_alerts_validated
         recommendation: 'Revisar inmediatamente y preparar respuesta'
       }
     end
-    
+
     # Warning: Between 1-2 standard deviations
     if z_score < -1.0 && z_score >= -2.0
       alerts << {
@@ -458,7 +497,7 @@ def detect_sentiment_alerts_validated
       }
     end
   end
-  
+
   alerts
 end
 ```
@@ -470,7 +509,9 @@ end
 ## Section 4: Reach Analysis
 
 ### 4.1 Total Impressions ❌ CRITICAL ISSUE
+
 **Current**:
+
 ```ruby
 def total_impressions
   total_reach * 1.3  # Industry standard: impressions = reach * 1.3
@@ -480,7 +521,8 @@ end
 **Assessment**: ❌ **MISLEADING CLAIM**
 
 **Problems**:
-1. **"Industry standard" is inaccurate**: 
+
+1. **"Industry standard" is inaccurate**:
    - Digital advertising: Impressions ≠ Reach × 1.3
    - Actual relationship: Impressions > Reach (one person sees multiple times)
    - Frequency = Impressions / Reach, typically 1.5-3.0, not fixed at 1.3
@@ -493,6 +535,7 @@ end
 3. **Client confusion**: Mixing estimated reach with calculated impressions
 
 **Recommendations**:
+
 ```ruby
 # OPTION 1: Remove if not validated
 # Delete this metric entirely - too speculative
@@ -538,7 +581,9 @@ end
 ## Section 5: Competitive Analysis
 
 ### 5.1 Market Position ❌ PERFORMANCE ISSUE
+
 **Current**:
+
 ```ruby
 def market_position
   all_topics = Topic.active
@@ -553,12 +598,14 @@ end
 **Assessment**: ❌ **SEVERE PERFORMANCE ISSUE**
 
 **Problems**:
+
 1. **N+1 Service Calls**: If there are 50 topics, this creates 50 AggregatorService instances
 2. **Each service queries**: Digital + Facebook + Twitter data = 150+ database queries
 3. **Exponential complexity**: Each service might call this method, creating infinite recursion potential
 4. **Cache invalidation**: Not leveraging Rails cache properly
 
 **Recommendations**:
+
 ```ruby
 # Use direct database queries instead of service layer
 def market_position_optimized
@@ -569,31 +616,31 @@ def market_position_optimized
     .joins(:topic)
     .group('topics.id')
     .count
-  
+
   facebook_mentions = FacebookEntry
     .where(posted_at: start_date..end_date)
     .joins(taggings: :tag)
     .joins('INNER JOIN topics ON topics.id = tags.topic_id')
     .group('topics.id')
     .count
-  
+
   twitter_mentions = TwitterPost
     .where(posted_at: start_date..end_date)
     .joins(taggings: :tag)
     .joins('INNER JOIN topics ON topics.id = tags.topic_id')
     .group('topics.id')
     .count
-  
+
   # Combine counts
   all_topic_mentions = Hash.new(0)
   [digital_mentions, facebook_mentions, twitter_mentions].each do |hash|
     hash.each { |topic_id, count| all_topic_mentions[topic_id] += count }
   end
-  
+
   # Rank
   ranked = all_topic_mentions.sort_by { |_id, count| -count }
   position = ranked.index { |id, _count| id == topic.id }
-  
+
   {
     rank: position ? position + 1 : nil,
     total_topics: ranked.size,
@@ -610,12 +657,14 @@ end
 ## Section 6: Recommendations Engine
 
 ### 6.1 Viral Content Identification ❌ LOGIC ERROR
+
 **Current**:
+
 ```ruby
 def identify_viral_content
   {
-    digital: top_digital_entries.select { |e| 
-      e.total_count > digital_data[:interactions] / digital_data[:count] * 5 
+    digital: top_digital_entries.select { |e|
+      e.total_count > digital_data[:interactions] / digital_data[:count] * 5
     },
     # Similar for facebook and twitter...
   }
@@ -625,21 +674,23 @@ end
 **Assessment**: ❌ **DIVISION BY ZERO RISK & ARBITRARY MULTIPLIER**
 
 **Problems**:
+
 1. If `digital_data[:count]` is 0, causes division by zero error
 2. Multiplier of 5 is arbitrary (why not 3? why not 10?)
 3. Should use standard deviation, not arbitrary multipliers
 
 **Recommendations**:
+
 ```ruby
 def identify_viral_content_statistical
   # Calculate using standard deviation (more scientific)
   digital_interactions = digital_entries.map(&:total_count)
   digital_mean = digital_interactions.sum / digital_interactions.size.to_f
   digital_std = calculate_std_dev(digital_interactions, digital_mean)
-  
+
   # Viral = more than 2 standard deviations above mean
   viral_threshold = digital_mean + (2 * digital_std)
-  
+
   {
     digital: {
       content: top_digital_entries.select { |e| e.total_count > viral_threshold },
@@ -652,7 +703,7 @@ end
 
 def calculate_std_dev(values, mean)
   return 0 if values.empty?
-  
+
   variance = values.map { |v| (v - mean) ** 2 }.sum / values.size
   Math.sqrt(variance)
 end
@@ -663,11 +714,13 @@ end
 ---
 
 ### 6.2 Content Suggestions ⚠️ OVERLY SIMPLISTIC
+
 **Current**:
+
 ```ruby
 def content_suggestions
   suggestions = []
-  
+
   if identify_viral_content.values.any?(&:any?)
     suggestions << {
       type: 'content_type',
@@ -682,22 +735,24 @@ end
 **Assessment**: ⚠️ **TOO GENERIC**
 
 **Problems**:
-1. Doesn't analyze *why* content went viral
+
+1. Doesn't analyze _why_ content went viral
 2. No actionable details (topic? format? tone?)
 3. CEO will ask: "Similar how?"
 
 **Recommendations**:
+
 ```ruby
 def content_suggestions_actionable
   suggestions = []
   viral = identify_viral_content
-  
+
   if viral.values.any?(&:any?)
     # Analyze viral content characteristics
     viral_topics = extract_common_topics(viral)
     viral_sentiment = analyze_viral_sentiment(viral)
     viral_times = analyze_viral_timing(viral)
-    
+
     suggestions << {
       type: 'content_type',
       suggestion: "Crear contenido sobre: #{viral_topics.first(3).join(', ')}",
@@ -710,7 +765,7 @@ def content_suggestions_actionable
       expected_impact: "+#{calculate_expected_lift(viral)}% engagement"
     }
   end
-  
+
   # Add more specific suggestions...
   suggestions
 end
@@ -723,7 +778,9 @@ end
 ## Section 7: Temporal Intelligence
 
 ### 7.1 Optimal Publishing Time ⚠️ DISABLED
+
 **Current**:
+
 ```ruby
 def build_temporal_intelligence_lightweight
   {
@@ -745,11 +802,13 @@ end
 **Assessment**: ⚠️ **DATA NOT BEING USED**
 
 **Problems**:
+
 1. **Hardcoded recommendation**: Always says Monday 9 AM regardless of data
 2. **Expensive calculations disabled**: But these are valuable insights for CEO
 3. **No caching strategy**: Could cache these calculations for 24 hours
 
 **Recommendations**:
+
 ```ruby
 # Cache temporal analysis separately with longer TTL
 def build_temporal_intelligence_cached
@@ -782,18 +841,21 @@ end
 ## Section 8: Data Quality Issues
 
 ### 8.1 Missing Error Handling
+
 **Issues**:
+
 - No handling for API failures (Facebook, Twitter APIs can fail)
 - No graceful degradation when data sources unavailable
 - No data freshness indicators
 
 **Recommendations**:
+
 ```ruby
 def facebook_data_with_error_handling
   @facebook_data ||= begin
     tag_names = topic.tags.pluck(:name)
     return safe_empty_result if tag_names.empty?
-    
+
     # Try to get data with timeout
     Timeout.timeout(5) do
       # ... calculation ...
@@ -815,9 +877,11 @@ end
 ---
 
 ### 8.2 Data Freshness
+
 **Issue**: No indication of data staleness
 
 **Recommendations**:
+
 ```ruby
 def data_freshness_indicators
   {
@@ -835,7 +899,7 @@ end
 
 def freshness_status(last_timestamp)
   return 'No data' unless last_timestamp
-  
+
   age = Time.current - last_timestamp
   case age
   when 0..1.hour then 'Real-time'
@@ -852,18 +916,21 @@ end
 ## Critical Action Items
 
 ### Immediate (Before showing to CEO)
+
 1. **🔴 Fix reach calculation** - Remove or justify all multipliers
 2. **🔴 Fix market position** - Optimize query to prevent performance issues
 3. **🔴 Add data disclaimers** - Clearly mark estimated vs actual data
 4. **🔴 Validate sentiment thresholds** - Use historical data or remove arbitrary alerts
 
 ### Short Term (Next Sprint)
+
 5. **🟡 Implement confidence intervals** - Add statistical confidence to all estimates
 6. **🟡 Enable temporal intelligence** - Add background job for expensive calculations
 7. **🟡 Enhance recommendations** - Make actionable with specific details
 8. **🟡 Add error handling** - Graceful degradation for API failures
 
 ### Long Term (Next Quarter)
+
 9. **🟢 Implement tracking pixels** - Get actual reach data for digital media
 10. **🟢 Historical baselines** - Store monthly aggregates for trend analysis
 11. **🟢 A/B test recommendations** - Validate recommendation engine effectiveness
@@ -881,6 +948,7 @@ The General Dashboard has a **solid foundation** but requires **critical fixes**
 4. **Missing confidence indicators** (no way to know data quality)
 
 ### Overall Rating: 6.5/10
+
 - ✅ **Strengths**: Good data aggregation, proper SQL, trend calculations
 - ❌ **Weaknesses**: Estimation methods, arbitrary thresholds, performance
 - 🎯 **Priority**: Fix critical issues before CEO presentation
@@ -888,6 +956,7 @@ The General Dashboard has a **solid foundation** but requires **critical fixes**
 ---
 
 **Recommended Next Steps**:
+
 1. Review this document with technical lead
 2. Implement fixes for 🔴 HIGH priority items
 3. Add disclaimers to all estimated metrics
@@ -896,4 +965,3 @@ The General Dashboard has a **solid foundation** but requires **critical fixes**
 
 **Estimated Time to Fix Critical Issues**: 2-3 days  
 **Estimated Time for All Improvements**: 2-3 weeks
-
