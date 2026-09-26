@@ -153,6 +153,11 @@ sentiment source equivalent to digital or Facebook analysis, so it is displayed
 as neutral at channel level and is deliberately excluded from the weighted global
 sentiment and distribution calculations.
 
+The General Dashboard Top Content preview renders the four channel-specific
+collections (`top_entries`, `top_facebook_posts`, `top_tweets`, and
+`top_instagram_posts`) in a responsive four-column layout. Instagram cards link
+to the original post and show the profile, caption, and total interactions.
+
 ## Home Dashboard Aggregator
 
 **Location**: `app/services/home_services/dashboard_aggregator_service.rb`

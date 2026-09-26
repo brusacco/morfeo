@@ -15,6 +15,8 @@
 - Restored the General Dashboard combined text-analysis hash after a misplaced
   Instagram relation caused recommendation generation to index an Active Record
   relation with a symbol. Added a regression spec for the hash contract.
+- Added the missing Instagram column to the General Dashboard Top Content
+  preview, matching the existing four-channel PDF coverage.
 
 ## 2026-09-25
 

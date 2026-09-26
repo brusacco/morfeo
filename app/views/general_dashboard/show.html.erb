@@ -794,7 +794,7 @@
       </div>
 
       <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
           <!-- Top Digital Entries -->
           <div>
             <h3 class="text-lg font-semibold text-indigo-900 mb-4 flex items-center">
@@ -855,6 +855,28 @@
                   <div class="flex items-center justify-between text-xs text-gray-600 mt-2">
                     <span>@<%= tweet.twitter_profile.username %></span>
                     <span class="font-semibold text-sky-600"><%= number_with_delimiter(tweet.total_interactions) %> interacciones</span>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+
+          <!-- Top Instagram Posts -->
+          <div>
+            <h3 class="text-lg font-semibold text-pink-900 mb-4 flex items-center">
+              <i class="fa-brands fa-instagram text-pink-600 mr-2"></i>
+              Posts de Instagram
+            </h3>
+            <div class="space-y-3">
+              <% @top_content[:top_instagram_posts].first(3).each do |post| %>
+                <div class="p-3 bg-pink-50 rounded-lg border border-pink-100">
+                  <%= link_to post.instagram_url, target: '_blank', class: 'text-sm font-medium text-gray-900 hover:text-pink-600 line-clamp-2 block mb-1' do %>
+                    <%= post.caption&.truncate(60) || 'Ver publicación' %>
+                    <i class="fa-solid fa-external-link text-xs ml-1"></i>
+                  <% end %>
+                  <div class="flex items-center justify-between text-xs text-gray-600 mt-2">
+                    <span>@<%= post.instagram_profile&.username || 'N/A' %></span>
+                    <span class="font-semibold text-pink-600"><%= number_with_delimiter(post.total_interactions) %> interacciones</span>
                   </div>
                 </div>
               <% end %>
