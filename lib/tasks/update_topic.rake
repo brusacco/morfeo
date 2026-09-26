@@ -16,7 +16,8 @@ module TopicUpdateCacheInvalidation
       "general_dashboard:v3:topic:#{topic_id}:*",
       "general_dashboard:v4:topic:#{topic_id}:*",
       'home_dashboard:v3:*',
-      'home_dashboard:v4:*'
+      'home_dashboard:v4:*',
+      'home_dashboard:v5:*'
     ]
   end
 end

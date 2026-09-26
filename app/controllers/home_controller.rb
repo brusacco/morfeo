@@ -39,19 +39,22 @@ class HomeController < ApplicationController
     @chart_channel_mentions = {
       'Digital' => @channel_stats[:digital][:mentions],
       'Facebook' => @channel_stats[:facebook][:mentions],
-      'Twitter' => @channel_stats[:twitter][:mentions]
+      'Twitter' => @channel_stats[:twitter][:mentions],
+      'Instagram' => @channel_stats[:instagram][:mentions]
     }
 
     @chart_channel_interactions = {
       'Digital' => @channel_stats[:digital][:interactions],
       'Facebook' => @channel_stats[:facebook][:interactions],
-      'Twitter' => @channel_stats[:twitter][:interactions]
+      'Twitter' => @channel_stats[:twitter][:interactions],
+      'Instagram' => @channel_stats[:instagram][:interactions]
     }
 
     @chart_channel_reach = {
       'Digital' => @channel_stats[:digital][:reach],
       'Facebook' => @channel_stats[:facebook][:reach],
-      'Twitter' => @channel_stats[:twitter][:reach]
+      'Twitter' => @channel_stats[:twitter][:reach],
+      'Instagram' => @channel_stats[:instagram][:reach]
     }
 
     # EXISTING: Multiple Charts (kept for backward compatibility)

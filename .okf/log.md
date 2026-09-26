@@ -2,6 +2,9 @@
 
 ## 2026-09-26
 
+- Added Instagram as the fourth Home Dashboard channel across executive totals,
+  channel comparisons, charts, temporal engagement, and Top Content. Versioned
+  its payload cache from `home_dashboard:v4` to `home_dashboard:v5`.
 - Added Instagram as the fourth channel in the General Dashboard: its tagged,
   range-scoped posts now contribute to mentions, interactions, observed video-view
   reach, competitive totals, temporal aggregates, top content, viral content,

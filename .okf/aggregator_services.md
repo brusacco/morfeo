@@ -164,12 +164,18 @@ to the original post and show the profile, caption, and total interactions.
 
 **Purpose**: Aggregates cross-topic home dashboard metrics.
 
-**Cache Key**: `home_dashboard:v4:topics:{sorted_unique_topic_ids}:payload:{start_date}:{end_date}`
+**Cache Key**: `home_dashboard:v5:topics:{sorted_unique_topic_ids}:payload:{start_date}:{end_date}`
 
 The key includes the complete sorted topic set, so a topic update invalidates the
 Home namespace as well as the affected topic-specific dashboard caches. The
 payload includes `word_occurrences` for the Tags Cloud, so a cache hit performs
 no text-corpus analysis.
+
+Home aggregates Digital, Facebook, Twitter, and Instagram. Instagram contributes
+tag-scoped mentions, likes plus comments as interactions, observed video views as
+reach, prior-period trend calculations, temporal engagement, and top content.
+It appears in channel cards and comparison charts but remains excluded from the
+weighted sentiment calculation because it has no integrated sentiment source.
 
 ## Site Dashboard Aggregator
 

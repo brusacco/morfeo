@@ -171,6 +171,7 @@ namespace :cache do
     Rails.cache.delete_matched('general_dashboard:v4:*')
     Rails.cache.delete_matched('home_dashboard:v3:*')
     Rails.cache.delete_matched('home_dashboard:v4:*')
+    Rails.cache.delete_matched('home_dashboard:v5:*')
 
     # Clear action caches (views)
     Rails.cache.delete_matched('views/*')

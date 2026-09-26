@@ -79,7 +79,7 @@ module HomeServices
     private
 
     def cache_key
-      "home_dashboard:v4:topics:#{@topics.map(&:id).uniq.sort.join(',')}:payload:#{cache_date_range}"
+      "home_dashboard:v5:topics:#{@topics.map(&:id).uniq.sort.join(',')}:payload:#{cache_date_range}"
     end
 
     def cache_date_range
@@ -130,10 +130,12 @@ module HomeServices
       digital = channel_stats(:digital)
       facebook = channel_stats(:facebook)
       twitter = channel_stats(:twitter)
+      instagram = channel_stats(:instagram)
 
-      total_mentions = digital[:mentions] + facebook[:mentions] + twitter[:mentions]
-      total_interactions = digital[:interactions] + facebook[:interactions] + twitter[:interactions]
-      total_reach = digital[:reach] + facebook[:reach] + twitter[:reach]
+      total_mentions = digital[:mentions] + facebook[:mentions] + twitter[:mentions] + instagram[:mentions]
+      total_interactions = digital[:interactions] + facebook[:interactions] + twitter[:interactions] + instagram[:interactions]
+      total_reach = digital[:reach] + facebook[:reach] + twitter[:reach] + instagram[:reach]
+      sentiment_mentions = digital[:mentions] + facebook[:mentions] + twitter[:mentions]
 
       previous_interactions = calculate_previous_period_interactions
 
@@ -141,7 +143,7 @@ module HomeServices
         total_mentions: total_mentions,
         total_interactions: total_interactions,
         total_reach: total_reach,
-        average_sentiment: calculate_weighted_sentiment(digital, facebook, twitter, total_mentions),
+        average_sentiment: calculate_weighted_sentiment(digital, facebook, twitter, sentiment_mentions),
         engagement_rate: safe_percentage(total_interactions, total_reach, decimals: 2),
         trend_velocity: calculate_trend_velocity(total_interactions, previous_interactions),
         period: {
@@ -160,13 +162,15 @@ module HomeServices
       digital = channel_stats(:digital)
       facebook = channel_stats(:facebook)
       twitter = channel_stats(:twitter)
+      instagram = channel_stats(:instagram)
 
-      total_mentions = digital[:mentions] + facebook[:mentions] + twitter[:mentions]
+      total_mentions = digital[:mentions] + facebook[:mentions] + twitter[:mentions] + instagram[:mentions]
 
       {
         digital: enrich_channel_stats(digital, total_mentions, 'Medios Digitales', 'indigo', 'fa-solid fa-newspaper'),
         facebook: enrich_channel_stats(facebook, total_mentions, 'Facebook', 'blue', 'fa-brands fa-facebook'),
-        twitter: enrich_channel_stats(twitter, total_mentions, 'Twitter', 'sky', 'fa-brands fa-twitter')
+        twitter: enrich_channel_stats(twitter, total_mentions, 'Twitter', 'sky', 'fa-brands fa-twitter'),
+        instagram: enrich_channel_stats(instagram, total_mentions, 'Instagram', 'pink', 'fa-brands fa-instagram')
       }
     end
 
@@ -252,6 +256,30 @@ module HomeServices
         engagement_rate: safe_percentage(interactions, reach, decimals: 2),
         trend: calculate_trend_percent(interactions, prev_interactions),
         sentiment: 0.0 # Twitter sentiment not implemented yet
+      }
+    end
+
+    def instagram_channel_stats
+      return zero_stats if tag_ids.empty?
+
+      interaction_sql = Arel.sql('likes_count + comments_count')
+      base_scope = InstagramPost.where(posted_at: @start_date..@end_date).with_any_tag_ids(tag_ids, context: :tags)
+      mentions, interactions, reach = base_scope.reorder(nil).pluck(
+        Arel.sql('COUNT(*)'),
+        Arel.sql('COALESCE(SUM(likes_count + comments_count), 0)'),
+        Arel.sql('COALESCE(SUM(video_view_count), 0)')
+      ).first || [0, 0, 0]
+      prev_interactions = InstagramPost.where(posted_at: (@start_date - @days_range.days)..@start_date)
+                                       .with_any_tag_ids(tag_ids, context: :tags)
+                                       .sum(interaction_sql)
+
+      {
+        mentions: mentions,
+        interactions: interactions,
+        reach: reach,
+        engagement_rate: safe_percentage(interactions, reach, decimals: 2),
+        trend: calculate_trend_percent(interactions, prev_interactions),
+        sentiment: 0.0
       }
     end
 
@@ -816,7 +844,8 @@ module HomeServices
       {
         top_entries: fetch_top_digital_entries,
         top_facebook_posts: fetch_top_facebook_posts,
-        top_tweets: fetch_top_tweets
+        top_tweets: fetch_top_tweets,
+        top_instagram_posts: fetch_top_instagram_posts
       }
     end
 
@@ -845,11 +874,20 @@ module HomeServices
                  .limit(5)
     end
 
+    def fetch_top_instagram_posts
+      InstagramPost.where(posted_at: @start_date..@end_date)
+                   .with_any_tag_ids(tag_ids, context: :tags)
+                   .includes(:instagram_profile)
+                   .order(Arel.sql('likes_count + comments_count DESC'))
+                   .limit(5)
+    end
+
     def empty_top_content
       {
         top_entries: Entry.none,
         top_facebook_posts: FacebookEntry.none,
-        top_tweets: TwitterPost.none
+        top_tweets: TwitterPost.none,
+        top_instagram_posts: InstagramPost.none
       }
     end
 
@@ -911,7 +949,11 @@ module HomeServices
                            .with_any_tag_ids(tag_ids, context: :tags)
                            .sum(Arel.sql('favorite_count + retweet_count + reply_count + quote_count'))
 
-      digital + facebook + twitter
+      instagram = InstagramPost.where(posted_at: (@start_date - @days_range.days)..@start_date)
+                               .with_any_tag_ids(tag_ids, context: :tags)
+                               .sum(Arel.sql('likes_count + comments_count'))
+
+      digital + facebook + twitter + instagram
     end
 
     # ========================================
@@ -1050,6 +1092,7 @@ module HomeServices
       # Batch load posts with interactions
       load_facebook_hourly_data(hourly_data)
       load_twitter_hourly_data(hourly_data)
+      load_instagram_hourly_data(hourly_data)
 
       # Ensure all 24 hours are present
       (0..23).each { |h| hourly_data[h] ||= 0 }
@@ -1071,6 +1114,13 @@ module HomeServices
                  .each { |posted_at, interactions| hourly_data[posted_at.hour] += interactions }
     end
 
+    def load_instagram_hourly_data(hourly_data)
+      InstagramPost.where(posted_at: @start_date..@end_date)
+                   .tagged_with(tag_names, any: true)
+                   .pluck(:posted_at, Arel.sql('likes_count + comments_count'))
+                   .each { |posted_at, interactions| hourly_data[posted_at.hour] += interactions }
+    end
+
     def calculate_peak_days
       return {} if tag_names.empty?
 
@@ -1079,6 +1129,7 @@ module HomeServices
       # Batch load posts with interactions
       load_facebook_daily_data(daily_data)
       load_twitter_daily_data(daily_data)
+      load_instagram_daily_data(daily_data)
 
       # Convert to day names
       day_names = {
@@ -1106,6 +1157,13 @@ module HomeServices
                  .tagged_with(tag_names, any: true)
                  .pluck(:posted_at, Arel.sql('favorite_count + retweet_count'))
                  .each { |posted_at, interactions| daily_data[posted_at.wday] += interactions }
+    end
+
+    def load_instagram_daily_data(daily_data)
+      InstagramPost.where(posted_at: @start_date..@end_date)
+                   .tagged_with(tag_names, any: true)
+                   .pluck(:posted_at, Arel.sql('likes_count + comments_count'))
+                   .each { |posted_at, interactions| daily_data[posted_at.wday] += interactions }
     end
 
     def recommend_publishing_times

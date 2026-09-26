@@ -22,7 +22,8 @@ RSpec.describe 'TopicUpdateCacheInvalidation' do
         'general_dashboard:v3:topic:42:*',
         'general_dashboard:v4:topic:42:*',
         'home_dashboard:v3:*',
-        'home_dashboard:v4:*'
+        'home_dashboard:v4:*',
+        'home_dashboard:v5:*'
       ]
     )
   end

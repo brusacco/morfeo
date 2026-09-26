@@ -388,7 +388,7 @@
       </div>
 
       <!-- Channel Cards Grid -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
         <% @channel_stats.each do |key, channel| %>
           <% 
             border_color = "border-#{channel[:color]}-200"
@@ -455,7 +455,7 @@
           </h3>
           <%= pie_chart @chart_channel_mentions, 
               donut: true, 
-              colors: ['#6366F1', '#3B82F6', '#0EA5E9'],
+              colors: ['#6366F1', '#3B82F6', '#0EA5E9', '#EC4899'],
               library: { chart: { height: 280 } } %>
         </div>
 
@@ -466,7 +466,7 @@
           </h3>
           <%= pie_chart @chart_channel_interactions, 
               donut: true, 
-              colors: ['#8B5CF6', '#EC4899', '#F97316'],
+              colors: ['#8B5CF6', '#EC4899', '#F97316', '#DB2777'],
               library: { chart: { height: 280 } } %>
         </div>
 
@@ -477,7 +477,7 @@
           </h3>
           <%= pie_chart @chart_channel_reach, 
               donut: true, 
-              colors: ['#10B981', '#14B8A6', '#06B6D4'],
+              colors: ['#10B981', '#14B8A6', '#06B6D4', '#F472B6'],
               library: { chart: { height: 280 } } %>
         </div>
       </div>
@@ -491,7 +491,7 @@
           <div class="ml-3">
             <p class="text-sm text-blue-700">
               <strong>Nota sobre datos de alcance:</strong> Facebook y Twitter proporcionan datos reales de vistas vía API oficial. 
-              Para medios digitales de terceros, el alcance es una estimación conservadora (3x interacciones).
+              Instagram aporta vistas de video observadas cuando están disponibles. Para medios digitales de terceros, el alcance es una estimación conservadora (3x interacciones).
             </p>
           </div>
         </div>
@@ -549,7 +549,7 @@
         <p class="text-gray-600 mt-2">El contenido con mejor rendimiento en todos tus temas</p>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
         <!-- Top Digital Entries -->
         <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow">
           <h3 class="text-lg font-semibold text-indigo-900 mb-4 flex items-center">
@@ -639,6 +639,39 @@
                     <div class="flex items-center justify-between text-xs text-gray-500 mt-1">
                       <span>@<%= tweet.twitter_profile.username %></span>
                       <span class="font-semibold text-sky-600"><%= number_with_delimiter(tweet.total_interactions) %></span>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          <% else %>
+            <div class="text-center py-8 text-gray-400">
+              <i class="fa-solid fa-inbox text-4xl mb-2"></i>
+              <p class="text-sm">Sin contenido disponible</p>
+            </div>
+          <% end %>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow">
+          <h3 class="text-lg font-semibold text-pink-900 mb-4 flex items-center">
+            <i class="fa-brands fa-instagram text-pink-600 mr-2"></i>
+            Top Posts de Instagram
+          </h3>
+          <% if @top_content[:top_instagram_posts].any? %>
+            <div class="space-y-4">
+              <% @top_content[:top_instagram_posts].first(5).each_with_index do |post, index| %>
+                <div class="flex items-start space-x-3 pb-3 <%= 'border-b border-gray-100' unless index == 4 %>">
+                  <span class="flex-shrink-0 w-6 h-6 rounded-full bg-pink-100 text-pink-600 font-bold text-xs flex items-center justify-center">
+                    <%= index + 1 %>
+                  </span>
+                  <div class="flex-1 min-w-0">
+                    <%= link_to post.instagram_url, target: '_blank', rel: 'noopener', class: 'text-sm font-medium text-gray-900 hover:text-pink-600 line-clamp-2 block mb-1' do %>
+                      <%= post.caption&.truncate(60) || 'Ver publicación' %>
+                      <i class="fa-solid fa-external-link text-xs ml-1"></i>
+                    <% end %>
+                    <div class="flex items-center justify-between text-xs text-gray-500 mt-1">
+                      <span>@<%= post.instagram_profile&.username || 'N/A' %></span>
+                      <span class="font-semibold text-pink-600"><%= number_with_delimiter(post.total_interactions) %></span>
                     </div>
                   </div>
                 </div>

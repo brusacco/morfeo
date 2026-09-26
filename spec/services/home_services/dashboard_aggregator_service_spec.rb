@@ -7,12 +7,12 @@ RSpec.describe HomeServices::DashboardAggregatorService do
   let(:service) { described_class.new(topics: Topic.where(id: topics.map(&:id)), days_range: 7) }
 
   describe '#cache_key' do
-    it 'uses a v4 key with sorted topic IDs and an explicit date range' do
+    it 'uses a v5 key with sorted topic IDs and an explicit date range' do
       topic_ids = topics.map(&:id).sort.join(',')
       start_date = service.instance_variable_get(:@start_date).to_date.iso8601
       end_date = service.instance_variable_get(:@end_date).to_date.iso8601
 
-      expect(service.send(:cache_key)).to eq("home_dashboard:v4:topics:#{topic_ids}:payload:#{start_date}:#{end_date}")
+      expect(service.send(:cache_key)).to eq("home_dashboard:v5:topics:#{topic_ids}:payload:#{start_date}:#{end_date}")
     end
 
     it 'is stable for reordered or duplicate topic inputs' do
@@ -28,7 +28,7 @@ RSpec.describe HomeServices::DashboardAggregatorService do
       empty_topics = described_class.new(topics: Topic.none, days_range: 7)
 
       expect(longer_range.send(:cache_key)).not_to eq(service.send(:cache_key))
-      expect(empty_topics.send(:cache_key)).to start_with('home_dashboard:v4:topics::payload:')
+      expect(empty_topics.send(:cache_key)).to start_with('home_dashboard:v5:topics::payload:')
     end
   end
 
@@ -151,6 +151,58 @@ RSpec.describe HomeServices::DashboardAggregatorService do
 
       expect(stats[:mentions]).to eq(2)
       expect(stats[:interactions]).to eq(40)
+    end
+  end
+
+  describe 'Instagram channel integration' do
+    it 'includes Instagram in executive totals and channel comparison data' do
+      allow(service).to receive_messages(
+        digital_channel_stats: {
+          mentions: 2,
+          interactions: 4,
+          reach: 12,
+          engagement_rate: 33.33,
+          trend: 0,
+          sentiment: 10
+        },
+        facebook_channel_stats: {
+          mentions: 3,
+          interactions: 6,
+          reach: 18,
+          engagement_rate: 33.33,
+          trend: 0,
+          sentiment: 20
+        },
+        twitter_channel_stats: {
+          mentions: 4,
+          interactions: 8,
+          reach: 24,
+          engagement_rate: 33.33,
+          trend: 0,
+          sentiment: 0
+        },
+        instagram_channel_stats: {
+          mentions: 5,
+          interactions: 10,
+          reach: 30,
+          engagement_rate: 33.33,
+          trend: 0,
+          sentiment: 0
+        },
+        calculate_previous_period_interactions: 0
+      )
+
+      expect(service.send(:calculate_executive_summary)).to include(
+        total_mentions: 14,
+        total_interactions: 28,
+        total_reach: 84
+      )
+      expect(service.send(:calculate_channel_stats).fetch(:instagram)).to include(
+        name: 'Instagram',
+        mentions: 5,
+        interactions: 10,
+        reach: 30
+      )
     end
   end
 
