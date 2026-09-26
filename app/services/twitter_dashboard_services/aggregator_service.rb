@@ -115,8 +115,7 @@ module TwitterDashboardServices
         total_posts: total_posts,
         total_interactions: total_interactions,
         total_views: total_views,
-        average_interactions: average_interactions,
-        top_posts: top_posts(posts)
+        average_interactions: average_interactions
       }
     end
 

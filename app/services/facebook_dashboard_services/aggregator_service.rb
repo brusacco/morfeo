@@ -116,8 +116,7 @@ module FacebookDashboardServices
         total_posts: total_posts,
         total_interactions: total_interactions,
         total_views: total_views,
-        average_interactions: average_interactions,
-        top_posts: top_posts(entries)
+        average_interactions: average_interactions
       }
     end
 

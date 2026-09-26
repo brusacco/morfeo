@@ -93,26 +93,21 @@ RSpec.describe TwitterDashboardServices::AggregatorService do
     allow(posts).to receive(:except).with(:includes).and_return(aggregate_posts)
     allow(aggregate_posts).to receive(:reorder).with(nil).and_return(aggregate_posts)
     allow(aggregate_posts).to receive(:pluck).and_return([])
-    allow(posts).to receive(:reorder).and_return(posts)
-    allow(posts).to receive(:limit).with(20).and_return([])
 
     expect(service.send(:calculate_statistics, posts)).to eq(
-      total_posts: 0, total_interactions: 0, total_views: 0, average_interactions: 0, top_posts: []
+      total_posts: 0, total_interactions: 0, total_views: 0, average_interactions: 0
     )
   end
 
-  it 'calculates rounded average interactions and keeps the configured top-post limit' do
+  it 'calculates rounded average interactions' do
     posts = double('posts')
     aggregate_posts = double('aggregate_posts')
-    top_posts = [double('post')]
     allow(posts).to receive(:except).with(:includes).and_return(aggregate_posts)
     allow(aggregate_posts).to receive(:reorder).with(nil).and_return(aggregate_posts)
     allow(aggregate_posts).to receive(:pluck).and_return([[3, 10, 40]])
-    allow(posts).to receive(:reorder).and_return(posts)
-    expect(posts).to receive(:limit).with(20).and_return(top_posts)
 
     expect(service.send(:calculate_statistics, posts)).to include(
-      total_posts: 3, total_interactions: 10, total_views: 40, average_interactions: 3.3, top_posts: top_posts
+      total_posts: 3, total_interactions: 10, total_views: 40, average_interactions: 3.3
     )
   end
 

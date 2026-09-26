@@ -75,6 +75,9 @@ The `twitter_dashboard:v4` snapshot is owned by the aggregator and expires in
 `top_posts` are attached after the cache read so Active Record relations are not
 serialized into the snapshot.
 
+`calculate_statistics` produces scalar KPIs only. `top_posts` is calculated once
+by `attach_post_relations` after the cached snapshot is read.
+
 # Key Differences from Facebook
 
 - `views_count` is **real API data** (not estimated)

@@ -53,6 +53,9 @@ The `entries` and `top_posts` relations are attached after the snapshot is read.
 They are not serialized into the cache payload, preventing a stale KPI snapshot
 from containing lazily evaluated Active Record relations.
 
+`calculate_statistics` produces scalar KPIs only. `top_posts` is calculated once
+by `attach_post_relations` after the cached snapshot is read.
+
 - `pages_data` - Page-level analytics
   - `pages_count` - Posts by page
   - `pages_interactions` - Interactions by page
