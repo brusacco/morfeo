@@ -637,7 +637,9 @@ module GeneralDashboardServices
       instagram_optimal = topic.instagram_optimal_publishing_time(start_time: start_date, end_time: end_date)
 
       # Weight by engagement
-      [digital_optimal, facebook_optimal, twitter_optimal, instagram_optimal].compact.max_by { |opt| opt[:avg_engagement] }
+      [digital_optimal, facebook_optimal, twitter_optimal, instagram_optimal].compact.max_by do |opt|
+        opt[:avg_engagement]
+      end
     end
 
     def combined_peak_hours
@@ -903,10 +905,10 @@ module GeneralDashboardServices
       return InstagramPost.none if @tag_names.empty?
 
       InstagramPost.where(posted_at: start_date..end_date)
-           .tagged_with(@tag_names, any: true)
-           .order(Arel.sql('likes_count + comments_count DESC'))
-           .limit(5)
-           .includes(:instagram_profile)
+                   .tagged_with(@tag_names, any: true)
+                   .order(Arel.sql('likes_count + comments_count DESC'))
+                   .limit(5)
+                   .includes(:instagram_profile)
     end
 
     def trending_terms
