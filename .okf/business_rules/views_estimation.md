@@ -14,16 +14,21 @@ Different platforms provide view data differently. Morfeo estimates Facebook vis
 
 ## Facebook (Estimated)
 
-Facebook doesn't provide direct view counts, so Morfeo estimates them using an engagement-based formula:
+Facebook doesn't provide direct view counts, so Morfeo estimates reach with a bounded follower-based formula:
 
 ```
-views = (likes * 15) + (comments * 40) + (shares * 80) + (followers * 0.04)
+engagement_rate = total_interactions / followers
+estimated_reach = followers * 0.01 * (1 + 10 * min(engagement_rate, 0.03))
+estimated_views = estimated_reach * 1.2
 ```
 
-- Likes weighted at 15 views each
-- Comments weighted at 40 views each (higher engagement)
-- Shares weighted at 80 views each (highest reach)
-- Followers contribute 4% of their count (passive reach)
+- Engagement changes reach only from 1.00% to 1.30% of followers.
+- The engagement-rate adjustment is capped at 3%.
+- Shares, comments, and reactions contribute through `total_interactions`; they
+	are not converted directly into additional people reached.
+- Content type does not alter the Facebook reach estimate.
+- The $1.2$ views factor is a Morfeo assumption for approximately 20% repeated
+	exposure over estimated reach, not observed Meta data.
 
 ## Twitter/X (Observed When Available)
 

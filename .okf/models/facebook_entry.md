@@ -44,7 +44,14 @@ The FacebookEntry model stores posts from tracked Facebook Pages with full engag
 
 # Views Estimation Formula
 
-`(likes * 15) + (comments * 40) + (shares * 80) + (followers * 0.04)`
+Facebook reach is a Morfeo estimate, not a Meta-provided reach metric. It uses a
+bounded follower-based model:
+
+`followers * 0.01 * (1 + 10 * min(total_interactions / followers, 0.03))`
+
+Estimated views apply Morfeo's $1.2$ repeated-exposure assumption to estimated
+reach. The `before_save :calculate_views_count` callback persists the resulting
+estimated views in `views_count` for new or updated records.
 
 # Key Methods
 

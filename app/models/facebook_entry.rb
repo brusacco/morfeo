@@ -4,6 +4,9 @@ class FacebookEntry < ApplicationRecord
   include WithAnyTagIds
 
   TEXT_ANALYSIS_LIMIT = 500
+  FACEBOOK_BASE_REACH_RATE = 0.01
+  FACEBOOK_ENGAGEMENT_FACTOR = 10.0
+  FACEBOOK_ENGAGEMENT_RATE_CAP = 0.03
 
   belongs_to :page
   belongs_to :entry, optional: true
@@ -169,51 +172,23 @@ class FacebookEntry < ApplicationRecord
     'Publicación'
   end
 
-  # ============================================
-  # REACH & VIEWS ESTIMATION (Research-Based)
-  # Based on academic research and industry benchmarks (2023-2024)
-  # ============================================
-
-  # Estimated reach (unique users who saw the post)
-  # Based on:
-  # - MDPI Research (2023): Social Media Analytics and Metrics
-  # - ResearchGate (2019): Organic Reach Data Mining
-  # - Meta Business Suite benchmarks (2024)
+  # Estimated reach uses a bounded follower-based model.
   def estimated_reach
     followers = page&.followers || 0
-    shares = share_count || 0
-    comments = comments_count || 0
+    return 0 if followers.zero?
 
-    # Separate reactions by engagement strength (research-backed weights)
-    strong_reactions = (
-      reactions_love_count + reactions_haha_count + reactions_wow_count + reactions_sad_count + reactions_angry_count
-    )
-    weak_reactions = reactions_like_count + reactions_thankful_count
+    engagement_rate = total_interactions.fdiv(followers)
+    capped_engagement_rate = [engagement_rate, FACEBOOK_ENGAGEMENT_RATE_CAP].min
+    reach_rate = FACEBOOK_BASE_REACH_RATE * (1 + (FACEBOOK_ENGAGEMENT_FACTOR * capped_engagement_rate))
 
-    # 1. Base Organic Reach (2-5% of followers based on page size)
-    organic_reach_rate = calculate_organic_reach_rate(followers)
-    base_reach = followers * organic_reach_rate
-
-    # 2. Viral Reach (from engagement)
-    # Research shows: Shares have highest impact, then comments, then reactions
-    viral_reach = (
-      (shares * 100) +              # Each share reaches ~100 people (avg)
-      (comments * 35) +             # Each comment reaches ~35 people
-      (strong_reactions * 20) +     # Strong reactions boost visibility
-      (weak_reactions * 10)         # Weak reactions have lower impact
-    )
-
-    # 3. Content Type Multiplier (MDPI research: videos get 35% more reach)
-    content_multiplier = content_type_reach_multiplier
-
-    # Final calculation
-    ((base_reach + viral_reach) * content_multiplier).round
+    [(followers * reach_rate).round, followers].min
   end
 
   # Estimated views (total impressions, including repeat views)
-  # Industry benchmark: Views = Reach × 1.15-1.3 (repeat views)
+  # Morfeo assumption: estimated views include approximately
+  # 20% repeated exposure over estimated reach.
   def estimated_views
-    estimated_reach * 1.2 # 20% repeat views (conservative estimate)
+    estimated_reach * 1.2
   end
 
   # Confidence level for reach estimation
@@ -245,42 +220,6 @@ class FacebookEntry < ApplicationRecord
     else 85
     end
   end
-
-  private
-
-  # Organic reach rate decreases as page size increases (diminishing returns)
-  # Based on Meta Business Suite data (2024)
-  def calculate_organic_reach_rate(followers)
-    case followers
-    when 0...1_000
-      0.08  # 8% for small pages
-    when 1_000...10_000
-      0.05  # 5% for medium pages
-    when 10_000...100_000
-      0.03  # 3% for large pages
-    else
-      0.02  # 2% for very large pages
-    end
-  end
-
-  # Content type multiplier based on MDPI research (2023)
-  # Videos generate 35% more reach, links 35% less
-  def content_type_reach_multiplier
-    case attachment_type
-    when 'video_autoplay', 'video_inline'
-      1.35  # Videos get 35% more reach
-    when 'album'
-      1.15  # Albums get 15% more reach
-    when 'photo'
-      1.0   # Baseline
-    when 'share'
-      0.65  # Links get 35% less reach (Facebook penalizes external links)
-    else
-      has_external_url? ? 0.65 : 0.75
-    end
-  end
-
-  public
 
   # Extract external URLs from the Facebook post (news articles, etc.)
   # Uses attachment_target_url or attachment_url as primary URL sources
