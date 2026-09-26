@@ -212,7 +212,7 @@ end
 - **Limited text analysis**: Cap entries for word/bigram analysis (500 max)
 - **Efficient sorting**: Use database ORDER BY for top posts
 - **General dashboard digital metrics**: Fetch current mention count and interactions in one aggregate query; derive reach from the returned interaction total.
-- **Shared text analysis**: `Entry`, `FacebookEntry`, `TwitterPost`, and `InstagramPost` expose `text_occurrences`, allowing word and bigram results to share one source traversal. General reuses the combined result for its recommendation paths and passes its cached tag names to social scopes.
+- **Shared text analysis**: `Entry`, `FacebookEntry`, `TwitterPost`, and `InstagramPost` expose `text_occurrences`, allowing word and bigram results to share one source traversal. General reuses the combined result for its recommendation paths and passes its cached tag names to social scopes. `combined_text_occurrences` must return a hash with `word_occurrences` and `bigram_occurrences`; content relations belong to their own methods and must not become its final expression.
 - **Digital tag metrics**: Home dashboard digital metrics resolve topic tag IDs once and filter `Entry` with `with_any_tag_ids(..., context: :tags)`. This preserves immediate tagging freshness and avoids counting title-tag matches as content mentions.
 - **Tagged social counts**: On `tagged_with(..., any: true)` relations, pass an explicit primary key to `count`, such as `count(:id)`. A bare `count` can generate `COUNT(table.*)`, which MariaDB/MySQL rejects. The tag filter remains an `EXISTS` subquery, so matching multiple tags does not duplicate a social post.
 

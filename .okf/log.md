@@ -12,6 +12,9 @@
   cache-miss construction.
 - Kept Instagram out of weighted global sentiment and distribution calculations
   because no equivalent sentiment source is implemented.
+- Restored the General Dashboard combined text-analysis hash after a misplaced
+  Instagram relation caused recommendation generation to index an Active Record
+  relation with a symbol. Added a regression spec for the hash contract.
 
 ## 2026-09-25
 

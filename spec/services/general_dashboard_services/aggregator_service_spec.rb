@@ -498,6 +498,27 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
     expect(merged).not_to include(['word1', 1])
   end
 
+  it 'returns hash-based combined text occurrences for recommendations' do
+    digital_scope = double('digital_scope')
+    facebook_scope = double('facebook_scope')
+    twitter_scope = double('twitter_scope')
+    digital_text = { word_occurrences: [['digital', 3]], bigram_occurrences: [['digital media', 2]] }
+    facebook_text = { word_occurrences: [['facebook', 2]], bigram_occurrences: [] }
+    twitter_text = { word_occurrences: [['twitter', 1]], bigram_occurrences: [] }
+
+    allow(topic).to receive(:report_entries).with(service.start_date, service.end_date).and_return(digital_scope)
+    allow(digital_scope).to receive(:text_occurrences).with(word_limit: 50, bigram_limit: 50).and_return(digital_text)
+    allow(FacebookEntry).to receive(:for_topic).and_return(facebook_scope)
+    allow(FacebookEntry).to receive(:text_occurrences).with(facebook_scope, word_limit: 50, bigram_limit: 50).and_return(facebook_text)
+    allow(TwitterPost).to receive(:for_topic).and_return(twitter_scope)
+    allow(TwitterPost).to receive(:text_occurrences).with(twitter_scope, word_limit: 50, bigram_limit: 50).and_return(twitter_text)
+
+    expect(service.send(:combined_text_occurrences)).to eq(
+      word_occurrences: [['digital', 3], ['facebook', 2], ['twitter', 1]],
+      bigram_occurrences: [['digital media', 2]]
+    )
+  end
+
   it 'returns no growth opportunities when channel engagement is unavailable' do
     allow(service).to receive(:build_channel_performance).and_return(
       digital: { engagement_rate: nil },

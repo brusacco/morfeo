@@ -902,13 +902,6 @@ module GeneralDashboardServices
             )
           }
         end
-      return InstagramPost.none if @tag_names.empty?
-
-      InstagramPost.where(posted_at: start_date..end_date)
-                   .tagged_with(@tag_names, any: true)
-                   .order(Arel.sql('likes_count + comments_count DESC'))
-                   .limit(5)
-                   .includes(:instagram_profile)
     end
 
     def trending_terms
