@@ -134,7 +134,7 @@ RSpec.describe DigitalDashboardServices::AggregatorService do
     expect(result.dig(:percentages, :most_interactions)).to eq(top_entries)
   end
 
-  it 'uses the current entries relation count for the dashboard header' do
+  it 'uses the aggregate count for the dashboard header' do
     entries = double('entries')
     aggregate_entries = double('aggregate_entries')
     aggregate_row = [5, 0, 0, 0, 0, 0, 0, 0]
@@ -142,12 +142,11 @@ RSpec.describe DigitalDashboardServices::AggregatorService do
     allow(entries).to receive(:except).with(:includes).and_return(entries)
     allow(entries).to receive(:reorder).with(nil).and_return(aggregate_entries)
     allow(aggregate_entries).to receive(:pluck).and_return([aggregate_row])
-    allow(entries).to receive(:count).and_return(543)
+    expect(entries).not_to receive(:count)
 
     result = service.send(:calculate_entry_aggregations, entries)
 
-    expect(result[:total_entries]).to eq(543)
-    expect(entries).to have_received(:count)
+    expect(result[:total_entries]).to eq(5)
   end
 
   def create_entry(polarity: nil, total_count: 0)
@@ -186,11 +185,10 @@ RSpec.describe DigitalDashboardServices::AggregatorService do
     )
   end
 
-  it 'combines entry and polarity aggregates while counting the current relation for the header' do
+  it 'combines entry and polarity aggregates in one query' do
     entries = double('entries')
     allow(entries).to receive(:except).with(:includes).and_return(entries)
     allow(entries).to receive(:reorder).with(nil).and_return(entries)
-    expect(entries).to receive(:count).once.and_return(5)
     expect(entries).to receive(:pluck).once do |*columns|
       expect(columns.map(&:to_s)).to include(
         'COUNT(entries.id)',
@@ -214,6 +212,25 @@ RSpec.describe DigitalDashboardServices::AggregatorService do
   end
 
   describe 'database-backed entry aggregations' do
+    it 'matches the aggregate count to the topic entry scope count' do
+      actual_topic = create(:topic)
+      matching_tag = create(:tag, name: "matching-topic-#{SecureRandom.uuid}")
+      actual_topic.tags << matching_tag
+      matching_entries = Array.new(2) do
+        create_entry.tap do |entry|
+          entry.tag_list = [matching_tag.name]
+          entry.save!
+        end
+      end
+      create_entry
+
+      entries = actual_topic.list_entries_scope
+      aggregate_count = entries.except(:includes).reorder(nil).pluck(Arel.sql('COUNT(entries.id)')).first
+
+      expect(entries.count).to eq(matching_entries.size)
+      expect(aggregate_count).to eq(entries.count)
+    end
+
     it 'returns zero-valued aggregates for an empty relation' do
       expect(service.send(:calculate_entry_aggregations, Entry.none)).to eq(
         entries_count: 0,

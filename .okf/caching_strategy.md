@@ -155,6 +155,9 @@ create Proc object without a block`. Use `proc { |controller| { ... } }`, as
   `pick` applies a limit and returned partial aggregate values in production,
   which made Interactions, Average, and Sentiment show zero while the entry count
   remained correct.
+- Reuse that row's `COUNT(entries.id)` for the dashboard entry total. The
+  aggregate count and `Topic#list_entries_scope.count` are covered as equivalent
+  for the tag-filtered scope, so a second count query is unnecessary.
 
 ### Digital Share of Voice
 
