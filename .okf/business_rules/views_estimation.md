@@ -25,10 +25,10 @@ estimated_views = estimated_reach * 1.2
 - Engagement changes reach only from 1.00% to 1.30% of followers.
 - The engagement-rate adjustment is capped at 3%.
 - Shares, comments, and reactions contribute through `total_interactions`; they
-	are not converted directly into additional people reached.
+  are not converted directly into additional people reached.
 - Content type does not alter the Facebook reach estimate.
 - The $1.2$ views factor is a Morfeo assumption for approximately 20% repeated
-	exposure over estimated reach, not observed Meta data.
+  exposure over estimated reach, not observed Meta data.
 
 ## Twitter/X (Observed When Available)
 

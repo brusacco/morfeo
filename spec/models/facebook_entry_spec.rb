@@ -45,9 +45,10 @@ RSpec.describe FacebookEntry do
     end
 
     it 'does not adjust reach by content type' do
-      reaches = %w[photo video_autoplay share album].map do |attachment_type|
-        build_facebook_entry(followers: 1_000_000, interactions: 20_000, attachment_type:).estimated_reach
-      end
+      reaches =
+        %w[photo video_autoplay share album].map do |attachment_type|
+          build_facebook_entry(followers: 1_000_000, interactions: 20_000, attachment_type:).estimated_reach
+        end
 
       expect(reaches.uniq).to eq([12_000])
     end
@@ -57,14 +58,16 @@ RSpec.describe FacebookEntry do
     it 'uses the existing callback to persist 20% repeated exposure over reach' do
       site = create(:site)
       page_uid = SecureRandom.uuid
-      Page.insert!({
-        site_id: site.id,
-        uid: page_uid,
-        name: 'Test Page',
-        followers: 1_000_000,
-        created_at: Time.current,
-        updated_at: Time.current
-      })
+      Page.insert!(
+        {
+          site_id: site.id,
+          uid: page_uid,
+          name: 'Test Page',
+          followers: 1_000_000,
+          created_at: Time.current,
+          updated_at: Time.current
+        }
+      )
       entry = described_class.new(
         page: Page.find_by!(uid: page_uid),
         facebook_post_id: SecureRandom.uuid,
