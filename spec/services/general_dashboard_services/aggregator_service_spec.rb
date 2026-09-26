@@ -509,9 +509,17 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
     allow(topic).to receive(:report_entries).with(service.start_date, service.end_date).and_return(digital_scope)
     allow(digital_scope).to receive(:text_occurrences).with(word_limit: 50, bigram_limit: 50).and_return(digital_text)
     allow(FacebookEntry).to receive(:for_topic).and_return(facebook_scope)
-    allow(FacebookEntry).to receive(:text_occurrences).with(facebook_scope, word_limit: 50, bigram_limit: 50).and_return(facebook_text)
+    allow(FacebookEntry).to receive(:text_occurrences).with(
+      facebook_scope,
+      word_limit: 50,
+      bigram_limit: 50
+    ).and_return(facebook_text)
     allow(TwitterPost).to receive(:for_topic).and_return(twitter_scope)
-    allow(TwitterPost).to receive(:text_occurrences).with(twitter_scope, word_limit: 50, bigram_limit: 50).and_return(twitter_text)
+    allow(TwitterPost).to receive(:text_occurrences).with(
+      twitter_scope,
+      word_limit: 50,
+      bigram_limit: 50
+    ).and_return(twitter_text)
 
     expect(service.send(:combined_text_occurrences)).to eq(
       word_occurrences: [['digital', 3], ['facebook', 2], ['twitter', 1]],
