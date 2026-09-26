@@ -10,7 +10,7 @@ module DigitalDashboardServices
   class AggregatorService < ApplicationService
     # Cache expiration time for dashboard data
     CACHE_EXPIRATION = 30.minutes
-    CACHE_NAMESPACE = 'digital_dashboard:v3'
+    CACHE_NAMESPACE = 'digital_dashboard:v4'
 
     def initialize(topic:, days_range: DAYS_RANGE)
       @topic = topic
@@ -24,16 +24,12 @@ module DigitalDashboardServices
     end
 
     def call
-      fetch_cached_with_race_protection(cache_key, expires_in: CACHE_EXPIRATION) do
-        {
-          topic_data: topic_data,
-          chart_data: load_chart_data,
-          percentages: calculate_percentages,
-          tags_and_words: load_tags_and_word_data,
-          temporal_intelligence: load_temporal_intelligence,
-          viral_content: detect_viral_content
-        }
-      end
+      snapshot =
+        fetch_cached_with_race_protection(cache_key, expires_in: CACHE_EXPIRATION) do
+          build_dashboard_snapshot
+        end
+
+      attach_entry_relations(snapshot)
     end
 
     private
@@ -51,7 +47,7 @@ module DigitalDashboardServices
     end
 
     def topic_cache_key(resource)
-      "#{CACHE_NAMESPACE}:topic:#{@topic.id}:#{resource}:#{cache_date_range}:#{entries_cache_version}"
+      "#{CACHE_NAMESPACE}:topic:#{@topic.id}:#{resource}:#{cache_date_range}"
     end
 
     def global_digital_stats_cache_key(date_range)
@@ -62,8 +58,26 @@ module DigitalDashboardServices
       "#{start_date.to_date.iso8601}:#{end_date.to_date.iso8601}"
     end
 
-    def entries_cache_version
-      @entries_cache_version ||= @topic.entries_cache_version
+    def build_dashboard_snapshot
+      {
+        topic_data: topic_data,
+        chart_data: load_chart_data,
+        percentages: calculate_percentages,
+        tags_and_words: load_tags_and_word_data,
+        temporal_intelligence: load_temporal_intelligence,
+        viral_content: detect_viral_content
+      }
+    end
+
+    def attach_entry_relations(snapshot)
+      snapshot.merge(
+        topic_data: snapshot.fetch(:topic_data).merge(entries: @topic.list_entries),
+        percentages: snapshot.fetch(:percentages).merge(most_interactions: entries.order(total_count: :desc).limit(20))
+      )
+    end
+
+    def entries
+      @entries ||= @topic.list_entries_scope
     end
 
     # Memoized topic data to avoid multiple loads
@@ -74,8 +88,6 @@ module DigitalDashboardServices
     def load_topic_data
       return empty_topic_data if @tag_names.empty?
 
-      entries = @topic.list_entries
-
       # Batch all aggregations in single pass
       aggregations = calculate_entry_aggregations(entries)
 
@@ -84,7 +96,6 @@ module DigitalDashboardServices
 
       {
         tag_list: @tag_names,
-        entries: entries,
         **aggregations,
         **site_data
       }
@@ -98,7 +109,7 @@ module DigitalDashboardServices
       negative_value = Entry.polarities.fetch('negative')
 
       row =
-        entries.reorder(nil).pick(
+        entries.except(:includes).reorder(nil).pick(
           Arel.sql('COUNT(entries.id)'),
           Arel.sql('COALESCE(SUM(entries.total_count), 0)'),
           Arel.sql("COALESCE(SUM(CASE WHEN entries.polarity = #{neutral_value} THEN 1 ELSE 0 END), 0)"),
@@ -226,8 +237,6 @@ module DigitalDashboardServices
     end
 
     def calculate_percentages
-      # Use memoized topic_data instead of reloading
-      entries = topic_data[:entries]
       entries_count = topic_data[:entries_count]
       entries_total_sum = topic_data[:entries_total_sum]
       entries_polarity_counts = topic_data[:entries_polarity_counts]
@@ -257,7 +266,6 @@ module DigitalDashboardServices
         )
         .merge(
           promedio: safe_division(entries_total_sum, entries_count),
-          most_interactions: entries.order(total_count: :desc).limit(20),
           neutrals: neutrals,
           positives: positives,
           negatives: negatives,
@@ -307,9 +315,6 @@ module DigitalDashboardServices
     end
 
     def load_tags_and_word_data
-      # Use memoized entries
-      entries = topic_data[:entries]
-
       # Cache expensive text analysis
       word_data = load_text_analysis(entries)
       tag_data = load_tag_analysis(entries)
@@ -516,7 +521,6 @@ module DigitalDashboardServices
     def empty_topic_data
       {
         tag_list: [],
-        entries: Entry.none,
         entries_count: 0,
         entries_total_sum: 0,
         entries_polarity_counts: {},

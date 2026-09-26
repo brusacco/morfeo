@@ -160,6 +160,7 @@ namespace :cache do
 
     # Clear dashboard service caches
     Rails.cache.delete_matched('digital_dashboard:v3:*')
+    Rails.cache.delete_matched('digital_dashboard:v4:*')
     Rails.cache.delete_matched('facebook_dashboard:v3:*')
     Rails.cache.delete_matched('twitter_dashboard:v3:*')
     Rails.cache.delete_matched('instagram_dashboard:v3:*')

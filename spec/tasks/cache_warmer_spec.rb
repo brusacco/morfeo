@@ -17,6 +17,7 @@ RSpec.describe 'cache:clear' do
 
     %w[
       digital_dashboard:v3:*
+      digital_dashboard:v4:*
       facebook_dashboard:v3:*
       twitter_dashboard:v3:*
       instagram_dashboard:v3:*

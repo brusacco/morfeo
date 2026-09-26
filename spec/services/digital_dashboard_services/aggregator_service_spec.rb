@@ -3,6 +3,8 @@
 require 'rails_helper'
 
 RSpec.describe DigitalDashboardServices::AggregatorService do
+  include ActiveSupport::Testing::TimeHelpers
+
   let(:tags_relation) do
     double('tags_relation').tap do |relation|
       allow(relation).to receive(:pluck).with(:id, :name).and_return([[1, 'alpha'], [2, 'beta']])
@@ -10,10 +12,6 @@ RSpec.describe DigitalDashboardServices::AggregatorService do
   end
   let(:topic) { double('topic', id: 7, tags: tags_relation) }
   let(:service) { described_class.new(topic: topic) }
-
-  before do
-    allow(topic).to receive(:entries_cache_version).and_return('0:none')
-  end
 
   it 'uses distinct subcache keys for distinct effective day ranges' do
     seven_day_service = described_class.allocate
@@ -25,35 +23,115 @@ RSpec.describe DigitalDashboardServices::AggregatorService do
     expect(seven_day_service.send(:text_analysis_cache_key)).not_to eq(thirty_day_service.send(:text_analysis_cache_key))
   end
 
-  it 'uses versioned cache keys with explicit date ranges and entry state' do
+  it 'uses v4 cache keys with explicit date ranges and no entry state' do
     start_date = service.instance_variable_get(:@start_date).to_date.iso8601
     end_date = service.instance_variable_get(:@end_date).to_date.iso8601
-    cache_version = '0:none'
 
-    expect(service.send(:cache_key)).to eq("digital_dashboard:v3:topic:7:payload:#{start_date}:#{end_date}:#{cache_version}")
-    expect(service.send(:site_data_cache_key)).to eq("digital_dashboard:v3:topic:7:site_data:#{start_date}:#{end_date}:#{cache_version}")
-    expect(service.send(:text_analysis_cache_key)).to eq("digital_dashboard:v3:topic:7:text_analysis:#{start_date}:#{end_date}:#{cache_version}")
+    expect(service.send(:cache_key)).to eq("digital_dashboard:v4:topic:7:payload:#{start_date}:#{end_date}")
+    expect(service.send(:site_data_cache_key)).to eq("digital_dashboard:v4:topic:7:site_data:#{start_date}:#{end_date}")
+    expect(service.send(:text_analysis_cache_key)).to eq("digital_dashboard:v4:topic:7:text_analysis:#{start_date}:#{end_date}")
     expect(
       service.send(:global_digital_stats_cache_key, { gte: Date.new(2026, 9, 18), lte: Date.new(2026, 9, 25) })
-    ).to eq('digital_dashboard:v3:global_stats:2026-09-18:2026-09-25')
+    ).to eq('digital_dashboard:v4:global_stats:2026-09-18:2026-09-25')
   end
 
-  it 'changes the payload cache key when the topic entry set changes' do
-    first_update = Time.zone.parse('2026-09-25 10:00:00')
-    second_update = Time.zone.parse('2026-09-25 10:05:00')
+  it 'keeps the same key when entry update state changes' do
+    actual_topic = create(:topic)
+    entry = create_entry
+    entry.tag_list = ['cache-key-topic']
+    entry.save!
+    actual_topic.tags << Tag.find_by!(name: 'cache-key-topic')
+    actual_service = described_class.allocate
+    actual_service.send(:initialize, topic: actual_topic)
+    first_key = actual_service.send(:cache_key)
 
-    first_service = described_class.allocate
-    first_service.send(:initialize, topic: topic)
-    allow(topic).to receive(:entries_cache_version).and_return("7:#{first_update.utc.iso8601(6)}")
-    first_key = first_service.send(:cache_key)
+    entry.touch
 
-    second_service = described_class.allocate
-    second_service.send(:initialize, topic: topic)
-    allow(topic).to receive(:entries_cache_version).and_return("25:#{second_update.utc.iso8601(6)}")
-    second_key = second_service.send(:cache_key)
+    expect(actual_service.send(:cache_key)).to eq(first_key)
+  end
 
-    expect(first_key).not_to eq(second_key)
-    expect(second_key).to end_with("25:#{second_update.utc.iso8601(6)}")
+  it 'uses different cache keys for different topics' do
+    other_topic = double('other_topic', id: 8, tags: tags_relation)
+    other_service = described_class.allocate
+    other_service.send(:initialize, topic: other_topic)
+
+    expect(other_service.send(:cache_key)).not_to eq(service.send(:cache_key))
+  end
+
+  it 'does not query topic entries while calculating a cache key' do
+    expect(topic).not_to receive(:list_entries_scope)
+    expect(topic).not_to receive(:list_entries)
+
+    service.send(:cache_key)
+  end
+
+  describe 'snapshot caching' do
+    let(:cache_store) { ActiveSupport::Cache::MemoryStore.new }
+    let(:snapshot) do
+      {
+        topic_data: { total_entries: 5 },
+        percentages: { promedio: 10 },
+        chart_data: {},
+        tags_and_words: {},
+        temporal_intelligence: {},
+        viral_content: []
+      }
+    end
+
+    before do
+      allow(Rails).to receive(:cache).and_return(cache_store)
+      allow(service).to receive(:attach_entry_relations) { |payload| payload }
+    end
+
+    it 'reuses the same snapshot until the 30-minute TTL expires' do
+      expect(service).to receive(:build_dashboard_snapshot).twice.and_return(snapshot)
+      start_time = Time.zone.parse('2026-09-25 10:00:00')
+
+      travel_to(start_time)
+      begin
+        service.call
+        service.call
+
+        travel_to(start_time + 31.minutes)
+        service.call
+      ensure
+        travel_back
+      end
+    end
+
+    it 'does not rebuild the snapshot when crawler entry state changes during the TTL' do
+      actual_topic = create(:topic)
+      entry = create_entry
+      entry.tag_list = ['snapshot-topic']
+      entry.save!
+      actual_topic.tags << Tag.find_by!(name: 'snapshot-topic')
+      actual_service = described_class.allocate
+      actual_service.send(:initialize, topic: actual_topic)
+      allow(actual_service).to receive(:attach_entry_relations) { |payload| payload }
+      expect(actual_service).to receive(:build_dashboard_snapshot).once.and_return(snapshot)
+
+      actual_service.call
+      entry.touch
+      actual_service.call
+    end
+  end
+
+  it 'keeps table and top-entry relations outside the cached snapshot' do
+    cached_snapshot = { topic_data: { total_entries: 5 }, percentages: { promedio: 10 } }
+    table_entries = double('table_entries')
+    dashboard_entries = double('dashboard_entries')
+    top_entries = double('top_entries')
+    allow(topic).to receive(:list_entries).and_return(table_entries)
+    allow(topic).to receive(:list_entries_scope).and_return(dashboard_entries)
+    allow(dashboard_entries).to receive(:order).with(total_count: :desc).and_return(dashboard_entries)
+    allow(dashboard_entries).to receive(:limit).with(20).and_return(top_entries)
+
+    result = service.send(:attach_entry_relations, cached_snapshot)
+
+    expect(cached_snapshot.fetch(:topic_data)).not_to have_key(:entries)
+    expect(cached_snapshot.fetch(:percentages)).not_to have_key(:most_interactions)
+    expect(result.dig(:topic_data, :entries)).to eq(table_entries)
+    expect(result.dig(:percentages, :most_interactions)).to eq(top_entries)
   end
 
   it 'uses the current entries relation count for the dashboard header' do
@@ -61,6 +139,7 @@ RSpec.describe DigitalDashboardServices::AggregatorService do
     aggregate_entries = double('aggregate_entries')
     aggregate_row = [5, 0, 0, 0, 0, 0, 0, 0]
 
+    allow(entries).to receive(:except).with(:includes).and_return(entries)
     allow(entries).to receive(:reorder).with(nil).and_return(aggregate_entries)
     allow(aggregate_entries).to receive(:pick).and_return(aggregate_row)
     allow(entries).to receive(:count).and_return(543)
@@ -87,6 +166,7 @@ RSpec.describe DigitalDashboardServices::AggregatorService do
   end
 
   it 'returns the combined dashboard payload' do
+    allow(service).to receive(:attach_entry_relations) { |snapshot| snapshot }
     allow(service).to receive_messages(
       topic_data: { topic: 'data' },
       load_chart_data: { chart: 'data' },
@@ -108,6 +188,7 @@ RSpec.describe DigitalDashboardServices::AggregatorService do
 
   it 'combines entry and polarity aggregates while counting the current relation for the header' do
     entries = double('entries')
+    allow(entries).to receive(:except).with(:includes).and_return(entries)
     allow(entries).to receive(:reorder).with(nil).and_return(entries)
     expect(entries).to receive(:count).once.and_return(5)
     expect(entries).to receive(:pick).once do |*columns|

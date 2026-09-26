@@ -89,8 +89,8 @@ the existing 30-minute freshness contract.
 Dashboard caches use versioned namespaces with ISO date boundaries:
 
 ```
-digital_dashboard:v3:topic:{topic_id}:{resource}:{start_date}:{end_date}
-digital_dashboard:v3:global_stats:{start_date}:{end_date}
+digital_dashboard:v4:topic:{topic_id}:{resource}:{start_date}:{end_date}
+digital_dashboard:v4:global_stats:{start_date}:{end_date}
 facebook_dashboard:v3:topic:{topic_id}:limit:{limit}:payload:{start_date}:{end_date}
 twitter_dashboard:v3:topic:{topic_id}:limit:{limit}:payload:{start_date}:{end_date}
 instagram_dashboard:v3:topic:{topic_id}:limit:{limit}:payload:{start_date}:{end_date}
@@ -99,18 +99,23 @@ home_dashboard:v4:topics:{sorted_unique_topic_ids}:payload:{start_date}:{end_dat
 ```
 
 The digital topic resources are `payload`, `site_data`, and `text_analysis`.
-Cache maintenance tasks invalidate each namespace with its `:v3:*` pattern or a
-topic-specific prefix. Updating a topic also invalidates `home_dashboard:v3:*`
+The Digital Dashboard owns their freshness through the aggregator's 30-minute
+TTL; entry inserts and updates do not alter a digital cache key during that
+window. The `v4` namespace separates these snapshots from older `v3` keys,
+which expire naturally. Updating a topic also invalidates `home_dashboard:v3:*`
 because its payload depends on the active topic set. The Home key normalizes its
 topic IDs as a sorted unique set, preventing duplicate or order-only cache
 variants. Home v4 also includes Tags Cloud word occurrences in the cached
 payload. During the v3-to-v4 transition, invalidation clears both Home
 generations.
 
-The digital dashboard uses the normal 30-minute expiration contract. The
-filtered news list is cached by `Topic#list_entries` with the key
-`topic_{topic_id}_list_entries_v3`; it is the only list-level cache added for
-this flow. Dashboard action-cache keys use the topic ID, user ID, and requested
+The digital dashboard uses the normal 30-minute expiration contract. A cache
+MISS builds the complete aggregate snapshot from current data; a HIT returns the
+same snapshot until it expires. The filtered news list remains separately cached
+by `Topic#list_entries` with the key `topic_{topic_id}_list_entries_v3`.
+`entries` and `most_interactions` are attached after reading the aggregate
+snapshot, so no lazy `ActiveRecord::Relation` is serialized into the dashboard
+payload. Dashboard action-cache keys use the topic ID, user ID, and requested
 date range.
 
 ### Implementation Pitfalls
@@ -122,25 +127,13 @@ create Proc object without a block`. Use `proc { |controller| { ... } }`, as
   in the action-caching example above.
 - Do not add database schema, callbacks, scheduled jobs, or bespoke cache
   version columns merely to invalidate this list cache. Those mechanisms expand
-  the cache contract and can make it slower or harder to operate than the
-  established 30-minute TTL.
-- Do not use `Topic#list_entries` to compute dashboard aggregates or the
-  dashboard payload version. Cache stores can return a relation materialized
-  from an earlier request, so the header can retain an old count while a
-  reordered list query shows current rows. Use the uncached list scope for the
-  payload version. The header count must use `entries.count`, which forces a
-  current count over the same scope rendered by the table; reserve
-  `list_entries` for rendering the cached list.
-- Do not calculate the payload version with
-  `entries.pick(COUNT(entries.id), MAX(entries.updated_at))`. On the digital
-  entry relation this returned a partial aggregate in production (`5`) while
-  `entries.count` returned the actual list size (`543`). Use `entries.count` and
-  `entries.maximum(:updated_at)` as separate calculations.
-- Do not derive an action-cache version by running `COUNT` and `MAX(updated_at)`
-  over `Topic#list_entries` for every request. That relation includes topic-tag
-  filtering and joins, so the key calculation repeats an expensive query before
-  the cache can be read. Retain the standard action-cache key unless a separately
-  approved invalidation design is implemented and tested end to end.
+  the cache contract and defeat the established 30-minute snapshot TTL.
+- Do not use `Entry#updated_at`, `COUNT(entries)`, or any entry query in a
+  Digital Dashboard cache key. `DigitalDashboardServices::AggregatorService`
+  owns cache freshness through its TTL, not `Topic` or crawler updates.
+- Do not serialize `ActiveRecord::Relation` objects into the aggregate dashboard
+  payload. Cached scalars and a lazily evaluated relation can represent different
+  moments. Attach the table and top-entry relations after the snapshot is read.
 
 ### Digital Share of Voice
 
