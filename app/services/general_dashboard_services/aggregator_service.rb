@@ -26,7 +26,7 @@ module GeneralDashboardServices
     private
 
     def cache_key
-      "general_dashboard:v7:topic:#{topic.id}:payload:#{start_date.to_date.iso8601}:#{end_date.to_date.iso8601}"
+      "general_dashboard:v9:topic:#{topic.id}:payload:#{start_date.to_date.iso8601}:#{end_date.to_date.iso8601}"
     end
 
     def build_dashboard_snapshot
@@ -128,11 +128,7 @@ module GeneralDashboardServices
           interactions: instagram_data[:interactions],
           views: instagram_data[:views],
           views_source: instagram_data[:views_source],
-          engagement_rate: if instagram_data[:views].nil?
-                             nil
-                           else
-                             calculate_engagement_rate(instagram_data[:interactions], instagram_data[:views])
-                           end,
+          engagement_rate: nil,
           sentiment: instagram_sentiment,
           trend: instagram_data[:trend],
           share: calculate_share(instagram_data[:count], total_mentions)
@@ -430,6 +426,10 @@ module GeneralDashboardServices
 
     def total_interactions
       digital_data[:interactions] + facebook_data[:interactions] + twitter_data[:interactions] + instagram_data[:interactions]
+    end
+
+    def reach_channel_interactions
+      digital_data[:interactions] + facebook_data[:interactions] + twitter_data[:interactions]
     end
 
     def total_reach
@@ -1099,7 +1099,7 @@ module GeneralDashboardServices
     end
 
     def engagement_rate
-      calculate_engagement_rate(total_interactions, total_reach)
+      calculate_engagement_rate(reach_channel_interactions, total_reach)
     end
 
     def unique_sources_count

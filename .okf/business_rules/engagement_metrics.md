@@ -39,6 +39,11 @@ Each platform has different engagement metrics. Morfeo calculates total interact
   reach. The current ingest path preserves `NULL` for a missing video-view field
   but maps missing likes/comments to zero, so only the former distinguishes
   absence from an observed zero.
+- Channel engagement rate: unavailable (`nil`). Total interactions include every
+  content type, while observed video views apply only to video posts, so their
+  ratio would mix non-equivalent cohorts. A future `interactions / video views`
+  metric must restrict interactions to posts with observed video views and use a
+  distinct label.
 - Shares and saves: unavailable in the current post schema and ingestion flow.
 
 # Analytics Calculations
@@ -52,6 +57,15 @@ All platforms support:
 - Word frequency analysis (`word_occurrences`)
 - Bigram frequency analysis (`bigram_occurrences`)
 
+## Cross-Channel Engagement Rate
+
+General and Home preserve all four channels in displayed `total_interactions`.
+Their cross-channel engagement-rate numerator, however, includes only Digital,
+Facebook, and X interactions because those are the same channels contributing to
+`total_reach`. Instagram interactions and observed video views remain visible as
+separate channel metrics but are excluded from this percentage until a comparable
+Instagram reach denominator exists.
+
 # Related
 
 - [Views Estimation](views_estimation.md) - Facebook views calculation
@@ -60,3 +74,4 @@ All platforms support:
 - [TwitterPost Model](../models/twitter_post.md) - Twitter metrics
 - [InstagramPost Model](../models/instagram_post.md) - Instagram metrics
 - [Views Estimation](views_estimation.md) - Observed-video and fallback rules
+- [Aggregator Services](../aggregator_services.md) - General and Home KPI contracts

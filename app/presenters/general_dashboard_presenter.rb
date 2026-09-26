@@ -383,7 +383,7 @@ class GeneralDashboardPresenter
         color: '#10b981'
       },
       {
-        label: 'Visualizaciones y alcance potencial estimados',
+        label: 'Alcance potencial total',
         value: formatted_total_reach,
         icon: '🎯',
         color: '#f59e0b'

@@ -79,7 +79,7 @@ module HomeServices
     private
 
     def cache_key
-      "home_dashboard:v7:topics:#{@topics.map(&:id).uniq.sort.join(',')}:payload:#{cache_date_range}"
+      "home_dashboard:v9:topics:#{@topics.map(&:id).uniq.sort.join(',')}:payload:#{cache_date_range}"
     end
 
     def cache_date_range
@@ -134,6 +134,7 @@ module HomeServices
 
       total_mentions = digital[:mentions] + facebook[:mentions] + twitter[:mentions] + instagram[:mentions]
       total_interactions = digital[:interactions] + facebook[:interactions] + twitter[:interactions] + instagram[:interactions]
+      reach_channel_interactions = digital[:interactions] + facebook[:interactions] + twitter[:interactions]
       total_reach = digital[:reach] + facebook[:reach] + twitter[:reach]
       sentiment_mentions = digital[:mentions] + facebook[:mentions] + twitter[:mentions]
 
@@ -145,7 +146,7 @@ module HomeServices
         total_reach: total_reach,
         total_reach_estimated: [digital, facebook, twitter].any? { |stats| stats[:reach_estimated] },
         average_sentiment: calculate_weighted_sentiment(digital, facebook, twitter, sentiment_mentions),
-        engagement_rate: safe_percentage(total_interactions, total_reach, decimals: 2),
+        engagement_rate: safe_percentage(reach_channel_interactions, total_reach, decimals: 2),
         trend_velocity: calculate_trend_velocity(total_interactions, previous_interactions),
         period: {
           days: @days_range,
@@ -285,14 +286,14 @@ module HomeServices
         interactions: interactions,
         views: views,
         views_source: views.nil? ? :unavailable : :actual,
-        engagement_rate: views.nil? ? nil : safe_percentage(interactions, views, decimals: 2),
+        engagement_rate: nil,
         trend: calculate_trend_percent(interactions, prev_interactions),
         sentiment: 0.0
       }
     end
 
     def unavailable_instagram_stats
-      zero_stats.merge(views: nil, views_source: :unavailable)
+      zero_stats.merge(views: nil, views_source: :unavailable, engagement_rate: nil)
     end
 
     def zero_stats

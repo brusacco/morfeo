@@ -50,13 +50,13 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
     expect(service.send(:build_top_content_snapshot)).to eq(trending_topics: %w[alpha beta])
   end
 
-  it 'uses a v7 cache key for the selected reporting period' do
+  it 'uses a v9 cache key for the selected reporting period' do
     start_date = Time.zone.parse('2026-09-01 10:00')
     end_date = Time.zone.parse('2026-09-15 22:00')
     allow(described_class).to receive(:new).and_call_original
     dated_service = described_class.new(topic: topic, start_date: start_date, end_date: end_date)
 
-    expect(dated_service.send(:cache_key)).to eq('general_dashboard:v7:topic:7:payload:2026-09-01:2026-09-15')
+    expect(dated_service.send(:cache_key)).to eq('general_dashboard:v9:topic:7:payload:2026-09-01:2026-09-15')
   end
 
   it 'attaches top content relations after the cached snapshot is read' do
@@ -95,6 +95,7 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
     expect(service.send(:total_mentions)).to eq(14)
     expect(service.send(:total_interactions)).to eq(28)
     expect(service.send(:total_reach)).to eq(54)
+    expect(service.send(:engagement_rate)).to eq(33.33)
     expect(service.send(:build_channel_performance).fetch(:instagram)).to include(
       name: 'Instagram',
       mentions: 5,
@@ -119,7 +120,7 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
 
     instagram = service.send(:build_channel_performance).fetch(:instagram)
 
-    expect(instagram).to include(views: 4965, views_source: :actual)
+    expect(instagram).to include(views: 4965, views_source: :actual, engagement_rate: nil)
     expect(instagram).not_to have_key(:reach)
   end
 

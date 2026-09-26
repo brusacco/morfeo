@@ -129,7 +129,7 @@ current `v4` namespaces during the transition.
 - Identifies top content and viral content across all platforms
 - Generates publishing-time recommendations only from available temporal engagement data; it does not supply a default day or time.
 
-**Cache Key**: `general_dashboard:v7:topic:{topic_id}:payload:{start_date}:{end_date}`
+**Cache Key**: `general_dashboard:v9:topic:{topic_id}:payload:{start_date}:{end_date}`
 
 All dashboard `show` actions delegate KPI and analytical-value freshness to
 their aggregator snapshots. Digital and social aggregators attach their primary
@@ -149,7 +149,17 @@ does not participate in cross-channel reach totals, reach breakdowns, or reach
 charts, and it has no estimate fallback. The General Dashboard and PDF must say
 that Instagram video views are displayed separately and excluded from `Total
 Reach`, so adjacent channel cards cannot be interpreted as components of that
-total.
+total. The PDF labels this KPI `Alcance potencial total`; it must not describe
+the total as including Instagram views.
+
+Instagram channel `engagement_rate` is always `nil`: its interaction total spans
+all Instagram content, while observed video views apply only to videos. The
+service must not divide those non-equivalent cohorts.
+
+The executive-summary `total_interactions` continues to include Instagram, but
+its cross-channel `engagement_rate` uses only Digital, Facebook, and X
+interactions. This keeps the numerator aligned with `total_reach`, which excludes
+Instagram because video views are not a compatible reach denominator.
 
 Instagram temporal calls receive the General Dashboard `start_date` and
 `end_date`, matching Facebook and Twitter range semantics. Instagram has no
@@ -168,7 +178,7 @@ to the original post and show the profile, caption, and total interactions.
 
 **Purpose**: Aggregates cross-topic home dashboard metrics.
 
-**Cache Key**: `home_dashboard:v7:topics:{sorted_unique_topic_ids}:payload:{start_date}:{end_date}`
+**Cache Key**: `home_dashboard:v9:topics:{sorted_unique_topic_ids}:payload:{start_date}:{end_date}`
 
 The key includes the complete sorted topic set, so a topic update invalidates the
 Home namespace as well as the affected topic-specific dashboard caches. The
@@ -183,6 +193,16 @@ reach charts; the Home KPI explicitly states that Instagram video views are
 shown separately. Instagram still contributes prior-period trend calculations,
 temporal engagement, and top content, while remaining excluded from weighted
 sentiment because it has no integrated sentiment source.
+
+Home preserves Instagram in `total_interactions`, trends, and channel data, but
+calculates its cross-channel `engagement_rate` from Digital, Facebook, and X
+interactions only. Those are the channels that contribute to `total_reach`; this
+prevents Instagram interactions from inflating a percentage without a compatible
+denominator.
+
+Instagram's channel-level `engagement_rate` is also `nil`, because all-content
+interactions cannot be divided by video-only views. The Home payload retains both
+source metrics separately for display and future cohort-specific analysis.
 
 ## Site Dashboard Aggregator
 

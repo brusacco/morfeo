@@ -2,6 +2,16 @@
 
 ## 2026-09-26
 
+- Renamed the General PDF total-reach KPI to `Alcance potencial total` so its
+  label does not imply that separately displayed Instagram video views are
+  included.
+- Marked the Instagram channel engagement rate unavailable in General and Home:
+  all-content interactions cannot be divided by video-only observed views.
+  Versioned both cached payloads from v8 to v9.
+- Aligned General and Home cross-channel engagement rates with their reach
+  denominator: displayed interactions still include Instagram, while the rate
+  uses only Digital, Facebook, and X interactions. Versioned both cached payloads
+  from v7 to v8.
 - Consolidated the verified read-only Facebook, X, and Instagram production
   statistics into a cross-channel calibration reference, including datasets,
   distributions, model errors, data-quality findings, and reuse limitations.
