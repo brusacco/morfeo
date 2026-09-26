@@ -216,12 +216,13 @@ RSpec.describe DigitalDashboardServices::AggregatorService do
       actual_topic = create(:topic)
       matching_tag = create(:tag, name: "matching-topic-#{SecureRandom.uuid}")
       actual_topic.tags << matching_tag
-      matching_entries = Array.new(2) do
-        create_entry.tap do |entry|
-          entry.tag_list = [matching_tag.name]
-          entry.save!
+      matching_entries =
+        Array.new(2) do
+          create_entry.tap do |entry|
+            entry.tag_list = [matching_tag.name]
+            entry.save!
+          end
         end
-      end
       create_entry
 
       entries = actual_topic.list_entries_scope
