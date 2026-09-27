@@ -214,7 +214,14 @@ Morfeo uses the `whenever` gem to manage cron jobs defined in `config/schedule.r
 - **Purpose**: Diagnostic — extract entities from the last N entries (default 50) via the GLiNER API (`/v1/entities`, model `fastino/gliner2.5-multi-v1`) and print results to the console. Analyzes `title + content` (truncated to 4000 chars). No DB writes.
 - **Usage**: `rake entities:test[limit]`; override endpoint with `ENTITY_API_URL`
 - **Status**: Manual diagnostic (not scheduled)
-- **Related**: [API](api.md)
+- **Related**: [Entity Extraction Service](entity_extraction.md), [API](api.md)
+
+### `entities:extract`
+
+- **Purpose**: Extract entities from the last N entries (default 50) and persist them — creates [Entity](models/entity.md) records (exact match on `name` + `entity_type`) and [EntityMention](models/entity_mention.md) rows on each `Entry`. Only detections with `confidence > 0.9` are persisted; lower ones are counted as ignored.
+- **Usage**: `rake entities:extract[limit]`
+- **Status**: Manual backfill (not scheduled); idempotent via `find_or_create_by!`
+- **Related**: [Entity Extraction Service](entity_extraction.md)
 
 # Task Dependencies and Ordering
 

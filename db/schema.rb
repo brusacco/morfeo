@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_11_10_041127) do
+ActiveRecord::Schema[7.0].define(version: 2025_11_10_041129) do
   create_table "active_admin_comments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "namespace"
     t.text "body"
@@ -74,6 +74,30 @@ ActiveRecord::Schema[7.0].define(version: 2025_11_10_041127) do
     t.datetime "updated_at", null: false
     t.index ["entry_id"], name: "index_comments_on_entry_id"
     t.index ["uid"], name: "index_comments_on_uid"
+  end
+
+  create_table "entities", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "entity_type", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name", "entity_type"], name: "idx_entities_name_type_unique", unique: true
+  end
+
+  create_table "entity_mentions", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "entity_id", null: false
+    t.string "content_type", null: false
+    t.bigint "content_id", null: false
+    t.string "text", null: false
+    t.string "entity_type", null: false
+    t.float "confidence"
+    t.integer "start"
+    t.integer "end"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["content_type", "content_id"], name: "idx_entity_mentions_on_content"
+    t.index ["entity_id", "content_type", "content_id", "start"], name: "idx_entity_mentions_unique", unique: true
+    t.index ["entity_id"], name: "index_entity_mentions_on_entity_id"
   end
 
   create_table "entries", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -490,6 +514,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_11_10_041127) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "entity_mentions", "entities"
   add_foreign_key "entry_title_topics", "entries"
   add_foreign_key "entry_title_topics", "topics"
   add_foreign_key "entry_topics", "entries"

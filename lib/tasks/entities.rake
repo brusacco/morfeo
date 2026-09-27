@@ -83,4 +83,84 @@ namespace :entities do
     puts "Entities:   #{total_entities} total"
     puts '=' * 80
   end
+
+  desc 'Extract entities from the last N entries (default 50) and PERSIST them ' \
+       '(confidence > 0.9). Usage: rake entities:extract[limit]'
+  task :extract, [:limit] => :environment do |_t, args|
+    limit = args[:limit].presence ? Integer(args[:limit], 10) : 50
+    max_chars = 4_000
+    min_confidence = EntityExtractor::PersistEntities::MIN_CONFIDENCE
+
+    puts '=' * 80
+    puts '💾 ENTITY EXTRACTION + PERSIST (GLiNER gliner2.5-multi-v1)'
+    puts '=' * 80
+    puts "Limit:  #{limit} entries (most recent, enabled, title+content)"
+    puts "Min confidence: #{min_confidence} (lower detections are ignored)"
+    puts "Time:   #{Time.current.strftime('%Y-%m-%d %H:%M:%S')}"
+    puts '=' * 80
+    puts
+
+    entries = Entry.enabled
+                   .where('(title IS NOT NULL AND title != :blank) OR (content IS NOT NULL AND content != :blank)', blank: '')
+                   .order(published_at: :desc)
+                   .limit(limit)
+                   .select(:id, :title, :content, :published_at)
+
+    total = entries.count
+    puts "Entries to process: #{total}"
+    puts
+
+    if total.zero?
+      puts 'No entries found with title or content. Nothing to do.'
+      return
+    end
+
+    processed = 0
+    failed = 0
+    skipped = 0
+    total_entities_created = 0
+    total_mentions_created = 0
+    total_ignored = 0
+
+    entries.each do |entry|
+      text = "#{entry.title.to_s.strip}\n#{entry.content.to_s.strip}".strip
+      text = text[0, max_chars] if text.length > max_chars
+
+      if text.blank?
+        skipped += 1
+        puts "⏭  [#{entry.id}] SKIPPED (blank title+content)"
+        next
+      end
+
+      result = EntityExtractor::PersistEntities.call(text: text, content: entry)
+
+      if result.success?
+        processed += 1
+        total_entities_created += result.entities_created
+        total_mentions_created += result.mentions_created
+        total_ignored += result.ignored
+
+        puts "✅ [#{entry.id}] #{entry.title.to_s.truncate(70)}"
+        puts "   entities: +#{result.entities_created}  mentions: +#{result.mentions_created}  ignored(<=#{min_confidence}): #{result.ignored}"
+      else
+        failed += 1
+        puts "❌ [#{entry.id}] ERROR: #{entry.title.to_s.truncate(70)}"
+        puts "   #{result.error}"
+      end
+
+      puts '-' * 80
+    end
+
+    puts
+    puts '=' * 80
+    puts 'SUMMARY'
+    puts '=' * 80
+    puts "Processed:        #{processed}"
+    puts "Failed:           #{failed}"
+    puts "Skipped:          #{skipped}"
+    puts "Entities created: #{total_entities_created}"
+    puts "Mentions created: #{total_mentions_created}"
+    puts "Ignored (<=#{min_confidence}): #{total_ignored}"
+    puts '=' * 80
+  end
 end

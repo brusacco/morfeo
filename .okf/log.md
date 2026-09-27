@@ -1,5 +1,28 @@
 # Change Log
 
+## 2026-09-27
+
+- Added the `Entity` and `EntityMention` models with migrations: `entities`
+  (canonical `name` + `entity_type`, unique per type) and `entity_mentions`
+  (polymorphic `content_type`/`content_id` join + raw GLiNER detection
+  `text`/`entity_type`/`confidence`/`start`/`end`). `Entry` is wired via
+  `has_many :entities, through: :entity_mentions`; social models join later with
+  no schema change. The type column is `entity_type` (not `type`) to avoid STI.
+- Added `EntityExtractor::PersistEntities` (persists only detections with
+  `confidence > 0.9`, resolving to canonical entities) and the
+  `rake entities:extract[limit]` backfill task. `rake entities:test` remains a
+  read-only diagnostic.
+- Added the [Entity Extraction Service](entity_extraction.md) concept: GLiNER2
+  (`fastino/gliner2.5-multi-v1`) FastAPI service architecture, Docker
+  deployment, `/v1/entities` and batch API contracts, extraction-vs-resolution
+  separation, and failure behavior. Recorded current implementation status:
+  `EntityExtractor::ExtractEntities` Rails client and the read-only
+  `rake entities:test` diagnostic, with the Sidekiq worker, provider-independent
+  `EntityExtractionService` layering, and entity tables as planned next steps.
+- Extracted the GLiNER HTTP call from `lib/tasks/entities.rake` into the
+  `EntityExtractor::ExtractEntities` service (`app/services/entity_extractor/`),
+  and switched the diagnostic task to analyze `title + content`.
+
 ## 2026-09-26
 
 - Removed the inapplicable `reach: 0` key from unavailable Instagram Home

@@ -19,6 +19,7 @@ Morfeo is a Rails 7 news monitoring system that crawls websites, extracts articl
 - [Twitter Account Management](twitter_account_management.md) - Multi-account Twitter API authentication with rate limit rotation
 - [Scheduled Tasks](scheduled_tasks.md) - Complete documentation of all cron-scheduled rake tasks
 - [Crawler Infrastructure](crawler_infrastructure.md) - Complete documentation of all crawler types and architectures
+- [Entity Extraction Service](entity_extraction.md) - GLiNER2 named-entity extraction service and Rails integration
 - [Controllers](controllers.md) - Controller layer architecture, authorization, and caching
 - [Jobs](jobs.md) - Background jobs for crawling, sentiment analysis, and data synchronization
 - [Services](services.md) - Service object architecture for business logic and data aggregation

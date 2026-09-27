@@ -456,6 +456,8 @@ HTTP client for the GLiNER entity extraction API (FastAPI, `fastino/gliner2.5-mu
 
 **Used by:** `rake entities:test` (diagnostic task in `lib/tasks/entities.rake`).
 
+**Related:** [Entity Extraction Service](entity_extraction.md) - Full architecture of the GLiNER2 extraction service, deployment, API contract, and the planned `EntityExtractionService` / `EntityExtractors::Gliner` provider-independent layering.
+
 ## App Services
 
 ### UpdateTagEntries

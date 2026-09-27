@@ -33,6 +33,11 @@ Domain models that represent the core entities of the Morfeo platform.
 - [Version](version.md) - PaperTrail versioning for audit trails
 - [RecentEntry](recent_entry.md) - Recent entries with tagging and word analysis
 
+## Entity Models
+
+- [Entity](entity.md) - Canonical named entity detected by the GLiNER2 extraction service
+- [EntityMention](entity_mention.md) - Polymorphic join linking an Entity to a content item with the raw detection
+
 ## Join Models
 
 - [EntryTopic](entry_topic.md) - Join model for Entry-Topic many-to-many relationship

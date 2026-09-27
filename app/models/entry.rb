@@ -21,6 +21,10 @@ class Entry < ApplicationRecord
   has_many :entry_title_topics, dependent: :destroy
   has_many :title_topics, through: :entry_title_topics, source: :topic
 
+  # Named entities detected in this entry's content (GLiNER2)
+  has_many :entity_mentions, as: :content, dependent: :destroy
+  has_many :entities, through: :entity_mentions
+
   before_save :set_published_date
   # NEW: Auto-sync callbacks (critical for keeping associations up to date)
   after_save :sync_topics_from_tags, if: :saved_change_to_tag_list?
