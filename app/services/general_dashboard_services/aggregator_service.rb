@@ -988,7 +988,7 @@ module GeneralDashboardServices
 
     def best_channel_recommendation
       channels = build_channel_performance
-      best = channels.max_by { |_key, data| data[:engagement_rate] }
+      best = channels.max_by { |_key, data| data[:engagement_rate] || 0 }
 
       {
         channel: best[1][:name],

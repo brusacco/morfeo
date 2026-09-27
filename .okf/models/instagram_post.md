@@ -42,6 +42,7 @@ The InstagramPost model stores posts from tracked Instagram profiles with engage
 - `estimated_reach` - Legacy model estimate: `total_interactions * 10`, with a
   $1.5$ video/reel multiplier. It is not used as observed video views and is not
   approved as a fallback calibration.
+- `engagement_rate` - Calculate engagement rate using formula: `(total_interactions / profile_followers) * 100`. Returns 0 if profile or followers is missing.
 
 # Metric Semantics
 

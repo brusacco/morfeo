@@ -71,7 +71,7 @@ Returns a hash with the following keys:
 
 ## Cache Contract
 
-The `twitter_dashboard:v5` snapshot is owned by the aggregator and expires in
+The `twitter_dashboard:v6` snapshot is owned by the aggregator and expires in
 30 minutes. It stores scalar KPIs and analytical values; `posts` and
 `top_posts` are attached after the cache read so Active Record relations are not
 serialized into the snapshot. Its key does not include `top_posts_limit`, so

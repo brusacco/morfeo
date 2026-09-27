@@ -43,7 +43,7 @@ descriptive only and cannot establish an at-publication reach rate.
 
 # Key Methods
 
-- `calculate_engagement_rate` - Calculate engagement rate
+- `calculate_engagement_rate` - Calculate engagement rate using formula: `(total_interactions / (total_posts * followers)) * 100`. Returns 0 if total_posts or followers is zero.
 - `instagram_url` - Generate profile URL
 - `needs_sync?` - Check if profile needs syncing
 - `incomplete?` - Check if profile data is incomplete

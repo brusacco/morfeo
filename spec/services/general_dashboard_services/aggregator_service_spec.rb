@@ -124,6 +124,17 @@ RSpec.describe GeneralDashboardServices::AggregatorService do
     expect(instagram).not_to have_key(:reach)
   end
 
+  it 'selects the best channel when Instagram engagement is unavailable' do
+    allow(service).to receive(:build_channel_performance).and_return(
+      digital: { name: 'Medios Digitales', engagement_rate: 33.33 },
+      facebook: { name: 'Facebook', engagement_rate: 20.0 },
+      twitter: { name: 'Twitter/X', engagement_rate: 10.0 },
+      instagram: { name: 'Instagram', engagement_rate: nil }
+    )
+
+    expect(service.send(:best_channel_recommendation)).to include(channel: 'Medios Digitales')
+  end
+
   it 'keeps unavailable Instagram views distinct from an observed zero' do
     allow(service).to receive_messages(
       digital_data: { count: 0, interactions: 0, reach: 0, reach_estimated: false, trend: 0 },

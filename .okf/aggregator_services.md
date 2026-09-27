@@ -73,7 +73,7 @@ current `v4` namespaces during the transition.
 - Performs sentiment analysis (reaction breakdown, sentiment labels)
 - Detects viral content
 
-**Cache Key**: `facebook_dashboard:v4:topic:{topic_id}:limit:{top_posts_limit}:payload:{start_date}:{end_date}`
+**Cache Key**: `facebook_dashboard:v6:topic:{topic_id}:payload:{start_date}:{end_date}`
 
 ## Twitter Dashboard Aggregator
 
@@ -91,7 +91,7 @@ current `v4` namespaces during the transition.
 - Loads profiles data (posts per profile, interactions per profile)
 - Detects viral content
 
-**Cache Key**: `twitter_dashboard:v4:topic:{topic_id}:limit:{top_posts_limit}:payload:{start_date}:{end_date}`
+**Cache Key**: `twitter_dashboard:v6:topic:{topic_id}:payload:{start_date}:{end_date}`
 
 ## Instagram Dashboard Aggregator
 
@@ -155,6 +155,10 @@ the total as including Instagram views.
 Instagram channel `engagement_rate` is always `nil`: its interaction total spans
 all Instagram content, while observed video views apply only to videos. The
 service must not divide those non-equivalent cohorts.
+
+When selecting the General Dashboard's best-channel recommendation, unavailable
+channel engagement rates rank as zero. This preserves the recommendation for the
+highest comparable rate without attempting to compare `nil` with numeric values.
 
 The executive-summary `total_interactions` continues to include Instagram, but
 its cross-channel `engagement_rate` uses only Digital, Facebook, and X

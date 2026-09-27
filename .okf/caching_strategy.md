@@ -37,9 +37,13 @@ caches_action :show, :pdf, expires_in: 30.minutes,
 
 **Applied to:**
 
-- Dashboard PDF actions
-- Entry controller (popular, commented, week views)
-- Tag controller (show, report, pdf)
+- `EntryController`: popular, commented, week views (user-specific)
+- `FacebookTopicController`: pdf action
+- `GeneralDashboardController`: pdf action
+- `InstagramTopicController`: pdf action
+- `TagController`: show action
+- `TopicController`: pdf action
+- `TwitterTopicController`: pdf action
 
 Dashboard `show` and Home `index` actions do not cache rendered HTML. They call
 their aggregators on every request, and the aggregator-owned snapshots determine
@@ -94,22 +98,22 @@ Dashboard caches use versioned namespaces with ISO date boundaries:
 ```
 digital_dashboard:v4:topic:{topic_id}:{resource}:{start_date}:{end_date}
 digital_dashboard:v4:global_stats:{start_date}:{end_date}
-facebook_dashboard:v4:topic:{topic_id}:limit:{limit}:payload:{start_date}:{end_date}
-twitter_dashboard:v4:topic:{topic_id}:limit:{limit}:payload:{start_date}:{end_date}
-instagram_dashboard:v4:topic:{topic_id}:limit:{limit}:payload:{start_date}:{end_date}
-general_dashboard:v5:topic:{topic_id}:payload:{start_date}:{end_date}
-home_dashboard:v4:topics:{sorted_unique_topic_ids}:payload:{start_date}:{end_date}
+facebook_dashboard:v6:topic:{topic_id}:payload:{start_date}:{end_date}
+twitter_dashboard:v6:topic:{topic_id}:payload:{start_date}:{end_date}
+instagram_dashboard:v7:topic:{topic_id}:payload:{start_date}:{end_date}
+general_dashboard:v9:topic:{topic_id}:payload:{start_date}:{end_date}
+home_dashboard:v10:topics:{sorted_unique_topic_ids}:payload:{start_date}:{end_date}
 ```
 
 The digital topic resources are `payload`, `site_data`, and `text_analysis`.
 The Digital Dashboard owns their freshness through the aggregator's 30-minute
 TTL; entry inserts and updates do not alter a digital cache key during that
 window. The `v4` namespace separates these snapshots from older `v3` keys,
-which expire naturally. Updating a topic also invalidates `home_dashboard:v3:*`
-because its payload depends on the active topic set. The Home key normalizes its
-topic IDs as a sorted unique set, preventing duplicate or order-only cache
-variants. Home v4 also includes Tags Cloud word occurrences in the cached
-payload. During the v3-to-v4 transition, invalidation clears both Home
+which expire naturally. Updating a topic also invalidates the Home dashboard
+cache because its payload depends on the active topic set. The Home key
+normalizes its topic IDs as a sorted unique set, preventing duplicate or
+order-only cache variants. Home v10 includes Tags Cloud word occurrences in the
+cached payload. During version transitions, invalidation clears prior
 generations.
 
 The digital dashboard uses the normal 30-minute expiration contract. A cache
@@ -121,20 +125,20 @@ snapshot, so no lazy `ActiveRecord::Relation` is serialized into the dashboard
 payload. Dashboard action-cache keys use the topic ID, user ID, and requested
 date range.
 
-Facebook uses the same scalar-snapshot contract in `facebook_dashboard:v4`:
+Facebook uses the same scalar-snapshot contract in `facebook_dashboard:v6`:
 `total_posts`, `total_interactions`, `total_views`, and `average_interactions`
 are cached by the aggregator for 30 minutes, while `entries` and `top_posts` are
 attached after cache retrieval. The manual cache-clear and topic-update tasks
-clear both Facebook v3 and v4 patterns while old v3 keys expire naturally.
+clear prior Facebook namespace patterns while old keys expire naturally.
 
-Twitter and Instagram use the same v4 contract for `total_posts`,
+Twitter and Instagram use the same v6/v7 contract for `total_posts`,
 `total_interactions`, `total_views`, and `average_interactions`; their `posts`
-and `top_posts` relations are attached after snapshot retrieval. General v5
+and `top_posts` relations are attached after snapshot retrieval. General v9
 caches executive and channel KPI snapshots, including Instagram as a fourth
 channel, while attaching top-content and viral-content relations after the cache
-read. The v5 namespace prevents older three-channel payloads from being read
-after the channel contract changed. Manual invalidation clears prior namespaces
-as they expire naturally.
+read. The v9 namespace prevents older payloads from being read after the channel
+contract changed. Manual invalidation clears prior namespaces as they expire
+naturally.
 
 ### Implementation Pitfalls
 
@@ -167,6 +171,94 @@ When `USE_DIRECT_ENTRY_TOPICS=true`, the cached global digital aggregate used fo
 Share of Voice has the same universe as `Topic#all_list_entries`: enabled entries
 within the topic default date range that have a site. The legacy Elasticsearch
 path continues to use `all_list_entries` directly.
+
+### Entry Controller Caching
+
+The `EntryController` caches tag interaction data for popular and commented views:
+
+```ruby
+Rails.cache.fetch("tags_interactions_fb_popular_#{Date.current}", expires_in: CACHE_DURATION) do
+  # Expensive tag interaction calculation
+end
+```
+
+Cache keys:
+
+- `tags_interactions_fb_popular_{date}` - Popular entries tag interactions
+- `tags_interactions_fb_commented_{date}` - Commented entries tag interactions
+
+### Site Dashboard Caching
+
+The `SiteDashboardServices::AggregatorService` caches text analysis and tag data:
+
+```ruby
+Rails.cache.fetch("site_#{site_id}_words_#{Date.current}", expires_in: CACHE_EXPIRATION) do
+  # Word occurrence calculation
+end
+```
+
+Cache keys:
+
+- `site_{site_id}_words_{date}` - Word occurrences (limited to 500 entries)
+- `site_{site_id}_bigrams_{date}` - Bigram occurrences (limited to 500 entries)
+- `site_{site_id}_tags_{date}` - Tag data (top 20 tags)
+
+### Topic Model Caching
+
+The `Topic` model caches numerous analytics and temporal intelligence calculations:
+
+```ruby
+Rails.cache.fetch("topic_#{id}_list_entries_v3", expires_in: 30.minutes) do
+  # Expensive entry list query
+end
+```
+
+Cache keys include:
+
+- `topic_{id}_list_entries_v3` - Filtered entry list
+- `topic_{id}_peak_times_hour` - Peak posting hours
+- `topic_{id}_peak_times_day` - Peak posting days
+- `topic_{id}_engagement_heatmap` - Engagement heatmap data
+- `topic_{id}_optimal_time` - Optimal posting time
+- `topic_{id}_content_half_life` - Content half-life analysis
+- `topic_{id}_trend_velocity` - Trend velocity metrics
+- `topic_{id}_engagement_velocity` - Engagement velocity metrics
+- `topic_{id}_decay_curve` - Content decay curve
+- `topic_{id}_publishing_frequency` - Publishing frequency analysis
+- `topic_{id}_temporal_hour_day_buckets` - Temporal bucketing data
+- `topic_{id}_temporal_velocity_aggregates` - Temporal velocity aggregates
+- Various competitive intelligence and sentiment analysis keys
+
+All topic cache keys use a 30-minute TTL and are invalidated when the topic is updated.
+
+### Tag Model Caching
+
+The `Tag` model caches entry list operations:
+
+```ruby
+Rails.cache.fetch(cache_key, expires_in: 30.minutes) do
+  # Expensive tag entry query
+end
+```
+
+Cache keys:
+
+- `tag_{id}_list_entries` - Tag entry list
+- `tag_{id}_title_list_entries` - Tag title entry list
+
+### Twitter Account Manager Rate Limiting
+
+The `TwitterServices::AccountManager` uses cache for rate limiting:
+
+```ruby
+Rails.cache.write(rate_limit_cache_key(account_index), cooldown_until.to_i, expires_in: COOLDOWN_PERIOD + 1.minute)
+```
+
+Cache keys:
+
+- `twitter_rate_limit_{account_index}` - Rate limit cooldown timestamp
+
+This cache tracks which Twitter API accounts are rate limited and when they become available again.
 
 ## 3. PDF Caching
 
