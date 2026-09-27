@@ -101,7 +101,7 @@ namespace :entities do
     puts
 
     base_scope = Entry.enabled
-                   .where('(title IS NOT NULL AND title != :blank) OR (content IS NOT NULL AND content != :blank)', blank: '')
+                      .where('(title IS NOT NULL AND title != :blank) OR (content IS NOT NULL AND content != :blank)', blank: '')
 
     # Resolve the "last N entries" set up front (ids only), then stream it in
     # batches by id so we never hold more than one batch in memory.
