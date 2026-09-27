@@ -2,6 +2,11 @@
 
 ## 2026-09-27
 
+- `rake entities:extract[limit]` now streams entries instead of loading all N
+  rows at once: it resolves the last-N id set up front (`pluck(:id)` ordered by
+  `published_at: :desc`) and processes it with `in_batches(of: 100, order: :asc)`,
+  so only one batch is in memory at a time (processing order is by id, not
+  publish date).
 - Added the `Entity` and `EntityMention` models with migrations: `entities`
   (canonical `name` + `entity_type`, unique per type) and `entity_mentions`
   (polymorphic `content_type`/`content_id` join + raw GLiNER detection

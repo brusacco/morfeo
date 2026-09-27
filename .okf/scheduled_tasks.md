@@ -221,6 +221,7 @@ Morfeo uses the `whenever` gem to manage cron jobs defined in `config/schedule.r
 - **Purpose**: Extract entities from the last N entries (default 50) and persist them — creates [Entity](models/entity.md) records (exact match on `name` + `entity_type`) and [EntityMention](models/entity_mention.md) rows on each `Entry`. Only detections with `confidence > 0.9` are persisted; lower ones are counted as ignored.
 - **Usage**: `rake entities:extract[limit]`
 - **Status**: Manual backfill (not scheduled); idempotent via `find_or_create_by!`
+- **Memory**: Resolves the last-N id set up front (`pluck(:id)` by `published_at: :desc`), then streams with `in_batches(of: 100, order: :asc)` — only one batch of rows is in memory at a time; processing order is by id, not publish date.
 - **Related**: [Entity Extraction Service](entity_extraction.md)
 
 # Task Dependencies and Ordering

@@ -100,13 +100,13 @@ namespace :entities do
     puts '=' * 80
     puts
 
-    entries = Entry.enabled
+    base_scope = Entry.enabled
                    .where('(title IS NOT NULL AND title != :blank) OR (content IS NOT NULL AND content != :blank)', blank: '')
-                   .order(published_at: :desc)
-                   .limit(limit)
-                   .select(:id, :title, :content, :published_at)
 
-    total = entries.count
+    # Resolve the "last N entries" set up front (ids only), then stream it in
+    # batches by id so we never hold more than one batch in memory.
+    ids = base_scope.order(published_at: :desc).limit(limit).pluck(:id)
+    total = ids.size
     puts "Entries to process: #{total}"
     puts
 
@@ -115,6 +115,8 @@ namespace :entities do
       return
     end
 
+    min_id = ids.min
+
     processed = 0
     failed = 0
     skipped = 0
@@ -122,34 +124,39 @@ namespace :entities do
     total_mentions_created = 0
     total_ignored = 0
 
-    entries.each do |entry|
-      text = "#{entry.title.to_s.strip}\n#{entry.content.to_s.strip}".strip
-      text = text[0, max_chars] if text.length > max_chars
+    base_scope
+      .where(id: min_id..Float::INFINITY)
+      .select(:id, :title, :content, :published_at)
+      .in_batches(of: 100, order: :asc) do |batch|
+        batch.each do |entry|
+          text = "#{entry.title.to_s.strip}\n#{entry.content.to_s.strip}".strip
+          text = text[0, max_chars] if text.length > max_chars
 
-      if text.blank?
-        skipped += 1
-        puts "⏭  [#{entry.id}] SKIPPED (blank title+content)"
-        next
+          if text.blank?
+            skipped += 1
+            puts "⏭  [#{entry.id}] SKIPPED (blank title+content)"
+            next
+          end
+
+          result = EntityExtractor::PersistEntities.call(text: text, content: entry)
+
+          if result.success?
+            processed += 1
+            total_entities_created += result.entities_created
+            total_mentions_created += result.mentions_created
+            total_ignored += result.ignored
+
+            puts "✅ [#{entry.id}] #{entry.title.to_s.truncate(70)}"
+            puts "   entities: +#{result.entities_created}  mentions: +#{result.mentions_created}  ignored(<=#{min_confidence}): #{result.ignored}"
+          else
+            failed += 1
+            puts "❌ [#{entry.id}] ERROR: #{entry.title.to_s.truncate(70)}"
+            puts "   #{result.error}"
+          end
+
+          puts '-' * 80
+        end
       end
-
-      result = EntityExtractor::PersistEntities.call(text: text, content: entry)
-
-      if result.success?
-        processed += 1
-        total_entities_created += result.entities_created
-        total_mentions_created += result.mentions_created
-        total_ignored += result.ignored
-
-        puts "✅ [#{entry.id}] #{entry.title.to_s.truncate(70)}"
-        puts "   entities: +#{result.entities_created}  mentions: +#{result.mentions_created}  ignored(<=#{min_confidence}): #{result.ignored}"
-      else
-        failed += 1
-        puts "❌ [#{entry.id}] ERROR: #{entry.title.to_s.truncate(70)}"
-        puts "   #{result.error}"
-      end
-
-      puts '-' * 80
-    end
 
     puts
     puts '=' * 80
