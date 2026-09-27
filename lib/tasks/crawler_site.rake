@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-desc 'Moopio Morfeo web crawler'
+desc 'TEST: Web crawler for a single site (hardcoded site 87) - not scheduled'
 task site_crawler: :environment do
   directories = %w[
     blackhole

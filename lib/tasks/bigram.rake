@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
-desc 'Bigram Analizer'
+desc 'Bigram Analyzer - print bigram frequencies (count > 10) from the last month of entries'
 task bigrams: :environment do
-  freq = {}
   File.readlines('stop-words.txt')
 
   freq = {}

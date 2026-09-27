@@ -16,7 +16,7 @@ namespace :util do
     puts 'Reindexing complete.'
   end
 
-  desc 'Update topic polarities'
+  desc 'Reindex Elasticsearch entries for all tags used by active topics'
   task reindex_topic: :environment do
     tags = []
     Topic.where(status: true).find_each do |topic|

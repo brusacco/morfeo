@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-desc 'Moopio Morfeo web crawler'
+desc 'TEST: Fast web crawler (all enabled non-JS sites) - not scheduled'
 task crawler_fast: :environment do
   directories = %w[
     blackhole

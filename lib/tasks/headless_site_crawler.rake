@@ -3,7 +3,7 @@ require 'nokogiri'
 require 'open-uri'
 require 'webdrivers'
 
-desc 'Scrape a web page using Chrome Headless'
+desc 'TEST: Scrape a single site (hardcoded site 134) using Chrome Headless - not scheduled'
 task headless_site_crawler: :environment do
   Site.enabled.where(id: 134, is_js: true).order(total_count: :desc).each do |site|
     options = Selenium::WebDriver::Chrome::Options.new

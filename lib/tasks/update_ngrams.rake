@@ -13,6 +13,7 @@ task update_ngrams: :environment do
   end
 end
 
+desc 'Rebuild bigrams and trigrams for all entries tagged with each tag'
 task update_ngrams_tags: :environment do
   Tag.find_each do |tag|
     puts "Updating NGrams for #{tag.name} - #{tag.id}"

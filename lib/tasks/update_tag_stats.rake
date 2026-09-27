@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-desc 'Update Tag stats'
+desc 'DEBUG: Print daily stats for the hardcoded tag "Santiago Peña" (updates nothing)'
 task update_tag_stats: :environment do
   tags = Tag.where(name: 'Santiago Peña')
   tags.each do |tag|

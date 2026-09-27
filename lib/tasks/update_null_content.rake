@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-desc 'Update Null content Entries'
+desc 'TEST: Re-extract content for null-content entries on sites 6 and 8 - not scheduled'
 task update_null_content: :environment do
   Entry.enabled.where(content: nil, site_id: [6, 8]).order(published_at: :desc).each do |entry|
     if entry.site.content_filter

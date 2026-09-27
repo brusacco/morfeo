@@ -18,6 +18,7 @@ end
 #-------------------------------------------------------------------------------------
 #
 #-------------------------------------------------------------------------------------
+desc 'TEST: Print and send the "Honor Colorado" topic prompt to OpenAI (gpt-5-mini)'
 task test_openai: :environment do
   OPENAI_TOKEN = Rails.application.credentials[:OPENAI_TOKEN]
   client = OpenAI::Client.new(access_token: OPENAI_TOKEN)
@@ -42,6 +43,7 @@ end
 #-------------------------------------------------------------------------------------
 #
 #-------------------------------------------------------------------------------------
+desc 'Re-extract basic info (title/content/date) for entries from the last week'
 task update_basic_content: :environment do
   Parallel.each(Entry.enabled.where(published_at: 1.week.ago..Time.current).order('RAND()'), in_threads: 4) do |entry|
     puts entry.url

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 namespace :facebook do
-  desc 'Facebook crawler with configurable pagination (default: 3 pages = ~300 posts per page)'
+  desc 'Facebook crawler with configurable pagination (default: 3 pages = ~300 posts total)'
   task :fanpage_crawler, [:max_pages] => :environment do |_t, args|
     # Parse max_pages argument (default: 3, each page = ~100 posts)
     max_pages = (args[:max_pages] || 3).to_i

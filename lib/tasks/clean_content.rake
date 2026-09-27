@@ -39,6 +39,7 @@ task clean_content: :environment do
   end
 end
 
+desc 'Strip whitespace (newlines/tabs) from the content of the last 10,000 entries'
 task clean_spaces: :environment do
   entries = Entry.enabled.last(10_000)
   entries.each do |entry|
@@ -48,6 +49,7 @@ task clean_spaces: :environment do
   end
 end
 
+desc 'Re-extract and clean article content for sites 58 and 127 (last 7 days)'
 task clean_site_content: :environment do
   entries = Entry.where(site_id: [58, 127]).where(published_at: 7.days.ago..Time.current).order(created_at: :desc)
   Parallel.each(entries, in_threads: 2) do |entry|

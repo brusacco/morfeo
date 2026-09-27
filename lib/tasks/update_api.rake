@@ -4,7 +4,7 @@ require 'json'
 require 'pp'
 require 'cgi'
 
-desc 'Actualiza la info de los sitios'
+desc 'Update entry engagement stats from Facebook page posts (reactions/comments/shares via Graph API)'
 task update_api: :environment do
   # Reset all delta values for entries from this site
   puts 'Resetting delta values for all entries'

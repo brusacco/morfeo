@@ -81,7 +81,7 @@ Morfeo uses the `whenever` gem to manage cron jobs defined in `config/schedule.r
 
 ### `facebook:fanpage_crawler[1]`
 
-- **Purpose**: Crawl Facebook pages for new posts (3 pages = ~300 posts per page)
+- **Purpose**: Crawl Facebook pages for new posts (3 pages = ~300 posts total)
 - **Frequency**: Every 3 hours
 - **Related**: [Facebook Services](facebook_reports/facebook_services.md)
 
