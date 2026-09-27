@@ -209,6 +209,13 @@ Morfeo uses the `whenever` gem to manage cron jobs defined in `config/schedule.r
 - **Purpose**: Tag Facebook entries using Tag vocabulary
 - **Status**: Commented out (available for manual or 12-hour scheduling)
 
+### `entities:test`
+
+- **Purpose**: Diagnostic — extract entities from the last N entries (default 50) via the GLiNER API (`/v1/entities`, model `fastino/gliner2.5-multi-v1`) and print results to the console. Analyzes `title + content` (truncated to 4000 chars). No DB writes.
+- **Usage**: `rake entities:test[limit]`; override endpoint with `ENTITY_API_URL`
+- **Status**: Manual diagnostic (not scheduled)
+- **Related**: [API](api.md)
+
 # Task Dependencies and Ordering
 
 The schedule is designed with dependencies in mind:

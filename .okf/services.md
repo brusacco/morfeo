@@ -77,6 +77,8 @@ ApplicationService (base)
 ├── AI Services
 │   ├── OpenAiQuery
 │   └── SentimentAnalysisService
+├── Entity Extractor Services
+│   └── ExtractEntities
 ├── App Services
 │   └── UpdateTagEntries
 └── Application Service (base)
@@ -436,6 +438,23 @@ Extracts tags from Instagram posts.
 **File:** `app/services/ai_services/open_ai_query.rb`
 
 Interfaces with OpenAI API for AI-powered features (sentiment analysis, etc.).
+
+## Entity Extractor Services
+
+### ExtractEntities
+
+**File:** `app/services/entity_extractor/extract_entities.rb`
+
+HTTP client for the GLiNER entity extraction API (FastAPI, `fastino/gliner2.5-multi-v1`). POSTs text to the `/v1/entities` endpoint and returns the extracted entities.
+
+**Parameters:**
+
+- `text` - Text to analyze (required)
+- `api_url` - Endpoint override (optional; defaults to `ENV['ENTITY_API_URL']` or `http://www.morfeo.com.py:8001/v1/entities`)
+
+**Returns:** Result object with `entities` (array of `{ text, type, confidence, start, end }`) on success, or `error` on failure.
+
+**Used by:** `rake entities:test` (diagnostic task in `lib/tasks/entities.rake`).
 
 ## App Services
 
