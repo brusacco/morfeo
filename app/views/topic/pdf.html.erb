@@ -317,6 +317,7 @@
                 word_occurrences: @word_occurrences,
                 bigram_occurrences: @bigram_occurrences
               },
+              entity_analysis: @entity_analysis,
               percentages: {
                 positives: @positives,
                 neutrals: @neutrals,
@@ -1013,6 +1014,121 @@
                         </div>
                         <div style="font-size: 6pt; color: #059669; text-transform: uppercase; font-weight: 600; margin-top: 2pt; line-height: 1;">
                           interac.
+                        </div>
+                      </div>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        <% end %>
+      <% end %>
+
+      <!-- Entities Analysis Section (Using Presenter) -->
+      <% if @presenter.has_entity_data? %>
+        <% entity_type_colors = {
+             'person' => { bg: '#dbeafe', border: '#93c5fd', text: '#1e40af' },
+             'company' => { bg: '#fef3c7', border: '#fcd34d', text: '#92400e' },
+             'government_institution' => { bg: '#fee2e2', border: '#fca5a5', text: '#991b1b' },
+             'political_party' => { bg: '#f3e8ff', border: '#d8b4fe', text: '#6b21a8' },
+             'organization' => { bg: '#ccfbf1', border: '#5eead4', text: '#115e59' },
+             'country' => { bg: '#dcfce7', border: '#86efac', text: '#166534' },
+             'location' => { bg: '#cffafe', border: '#67e8f9', text: '#155e75' },
+             'economic_sector' => { bg: '#ffedd5', border: '#fdba74', text: '#9a3412' }
+           } %>
+        <%= render 'shared/pdf_section_wrapper', section_id: 'entities-analysis' do %>
+          <%= render 'shared/pdf_slide',
+                slide_number: 'ENT1',
+                title: "Análisis de Entidades",
+                subtitle: "Entidades Nominales Detectadas en las Notas",
+                report_type: :digital,
+                topic_name: @topic.name do %>
+
+            <%# Lista de Entidades con Rankings %>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20pt;">
+
+              <%# Columna 1: Top 8 Entidades por Menciones %>
+              <div>
+                <h3 style="margin: 0 0 16pt 0; font-size: 13pt; font-weight: 700; color: #1f2937; padding-left: 10pt; border-left: 3pt solid #1e3a8a;">
+                  <%= heroicon_svg(:users, size: '18pt', color: '#1e3a8a') %> Top Entidades por Menciones
+                </h3>
+
+                <div style="display: flex; flex-direction: column; gap: 6pt;">
+                  <% @presenter.entity_list.first(8).each_with_index do |entity, index| %>
+                    <% colors = entity_type_colors[entity[:type]] || { bg: '#f3f4f6', border: '#d1d5db', text: '#374151' } %>
+                    <div class="tag-item" style="display: flex; align-items: center; gap: 8pt; padding: 6pt 10pt; background: white; border: 1pt solid #e5e7eb; border-radius: 6pt; min-height: 46pt; max-height: 46pt;">
+                      <%# Ranking Badge %>
+                      <div style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 22pt; height: 22pt; background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); color: white; border-radius: 50%; font-size: 10pt; font-weight: 900;">
+                        <%= index + 1 %>
+                      </div>
+
+                      <%# Entity Icon %>
+                      <div style="flex: 0 0 auto; width: 28pt; height: 28pt; border-radius: 50%; background: <%= colors[:bg] %>; display: flex; align-items: center; justify-content: center; font-size: 14pt; border: 1.5pt solid <%= colors[:border] %>; align-self: center; line-height: 1; padding: 0; margin: 0;">
+                        🏷️
+                      </div>
+
+                      <%# Info %>
+                      <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center;">
+                        <div style="font-weight: 700; font-size: 8pt; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; margin: 0;">
+                          <%= entity[:name] %>
+                        </div>
+                        <div style="font-size: 6.5pt; color: <%= colors[:text] %>; margin-top: 2pt; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600;">
+                          <%= @presenter.entity_type_label(entity[:type]) %>
+                        </div>
+                      </div>
+
+                      <%# Métrica %>
+                      <div style="flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 5pt 8pt; background: <%= colors[:bg] %>; border-radius: 6pt; min-width: 55pt;">
+                        <div style="font-size: 12pt; font-weight: 900; color: <%= colors[:text] %>; line-height: 1; margin: 0;">
+                          <%= entity[:mentions] %>
+                        </div>
+                        <div style="font-size: 6pt; color: <%= colors[:text] %>; text-transform: uppercase; font-weight: 600; margin-top: 2pt; line-height: 1;">
+                          menciones
+                        </div>
+                      </div>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+
+              <%# Columna 2: Distribución por Tipo de Entidad %>
+              <div>
+                <h3 style="margin: 0 0 16pt 0; font-size: 13pt; font-weight: 700; color: #1f2937; padding-left: 10pt; border-left: 3pt solid #10b981;">
+                  <%= heroicon_svg(:chart_pie, size: '18pt', color: '#10b981') %> Distribución por Tipo
+                </h3>
+
+                <div style="display: flex; flex-direction: column; gap: 6pt;">
+                  <% @presenter.entity_types.sort_by { |_, v| -v[:mentions] }.first(8).each_with_index do |type, stats, index| %>
+                    <% colors = entity_type_colors[type] || { bg: '#f3f4f6', border: '#d1d5db', text: '#374151' } %>
+                    <div class="tag-item" style="display: flex; align-items: center; gap: 8pt; padding: 6pt 10pt; background: white; border: 1pt solid #e5e7eb; border-radius: 6pt; min-height: 46pt; max-height: 46pt;">
+                      <%# Ranking Badge %>
+                      <div style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 22pt; height: 22pt; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border-radius: 50%; font-size: 10pt; font-weight: 900;">
+                        <%= index + 1 %>
+                      </div>
+
+                      <%# Type Icon %>
+                      <div style="flex: 0 0 auto; width: 28pt; height: 28pt; border-radius: 50%; background: <%= colors[:bg] %>; display: flex; align-items: center; justify-content: center; font-size: 14pt; border: 1.5pt solid <%= colors[:border] %>; align-self: center; line-height: 1; padding: 0; margin: 0;">
+                        📊
+                      </div>
+
+                      <%# Info %>
+                      <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center;">
+                        <div style="font-weight: 700; font-size: 8pt; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; margin: 0;">
+                          <%= @presenter.entity_type_label(type) %>
+                        </div>
+                        <div style="font-size: 6.5pt; color: #6b7280; margin-top: 2pt; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                          <%= stats[:entities] %> entidades únicas
+                        </div>
+                      </div>
+
+                      <%# Métrica %>
+                      <div style="flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 5pt 8pt; background: <%= colors[:bg] %>; border-radius: 6pt; min-width: 55pt;">
+                        <div style="font-size: 12pt; font-weight: 900; color: <%= colors[:text] %>; line-height: 1; margin: 0;">
+                          <%= stats[:mentions] %>
+                        </div>
+                        <div style="font-size: 6pt; color: <%= colors[:text] %>; text-transform: uppercase; font-weight: 600; margin-top: 2pt; line-height: 1;">
+                          menciones
                         </div>
                       </div>
                     </div>

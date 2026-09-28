@@ -28,17 +28,13 @@ class DigitalPdfPresenter
   # Get entries count from data
   # @return [Integer] Number of entries
   def entries_count
-    @entries_count ||= data.dig(:topic_data, :entries_count) ||
-                       data.dig(:topic_data, :total_entries) ||
-                       0
+    @entries_count ||= data.dig(:topic_data, :entries_count) || data.dig(:topic_data, :total_entries) || 0
   end
 
   # Get total interactions count
   # @return [Integer] Total interactions
   def interactions_count
-    @interactions_count ||= data.dig(:topic_data, :entries_total_sum) ||
-                            data.dig(:topic_data, :total_interactions) ||
-                            0
+    @interactions_count ||= data.dig(:topic_data, :entries_total_sum) || data.dig(:topic_data, :total_interactions) || 0
   end
 
   # Calculate estimated reach using conservative multiplier
@@ -54,6 +50,7 @@ class DigitalPdfPresenter
   # @return [Integer] Average interactions (rounded)
   def average_interactions
     return 0 if entries_count.zero?
+
     @average_interactions ||= (Float(interactions_count) / entries_count).round
   end
 
@@ -202,6 +199,39 @@ class DigitalPdfPresenter
     data.dig(:tags_and_words, :bigram_occurrences) || {}
   end
 
+  # === Entity Analysis Methods ===
+
+  # Check if entity analysis data exists
+  # @return [Boolean] True if entity data present
+  def has_entity_data?
+    entity_list.any?
+  end
+
+  # Top entities by mention count
+  # @return [Array<Hash>] [{ name:, type:, mentions: }, ...]
+  def entity_list
+    data[:entity_analysis][:entities] || []
+  end
+
+  # Entity breakdown by type
+  # @return [Hash] type => { entities:, mentions: }
+  def entity_types
+    data[:entity_analysis][:types] || {}
+  end
+
+  # Total entity mentions across the period
+  # @return [Integer]
+  def total_entity_mentions
+    entity_list.sum { |e| e[:mentions] }
+  end
+
+  # Human-readable label for an entity type
+  # @param type [String] e.g. 'person', 'organization'
+  # @return [String]
+  def entity_type_label(type)
+    I18n.t("pdf.entity_types.#{type}", default: type.to_s.humanize)
+  end
+
   # Get entries for top content display
   # Handles different types of @entries (Relation, Struct, Array)
   #
@@ -217,7 +247,8 @@ class DigitalPdfPresenter
       entries.includes(:site).order(total_count: :desc).limit(limit)
     else
       # It's an Array - use safe conversion
-      entries.sort_by { |e| -Integer(e.total_count || 0) }.take(limit)
+      entries.sort_by { |e| -Integer(e.total_count || 0) }
+             .take(limit)
     end
   end
 
@@ -252,7 +283,7 @@ class DigitalPdfPresenter
   # @return [String] Explanation text
   def reach_methodology
     "El alcance estimado se calcula de forma conservadora (#{REACH_MULTIPLIER}x las interacciones). " \
-    'Esto asume que cada interacción representa aproximadamente 3 lectores únicos.'
+      'Esto asume que cada interacción representa aproximadamente 3 lectores únicos.'
   end
 
   # Get color palette for digital pie charts
@@ -273,4 +304,3 @@ class DigitalPdfPresenter
     DIGITAL_SUCCESS_COLOR
   end
 end
-

@@ -21,6 +21,17 @@ es:
       fanpages_analysis: "Análisis de Fanpages"
       profiles_analysis: "Análisis de Perfiles"
       executive_summary: "Resumen Ejecutivo"
+      entities_analysis: "Análisis de Entidades"
+
+    entity_types:
+      person: "Persona"
+      company: "Empresa"
+      government_institution: "Institución Gubernamental"
+      political_party: "Partido Político"
+      organization: "Organización"
+      country: "País"
+      location: "Lugar"
+      economic_sector: "Sector Económico"
 
     metrics:
       entries: "Notas"

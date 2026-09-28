@@ -1,0 +1,61 @@
+<%
+  # Entity pill for the "Nube" view of the entity analysis.
+  # entity_pill: { name:, type:, mentions: }
+  #
+  # Sized by mention count (visual hierarchy in the cloud). The main pill uses
+  # the SAME indigo palette as the word/bigram pills for consistency; the entity
+  # type is shown as a small colored bullet (dot) instead of a mention counter.
+  max_mentions = @entity_max_mentions || entity_pill[:mentions]
+  min_mentions = @entity_min_mentions || 1
+
+  if max_mentions > min_mentions
+    normalized = ((entity_pill[:mentions] - min_mentions).to_f / (max_mentions - min_mentions) * 4 + 1).round
+  else
+    normalized = 3
+  end
+
+  size_classes = {
+    1 => 'text-xs px-2 py-1',
+    2 => 'text-sm px-2.5 py-1.5',
+    3 => 'text-base px-3 py-2',
+    4 => 'text-lg px-4 py-2.5 font-medium',
+    5 => 'text-xl px-5 py-3 font-semibold'
+  }
+
+  name = entity_pill[:name]
+  type = entity_pill[:type]
+
+  # Colored bullet per entity type (the type indicator, replaces the counter)
+  type_dots = {
+    'person' => 'bg-blue-500',
+    'company' => 'bg-amber-500',
+    'government_institution' => 'bg-red-500',
+    'political_party' => 'bg-purple-500',
+    'organization' => 'bg-teal-500',
+    'country' => 'bg-green-500',
+    'location' => 'bg-cyan-500',
+    'economic_sector' => 'bg-orange-500'
+  }
+  dot_class = type_dots[type] || 'bg-gray-400'
+  type_label = I18n.t("pdf.entity_types.#{type}", default: type.to_s.humanize)
+%>
+
+<div class="entity-item tag-pill-wrapper inline-block m-1" data-entity="<%= name.downcase %>">
+  <div class="<%= size_classes[normalized] %> bg-gradient-to-r from-indigo-50 to-blue-50 text-indigo-900 border border-indigo-200 rounded-lg
+              inline-flex items-center gap-2 transition-shadow duration-200
+              hover:shadow-md cursor-pointer">
+
+    <!-- Entity Name -->
+    <span class="font-medium leading-none select-all">
+      <%= name %>
+    </span>
+
+
+    <!-- Type Label -->
+    <span class="bg-indigo-600 text-white rounded-md px-2 py-1 text-xs font-bold shadow-sm">
+        <!-- Type Bullet (colored dot, replaces the mention counter) -->
+        <span class="inline-block w-2.5 h-2.5 rounded-full <%= dot_class %>" title="<%= type_label %>"></span>
+      <%= type_label %>
+    </span>
+  </div>
+</div>

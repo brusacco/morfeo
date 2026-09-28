@@ -27,6 +27,7 @@ Returns a hash with the same structure as AggregatorService, optimized for PDF o
 - `topic_data` - Core topic analytics data
 - `chart_data` - Chart data for visualizations
 - `tags_and_words` - Tag and word frequency data
+- `entity_analysis` - GLiNER2 named-entity data (`entities` top-100 list, only `mentions >= 2` + `types` breakdown), built via the shared `EntityAnalysisData` concern (`build_entity_analysis`, no caching — the PDF service computes fresh per render)
 - `percentages` - Percentage breakdowns
 
 # Features

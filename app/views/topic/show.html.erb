@@ -897,6 +897,10 @@
         </div>
       </section>
     <% end %>
+    <!-- Entity Analysis Section -->
+    <section class="mb-8">
+      <%= render partial: "topic/entity_analysis", locals: { entity_data: @entity_analysis } %>
+    </section>
     <!-- Word Analysis Section -->
     <section class="mb-8">
       <%= render partial: "tag/word_cloud_modern",

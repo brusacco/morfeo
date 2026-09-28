@@ -98,6 +98,7 @@ class TopicController < ApplicationController
     assign_chart_data(dashboard_data[:chart_data])
     assign_percentages(dashboard_data[:percentages])
     assign_tags_and_words(dashboard_data[:tags_and_words])
+    @entity_analysis = dashboard_data[:entity_analysis]
     assign_temporal_intelligence(dashboard_data[:temporal_intelligence])
     @viral_content = dashboard_data[:viral_content]
   end
@@ -127,6 +128,7 @@ class TopicController < ApplicationController
     assign_topic_data(pdf_data[:topic_data])
     assign_chart_data(pdf_data[:chart_data])
     assign_tags_and_words(pdf_data[:tags_and_words])
+    @entity_analysis = pdf_data[:entity_analysis]
     assign_percentages(pdf_data[:percentages])
 
     # Render with specific layout for PDF

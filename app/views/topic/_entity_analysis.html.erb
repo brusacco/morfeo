@@ -1,0 +1,185 @@
+<%
+  # Entity Analysis Section - Named entities detected by GLiNER2
+  # entity_data: { entities: [{name:, type:, mentions:}], types: {type => {entities:, mentions:}} }
+  entity_data = local_assigns[:entity_data] || { entities: [], types: {} }
+  entities = entity_data[:entities] || []
+  types = entity_data[:types] || {}
+
+  # Tailwind badge classes per entity type
+  entity_type_badges = {
+    'person' => 'bg-blue-100 text-blue-700 border-blue-200',
+    'company' => 'bg-amber-100 text-amber-700 border-amber-200',
+    'government_institution' => 'bg-red-100 text-red-700 border-red-200',
+    'political_party' => 'bg-purple-100 text-purple-700 border-purple-200',
+    'organization' => 'bg-teal-100 text-teal-700 border-teal-200',
+    'country' => 'bg-green-100 text-green-700 border-green-200',
+    'location' => 'bg-cyan-100 text-cyan-700 border-cyan-200',
+    'economic_sector' => 'bg-orange-100 text-orange-700 border-orange-200'
+  }.freeze
+
+  # Colored bullet per entity type (matches the cloud pills)
+  type_dots = {
+    'person' => 'bg-blue-500',
+    'company' => 'bg-amber-500',
+    'government_institution' => 'bg-red-500',
+    'political_party' => 'bg-purple-500',
+    'organization' => 'bg-teal-500',
+    'country' => 'bg-green-500',
+    'location' => 'bg-cyan-500',
+    'economic_sector' => 'bg-orange-500'
+  }.freeze
+
+  max_mentions = entities.map { |e| e[:mentions] }.max || 1
+  min_mentions = entities.map { |e| e[:mentions] }.min || 1
+  component_id = "entity-analysis-#{SecureRandom.hex(4)}"
+
+  # Expose min/max to the entity pill partial for size normalization
+  @entity_max_mentions = max_mentions
+  @entity_min_mentions = min_mentions
+%>
+
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden" x-data="{ view: 'cloud', search: '' }">
+  <!-- Header -->
+  <div class="bg-gradient-to-r from-gray-50 to-white border-b border-gray-200 p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+        <i class="fa-solid fa-fingerprint text-indigo-600 mr-2"></i>
+        Análisis de Entidades
+        <span class="ml-2 text-sm font-normal text-gray-500">(<%= entities.size %> entidades)</span>
+      </h3>
+
+      <!-- View Toggle -->
+      <div class="flex items-center gap-2">
+        <button @click="view = 'cloud'"
+                :class="view === 'cloud' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+                class="px-3 py-1.5 rounded-lg text-sm font-medium transition-all">
+          <i class="fa-solid fa-cloud mr-1"></i>
+          Nube
+        </button>
+        <button @click="view = 'list'"
+                :class="view === 'list' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+                class="px-3 py-1.5 rounded-lg text-sm font-medium transition-all">
+          <i class="fa-solid fa-list mr-1"></i>
+          Lista
+        </button>
+      </div>
+    </div>
+
+    <p class="text-sm text-gray-600 mb-4">
+      <i class="fa-solid fa-info-circle mr-1"></i>
+      Entidades nominales (personas, organizaciones, lugares, etc.) detectadas en los títulos y contenido de las notas del período
+    </p>
+
+    <!-- Search Bar -->
+    <div class="relative">
+      <input
+        type="text"
+        x-model="search"
+        @input="filterEntities('<%= component_id %>', $event.target.value)"
+        placeholder="Buscar entidad..."
+        class="w-full px-4 py-2 pl-10 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm">
+      <i class="fa-solid fa-search absolute left-3 top-3 text-gray-400"></i>
+      <button
+        x-show="search.length > 0"
+        @click="search = ''; filterEntities('<%= component_id %>', '')"
+        class="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600">
+        <i class="fa-solid fa-times"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Content Area -->
+  <div class="p-6" id="<%= component_id %>">
+    <% if entities.any? %>
+      <!-- Cloud View -->
+      <div x-show="view === 'cloud'" x-transition class="word-cloud-container text-center leading-loose">
+        <%= render partial: 'tag/entity_pill', collection: entities, as: :entity_pill %>
+      </div>
+
+      <!-- List View -->
+      <div x-show="view === 'list'" x-transition class="space-y-2">
+        <% entities.each_with_index do |entity, index| %>
+          <div class="entity-row flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 transition-all group"
+               data-entity="<%= entity[:name].downcase %>">
+            <span class="text-xs font-bold text-gray-400 w-6 shrink-0">
+              #<%= index + 1 %>
+            </span>
+            <span class="font-medium text-gray-900 group-hover:text-indigo-700 transition-colors truncate">
+              <%= entity[:name] %>
+            </span>
+            <span class="inline-block w-2.5 h-2.5 rounded-full shrink-0 <%= type_dots[entity[:type]] || 'bg-gray-400' %>" title="<%= I18n.t('pdf.entity_types.#{entity[:type]}', default: entity[:type].to_s.humanize) %>"></span>
+            <span class="shrink-0 px-2 py-0.5 text-xs rounded-full border font-medium <%= entity_type_badges[entity[:type]] || 'bg-gray-100 text-gray-700 border-gray-200' %>">
+              <%= I18n.t("pdf.entity_types.#{entity[:type]}", default: entity[:type].to_s.humanize) %>
+            </span>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- No Results Message -->
+      <div class="no-results-message hidden text-center py-12">
+        <i class="fa-solid fa-search text-4xl text-gray-300 mb-4"></i>
+        <p class="text-gray-500 font-medium">No se encontraron entidades</p>
+        <p class="text-sm text-gray-400 mt-1">Intenta con otra búsqueda</p>
+      </div>
+    <% else %>
+      <!-- Empty State -->
+      <div class="text-center py-12">
+        <i class="fa-solid fa-inbox text-4xl text-gray-300 mb-4"></i>
+        <p class="text-gray-500 font-medium">Sin entidades detectadas</p>
+        <p class="text-sm text-gray-400 mt-1">No hay entidades nominales en las notas de este período</p>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Footer Stats -->
+  <% if entities.any? %>
+    <div class="bg-gray-50 border-t border-gray-200 px-6 py-4">
+      <div class="flex items-center justify-between text-sm">
+        <div class="flex items-center gap-6">
+          <div>
+            <span class="text-gray-500">Entidades únicas:</span>
+            <span class="font-bold text-gray-900 ml-1"><%= entities.size %></span>
+          </div>
+          <div>
+            <span class="text-gray-500">Tipo más frecuente:</span>
+            <span class="font-bold text-indigo-600 ml-1">
+              <%= I18n.t("pdf.entity_types.#{types.max_by { |_, v| v[:entities] }&.first}", default: '—') %>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<!-- JavaScript for Search/Filter -->
+<script>
+  function filterEntities(containerId, searchTerm) {
+    const container = document.getElementById(containerId);
+    const rows = container.querySelectorAll('.entity-row, .entity-item');
+    const noResultsMsg = container.querySelector('.no-results-message');
+    let visibleCount = 0;
+
+    searchTerm = searchTerm.toLowerCase().trim();
+
+    rows.forEach(row => {
+      const entity = row.getAttribute('data-entity');
+      const matches = entity.includes(searchTerm);
+
+      if (matches) {
+        row.style.display = '';
+        visibleCount++;
+      } else {
+        row.style.display = 'none';
+      }
+    });
+
+    if (noResultsMsg) {
+      if (visibleCount === 0 && searchTerm.length > 0) {
+        noResultsMsg.classList.remove('hidden');
+      } else {
+        noResultsMsg.classList.add('hidden');
+      }
+    }
+  }
+</script>

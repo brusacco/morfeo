@@ -8,6 +8,8 @@ module DigitalDashboardServices
   #   data = DigitalDashboardServices::AggregatorService.call(topic: @topic)
   #   data[:topic_data][:total_entries]  # => Total entries count
   class AggregatorService < ApplicationService
+    include EntityAnalysisData
+
     # Cache expiration time for dashboard data
     CACHE_EXPIRATION = 30.minutes
     CACHE_NAMESPACE = 'digital_dashboard:v4'
@@ -64,6 +66,7 @@ module DigitalDashboardServices
         chart_data: load_chart_data,
         percentages: calculate_percentages,
         tags_and_words: load_tags_and_word_data,
+        entity_analysis: load_entity_analysis(entries),
         temporal_intelligence: load_temporal_intelligence,
         viral_content: detect_viral_content
       }
@@ -318,6 +321,17 @@ module DigitalDashboardServices
       tag_data = load_tag_analysis(entries)
 
       word_data.merge(tag_data).merge(report: @topic.reports.last, comments: [], comments_word_occurrences: [])
+    end
+
+    def load_entity_analysis(entries)
+      fetch_cached_with_race_protection(entity_analysis_cache_key, expires_in: CACHE_EXPIRATION) do
+        build_entity_analysis(entries)
+      end
+    end
+
+    def entity_analysis_cache_key
+      # :v2 — payload now filters to entities with mentions >= 2 (MIN_MENTIONS)
+      "#{CACHE_NAMESPACE}:topic:#{@topic.id}:entity_analysis:v2:#{cache_date_range}"
     end
 
     def load_text_analysis(entries)

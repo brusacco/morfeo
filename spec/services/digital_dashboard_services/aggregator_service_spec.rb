@@ -171,6 +171,8 @@ RSpec.describe DigitalDashboardServices::AggregatorService do
       load_chart_data: { chart: 'data' },
       calculate_percentages: { percentage: 100 },
       load_tags_and_word_data: { words: %w[a b] },
+      entries: [],
+      load_entity_analysis: { entities: [], types: {} },
       load_temporal_intelligence: { temporal: 'data' },
       detect_viral_content: [{ id: 1 }]
     )
@@ -180,6 +182,7 @@ RSpec.describe DigitalDashboardServices::AggregatorService do
       chart_data: { chart: 'data' },
       percentages: { percentage: 100 },
       tags_and_words: { words: %w[a b] },
+      entity_analysis: { entities: [], types: {} },
       temporal_intelligence: { temporal: 'data' },
       viral_content: [{ id: 1 }]
     )
@@ -295,6 +298,76 @@ RSpec.describe DigitalDashboardServices::AggregatorService do
         entries_polarity_counts: { 'neutral' => 1 },
         entries_polarity_sums: { 'neutral' => 0 }
       )
+    end
+  end
+
+  describe 'entity analysis' do
+    it 'returns an empty payload for nil or empty entries' do
+      expect(service.send(:build_entity_analysis, nil)).to eq(entities: [], types: {})
+      expect(service.send(:build_entity_analysis, Entry.none)).to eq(entities: [], types: {})
+    end
+
+    it 'aggregates entity mentions for the topic entries' do
+      entry = create_entry
+      entity = Entity.create!(name: 'Hernán Rivas', entity_type: 'person')
+      [0, 40].each do |start|
+        EntityMention.create!(
+          entity: entity,
+          content_type: 'Entry',
+          content_id: entry.id,
+          text: 'Hernán Rivas',
+          entity_type: 'person',
+          confidence: 0.95,
+          start: start,
+          'end' => start + 12
+        )
+      end
+
+      result = service.send(:build_entity_analysis, Entry.where(id: entry.id))
+
+      expect(result[:entities]).to eq([{ name: 'Hernán Rivas', type: 'person', mentions: 2 }])
+      expect(result[:types]).to eq('person' => { entities: 1, mentions: 2 })
+    end
+
+    it 'excludes entities detected only once' do
+      entry = create_entry
+      entity = Entity.create!(name: 'Hernán Rivas', entity_type: 'person')
+      EntityMention.create!(
+        entity: entity,
+        content_type: 'Entry',
+        content_id: entry.id,
+        text: 'Hernán Rivas',
+        entity_type: 'person',
+        confidence: 0.95,
+        start: 0,
+        'end' => 12
+      )
+
+      result = service.send(:build_entity_analysis, Entry.where(id: entry.id))
+
+      expect(result[:entities]).to eq([])
+      expect(result[:types]).to eq({})
+    end
+
+    it 'excludes mentions from entries outside the given scope' do
+      in_scope = create_entry
+      out_of_scope = create_entry
+      entity = Entity.create!(name: 'Paraguay', entity_type: 'country')
+      EntityMention.create!(
+        entity: entity,
+        content_type: 'Entry',
+        content_id: out_of_scope.id,
+        text: 'Paraguay',
+        entity_type: 'country',
+        confidence: 0.95,
+        start: 0,
+        'end' => 8
+      )
+
+      result = service.send(:build_entity_analysis, Entry.where(id: in_scope.id))
+
+      expect(result[:entities]).to eq([])
+      expect(result[:types]).to eq({})
     end
   end
 

@@ -105,17 +105,23 @@ namespace :entities do
 
     # Resolve the "last N entries" set up front (ids only), then stream it in
     # batches by id so we never hold more than one batch in memory.
-    ids = base_scope.order(published_at: :desc).limit(limit).pluck(:id)
+    recent_ids = base_scope.order(published_at: :desc).limit(limit).pluck(:id)
+
+    # Skip entries that already have entities extracted (idempotent re-runs).
+    extracted_ids = EntityMention.where(content_type: Entry.base_class.name, content_id: recent_ids)
+                                 .distinct.pluck(:content_id)
+    skipped_existing = extracted_ids.size
+    ids = recent_ids - extracted_ids
+
     total = ids.size
     puts "Entries to process: #{total}"
+    puts "Already extracted (skipped): #{skipped_existing}"
     puts
 
     if total.zero?
       puts 'No entries found with title or content. Nothing to do.'
       return
     end
-
-    min_id = ids.min
 
     processed = 0
     failed = 0
@@ -125,7 +131,7 @@ namespace :entities do
     total_ignored = 0
 
     base_scope
-      .where(id: min_id..Float::INFINITY)
+      .where(id: ids)
       .select(:id, :title, :content, :published_at)
       .in_batches(of: 100, order: :asc) do |batch|
         batch.each do |entry|

@@ -23,6 +23,7 @@ RSpec.describe DigitalDashboardServices::PdfService do
       topic_data: { topic: 'data' },
       chart_data: { chart: 'data' },
       tags_and_words: { words: %w[a b] },
+      entity_analysis: { entities: [], types: {} },
       percentages: { percentage: 100 }
     )
   end

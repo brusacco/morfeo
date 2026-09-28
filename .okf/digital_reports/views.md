@@ -22,12 +22,13 @@ Main analytics dashboard with extensive sections:
 3. **Temporal Charts** - Entries/day and interactions/day column charts
 4. **Sentiment Analysis** - Positive/negative/neutral distribution
 5. **Tag Analysis** - Tag distribution and interaction pie charts
-6. **Word Cloud** - Visual word frequency with sentiment coloring
-7. **Word/Bigram Lists** - Frequency tables
-8. **Site Distribution** - Entries and interactions by news site
-9. **DataTables** - Sortable/searchable table of all entries
-10. **Top Entries Grid** - Visual cards of top performing entries
-11. **Calendar View** - Calendar visualization of entry distribution
+6. **Entity Analysis** - Named entities (GLiNER2) detected in the topic's notes. Rendered by `topic/_entity_analysis.html.erb` from `@entity_analysis` (aggregator `entity_analysis` payload), placed above the word-analysis sections. Mirrors the word/bigram analysis with a **Nube / Lista** toggle (Alpine `view`): _Nube_ shows size-normalized pills (`tag/_entity_pill.html.erb`, sized by mention count via `@entity_max_mentions`/`@entity_min_mentions`) using the SAME indigo palette as the word/bigram pills; each pill shows the entity name, a small colored bullet (dot, per-type color) + type label, and a dark indigo count badge (`bg-indigo-600 text-white`) with the mention count — matching the word/bigram count badge. _Lista_ shows a ranked list (rank + name + type badge, no mention bar). Both views share the search box (`filterEntities` filters `.entity-row` + `.entity-item`). Header shows type-breakdown chips (label + entity count, no mention total); footer shows "Entidades únicas" + "Tipo más frecuente" (no mention total)
+7. **Word Cloud** - Visual word frequency with sentiment coloring
+8. **Word/Bigram Lists** - Frequency tables
+9. **Site Distribution** - Entries and interactions by news site
+10. **DataTables** - Sortable/searchable table of all entries
+11. **Top Entries Grid** - Visual cards of top performing entries
+12. **Calendar View** - Calendar visualization of entry distribution
 
 ## pdf.html.erb
 
@@ -39,6 +40,7 @@ Print-optimized report layout for PDF generation:
 - Chart sizing optimized for print
 - Auto-print JavaScript trigger
 - Comprehensive sections matching web view
+- **Entities slide** (`ENT1`, "Análisis de Entidades") — rendered above the "Análisis de Palabras" slide when `@presenter.has_entity_data?`; two columns: top 8 entities by mentions (with type label + color) and distribution by entity type. Data comes from `DigitalPdfPresenter#entity_list` / `#entity_types` (backed by the PDF service `entity_analysis` payload); type labels via `pdf.entity_types.*` i18n keys
 
 # Partials
 

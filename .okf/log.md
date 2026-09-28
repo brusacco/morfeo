@@ -2,6 +2,57 @@
 
 ## 2026-09-27
 
+- `rake entities:extract[limit]` now skips entries that already have entities
+  extracted. After resolving the last-N id set, it queries `EntityMention`
+  (`content_type = 'Entry'`) for those ids and drops any `Entry` that already has
+  at least one mention, so re-runs don't re-call the GLiNER API for already
+  extracted entries. The skipped count is reported as "Already extracted
+  (skipped)" and the batch stream is scoped to the remaining ids
+  (`where(id: ids)`).
+- Reworked the **Análisis de Entidades** web section for consistency with the
+  word/bigram pills. Nube pills (`tag/_entity_pill.html.erb`) use the SAME indigo
+  palette (`from-indigo-50 to-blue-50` / `border-indigo-200` / `text-indigo-900`),
+  show the entity name + a small colored bullet (dot, per-type color) + type
+  label, and a dark indigo count badge (`bg-indigo-600 text-white rounded-md`)
+  with the mention count — the same badge style as the word/bigram pills. Lista
+  rows show rank + name + type badge (no mention bar). Type-breakdown chips show
+  label + entity count (no "· N menc."). Footer shows "Entidades únicas" +
+  "Tipo más frecuente" (no "Total de menciones"). The PDF ENT1 slide is unchanged
+  (separate ranked-report design).
+- Fixed broken Font Awesome icons (rendered as empty `//` artifacts) in the
+  digital report. Font Awesome 6 requires the `fa-solid` style class; icons
+  without it fall back to the body font and show no glyph. Added `fa-solid` in
+  `tag/_word_cloud_modern.html.erb` (section header icon — fixes "Análisis de
+  Palabras"/"Bigramas" headers across all topic/site/tag/entry views) and in
+  `tag/_entity_pill.html.erb` (per-type entity icons). Verified in-browser: all
+  affected icons now compute `font-family: "Font Awesome 6 Free"` with a glyph.
+- The **Análisis de Entidades** payload now only includes entities detected more
+  than once: `EntityAnalysisData#build_entity_analysis` adds
+  `.having('COUNT(*) >= MIN_MENTIONS')` (`MIN_MENTIONS = 2`), so one-off
+  detections are dropped from both `entities` and `types` (web + PDF).
+- Improved the **Análisis de Entidades** web section to match the word/bigram
+  analysis: added a **Nube / Lista** toggle (Alpine `view`). _Nube_ renders
+  type-colored, size-normalized pills via new `tag/_entity_pill.html.erb`
+  (sized by mention count through `@entity_max_mentions`/`@entity_min_mentions`);
+  _Lista_ keeps the ranked list with type badges + mention bars. Search now
+  filters both views (`.entity-row` + `.entity-item`). Fixed the type-breakdown
+  chips so the type label and count no longer run together ("Persona59" →
+  "Persona 59").
+- Added an **Análisis de Entidades** section to the digital topic report. New
+  shared concern `EntityAnalysisData` (`app/services/concerns/entity_analysis_data.rb`)
+  aggregates `EntityMention` rows (GLiNER2 detections) for a topic's entries into
+  `{ entities: [{name, type, mentions}] (top 100, only mentions >= 2), types: {type => {entities, mentions}} }`.
+  `DigitalDashboardServices::AggregatorService` includes it and adds an
+  `entity_analysis` key to the cached snapshot (own 30-min cache key
+  `digital_dashboard:v4:topic:<id>:entity_analysis:<range>`);
+  `DigitalDashboardServices::PdfService` includes it and adds `entity_analysis`
+  to the PDF payload (computed fresh, no cache). `TopicController#show`/`#pdf`
+  assign `@entity_analysis`. Web: new `topic/_entity_analysis.html.erb` partial
+  (searchable list, per-type badges, type-breakdown chips, mention bars) rendered
+  above the word-analysis sections in `topic/show.html.erb`. PDF: new `ENT1`
+  "Análisis de Entidades" slide above "Análisis de Palabras" in
+  `topic/pdf.html.erb`, with `DigitalPdfPresenter#has_entity_data?`/`#entity_list`/
+  `#entity_types`/`#entity_type_label` and `pdf.entity_types.*` i18n labels.
 - `rake entities:extract[limit]` now streams entries instead of loading all N
   rows at once: it resolves the last-N id set up front (`pluck(:id)` ordered by
   `published_at: :desc`) and processes it with `in_batches(of: 100, order: :asc)`,

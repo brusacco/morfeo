@@ -53,6 +53,11 @@ Returns a hash with the following keys:
   - `positive_words` - Positive sentiment words
   - `negative_words` - Negative sentiment words
 
+- `entity_analysis` - GLiNER2 named-entity data (via the shared `EntityAnalysisData` concern, `app/services/concerns/entity_analysis_data.rb`)
+  - `entities` - Top 100 entities by mention count, only those detected more than once (`mentions >= 2`): `[{ name:, type:, mentions: }]`
+  - `types` - Breakdown per entity type: `{ 'person' => { entities:, mentions: }, ... }`
+  - Cached under `digital_dashboard:v4:topic:<id>:entity_analysis:v2:<range>` (30-min TTL, same as the snapshot; `:v2` marks the `mentions >= 2` filter). Aggregates `EntityMention` rows for the topic's entries in one grouped query.
+
 - `temporal_intelligence` - Time-based insights
   - `temporal_summary` - Summary text
   - `optimal_time` - Best posting time
@@ -90,6 +95,7 @@ association suitable only where eventual consistency is acceptable.
 - Per-site entry counts and interaction sums are calculated in one grouped query and cached as one payload.
 - In direct-entry mode, share-of-voice reuses one global, range-keyed aggregate of all enabled entries instead of recalculating it per topic.
 - Word and bigram frequencies share one scoped text-analysis query and cache payload.
+- Entity analysis aggregates `EntityMention` rows (GLiNER2 detections) for the topic entries in one grouped query, cached separately from the text analysis.
 - Viral-content detection filters recent entries through direct tag IDs in the `tags` context.
 - Calendar view data preparation
 - Advanced filtering by polarity
